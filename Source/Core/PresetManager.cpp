@@ -109,7 +109,10 @@ void PresetManager::saveUserPreset(const juce::String& name, const juce::ValueTr
     auto userDir = getUserPresetsDirectory();
     if (!userDir.exists()) userDir.createDirectory();
     
-    auto file = userDir.getChildFile(name + ".json");
+    // Sanitize filename
+    juce::String safeName = juce::File::createLegalFileName(name);
+    auto file = userDir.getChildFile(safeName + ".json");
+    
     juce::DynamicObject::Ptr obj = new juce::DynamicObject();
     obj->setProperty("name", name);
     obj->setProperty("state", state.toXmlString());
@@ -120,7 +123,10 @@ void PresetManager::saveUserPreset(const juce::String& name, const juce::ValueTr
             if(libraries[i].name == "User") {
                 currentLibraryIndex = i;
                 for(int k=0; k<(int)libraries[i].patches.size(); ++k) {
-                    if(libraries[i].patches[k].name == name) { currentPresetIndex = k; break; }
+                    if(libraries[i].patches[k].name == name) {
+                        currentPresetIndex = k;
+                        break;
+                    }
                 }
                 break;
             }
@@ -136,7 +142,6 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
     int s = (int)mb.getSize();
     struct RawP { std::vector<uint8_t> b; };
     std::vector<RawP> found;
-    
     for (int i=0; i < s - 22; ++i) {
         if (d[i] == 0xF0 && d[i+1] == 0x41 && d[i+2] == 0x30) {
             RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[i+5+k]);
@@ -175,13 +180,13 @@ void PresetManager::exportAllLibrariesToJson(const juce::File& file) {
     setLastPath(file.getParentDirectory().getFullPathName());
     juce::Array<juce::var> libs;
     for (const auto& lib : libraries) {
-        juce::Array<juce::var> arr;
+        juce::Array<juce::var> presetsArray;
         for (const auto& p : lib.patches) {
             juce::DynamicObject::Ptr o = new juce::DynamicObject();
-            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); arr.add(juce::var(o.get()));
+            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); presetsArray.add(juce::var(o.get()));
         }
         juce::DynamicObject::Ptr lObj = new juce::DynamicObject();
-        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", arr); libs.add(juce::var(lObj.get()));
+        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", presetsArray); libs.add(juce::var(lObj.get()));
     }
     juce::DynamicObject::Ptr root = new juce::DynamicObject();
     root->setProperty("allLibraries", libs);
@@ -199,7 +204,7 @@ void PresetManager::setCurrentPreset(int index) { currentPresetIndex = index; }
 void PresetManager::selectPresetByBankAndPatch(int g, int b, int p) { currentPresetIndex = (g * 64) + ((b - 1) * 8) + (p - 1); }
 juce::ValueTree PresetManager::getCurrentPresetState() const { const auto* p = getPreset(currentPresetIndex); return p ? p->state : juce::ValueTree(); }
 juce::String PresetManager::getCurrentPresetName() const { const auto* p = getPreset(currentPresetIndex); return p ? p->name : "Init"; }
-juce::File PresetManager::getUserPresetsDirectory() const { return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("JUNiO601").getChildFile("UserPresets"); }
+juce::File PresetManager::getUserPresetsDirectory() const { return juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("JUNiO601").getChildFile("UserPresets"); }
 
 juce::String PresetManager::getLastPath() const {
     juce::PropertiesFile::Options o; o.applicationName = "JUNiO601"; o.filenameSuffix = ".settings";
@@ -218,8 +223,8 @@ void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeStat
     setI("dcoRange", r.nextInt(3)); bool s = r.nextBool(); setB("sawOn", s); setB("pulseOn", !s || r.nextBool());
     setP("pwm", r.nextFloat()); setI("pwmMode", r.nextInt(2)); setP("subOsc", r.nextFloat() * 0.8f); setP("noise", r.nextFloat() * 0.3f);
     setP("lfoToDCO", r.nextFloat() * 0.2f); setP("vcfFreq", 0.2f + (r.nextFloat() * 0.8f)); setP("resonance", r.nextFloat() * 0.7f);
-    setP("envAmount", r.nextFloat()); setI("vcfPolarity", r.nextInt(2)); setP("lfoToVCF", r.nextFloat() * 0.4f);
-    setP("kybdTracking", r.nextFloat()); setI("hpfFreq", r.nextInt(4)); setI("vcaMode", r.nextInt(2)); setP("vcaLevel", 0.6f + (r.nextFloat() * 0.4f));
+    setP("envAmount", r.nextFloat()); setI("vcfPolarity", r.nextInt(2)); setP("lfoToVCF", r.nextFloat() * 0.4f); setP("kybdTracking", r.nextFloat());
+    setI("hpfFreq", r.nextInt(4)); setI("vcaMode", r.nextInt(2)); setP("vcaLevel", 0.6f + (r.nextFloat() * 0.4f));
     setP("attack", r.nextFloat() * 0.5f); setP("decay", 0.1f + r.nextFloat() * 0.9f); setP("sustain", 0.2f + r.nextFloat() * 0.8f);
     setP("release", 0.1f + r.nextFloat() * 0.7f); setP("lfoRate", r.nextFloat()); setP("lfoDelay", r.nextFloat() * 0.5f);
     bool cOn = r.nextFloat() < 0.7f; if (cOn) { int m = r.nextInt(3); setB("chorus1", m == 0 || m == 2); setB("chorus2", m == 1 || m == 2); } else { setB("chorus1", false); setB("chorus2", false); }

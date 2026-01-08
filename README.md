@@ -51,5 +51,14 @@ Replicates the diagnostic "Test Mode" used by technicians:
 - **Compiler**: MSVC / Clang / GCC (clean build with **zero warnings**)
 - **Build System**: Automatic build counter and versioning via `build_standalone.bat`.
 
+## Factory Preset Recovery
+The original Juno‑106 ROM contains 128 factory patches stored in binary `.106` files. These files use a custom format with a `!j106\` header followed by a sequence of patch entries (name string + 18‑byte parameter block). A helper script `generate_factory_presets.py` can parse the file `factory patches.106` and generate a complete `FactoryPresets.h` with all 128 entries.
+
+To regenerate the presets, run:
+```bash
+python generate_factory_presets.py
+```
+The script extracts only entries whose name starts with `A` (factory patches) and writes them to `Source/Core/FactoryPresets.h`. Other `.106` files (e.g., user libraries) may contain a different number of patches and are not processed by this script.
+
 ---
 *Developed by ABD - Advanced Agentic Coding Project*
