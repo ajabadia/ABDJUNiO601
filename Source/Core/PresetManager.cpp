@@ -86,10 +86,12 @@ void PresetManager::loadUserPresets() {
     int idx = -1;
     for(int i=0; i<(int)libraries.size(); ++i) if(libraries[i].name == "User") idx = i;
     if (idx == -1) return;
+    
     Library& lib = libraries[idx];
     lib.patches.clear();
     auto userDir = getUserPresetsDirectory();
     if (!userDir.exists()) userDir.createDirectory();
+    
     auto files = userDir.findChildFiles(juce::File::findFiles, false, "*.json");
     for (const auto& f : files) {
         auto json = juce::JSON::parse(f);
@@ -105,11 +107,14 @@ void PresetManager::saveUserPreset(const juce::String& name, const juce::ValueTr
     if (!state.isValid()) return;
     auto userDir = getUserPresetsDirectory();
     if (!userDir.exists()) userDir.createDirectory();
+    
     juce::String safeName = juce::File::createLegalFileName(name);
     auto file = userDir.getChildFile(safeName + ".json");
+    
     juce::DynamicObject::Ptr obj = new juce::DynamicObject();
     obj->setProperty("name", name);
     obj->setProperty("state", state.toXmlString());
+    
     if (file.replaceWithText(juce::JSON::toString(juce::var(obj.get())))) {
         loadUserPresets();
         for(int i=0; i<(int)libraries.size(); ++i) {
@@ -132,6 +137,7 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
     int s = (int)mb.getSize();
     struct RawP { std::vector<uint8_t> b; };
     std::vector<RawP> found;
+    
     for (int i=0; i < s - 22; ++i) {
         if (d[i] == 0xF0 && d[i+1] == 0x41 && d[i+2] == 0x30) {
             RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[i+5+k]);
@@ -140,6 +146,7 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
     }
     if (found.empty() && s >= 18) { RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[k]); found.push_back(p); }
     if (found.empty()) return juce::Result::fail("No patches");
+
     if (found.size() > 1) {
         addLibrary(file.getFileNameWithoutExtension());
         int libIdx = getNumLibraries() - 1;
