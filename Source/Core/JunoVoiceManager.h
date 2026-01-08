@@ -16,7 +16,6 @@ public:
     
     void prepare(double sampleRate, int maxBlockSize);
     
-    // [reimplement.md] renderNextBlock now accepts the global lfoValue
     void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue);
     
     void noteOn(int midiChannel, int midiNote, float velocity);
@@ -37,6 +36,12 @@ public:
     void resetAllVoices() {
         for (auto& v : voices) v.forceStop();
         setAllNotesOff();
+    }
+
+    // [Fidelidad] Helper to check if any key is physically held down
+    bool isAnyNoteHeld() const {
+        for (const auto& v : voices) if (v.isGateOnActive()) return true;
+        return false;
     }
 
 private:

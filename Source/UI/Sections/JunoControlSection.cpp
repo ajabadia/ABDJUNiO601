@@ -150,72 +150,78 @@ void JunoControlSection::paint(juce::Graphics& g)
     g.setFont(juce::FontOptions("Arial", 12.0f, juce::Font::bold));
     
     g.drawText("PORTAMENTO / ASSIGN", 0, 0, 160, 24, juce::Justification::centred);
-    g.drawText("MEMORY / BANKS", getWidth() - 400, 0, 400, 24, juce::Justification::centred);
+    g.drawText("MEMORY / BANKS", getWidth() - 500, 0, 500, 24, juce::Justification::centred);
 
     g.setFont(10.0f);
     if (bankSelectButtons[0].isVisible()) {
         auto bb = bankSelectButtons[0].getBounds();
-        g.drawText("BANK", bb.getX() - 35, bb.getY(), 30, bb.getHeight(), juce::Justification::centredRight);
+        g.drawText("BANK", bb.getX() - 40, bb.getY(), 35, bb.getHeight(), juce::Justification::centredRight);
     }
     if (bankButtons[0].isVisible()) {
         auto pb = bankButtons[0].getBounds();
-        g.drawText("PATCH", pb.getX() - 35, pb.getY(), 30, pb.getHeight(), juce::Justification::centredRight);
+        g.drawText("PATCH", pb.getX() - 40, pb.getY(), 35, pb.getHeight(), juce::Justification::centredRight);
     }
 }
 
 void JunoControlSection::resized()
 {
     auto b = getLocalBounds();
-    int margin = 10;
+    int margin = 15;
     
     int leftX = margin;
     portLabel.setBounds(leftX, 35, 60, 20);
     portSlider.setBounds(leftX, 55, 60, 60);
     portButton.setBounds(leftX, 120, 60, 25);
     
-    int assignX = leftX + 70;
+    int assignX = leftX + 75;
     modeLabel.setBounds(assignX, 35, 70, 20);
-    modeCombo.setBounds(assignX, 60, 75, 25);
+    modeCombo.setBounds(assignX, 60, 80, 25);
 
-    int centerW = 400;
+    int centerW = 500;
     int centerX = (getWidth() - centerW) / 2;
     lcd.setBounds(centerX, 35, centerW, 50);
     
     int browserY = 105;
     prevPatchButton.setBounds(centerX, browserY, 35, 30);
     nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
-    presetBrowser.setBounds(centerX + 40, browserY, centerW - 80, 30);
+    presetBrowser.setBounds(centerX + 45, browserY, centerW - 90, 30);
 
-    int rightX = getWidth() - 410;
-    int funcY = 35;
-    int funcW = 60; 
-    saveButton.setBounds(rightX, funcY, funcW, 30);
-    sysexButton.setBounds(rightX + 65, funcY, funcW, 30);
-    loadTapeButton.setBounds(rightX + 130, funcY, funcW + 15, 30);
-    loadButton.setBounds(rightX + 210, funcY, funcW, 30);
-    dumpButton.setBounds(rightX + 275, funcY, funcW + 5, 30);
-    randomButton.setBounds(rightX + 345, funcY, funcW + 5, 30);
-    
-    int gridX = rightX + 40;
+    // [reimplement.md] Center row: ALL OFF, TEST, RANDOM
+    int centerBtnY = 145;
+    panicButton.setBounds(centerX + 50, centerBtnY, 100, 25);
+    powerButton.setBounds(centerX + 160, centerBtnY, 60, 25);
+    randomButton.setBounds(centerX + 230, centerBtnY, 80, 25);
+
+    // RIGHT: Memory / Banks
+    int rightW = 550;
+    int rightX = getWidth() - rightW - margin;
+    int gridX = rightX + 45;
     int gridY = 75;
-    int btnW = 45;
+    int btnW = 60; 
+    
+    // Aligned Functional Row
+    int funcY = 35;
+    int funcW = 85;
+    int fGap = 5;
+    saveButton.setBounds(gridX, funcY, funcW, 30);
+    sysexButton.setBounds(gridX + funcW + fGap, funcY, funcW, 30);
+    loadTapeButton.setBounds(gridX + (funcW + fGap)*2, funcY, funcW + 20, 30);
+    loadButton.setBounds(gridX + (funcW + fGap)*3 + 25, funcY, funcW, 30);
+    dumpButton.setBounds(gridX + (funcW + fGap)*4 + 35, funcY, funcW, 30);
+    
     for(int i=0; i<8; ++i) {
-        bankButtons[i].setBounds(gridX + (i * btnW), gridY, btnW - 2, 28);
-        bankSelectButtons[i].setBounds(gridX + (i * btnW), gridY + 32, btnW - 2, 28);
+        bankButtons[i].setBounds(gridX + (i * btnW), gridY, btnW - 4, 28);
+        bankSelectButtons[i].setBounds(gridX + (i * btnW), gridY + 32, btnW - 4, 28);
     }
 
     int bottomY = 145;
-    decBankButton.setBounds(gridX, bottomY, 40, 25);
-    incBankButton.setBounds(gridX + 45, bottomY, 40, 25);
+    decBankButton.setBounds(gridX, bottomY, 45, 25);
+    incBankButton.setBounds(gridX + 50, bottomY, 45, 25);
     
-    groupAButton.setBounds(gridX + 90, bottomY, 60, 25);
-    groupBButton.setBounds(gridX + 155, bottomY, 60, 25);
-    manualButton.setBounds(gridX + 220, bottomY, 65, 25);
-    
-    midiOutButton.setBounds(gridX + 295, bottomY, 80, 25);
-    powerButton.setBounds(gridX + 380, bottomY, btnW, 25);
-    
-    panicButton.setBounds(centerX, 145, 100, 25);
+    groupAButton.setBounds(gridX + 110, bottomY, 70, 25);
+    groupBButton.setBounds(gridX + 185, bottomY, 70, 25);
+    manualButton.setBounds(gridX + 265, bottomY, 80, 25);
+    midiOutButton.setBounds(gridX + 355, bottomY, 90, 25);
 }
 
 void JunoControlSection::timerCallback()
@@ -263,7 +269,7 @@ void JunoControlSection::connectButtons()
     manualButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
             proc->updateParamsFromAPVTS();
-            proc->sendManualMode(); // [reimplement.md] Send SysEx 0x31
+            proc->sendManualMode(); 
             lcd.setText("MANUAL MODE");
         }
     };

@@ -19,7 +19,6 @@ void JunoVoiceManager::updateParams(const SynthParams& params) {
 void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue) {
     for (auto& voice : voices) {
         if (voice.isActive()) {
-            // [reimplement.md] Voice now takes the global LFO value
             voice.renderNextBlock(buffer, startSample, numSamples, lfoValue);
         }
     }
@@ -28,14 +27,16 @@ void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int sta
 void JunoVoiceManager::setPolyMode(int mode) {
     if (polyMode != mode) {
         polyMode = mode;
-        setAllNotesOff();
+        resetAllVoices(); 
     }
 }
 
-void JunoVoiceManager::noteOn(int midiChannel, int midiNote, float velocity) {
+void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity) {
     currentTimestamp++;
+    
     for (int i = 0; i < MAX_VOICES; ++i) {
         if (voices[i].isActive() && voices[i].getCurrentNote() == midiNote) {
+            // [Fidelidad] Si la nota ya suena, siempre re-atacar (isLegato = false)
             voices[i].noteOn(midiNote, velocity, false); 
             voiceTimestamps[i] = currentTimestamp;
             lastAllocatedVoiceIndex = i;
@@ -47,15 +48,18 @@ void JunoVoiceManager::noteOn(int midiChannel, int midiNote, float velocity) {
     if (voiceIndex == -1) voiceIndex = findVoiceToSteal();
     
     if (voiceIndex != -1) {
-        bool isLegatoTransition = (polyMode == 3) && voices[voiceIndex].isActive();
+        // [Fidelidad] El legato solo ocurre en UNISON si hay teclas FÍSICAMENTE pulsadas.
+        // Si solo hay colas de release, la nueva nota debe atacar de nuevo.
+        bool isLegatoTransition = (polyMode == 3) && isAnyNoteHeld();
+        
         voices[voiceIndex].noteOn(midiNote, velocity, isLegatoTransition);
         voiceTimestamps[voiceIndex] = currentTimestamp;
         lastAllocatedVoiceIndex = voiceIndex;
     }
 }
 
-void JunoVoiceManager::noteOff(int midiChannel, int midiNote, float velocity) {
-    if (polyMode == 3) {
+void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*velocity*/) {
+    if (polyMode == 3) { 
         for (int i = 0; i < MAX_VOICES; ++i) {
              if (voices[i].getCurrentNote() == midiNote) voices[i].noteOff();
         }
@@ -77,7 +81,7 @@ int JunoVoiceManager::findFreeVoiceIndex() {
             if (!voices[idx].isActive()) return idx;
         }
     }
-    else if (polyMode == 2) {
+    else {
          for (int i = 0; i < MAX_VOICES; ++i) {
             if (!voices[i].isActive()) return i;
         }
@@ -88,6 +92,7 @@ int JunoVoiceManager::findFreeVoiceIndex() {
 int JunoVoiceManager::findVoiceToSteal() {
     int oldestIndex = -1;
     uint64_t minTimestamp = UINT64_MAX;
+    
     for (int i = 0; i < MAX_VOICES; ++i) {
         if (voices[i].isActive() && !voices[i].isGateOnActive()) { 
              if (voiceTimestamps[i] < minTimestamp) {
@@ -96,6 +101,7 @@ int JunoVoiceManager::findVoiceToSteal() {
             }
         }
     }
+    
     if (oldestIndex == -1) {
         minTimestamp = UINT64_MAX;
         for (int i = 0; i < MAX_VOICES; ++i) {

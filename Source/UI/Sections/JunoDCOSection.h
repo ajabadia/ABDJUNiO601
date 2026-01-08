@@ -9,23 +9,23 @@ public:
 
     JunoDCOSection(juce::AudioProcessorValueTreeState& state, MidiLearnHandler& mlh) : apvts(state)
     {
-        auto cfgBtn = [&](juce::TextButton& b, const char* txt) {
+        auto cfgBtn = [&](juce::TextButton& b, const char* txt, int radioId = 0) {
             b.setButtonText(txt);
             b.setClickingTogglesState(true);
-            b.setRadioGroupId(101);
+            if (radioId > 0) b.setRadioGroupId(radioId);
             b.setColour(juce::TextButton::buttonColourId, JunoUI::kPanelDarkGrey);
             b.setColour(juce::TextButton::buttonOnColourId, JunoUI::kPanelDarkGrey.brighter(0.2f));
             b.setColour(juce::TextButton::textColourOffId, juce::Colours::white.withAlpha(0.6f));
             b.setColour(juce::TextButton::textColourOnId, juce::Colours::white);
             addAndMakeVisible(b);
         };
-        cfgBtn(range16, "16'"); cfgBtn(range8, "8'"); cfgBtn(range4, "4'");
+
+        // RANGE Buttons
+        cfgBtn(range16, "16'", 101); cfgBtn(range8, "8'", 101); cfgBtn(range4, "4'", 101);
         
-        auto cfgWave = [&](juce::ToggleButton& b) {
-             JunoUI::styleToggleButton(b);
-             addAndMakeVisible(b);
-        };
-        cfgWave(pulseButton); cfgWave(sawButton);
+        // WAVE Buttons (Changed to TextButton to match RANGE style)
+        cfgBtn(pulseButton, "PULSE"); 
+        cfgBtn(sawButton, "SAW");
 
         range16.onClick = [this] { if (range16.getToggleState()) setRange(0); else updateRangeUI(); };
         range8.onClick  = [this] { if (range8.getToggleState())  setRange(1); else updateRangeUI(); };
@@ -52,7 +52,6 @@ public:
 
         pulseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "pulseOn", pulseButton);
         sawAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "sawOn", sawButton);
-        sawButton.getProperties().set("ledColor", "0xff3399ff"); 
 
         apvts.addParameterListener("dcoRange", this);
         apvts.addParameterListener("pulseOn", this); 
@@ -72,7 +71,7 @@ public:
     }
 
     void setRange(int index) {
-        if (auto* p = apvts.getParameter("dcoRange")) p->setValueNotifyingHost(p->convertTo0to1((float)index));
+        if (auto* p = apvts.getParameter("dcoRange")) p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)index));
     }
     void updateRangeUI() {
         int val = (int)*apvts.getRawParameterValue("dcoRange");
@@ -92,20 +91,23 @@ public:
         g.setColour(JunoUI::kTextWhite);
         g.setFont(juce::FontOptions("Arial", 14.0f, juce::Font::bold));
         
+        // [FIX] DCO Header
+        g.drawText("DCO", 0, 0, getWidth(), 28, juce::Justification::centred);
+
+        // Sub-headers inside section
+        g.setFont(10.0f);
         float colW = (float)getWidth() / 4.0f;
-        auto drawHdr = [&](const juce::String& t, int col, float subX = 0, float subW = 0) {
-            float x = col * colW + subX;
-            float w = (subW > 0) ? subW : colW;
-            g.drawText(t, (int)x, 0, (int)w, 28, juce::Justification::centred);
+        auto drawSubHdr = [&](const juce::String& t, float x, float w) {
+            g.drawText(t, (int)x, 28, (int)w, 20, juce::Justification::centred);
         };
         
-        drawHdr("RANGE", 0);
-        drawHdr("LFO", 1, 0, colW/2);
-        drawHdr("PWM", 1, colW/2, colW/2);
-        drawHdr("MODE", 2, 0, colW/2); 
-        drawHdr("WAVE", 2, colW/2, colW/2); 
-        drawHdr("SUB", 3, 0, colW/2);
-        drawHdr("NOISE", 3, colW/2, colW/2);
+        drawSubHdr("RANGE", 0, colW);
+        drawSubHdr("LFO", colW, colW/2);
+        drawSubHdr("PWM", colW + colW/2, colW/2);
+        drawSubHdr("MODE", colW * 2, colW/2); 
+        drawSubHdr("WAVE", colW * 2 + colW/2, colW/2); 
+        drawSubHdr("SUB", colW * 3, colW/2);
+        drawSubHdr("NOISE", colW * 3 + colW/2, colW/2);
 
         g.setColour(juce::Colours::black);
         g.drawVerticalLine(getWidth() - 1, 0, (float)getHeight());
@@ -134,11 +136,8 @@ public:
              }
         };
         
-        drawLED(range16);
-        drawLED(range8);
-        drawLED(range4);
-        drawLED(pulseButton);
-        drawLED(sawButton);
+        drawLED(range16); drawLED(range8); drawLED(range4);
+        drawLED(pulseButton); drawLED(sawButton);
         
         if (pwmModeSwitch.isVisible()) {
              auto b = pwmModeSwitch.getBounds();
@@ -151,52 +150,47 @@ public:
 
     void resized() override
     {
-        auto r = getLocalBounds().reduced(0, 28); 
+        auto r = getLocalBounds().reduced(0, 48); // Header (28) + SubHeaders (20)
         float colW = (float)getWidth() / 4.0f; 
         
         int sliderW = 30;
-        int sliderH = r.getHeight() - 40; 
-        int yControls = r.getY() + 20;
+        int sliderH = r.getHeight() - 20; 
+        int yControls = r.getY() + 10;
         
+        // COL 1: RANGE
         int btnW = 40; 
         int btnH = 25;
         int gap = 8;
-        float col1Center = colW / 2.0f;
         int totalW = (btnW * 3) + (gap * 2);
-        int x1 = (int)(col1Center - totalW/2);
-        
+        int x1 = (int)((colW - totalW)/2);
         range16.setBounds(x1, yControls + 30, btnW, btnH);
         range8.setBounds(x1 + btnW + gap, yControls + 30, btnW, btnH);
         range4.setBounds(x1 + (btnW + gap)*2, yControls + 30, btnW, btnH);
 
-        float col2Start = colW;
+        // COL 2: LFO & PWM
         float subColW = colW / 2.0f;
         auto placeSlider = [&](juce::Slider& s, float xOffset) {
             int cx = (int)(xOffset + (subColW - (float)sliderW)/2.0f);
             s.setBounds(cx, yControls, sliderW, sliderH);
         };
-        placeSlider(lfoSlider, col2Start);
-        placeSlider(pwmSlider, col2Start + subColW);
+        placeSlider(lfoSlider, colW);
+        placeSlider(pwmSlider, colW + subColW);
 
-        float col3Start = colW * 2;
-        pwmModeSwitch.setBounds((int)(col3Start + (subColW - 20)/2), yControls + 20, 20, 40);
+        // COL 3: MODE & WAVE
+        pwmModeSwitch.setBounds((int)(colW * 2 + (subColW - 20)/2), yControls + 20, 20, 40);
+        int waveBtnW = 50;
+        int wxStart = (int)(colW * 2 + subColW + (subColW - waveBtnW)/2.0f);
+        pulseButton.setBounds(wxStart, yControls + 20, waveBtnW, 25);
+        sawButton.setBounds(wxStart, yControls + 55, waveBtnW, 25);
 
-        int waveBtnSize = 30;
-        int wGap = 10;
-        int wTotal = (waveBtnSize * 2) + wGap;
-        int wxStart = (int)(col3Start + subColW + (subColW - (float)wTotal)/2.0f);
-        
-        pulseButton.setBounds(wxStart, yControls + 30, waveBtnSize, waveBtnSize);
-        sawButton.setBounds(wxStart + waveBtnSize + wGap, yControls + 30, waveBtnSize, waveBtnSize);
-
-        float col4Start = colW * 3;
-        placeSlider(subSlider, col4Start);
-        placeSlider(noiseSlider, col4Start + subColW);
+        // COL 4: SUB & NOISE
+        placeSlider(subSlider, colW * 3);
+        placeSlider(noiseSlider, colW * 3 + subColW);
     }
 private:
     juce::AudioProcessorValueTreeState& apvts;
     juce::TextButton range16, range8, range4;
-    juce::ToggleButton pulseButton, sawButton;
+    juce::TextButton pulseButton, sawButton;
     juce::Slider lfoSlider, pwmSlider, subSlider, noiseSlider, pwmModeSwitch;
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoAttachment, pwmAttachment, subAttachment, noiseAttachment, pwmModeAttachment;

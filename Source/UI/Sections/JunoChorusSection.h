@@ -7,10 +7,20 @@ class JunoChorusSection : public juce::Component, public juce::AudioProcessorVal
 public:
     JunoChorusSection(juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh) : apvts(apvts)
     {
-        // ... (Buttons setup) ...
-        addAndMakeVisible(b1); JunoUI::styleToggleButton(b1); att1 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus1", b1);
-        addAndMakeVisible(b2); JunoUI::styleToggleButton(b2); att2 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus2", b2);
-        JunoUI::setupLabel(l1, "I", *this); JunoUI::setupLabel(l2, "II", *this);
+        auto cfgBtn = [&](juce::TextButton& b, const char* txt) {
+            b.setButtonText(txt);
+            b.setClickingTogglesState(true);
+            b.setColour(juce::TextButton::buttonColourId, JunoUI::kPanelDarkGrey);
+            b.setColour(juce::TextButton::buttonOnColourId, JunoUI::kPanelDarkGrey.brighter(0.2f));
+            b.setColour(juce::TextButton::textColourOffId, juce::Colours::white.withAlpha(0.6f));
+            b.setColour(juce::TextButton::textColourOnId, juce::Colours::white);
+            addAndMakeVisible(b);
+        };
+
+        cfgBtn(b1, "I"); cfgBtn(b2, "II");
+        
+        att1 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus1", b1);
+        att2 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus2", b2);
 
         JunoUI::setupMidiLearn(b1, mlh, "chorus1", midiLearnListeners);
         JunoUI::setupMidiLearn(b2, mlh, "chorus2", midiLearnListeners);
@@ -29,11 +39,14 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-        // Usa el helper con cabecera AZUL para Chorus
         JunoUI::drawJunoSection(g, getLocalBounds(), "CHORUS", true);
 
-        // LEDs (Manual check)
-        auto drawLED = [&](juce::ToggleButton& btn) {
+        // Sub-header
+        g.setFont(10.0f);
+        g.setColour(JunoUI::kTextWhite);
+        g.drawText("MODE", 0, 28, getWidth(), 20, juce::Justification::centred);
+
+        auto drawLED = [&](juce::TextButton& btn) {
             if (!btn.isVisible()) return;
             auto b = btn.getBounds();
             float ledSize = 6.0f;
@@ -57,27 +70,19 @@ public:
 
     void resized() override
     {
-        auto area = getLocalBounds().reduced(5, 30); // Margen para cabecera y texto
-        int buttonWidth = 40;
-        int buttonHeight = 50; // Botón con LED
+        int btnW = 40;
+        int btnH = 25;
         int gap = 10;
-        
-        int totalButtonsWidth = (buttonWidth * 2) + gap;
-        int startX = area.getX() + (area.getWidth() - totalButtonsWidth) / 2; // Centrar los botones
-        
-        int labelY = area.getY() + 30; // Debajo del título "CHORUS"
-        int buttonY = labelY + 20;
+        int totalW = (btnW * 2) + gap;
+        int startX = (getWidth() - totalW) / 2;
+        int startY = 28 + 20 + 15; // Header + SubHeader + Margin
 
-        l1.setBounds(startX, labelY, buttonWidth, 20);
-        b1.setBounds(startX, buttonY, buttonWidth, buttonHeight);
-        
-        l2.setBounds(startX + buttonWidth + gap, labelY, buttonWidth, 20);
-        b2.setBounds(startX + buttonWidth + gap, buttonY, buttonWidth, buttonHeight);
+        b1.setBounds(startX, startY, btnW, btnH);
+        b2.setBounds(startX + btnW + gap, startY, btnW, btnH);
     }
 
 private:
-    juce::ToggleButton b1, b2;
-    juce::Label l1, l2;
+    juce::TextButton b1, b2;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> att1, att2;
     juce::OwnedArray<JunoUI::MidiLearnMouseListener, juce::DummyCriticalSection> midiLearnListeners;
     juce::AudioProcessorValueTreeState& apvts;

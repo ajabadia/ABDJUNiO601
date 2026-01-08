@@ -257,7 +257,7 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             chorus.setDepth(JunoChorusConstants::kDepthII); 
             chorus.setMix(0.5f); 
             chorus.setCentreDelay(JunoChorusConstants::kDelayII);
-            noiseMultiplier = 1.5f; // [reimplement.md] Mode II has more hiss
+            noiseMultiplier = 1.5f; 
          } else { 
             chorus.setRate(JunoChorusConstants::kRateIII); 
             chorus.setDepth(JunoChorusConstants::kDepthIII); 
@@ -305,12 +305,10 @@ void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     setBool("chorus1", prog.chorus1); setBool("chorus2", prog.chorus2);
 }
 
-void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { 
-    juce::ignoreUnused(channel, velocity);
-    voiceManager.noteOn(channel, midiNoteNumber, velocity); 
+void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { 
+    voiceManager.noteOn(0, midiNoteNumber, velocity); 
 }
-void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { 
-    juce::ignoreUnused(channel, velocity);
+void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { 
     performanceState.handleNoteOff(midiNoteNumber, voiceManager); 
 }
 
