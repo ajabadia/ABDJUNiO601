@@ -5,17 +5,14 @@ project(ABDSimpleJuno106 VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# JUCE path
-# JUCE path
 set(JUCE_PATH "C:/JUCE" CACHE PATH "Path to JUCE")
 add_subdirectory(${JUCE_PATH} _juce)
 
-# Options
 option(BUILD_HEADLESS "Build headless version (no GUI)" OFF)
 
 if(BUILD_HEADLESS)
     add_compile_definitions(JUCE_HEADLESS_PLUGIN=1)
-    set(PLUGIN_FORMATS Standalone) # Headless usually Standalone (or VST3 with no editor)
+    set(PLUGIN_FORMATS Standalone)
 else()
     set(PLUGIN_FORMATS Standalone VST3 AU)
 endif()
@@ -32,7 +29,6 @@ juce_add_plugin(ABDSimpleJuno106
     PRODUCT_NAME "ABDSimpleJuno106"
 )
 
-# Core Sources (Always included)
 target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/PluginProcessor.h
     Source/Core/PluginProcessor.cpp
@@ -59,7 +55,6 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Synth/Voice.cpp
 )
 
-# UI Sources (Only if NOT Headless)
 if(NOT BUILD_HEADLESS)
     target_sources(ABDSimpleJuno106 PRIVATE
         Source/Core/PluginEditor.h
@@ -70,6 +65,7 @@ if(NOT BUILD_HEADLESS)
         Source/UI/JunoUIHelpers.h
         Source/UI/PresetBrowser.h
         Source/UI/PresetBrowser.cpp
+        Source/UI/ParameterDisplay.h
         
         Source/UI/Sections/JunoChorusSection.h
         Source/UI/Sections/JunoControlSection.h
@@ -81,8 +77,6 @@ if(NOT BUILD_HEADLESS)
         Source/UI/Sections/JunoVCASection.h
         Source/UI/Sections/JunoVCFSection.h
         Source/UI/Sections/JunoPerformanceSection.h
-        # Source/UI/Sections/JunoSidePanel.h # Removed
-        # Source/UI/Sections/JunoSidePanel.cpp # Removed
     )
 endif()
 
@@ -96,7 +90,6 @@ target_compile_definitions(ABDSimpleJuno106
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-# Platform Specific Configuration
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(JUCE_LINUX_DEPS REQUIRED freetype2 alsa x11 xext xinerama webkit2gtk-4.0 gtk+-3.0)

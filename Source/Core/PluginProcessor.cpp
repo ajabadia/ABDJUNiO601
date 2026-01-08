@@ -108,6 +108,19 @@ const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { juc
 void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
 
 void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameterID, float newValue) {
+    // UI Update Logic
+    if (editor != nullptr) {
+        if (auto* param = apvts.getParameter(parameterID)) {
+             lastChangedParamName = param->name;
+             // Format based on type (int/bool/float)
+             if (dynamic_cast<juce::AudioParameterBool*>(param)) lastChangedParamValue = newValue > 0.5f ? "ON" : "OFF";
+             else if (dynamic_cast<juce::AudioParameterInt*>(param)) lastChangedParamValue = juce::String((int)apvts.getRawParameterValue(parameterID)->load());
+             else lastChangedParamValue = juce::String(newValue, 2);
+             
+             if (auto* e = dynamic_cast<juce::AsyncUpdater*>(editor)) e->triggerAsyncUpdate();
+        }
+    }
+
     if (!midiOutEnabled) return;
     int sysExValue = 0; int sysExParamID = -1;
     if (parameterID == "lfoRate") { sysExParamID = JunoSysEx::LFO_RATE; sysExValue = (int)(newValue * 127.0f); }
@@ -155,6 +168,7 @@ void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
     chorus.prepare(spec); chorus.reset();
     dcBlocker.prepare(spec); *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, 20.0f);
     masterLfoPhase = 0.0f; masterLfoDelayEnvelope = 0.0f; wasAnyNoteHeld = false;
+    lfoBuffer.resize(samplesPerBlock);
 }
 
 void SimpleJuno106AudioProcessor::releaseResources() {}
@@ -206,16 +220,27 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     if (anyHeld && !wasAnyNoteHeld) masterLfoDelayEnvelope = 0.0f;
     wasAnyNoteHeld = anyHeld;
     
-    masterLfoPhase += phaseIncrement * buffer.getNumSamples();
-    if (masterLfoPhase >= 1.0f) masterLfoPhase = std::fmod(masterLfoPhase, 1.0f);
-    if (anyHeld) masterLfoDelayEnvelope = std::min(1.0f, masterLfoDelayEnvelope + delayIncrement * buffer.getNumSamples());
-    else masterLfoDelayEnvelope = 0.0f;
+    // [Audit Fix] Per-sample LFO generation
+    int numSamples = buffer.getNumSamples();
+    if (lfoBuffer.size() < (size_t)numSamples) lfoBuffer.resize(numSamples);
 
-    float lfoTri = 2.0f * std::abs(2.0f * (masterLfoPhase - 0.5f)) - 1.0f;
-    float lfoVal = lfoTri * masterLfoDelayEnvelope;
+    for (int i = 0; i < numSamples; ++i) {
+        masterLfoPhase += phaseIncrement;
+        if (masterLfoPhase >= 1.0f) masterLfoPhase -= 1.0f;
+        
+        if (anyHeld) {
+            masterLfoDelayEnvelope += delayIncrement;
+            if (masterLfoDelayEnvelope > 1.0f) masterLfoDelayEnvelope = 1.0f;
+        } else {
+            masterLfoDelayEnvelope = 0.0f;
+        }
+
+        float lfoTri = 2.0f * std::abs(2.0f * (masterLfoPhase - 0.5f)) - 1.0f;
+        lfoBuffer[i] = lfoTri * masterLfoDelayEnvelope;
+    }
 
     buffer.clear();
-    voiceManager.renderNextBlock(buffer, 0, buffer.getNumSamples(), lfoVal);
+    voiceManager.renderNextBlock(buffer, 0, numSamples, lfoBuffer);
 
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> context(block);

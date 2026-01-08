@@ -48,10 +48,10 @@ namespace JunoSysEx
         return juce::MidiMessage(data, 6);
     }
 
-    /** Patch Dump (0x30) - 23 bytes (No Checksum as per original hardware) */
+    /** Patch Dump (0x30) - 24 bytes (Header+Data+EOX) */
     inline juce::MidiMessage createPatchDump(int channel, const uint8_t* params16, uint8_t sw1, uint8_t sw2)
     {
-        uint8_t data[23];
+        uint8_t data[24]; // Fixed size to 24 bytes as per spec (5 header + 16 params + 2 switches + 1 EOX)
         data[0] = 0xF0;
         data[1] = kRolandID;
         data[2] = kMsgPatchDump;
@@ -61,15 +61,9 @@ namespace JunoSysEx
         for (int i = 0; i < 16; ++i) data[5 + i] = params16[i] & 0x7F;
         data[21] = sw1 & 0x7F;
         data[22] = sw2 & 0x7F;
-        data[22] |= 0x80; // This is a trick to detect end, but standard is F7 at 22
-        data[22] &= 0x7F; 
-        
-        // Final byte is F7
-        uint8_t finalData[23];
-        memcpy(finalData, data, 22);
-        finalData[22] = 0xF7;
+        data[23] = 0xF7; // EOX at byte 23 (0-indexed)
 
-        return juce::MidiMessage(finalData, 23);
+        return juce::MidiMessage(data, 24);
     }
 
     inline bool parseMessage(const juce::MidiMessage& msg, int& type, int& channel, int& p1, int& p2, uint8_t* dumpBody18Bytes)
@@ -87,7 +81,7 @@ namespace JunoSysEx
             p2 = data[4] & 0x7F;
             return true;
         }
-        else if (type == kMsgPatchDump && size >= 20) { // Header(3) + PatchNum(1) + Body(18)
+        else if (type == kMsgPatchDump && size >= 21) { // Header(3) + PatchNum(1) + Body(18) = 22 bytes + EOX implicit? size excludes F0/F7? F0 is at 0, data starts at 1? Juce getRawDataSize includes all. size was getRawDataSize - 2. So 24-2 = 22. Header 3 (41,30,ch), Patch 1 (00), Data 18 = 22. Correct.
             if (dumpBody18Bytes) {
                 for (int i = 0; i < 18; ++i) dumpBody18Bytes[i] = data[4 + i];
             }

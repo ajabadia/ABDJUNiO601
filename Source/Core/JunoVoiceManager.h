@@ -16,7 +16,7 @@ public:
     
     void prepare(double sampleRate, int maxBlockSize);
     
-    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue);
+    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer);
     
     void noteOn(int midiChannel, int midiNote, float velocity);
     void noteOff(int midiChannel, int midiNote, float velocity);

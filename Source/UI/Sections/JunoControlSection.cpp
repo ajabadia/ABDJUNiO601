@@ -117,97 +117,7 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     startTimer(50);
 }
 
-void JunoControlSection::updateGroupUI()
-{
-    groupAButton.setToggleState(activeGroup == 0, juce::dontSendNotification);
-    groupBButton.setToggleState(activeGroup == 1, juce::dontSendNotification);
-}
 
-void JunoControlSection::paint(juce::Graphics& g)
-{
-    auto b = getLocalBounds();
-    g.setColour(JunoUI::kPanelGrey);
-    g.fillRect(b);
-    auto header = b.removeFromTop(24);
-    g.setColour(JunoUI::kStripBlue);
-    g.fillRect(header);
-    g.setColour(JunoUI::kTextWhite);
-    g.setFont(juce::FontOptions("Arial", 12.0f, juce::Font::bold));
-    g.drawText("PORTAMENTO / ASSIGN", 0, 0, 160, 24, juce::Justification::centred);
-    g.drawText("MEMORY / BANKS", getWidth() - 500, 0, 500, 24, juce::Justification::centred);
-    g.setFont(10.0f);
-    if (bankSelectButtons[0].isVisible()) {
-        auto bb = bankSelectButtons[0].getBounds();
-        g.drawText("BANK", bb.getX() - 40, bb.getY(), 35, bb.getHeight(), juce::Justification::centredRight);
-    }
-    if (bankButtons[0].isVisible()) {
-        auto pb = bankButtons[0].getBounds();
-        g.drawText("PATCH", pb.getX() - 40, pb.getY(), 35, pb.getHeight(), juce::Justification::centredRight);
-    }
-}
-
-void JunoControlSection::resized()
-{
-    auto b = getLocalBounds();
-    int margin = 15;
-    int leftX = margin;
-    portLabel.setBounds(leftX, 35, 60, 20);
-    portSlider.setBounds(leftX, 55, 60, 60);
-    portButton.setBounds(leftX, 120, 60, 25);
-    int assignX = leftX + 75;
-    modeLabel.setBounds(assignX, 35, 70, 20);
-    modeCombo.setBounds(assignX, 60, 80, 25);
-    int centerW = 500;
-    int centerX = (getWidth() - centerW) / 2;
-    lcd.setBounds(centerX, 35, centerW, 50);
-    int browserY = 105;
-    prevPatchButton.setBounds(centerX, browserY, 35, 30);
-    nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
-    presetBrowser.setBounds(centerX + 45, browserY, centerW - 90, 30);
-    int centerBtnY = 145;
-    panicButton.setBounds(centerX + 50, centerBtnY, 100, 25);
-    powerButton.setBounds(centerX + 160, centerBtnY, 60, 25);
-    randomButton.setBounds(centerX + 230, centerBtnY, 80, 25);
-    int rightW = 550;
-    int rightX = getWidth() - rightW - margin;
-    int gridX = rightX + 45;
-    int gridY = 75;
-    int btnW = 60; 
-    int funcY = 35;
-    int funcW = 85;
-    int fGap = 5;
-    saveButton.setBounds(gridX, funcY, funcW, 30);
-    sysexButton.setBounds(gridX + funcW + fGap, funcY, funcW, 30);
-    loadTapeButton.setBounds(gridX + (funcW + fGap)*2, funcY, funcW + 20, 30);
-    loadButton.setBounds(gridX + (funcW + fGap)*3 + 25, funcY, funcW, 30);
-    dumpButton.setBounds(gridX + (funcW + fGap)*4 + 35, funcY, funcW, 30);
-    for(int i=0; i<8; ++i) {
-        bankButtons[i].setBounds(gridX + (i * btnW), gridY, btnW - 4, 28);
-        bankSelectButtons[i].setBounds(gridX + (i * btnW), gridY + 32, btnW - 4, 28);
-    }
-    int bottomY = 145;
-    decBankButton.setBounds(gridX, bottomY, 45, 25);
-    incBankButton.setBounds(gridX + 50, bottomY, 45, 25);
-    groupAButton.setBounds(gridX + 110, bottomY, 70, 25);
-    groupBButton.setBounds(gridX + 185, bottomY, 70, 25);
-    manualButton.setBounds(gridX + 265, bottomY, 80, 25);
-    midiOutButton.setBounds(gridX + 355, bottomY, 90, 25);
-}
-
-void JunoControlSection::timerCallback()
-{
-    PresetManager& pmRef = presetBrowser.getPresetManager();
-    if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
-        if (proc->isTestMode) lcd.setText("TEST MODE");
-        else {
-            int patchIdx = pmRef.getCurrentPresetIndex();
-            juce::String groupName = (patchIdx < 64) ? "A" : "B";
-            int b = ((patchIdx % 64) / 8) + 1;
-            int p = (patchIdx % 8) + 1;
-            lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pmRef.getCurrentPresetName());
-        }
-    }
-}
 
 void JunoControlSection::connectButtons()
 {
@@ -353,4 +263,111 @@ void JunoControlSection::connectButtons()
              lcd.setText("ALL NOTES OFF");
         }
     };
+
+    addChildComponent(paramDisplay); // Hidden by default
+    paramDisplay.setAlwaysOnTop(true);
+}
+
+void JunoControlSection::updateGroupUI()
+{
+    groupAButton.setToggleState(activeGroup == 0, juce::dontSendNotification);
+    groupBButton.setToggleState(activeGroup == 1, juce::dontSendNotification);
+}
+
+void JunoControlSection::paint(juce::Graphics& g)
+{
+    auto b = getLocalBounds();
+    g.setColour(JunoUI::kPanelGrey);
+    g.fillRect(b);
+    auto header = b.removeFromTop(24);
+    g.setColour(JunoUI::kStripBlue);
+    g.fillRect(header);
+    g.setColour(JunoUI::kTextWhite);
+    g.setFont(juce::FontOptions("Arial", 12.0f, juce::Font::bold));
+    g.drawText("PORTAMENTO / ASSIGN", 0, 0, 160, 24, juce::Justification::centred);
+    g.drawText("MEMORY / BANKS", getWidth() - 500, 0, 500, 24, juce::Justification::centred);
+    g.setFont(10.0f);
+    if (bankSelectButtons[0].isVisible()) {
+        auto bb = bankSelectButtons[0].getBounds();
+        g.drawText("BANK", bb.getX() - 40, bb.getY(), 35, bb.getHeight(), juce::Justification::centredRight);
+    }
+    if (bankButtons[0].isVisible()) {
+        auto pb = bankButtons[0].getBounds();
+        g.drawText("PATCH", pb.getX() - 40, pb.getY(), 35, pb.getHeight(), juce::Justification::centredRight);
+    }
+}
+
+void JunoControlSection::resized()
+{
+    auto b = getLocalBounds();
+    int margin = 15;
+    int leftX = margin;
+    portLabel.setBounds(leftX, 35, 60, 20);
+    portSlider.setBounds(leftX, 55, 60, 60);
+    portButton.setBounds(leftX, 120, 60, 25);
+    int assignX = leftX + 75;
+    modeLabel.setBounds(assignX, 35, 70, 20);
+    modeCombo.setBounds(assignX, 60, 80, 25);
+    int centerW = 500;
+    int centerX = (getWidth() - centerW) / 2;
+    lcd.setBounds(centerX, 35, centerW, 50);
+    
+    int gapX = assignX + 90; // End of Assign section (approx)
+    int gapW = centerX - gapX - 10; // Width available before LCD
+    
+    // Parameter Display in the gap between Assign and LCD
+    paramDisplay.setBounds(gapX, 35, gapW, 50); 
+
+    int browserY = 105;
+    prevPatchButton.setBounds(centerX, browserY, 35, 30);
+    nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
+    presetBrowser.setBounds(centerX + 45, browserY, centerW - 90, 30);
+    int centerBtnY = 145;
+    panicButton.setBounds(centerX + 50, centerBtnY, 100, 25);
+    powerButton.setBounds(centerX + 160, centerBtnY, 60, 25);
+    randomButton.setBounds(centerX + 230, centerBtnY, 80, 25);
+    int rightW = 550;
+    int rightX = getWidth() - rightW - margin;
+    int gridX = rightX + 45;
+    int gridY = 75;
+    int btnW = 60; 
+    int funcY = 35;
+    int funcW = 85;
+    int fGap = 5;
+    saveButton.setBounds(gridX, funcY, funcW, 30);
+    sysexButton.setBounds(gridX + funcW + fGap, funcY, funcW, 30);
+    loadTapeButton.setBounds(gridX + (funcW + fGap)*2, funcY, funcW + 20, 30);
+    loadButton.setBounds(gridX + (funcW + fGap)*3 + 25, funcY, funcW, 30);
+    dumpButton.setBounds(gridX + (funcW + fGap)*4 + 35, funcY, funcW, 30);
+    for(int i=0; i<8; ++i) {
+        bankButtons[i].setBounds(gridX + (i * btnW), gridY, btnW - 4, 28);
+        bankSelectButtons[i].setBounds(gridX + (i * btnW), gridY + 32, btnW - 4, 28);
+    }
+    int bottomY = 145;
+    decBankButton.setBounds(gridX, bottomY, 45, 25);
+    incBankButton.setBounds(gridX + 50, bottomY, 45, 25);
+    groupAButton.setBounds(gridX + 110, bottomY, 70, 25);
+    groupBButton.setBounds(gridX + 185, bottomY, 70, 25);
+    manualButton.setBounds(gridX + 265, bottomY, 80, 25);
+    midiOutButton.setBounds(gridX + 355, bottomY, 90, 25);
+}
+
+void JunoControlSection::timerCallback()
+{
+    PresetManager& pmRef = presetBrowser.getPresetManager();
+    if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
+        if (proc->isTestMode) lcd.setText("TEST MODE");
+        else {
+            int patchIdx = pmRef.getCurrentPresetIndex();
+            juce::String groupName = (patchIdx < 64) ? "A" : "B";
+            int b = ((patchIdx % 64) / 8) + 1;
+            int p = (patchIdx % 8) + 1;
+            lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pmRef.getCurrentPresetName());
+        }
+    }
+}
+
+void JunoControlSection::showParameter(const juce::String& name, const juce::String& value)
+{
+    paramDisplay.showParameter(name, value);
 }

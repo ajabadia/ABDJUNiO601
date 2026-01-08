@@ -1,4 +1,3 @@
-
 #include "PluginEditor.h"
 #include "PresetManager.h"
 #include "BuildVersion.h"
@@ -29,17 +28,11 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
     addAndMakeVisible(performanceSection);
     addAndMakeVisible(midiKeyboard);
     
-    // === CALLBACKS ===
     controlSection.onPresetLoad = [this](int index) {
         audioProcessor.loadPreset(index);
     };
     
-    controlSection.onDump = [this] {
-        audioProcessor.sendPatchDump();
-    };
-
-    // [FIX] Eliminada la sobrescritura del botón EXPORT (dumpButton) 
-    // para que la lógica de archivos de ControlSection funcione.
+    audioProcessor.editor = this;
     
     midiKeyboard.setAvailableRange(36, 96); 
     setLookAndFeel(&lookAndFeel);
@@ -48,6 +41,13 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
 SimpleJuno106AudioProcessorEditor::~SimpleJuno106AudioProcessorEditor()
 {
     setLookAndFeel(nullptr);
+    audioProcessor.editor = nullptr; 
+}
+
+void SimpleJuno106AudioProcessorEditor::handleAsyncUpdate()
+{
+    controlSection.showParameter(audioProcessor.lastChangedParamName, 
+                                 audioProcessor.lastChangedParamValue);
 }
 
 namespace {

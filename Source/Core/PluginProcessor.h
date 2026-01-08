@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-
 #include "../Synth/Voice.h"
 #include "JunoVoiceManager.h"
 #include "JunoSysEx.h"
@@ -11,9 +10,6 @@
 
 class PresetManager;
 
-/**
- * SimpleJuno106AudioProcessor
- */
 class SimpleJuno106AudioProcessor : public juce::AudioProcessor,
                                      public juce::MidiKeyboardState::Listener,
                                      public juce::AudioProcessorValueTreeState::Listener {
@@ -21,16 +17,13 @@ public:
     SimpleJuno106AudioProcessor();
     ~SimpleJuno106AudioProcessor() override;
 
-    // AudioProcessor
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     
-    // APVTS Listener
     void parameterChanged(const juce::String& parameterID, float newValue) override;
 
-    // MIDI / SysEx Support
     bool midiOutEnabled = false;
     int midiChannel = 1; 
     juce::MidiBuffer midiOutBuffer;
@@ -73,6 +66,11 @@ public:
     void handleNoteOn(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
     void handleNoteOff(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
 
+    // [New] For Parameter Display
+    juce::String lastChangedParamName;
+    juce::String lastChangedParamValue;
+    juce::AudioProcessorEditor* editor = nullptr;
+
 private:
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -90,10 +88,11 @@ private:
     juce::Random chorusNoiseGen; 
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker;
 
-    // [Audit LFO] Global LFO State
     float masterLfoPhase = 0.0f;
     float masterLfoDelayEnvelope = 0.0f;
     bool wasAnyNoteHeld = false;
+
+    std::vector<float> lfoBuffer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };

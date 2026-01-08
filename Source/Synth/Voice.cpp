@@ -134,7 +134,7 @@ void Voice::updateHPF() {
     }
 }
 
-void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue) {
+void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer) {
     bool isActive = adsr.isActive() || lastOutputLevel > 0.0001f;
     if (!isActive) return;
     
@@ -163,7 +163,8 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     
     for (int i = 0; i < numSamples; ++i) {
         // [reimplement.md] LFO process applies per-voice delay ramp to global lfoValue
-        float voiceLfo = lfo.process(lfoValue);
+        // [Audit Fix] Now using per-sample global LFO value from buffer
+        float voiceLfo = lfo.process(lfoBuffer[i]);
         float envVal = adsr.getNextSample(); 
         float vcaSmooth = smoothedVCALevel.getNextValue();
         

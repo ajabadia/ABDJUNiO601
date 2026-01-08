@@ -3,6 +3,7 @@
 #include "../JunoUIHelpers.h"
 #include "../../UI/PresetBrowser.h"
 #include "../../UI/JunoBender.h"
+#include "../ParameterDisplay.h"
 
 class PresetManager;
 class MidiLearnHandler;
@@ -19,6 +20,8 @@ public:
 
     void connectButtons(); 
     
+    void showParameter(const juce::String& name, const juce::String& value);
+
     PresetBrowser presetBrowser;
     juce::TextButton dumpButton;
     juce::ToggleButton midiOutButton;
@@ -33,14 +36,12 @@ private:
     juce::TextButton transposeButton, saveButton, loadButton, sysexButton, prevPatchButton, nextPatchButton;
     juce::TextButton incBankButton, decBankButton;
     juce::TextButton panicButton; 
-    
     juce::TextButton randomButton;
-
-    // [reimplement.md] Manual & Group Selection
     juce::TextButton manualButton;
     juce::TextButton groupAButton, groupBButton;
 
     JunoUI::JunoLCD lcd;
+    ParameterDisplay paramDisplay;
     
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> midiOutAtt;
     
@@ -53,12 +54,12 @@ private:
     juce::ComboBox modeCombo;
     juce::Label modeLabel;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modeAtt;
-
+	
     juce::AudioProcessor& processor;
     juce::AudioProcessorValueTreeState& apvtsRef;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::OwnedArray<JunoUI::MidiLearnMouseListener> midiLearnListeners;
     
-    int activeGroup = 0; // 0 = A, 1 = B
+    int activeGroup = 0; 
     void updateGroupUI();
 };

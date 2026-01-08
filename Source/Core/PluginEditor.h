@@ -15,16 +15,20 @@
 
 /**
  * SimpleJuno106AudioProcessorEditor
- * 
- * Modular Interface Refactor
+ * [Refactor] Added AsyncUpdater to handle parameter display from processor
  */
-class SimpleJuno106AudioProcessorEditor : public juce::AudioProcessorEditor {
+class SimpleJuno106AudioProcessorEditor : public juce::AudioProcessorEditor,
+                                           public juce::AsyncUpdater
+{
 public:
     SimpleJuno106AudioProcessorEditor(SimpleJuno106AudioProcessor&);
     ~SimpleJuno106AudioProcessorEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
+
+    // AsyncUpdater callback
+    void handleAsyncUpdate() override;
 
 private:
     SimpleJuno106AudioProcessor& audioProcessor;
@@ -40,10 +44,7 @@ private:
     JunoChorusSection chorusSection;
     JunoControlSection controlSection;
     
-    // Side Panel (Bender)
     JunoPerformanceSection performanceSection;
-    
-    // Virtual MIDI Keyboard
     juce::MidiKeyboardComponent midiKeyboard;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessorEditor)

@@ -16,10 +16,10 @@ void JunoVoiceManager::updateParams(const SynthParams& params) {
     }
 }
 
-void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue) {
+void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer) {
     for (auto& voice : voices) {
         if (voice.isActive()) {
-            voice.renderNextBlock(buffer, startSample, numSamples, lfoValue);
+            voice.renderNextBlock(buffer, startSample, numSamples, lfoBuffer);
         }
     }
 }

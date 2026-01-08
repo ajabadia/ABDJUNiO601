@@ -17,8 +17,8 @@ public:
     
     void prepare(double sampleRate, int maxBlockSize);
     
-    // [reimplement.md] renderNextBlock now takes the global lfoValue
-    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float lfoValue);
+    // [reimplement.md] renderNextBlock now takes the global lfoBuffer (per sample)
+    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer);
     
     void noteOn(int midiNote, float velocity, bool isLegato);
     void noteOff();
