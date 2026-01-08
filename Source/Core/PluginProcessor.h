@@ -64,6 +64,7 @@ public:
     void updateParamsFromAPVTS();
     void applyPerformanceModulations(SynthParams& p);
     void sendPatchDump();
+    void sendManualMode(); // [reimplement.md] Added for hardware sync
 
     bool isTestMode = false;
     void triggerTestProgram(int bankIndex);

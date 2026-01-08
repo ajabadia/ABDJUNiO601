@@ -1,46 +1,38 @@
-# Guía de Reimplementación para JUNiO 601
+# Guía de Reimplementación para JUNiO 601 - ESTADO ACTUAL
 
-Esta guía resume los cambios exitosos realizados durante la sesión para ser aplicados sobre la copia de seguridad. **Evitar reescrituras parciales que causen duplicidad de funciones.**
+Este documento registra la evolución del proyecto tras la recuperación. **Meta actual: Fidelidad de Hardware y Estabilidad Absoluta.**
 
-## 1. Identidad y Marca
-- Cambiar el nombre visible del sintetizador a **JUNiO 601**.
-- Actualizar `PluginEditor.cpp` (método `paint`) para mostrar el nombre a la izquierda y la info de compilación a la derecha.
+## ✅ 1. Identidad y Construcción (Completado)
+- **Marca**: Plugin renombrado a **JUNiO 601**.
+- **Build System**: Implementado contador automático en `build_standalone.bat`.
+- **Header**: Visualización dinámica de Build # y Timestamp en la UI.
 
-## 2. Sistema de Compilación (build_standalone.bat)
-- Implementar el contador automático en el `.bat`:
-  - Incremento de `build_no.txt`.
-  - Generación de `Source/Core/BuildVersion.h`.
+## ✅ 2. Motor de Audio y Fidelidad (Completado)
+- **DCO Phase Sync**: `dco.reset()` en Note-On (notas no-legato) para ataques consistentes.
+- **Ganancia**: Aumento de `kVoiceOutputGain` a **0.75f** para corregir el volumen bajo.
+- **HPF Auténtico**: Implementación de 4 posiciones (Bass Boost, Flat, 225Hz, 450Hz) con lógica de filtros IIR precisa.
+- **LFO Global Monofónico**: Fase gestionada centralmente en `PluginProcessor`. Cada voz aplica su propia rampa de **Delay (fade-in)** de hasta 5 segundos.
+- **Chorus Hiss**: Emulación de ruido BBD calibrada. El Modo II produce un 50% más de hiss que el Modo I.
 
-## 3. Motor de Audio y Voces
-### DCO
-- En `Voice::noteOn`, llamar a `dco.reset()` para notas no legatas (sincronización de fase).
-- Aumentar `JunoConstants::kVoiceOutputGain` a **0.75f** para corregir el volumen bajo.
+## ✅ 3. Conectividad y SysEx (Completado)
+- **Bidireccionalidad 0x32**: El plugin envía mensajes SysEx de "Parameter Change" en tiempo real al mover controles.
+- **Manual Mode 0x31**: Envío de comando Manual al pulsar el botón físico en la UI.
+- **Mapeo de 18 Bytes**: Sincronización total del orden de parámetros para compatibilidad con dumps reales.
+- **Tape Decoder Pro**: Añadida **Auto-Normalización** y detección por **Ventana de Energía** para soportar grabaciones ruidosas.
 
-### HPF (Lógica Inversa)
-- El fader del HPF en el Juno-106 tiene 4 posiciones:
-  - **0 (Bits 11)**: Bass Boost (Low Shelf @ 80Hz, +6dB).
-  - **1 (Bits 10)**: Plano / Off (High Pass @ 10Hz).
-  - **2 (Bits 01)**: High Pass @ 225Hz.
-  - **3 (Bits 00)**: High Pass @ 450Hz.
+## ✅ 4. Interfaz de Usuario (Completado)
+- **Estabilidad**: `resized()` restaurado con coordenadas fijas (750px de altura) para evitar solapamientos.
+- **Nuevos Controles**:
+    - **GROUP A/B**: Gestión de bancos de 64 patches.
+    - **MANUAL**: Sincronización instantánea con el panel.
+    - **RANDOM**: Generador de patches basado en reglas de síntesis musical.
+    - **EXPORT**: Exportación de librerías completas a JSON.
+    - **PANIC**: Botón "ALL OFF" para resetear voces zombis.
 
-### LFO Global (Monofónico)
-- Mover la fase del LFO a `PluginProcessor.cpp`.
-- Las voces deben recibir el valor actual del LFO en `renderNextBlock(..., float masterLfoValue)`.
-- `JunoLFO` debe gestionar solo la rampa de **fade-in (delay)** de forma individual por voz.
+## ✅ 5. Estabilidad de Código (Completado)
+- **Zero Warnings**: Eliminados todos los avisos C4100, C4996 y C4244.
+- **JUCE 8 Ready**: Migración de APIs de fuentes (`FontOptions`) y gestión de memoria.
 
-## 4. Mapeo de Parámetros (18 Bytes)
-Sincronizar `createPresetFromJunoBytes` en `PresetManager.cpp` con este orden:
-- 0: LFO Rate, 1: LFO Delay, 2: LFO to DCO, 3: DCO PWM, 4: DCO Noise... (ver implementación en PresetManager.cpp).
-
-## 5. Mejoras en Carga de Archivos
-- **JunoTapeDecoder.h**: Añadir normalización y detección de bits por "ventana de energía".
-- **PresetManager.cpp**: `addLibraryFromSysEx` debe saltar el byte 4 en mensajes `0x30`.
-
-## 6. Interfaz de Usuario (JunoControlSection)
-- Restaurar el método `resized()` con coordenadas fijas.
-- Botón **SAVE**: Guardar preset actual.
-- Botón **EXPORT**: Exportar banco completo a JSON.
-- **Botón RANDOM**: Añadir funcionalidad para generar patches aleatorios musicales.
-
-## 7. Próximo paso: Monitor LCD
-- Implementar captura de parámetros y visualización temporal 0-127.
+## ⏳ 6. Próximo Paso: Monitor LCD (Pendiente)
+- Implementar la **Persistencia de Parámetros**: Mostrar temporalmente el nombre y valor (0-127) del control editado antes de volver al nombre del patch.
+- Implementar `juce::AsyncUpdater` para el paso seguro de textos del hilo de audio a la UI.

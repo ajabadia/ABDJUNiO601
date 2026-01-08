@@ -57,7 +57,6 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     randomButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff60a8d6));
     randomButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
 
-    // [reimplement.md] Manual & Groups
     setupFunc(manualButton, "MANUAL");
     manualButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orange);
     
@@ -209,7 +208,6 @@ void JunoControlSection::resized()
     decBankButton.setBounds(gridX, bottomY, 40, 25);
     incBankButton.setBounds(gridX + 45, bottomY, 40, 25);
     
-    // Group & Manual
     groupAButton.setBounds(gridX + 90, bottomY, 60, 25);
     groupBButton.setBounds(gridX + 155, bottomY, 60, 25);
     manualButton.setBounds(gridX + 220, bottomY, 65, 25);
@@ -264,8 +262,8 @@ void JunoControlSection::connectButtons()
 
     manualButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
-            // Manual Mode: Force engine to update from UI state
             proc->updateParamsFromAPVTS();
+            proc->sendManualMode(); // [reimplement.md] Send SysEx 0x31
             lcd.setText("MANUAL MODE");
         }
     };
@@ -319,7 +317,7 @@ void JunoControlSection::connectButtons()
     powerButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
             proc->enterTestMode(!proc->isTestMode);
-            powerButton.setColour(juce::TextButton::textColourOffId, 
+            powerButton.setColour(juce::TextButton::buttonColourId, 
                 proc->isTestMode ? juce::Colours::red : juce::Colours::black);
         }
     };

@@ -33,27 +33,28 @@ public:
         juce::AudioBuffer<float> buffer(1, (int)reader->lengthInSamples);
         reader->read(&buffer, 0, (int)reader->lengthInSamples, 0, true, true);
         
-        const float* samples = buffer.getReadPointer(0);
-        double sr = reader->sampleRate;
-        const int numSamples = buffer.getNumSamples();
-        
-        // [reimplement.md] Normalize input audio
+        // [reimplement.md] Auto-Normalization of input buffer
         float maxPeak = 0.0f;
-        for (int i = 0; i < numSamples; ++i) {
-            float absS = std::abs(samples[i]);
-            if (absS > maxPeak) maxPeak = absS;
+        for (int c = 0; c < buffer.getNumChannels(); ++c) {
+            float peak = buffer.getMagnitude(c, 0, buffer.getNumSamples());
+            if (peak > maxPeak) maxPeak = peak;
         }
-        
-        if (maxPeak < 0.0001f) {
+
+        if (maxPeak > 0.0001f) {
+            buffer.applyGain(1.0f / maxPeak);
+        } else {
             result.errorMessage = "Signal is silence.";
             return result;
         }
+
+        const float* samples = buffer.getReadPointer(0);
+        double sr = reader->sampleRate;
+        const int numSamples = buffer.getNumSamples();
 
         // [reimplement.md] Energy Window detection for noisy recordings
         std::vector<int> crossings;
         bool isPositive = samples[0] > 0.0f;
         
-        // Dynamic threshold based on local energy window
         int windowSize = (int)(sr / 1200.0) / 4;
         for (int i = windowSize; i < numSamples - windowSize; ++i) {
             float windowEnergy = 0.0f;

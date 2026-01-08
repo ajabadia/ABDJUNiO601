@@ -41,7 +41,6 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     midiLearnHandler.bind(32, "vcaLevel");
     keyboardState.addListener(this);
 
-    // Bidirectional SysEx: Register listener
     apvts.addParameterListener("lfoRate", this);
     apvts.addParameterListener("lfoDelay", this);
     apvts.addParameterListener("lfoToDCO", this);
@@ -114,7 +113,6 @@ void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameter
     int sysExValue = 0;
     int sysExParamID = -1;
 
-    // Mapping logic for 0x32 Parameter Change
     if (parameterID == "lfoRate") { sysExParamID = JunoSysEx::LFO_RATE; sysExValue = (int)(newValue * 127.0f); }
     else if (parameterID == "lfoDelay") { sysExParamID = JunoSysEx::LFO_DELAY; sysExValue = (int)(newValue * 127.0f); }
     else if (parameterID == "lfoToDCO") { sysExParamID = JunoSysEx::DCO_LFO; sysExValue = (int)(newValue * 127.0f); }
@@ -247,26 +245,30 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     bool c1 = apvts.getRawParameterValue("chorus1")->load() > 0.5f;
     bool c2 = apvts.getRawParameterValue("chorus2")->load() > 0.5f;
     if (c1 || c2) {
+         float noiseMultiplier = 1.0f;
          if (c1 && !c2) { 
             chorus.setRate(JunoChorusConstants::kRateI); 
             chorus.setDepth(JunoChorusConstants::kDepthI); 
             chorus.setMix(0.5f); 
             chorus.setCentreDelay(JunoChorusConstants::kDelayI);
+            noiseMultiplier = 1.0f;
          } else if (!c1 && c2) { 
             chorus.setRate(JunoChorusConstants::kRateII); 
             chorus.setDepth(JunoChorusConstants::kDepthII); 
             chorus.setMix(0.5f); 
             chorus.setCentreDelay(JunoChorusConstants::kDelayII);
+            noiseMultiplier = 1.5f; // [reimplement.md] Mode II has more hiss
          } else { 
             chorus.setRate(JunoChorusConstants::kRateIII); 
             chorus.setDepth(JunoChorusConstants::kDepthIII); 
             chorus.setMix(0.5f); 
             chorus.setCentreDelay(JunoChorusConstants::kDelayIII);
+            noiseMultiplier = 1.2f;
          }
          auto* l = buffer.getWritePointer(0);
          auto* r = buffer.getWritePointer(1); 
          for (int i = 0; i < buffer.getNumSamples(); ++i) {
-             float noise = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * JunoChorusConstants::kNoiseLevel;
+             float noise = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * JunoChorusConstants::kNoiseLevel * noiseMultiplier;
              l[i] += noise;
              if (r) r[i] += noise;
          }
@@ -274,7 +276,6 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     }
     dcBlocker.process(context);
 
-    // Flush SysEx Output
     if (midiOutEnabled) {
         midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0);
         midiOutBuffer.clear();
@@ -339,6 +340,8 @@ void SimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
 }
 
 void SimpleJuno106AudioProcessor::sendPatchDump() { if (midiOutEnabled) midiOutBuffer.addEvent(sysExEngine.makePatchDump(midiChannel - 1, currentParams), 0); }
+
+void SimpleJuno106AudioProcessor::sendManualMode() { if (midiOutEnabled) midiOutBuffer.addEvent(JunoSysEx::createManualMode(midiChannel - 1), 0); }
 
 void SimpleJuno106AudioProcessor::loadPreset(int index) {
     if (presetManager) {
