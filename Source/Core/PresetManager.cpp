@@ -50,6 +50,7 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     juce::ValueTree state("Parameters");
     auto toNorm = [](unsigned char b) { return static_cast<float>(b) / 127.0f; };
     
+    // [Audit] Official Roland 106 Byte Mapping
     state.setProperty("lfoRate", toNorm(bytes[0]), nullptr);
     state.setProperty("lfoDelay", toNorm(bytes[1]), nullptr);
     state.setProperty("lfoToDCO", toNorm(bytes[2]), nullptr);
@@ -67,25 +68,33 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("release", toNorm(bytes[14]), nullptr);
     state.setProperty("subOsc", toNorm(bytes[15]), nullptr);
     
+    // Byte 16: SW1
     unsigned char sw1 = bytes[16];
     int range = 1; 
-    if (sw1 & (1 << 0)) range = 0; 
-    else if (sw1 & (1 << 1)) range = 1; 
-    else if (sw1 & (1 << 2)) range = 2; 
+    if (sw1 & (1 << 0)) range = 0;      // 16'
+    else if (sw1 & (1 << 1)) range = 1; // 8'
+    else if (sw1 & (1 << 2)) range = 2; // 4'
     state.setProperty("dcoRange", range, nullptr);
     state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
     state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
     
+    // Chorus: Bit 5: 0=ON, 1=OFF. Bit 6: 0=II, 1=I
     bool chorusOn = (sw1 & (1 << 5)) == 0;
-    bool chorusModeII = (sw1 & (1 << 6)) != 0; 
-    state.setProperty("chorus1", chorusOn && !chorusModeII, nullptr);
-    state.setProperty("chorus2", chorusOn && chorusModeII, nullptr);
+    bool chorusI = (sw1 & (1 << 6)) != 0;
+    state.setProperty("chorus1", chorusOn && chorusI, nullptr);
+    state.setProperty("chorus2", chorusOn && !chorusI, nullptr);
 
+    // Byte 17: SW2
     unsigned char sw2 = bytes[17];
-    state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);
-    state.setProperty("vcfPolarity", (sw2 & (1 << 1)) != 0, nullptr);
-    state.setProperty("vcaMode", (sw2 & (1 << 2)) != 0, nullptr);
-    state.setProperty("hpfFreq", (sw2 >> 3) & 0x03, nullptr); 
+    state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);     // 0=LFO, 1=MAN
+    state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);     // 0=ENV, 1=GATE
+    state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); // 0=POS, 1=NEG
+    
+    // HPF: Bits 4+3. 11=0, 10=1, 01=2, 00=3. 
+    // Manual says: 11 is pos 0, 00 is pos 3.
+    int hpfBits = (sw2 >> 3) & 0x03;
+    int hpfFreq = 3 - hpfBits; 
+    state.setProperty("hpfFreq", hpfFreq, nullptr); 
     
     return Preset(name, "Factory", state);
 }
@@ -152,16 +161,15 @@ void PresetManager::addLibraryFromSysEx(const uint8_t* data, int size) {
     
     int patchCount = 0;
     int i = 0;
-    while (i < size && patchCount < 64) {
+    while (i < size && patchCount < 128) {
         if (data[i] != 0xF0) { i++; continue; }
-        if (i + 22 < size && data[i+1] == 0x41 && data[i+4] == 0x30) {
-            const unsigned char* patchBytes = &data[i + 6]; 
+        if (i + 22 < size && data[i+1] == 0x41 && data[i+2] == 0x30) {
+            // Roland 106 Dump Header: F0 41 30 Ch PatchNum [18 bytes] CS F7
+            const unsigned char* patchBytes = &data[i + 5]; 
             juce::String name = juce::String(patchCount + 1).paddedLeft('0', 2);
             lib.patches.push_back(createPresetFromJunoBytes(name, patchBytes));
             patchCount++;
-            int msgEnd = i + 6 + 18;
-            while(msgEnd < size && data[msgEnd] != 0xF7) msgEnd++;
-            i = msgEnd + 1;
+            i += 24; 
         } else {
             i++;
         }
@@ -176,6 +184,7 @@ void PresetManager::exportLibraryToJson(const juce::File& file) {
     for (const auto& preset : lib.patches) {
         juce::DynamicObject::Ptr obj = new juce::DynamicObject();
         obj->setProperty("name", preset.name);
+        obj->setProperty("category", preset.category);
         obj->setProperty("state", preset.state.toXmlString());
         presetsArray.add(juce::var(obj.get()));
     }
@@ -237,7 +246,6 @@ void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeStat
         if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val ? 1.0f : 0.0f);
     };
 
-    // 1. DCO - Garantizar sonido
     setI("dcoRange", rand.nextInt(3));
     bool saw = rand.nextBool();
     setB("sawOn", saw);
@@ -248,7 +256,6 @@ void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeStat
     setP("noise", rand.nextFloat() * 0.3f);
     setP("lfoToDCO", rand.nextFloat() * 0.2f);
 
-    // 2. VCF - Musical
     setP("vcfFreq", 0.2f + (rand.nextFloat() * 0.8f));
     setP("resonance", rand.nextFloat() * 0.7f);
     setP("envAmount", rand.nextFloat());
@@ -257,24 +264,20 @@ void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeStat
     setP("kybdTracking", rand.nextFloat());
     setI("hpfFreq", rand.nextInt(4));
 
-    // 3. VCA
     setI("vcaMode", rand.nextInt(2));
     setP("vcaLevel", 0.6f + (rand.nextFloat() * 0.4f));
 
-    // 4. ENV - Evitar silencios
     setP("attack", rand.nextFloat() * 0.5f);
     setP("decay", 0.1f + rand.nextFloat() * 0.9f);
     setP("sustain", 0.2f + rand.nextFloat() * 0.8f);
     setP("release", 0.1f + rand.nextFloat() * 0.7f);
 
-    // 5. LFO
     setP("lfoRate", rand.nextFloat());
     setP("lfoDelay", rand.nextFloat() * 0.5f);
 
-    // 6. Chorus - 70% Probabilidad
     bool cOn = rand.nextFloat() < 0.7f;
     if (cOn) {
-        int m = rand.nextInt(3); // 0=I, 1=II, 2=I+II
+        int m = rand.nextInt(3); 
         setB("chorus1", m == 0 || m == 2);
         setB("chorus2", m == 1 || m == 2);
     } else {

@@ -57,16 +57,18 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     if (params.pulseOn)       sw1 |= (uint8_t)(1 << 3);
     if (params.sawOn)         sw1 |= (uint8_t)(1 << 4);
     
+    // [Audit Fix] Chorus Bit 5: 0=ON, 1=OFF. Bit 6: 0=II, 1=I
     const bool chorusOn = params.chorus1 || params.chorus2;
-    const bool chorusMode1 = params.chorus1 && !params.chorus2;
-    if (chorusOn)    sw1 |= (uint8_t)(1 << 5);
-    if (chorusMode1) sw1 |= (uint8_t)(1 << 6);
+    if (!chorusOn) sw1 |= (uint8_t)(1 << 5); 
+    if (params.chorus1) sw1 |= (uint8_t)(1 << 6);
 
     uint8_t sw2 = 0;
     if (params.pwmMode == 1)     sw2 |= (uint8_t)(1 << 0);
     if (params.vcaMode == 1)     sw2 |= (uint8_t)(1 << 1);
     if (params.vcfPolarity == 1) sw2 |= (uint8_t)(1 << 2);
-    const int hpfVal = juce::jlimit (0, 3, params.hpfFreq);
+    
+    // [Audit Fix] HPF: 11=0, 10=1, 01=2, 00=3
+    const int hpfVal = 3 - juce::jlimit (0, 3, params.hpfFreq);
     sw2 |= (uint8_t) ((hpfVal & 0x03) << 3);
 
     return JunoSysEx::createPatchDump (channel, body, sw1, sw2);
@@ -106,17 +108,17 @@ void JunoSysExEngine::applyParamChange (int paramId,
              params.sawOn   = (value7bit & (1 << 4)) != 0;
              
              {
-                 bool cOn = (value7bit & (1 << 5)) != 0;
-                 bool cMode1 = (value7bit & (1 << 6)) != 0;
-                 params.chorus1 = cOn && cMode1;
-                 params.chorus2 = cOn && !cMode1;
+                 bool cOn = (value7bit & (1 << 5)) == 0; // 0=ON
+                 bool cI = (value7bit & (1 << 6)) != 0;  // 1=I
+                 params.chorus1 = cOn && cI;
+                 params.chorus2 = cOn && !cI;
              }
             break;
         case SWITCHES_2:
              params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
              params.vcaMode     = (value7bit & (1 << 1)) ? 1 : 0;
              params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
-             params.hpfFreq     = (value7bit >> 3) & 0x03;
+             params.hpfFreq     = 3 - ((value7bit >> 3) & 0x03);
             break;
 
         default:
@@ -159,13 +161,13 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     params.pulseOn = (sw1 & (1 << 3)) != 0;
     params.sawOn   = (sw1 & (1 << 4)) != 0;
 
-    const bool chorusOn   = (sw1 & (1 << 5)) != 0;
-    const bool chorusMode1 = (sw1 & (1 << 6)) != 0;
-    params.chorus1 = chorusOn && chorusMode1;
-    params.chorus2 = chorusOn && !chorusMode1;
+    const bool chorusOn   = (sw1 & (1 << 5)) == 0;
+    const bool chorusI = (sw1 & (1 << 6)) != 0;
+    params.chorus1 = chorusOn && chorusI;
+    params.chorus2 = chorusOn && !chorusI;
 
     params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
     params.vcaMode     = (sw2 & (1 << 1)) ? 1 : 0;
     params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
-    params.hpfFreq     = (sw2 >> 3) & 0x03;
+    params.hpfFreq     = 3 - ((sw2 >> 3) & 0x03);
 }
