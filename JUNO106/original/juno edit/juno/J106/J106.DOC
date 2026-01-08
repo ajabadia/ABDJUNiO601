@@ -1,0 +1,64 @@
+
+J106V1.1 1989 D.T.RUSSELL
+
+
+	  Thanks for downloading J106 I hope it will be as useful
+	for you as it is for me.
+	  I wrote this program because I could not stand having to
+	guess what a parameters value was instead of being able to have
+	a value available for viewing like the owners of newer synths
+	have.
+	  
+	  The program is very straight foreward, all the commands are
+	given at the bottom of the main menu.
+	  Here are some things you should Know:
+
+	* Your Juno-106 must be on midi ch. 1
+
+	* The switch on the Juno-106 marked "midi function selector"
+	  must be set to position 3 to send or recieve patches.When
+	  it is in this mode it will send a sysex patch dump each time
+	  you change to a different patch from the keyboard, this may
+	  cause your midi interface to have several patches backed up
+	  waiting to be read. For this reason when you decide to send a
+	  patch from the Juno-106 to the computer you may have to push
+	  f3 several times before it finally gets to the point where it
+	  has emptied the buffer and is ready to recieve a patch.This
+	  should be evident because the values will not reset as soon
+	  as you press f3 when the buffer is empty.
+
+	* This program was written on an xt clone at 4.77hz using a
+	  mono monitor. If your using a mono monitor the screens will
+	  be written very fast. If your using a different setup I tried
+	  to make this program work for you too, but it will write much
+	  slower. Please understand that I have no way of knowing for
+	  sure it will work on your system but I tried.
+
+	* I accept no responsibilities for any problems or difficulties
+	  that may be caused by this program. There should be no possible
+	  way that this program could harm your system but just in case
+	  I told you so.
+
+	* As is usually the case this software isnt free its just to
+	  be used long enough to determine if you will continue to use
+	  it. I ask for no set price send whatever you think is fair
+	  but at least $1. 
+
+	* Authors of other software may register themselves by simply
+	  sending me a copy of their program(s) and putting me on their
+	  registered users list.
+
+	
+       Please let me know what you think of this program and any ideas
+       you might have for improving it.
+
+					Thanks again
+				        
+				         Dan Russell 
+					100 Derby Country Dr.
+					Ellenwood Ga. 30049
+	
+	You can leave me a note on compuserve(73500,1520) or on The IEMUG
+	network.
+
+	

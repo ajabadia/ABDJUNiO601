@@ -1,0 +1,143 @@
+Article: 31892 of rec.music.makers.synth
+Newsgroups: rec.music.makers.synth
+Path: news.u.washington.edu!news.uoregon.edu!europa.eng.gtefsd.com!howland.reston.ans.net!math.ohio-state.edu!jussieu.fr!univ-lyon1.fr!swidir.switch.ch!newsfeed.ACO.net!Austria.EU.net!EU.net!uunet!ftpbox!mothost!pts-nntp!dub.comm.mot.com!peterc
+From: peterc@dub-tsw7.dub.comm.mot.com (Peter Cassidy)
+Subject: Re: Juno 106
+Message-ID: <Cuq1Gr.4F3@pts.mot.com>
+Lines: 126
+Sender: peterc@dub.comm.mot.com (Peter Cassidy)
+Nntp-Posting-Host: dub-tsw7.dub.comm.mot.com
+Reply-To: peterc@comm.mot.com
+Organization: Motorola BV Ireland LMPS / PWDG
+X-Newsreader: mxrn 6.18-9
+References:  <CuLGvy.1ss@brunel.ac.uk>
+Date: Thu, 18 Aug 1994 08:12:26 GMT
+
+
+In article <CuLGvy.1ss@brunel.ac.uk>, ee92pmh@brunel.ac.uk (7IHd) writes:
+>Do I recall a few months back, someone had a problem with their Juno not
+>plaaying every 6th note? Something to do with the DCO dying a death?
+>
+>Well guess what...    :(
+
+Bummer!
+
+>
+>All advice as to how to deal with this problem (i.e. how to fix it - I'll
+>contact a proper dealer but I intend fixing it myself, I mean, I'm an
+>electrical engineer anyway, and I can't afford to pay someone 30 quid to
+>do some soldering)... is welcomed. Oh yeah, how much am I looking at
+>spending?
+
+I had a similar problem a while back. Problem was - it wasn't the VCO that
+was dodgy, but the VCF hybrid. If you put the Juno into test mode, it is
+easy enough to find out which voice is gone. Here's some stuff I put together
+for Analogue Heaven a while back :
+
+(Oh, and BTW, the VCF Hybrids are about 25 quid from Roland in Swansea. They
+are extremely helpful - even to non-dealers. Call them !! 8-))
+
+--------------------------------------------------------------------------
+From: Peter Cassidy <peterc@dub.comm.mot.com>
+Subject: Re: <sheepish grin>
+To: ricard@axis.se (Ricard Wolf) (Ricard Wolf)
+Date: Mon, 24 Jan 94 17:54:04 GMT
+Cc: analogue@magnus.acs.ohio-state.edu (Analogue Synth List)
+In-Reply-To: <m0pONTC-000pfiC@axisab.axis.se>; from "Ricard Wolf" at Jan 24, 94 10:20 am
+Mailer: Elm [revision: 66.25]
+Status: RO
+
+> >         BTW, to get into Test Mode - hold down 'Transpose' and power-up.
+> > The 'Poly' and 'Bank' switches do various interesting things .......
+> 
+> Wonder if there's something similar on the '60 ? I'll have run home and
+> experiment ...
+> 
+
+OK! This is from the Juno 106 service manual:
+
+To enter the test mode, hold KEY TRANSPOSE down and turn the JUNO-106 ON;
+the display window will read :
+
+        ----  ----
+        |  |  |  |
+        ####  ----    (#### = Segment on)
+        |  |  |  |
+        ----  ####
+
+        indicating that the unit is in the test mode. During the test mode,
+each switch serves as follows :
+
+==============================================================================
+| SWITCH              |     FUNCTION DURING TEST MODE                        |
+==============================================================================
+| KEY        | POLY 1 | UNISON:  All six modules are assigned simultaneously |
+| ASSIGNMENT |        |          to a key being pressed.                     |
+|            |--------|------------------------------------------------------|
+|            | POLY 2 | NON      The voices are assigned to the keys played  |
+|            |        | ROTARY:  in the order of CH1 to CH6 as long as the   |
+|            |        |          previous keys are held down.                |
+|            |        |          One-key staccato always sounds CH1 only.    |
+|            |        |                                                      |
+|            |        | The display window indicates current channel number. |
+|            |--------|------------------------------------------------------|
+|            | POLY 1 | ROTARY:  The voices are assigned in a cyclic manner; |
+|            |   &    |          7th key steals the voice from the 1st key.  |
+|            | POLY 2 |                                                      |
+|            |        |                                                      |
+|            |        | The display window indicates current channel number. |
+==============================================================================
+| BANK       | GROUP A| HOLD OFF                                             |
+| GROUP      | GROUP B| HOLD ON                                              |
+==============================================================================
+| TAPE       | SAVE   | MIDI FUNCTION II CHECK                               |
+| CHECK LED  | VERIFY | MIDI FUNCTION I CHECK                                |
+==============================================================================
+| MIDI CH    |        | Turns D/A output to 0V                               |
+==============================================================================
+
+
+Pressing BANK buttons also evokes Test Program and sets the front panel 
+controls as below. PATCH buttons have no effect in the test mode.
+
+=============================================================================
+|B| TEST       |LFO|        DCO        |H|      VCF      |VCA|   ENV      |C|
+|A| FUNCTION   |---|-------------------|P|---------------|---|------------|H|
+|N|            |R|D|R|S |S |S |N |L|P|P|F|F  |R |E|E|L|K |~|L|A|D  |S |R  |O|
+|K|            |A|E|A|Q |A |U |O |F|W|W| |R  |E |N|N|F|Y |/|E| |   |  |   |R|
+| |            |T|L|N|U |W |B |I |O|M|M| |E  |S |V|V|O|B |S|V| |   |  |   |U|
+|N|            |E|A|G|A |  |  |S | | | | |Q  |O | | | |D | |E| |   |  |   |S|
+|O|            | |Y|E|R |  |  |E | | |M| |   |  | |P| |  | |L| |   |  |   | |
+|.|            | | | |E |  |  |  | | |O| |   |  | |O| |  | | | |   |  |   | |
+| |            | | | |  |  |  |  | | |D| |   |  | |L| |  | | | |   |  |   | |
+| |            | | | |  |  |  |  | | |E| |   |  | |A| |  | | | |   |  |   | |
+|-|------------|-|-|-|--|--|--|--|-|-|-|-|---|--|-|-|-|--|-|-|-|---|--|---|-|
+|1| VCA OFFSET |5|0|8|  |  | 0| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|2| SUB OSC    |5|0|8|  |  |10| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|3| VCA/CF GAIN|5|0|8|  |  | 0| 0|0|0|M|1|6.3|10|0|N|0|10|~|5|0|  0|10|  0|0|
+|4| RAMP WAVE  |5|0|8|  |ON| 0| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|5| PWM 50%    |5|0|8|ON|  | 0| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|6| NOISE LEVEL|5|0|8|  |  | 0|10|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|7| VCF HI/LO  |5|0|8|  |  | 0| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|  0|10|  0|0|
+|8| RE-TRIGGER |5|0|8|ON|  | 0| 0|0|0|M|1|10 | 0|0|N|0|10|~|5|0|1.3| 0|1.3|0|
+=============================================================================
+
+
+Edit functions are also active in test mode; when an edit is made, display 
+window lights a dot. To return to the test mode, press the same BANK button
+again.
+
+-------------------------------------- SNIP --------------------------------
+
+>
+>Phil   (ee92pmh@brunel.ac.uk)
+>
+
+-- 
+Pete
+------------------------------------------------------------------------------
+|   Peter Cassidy - Motorola BV Ireland - TSE   |  SH101-EX800-CUBASE-ESQ-1  |
+| peterc@dub.comm.mot.com * My opinions only !! |     SYNTHEX-R70-MKS100     |
+------------------------------------------------------------------------------
+
+

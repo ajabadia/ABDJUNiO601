@@ -1,0 +1,143 @@
+03 00 00 48 00 00 54 4D 15 00 30 00 71 00 00 23 39 18,Acid bass
+00 00 00 66 00 2B 2F 0D 10 7F 40 00 63 56 34 7F 59 10,Another echo bass
+01 00 00 20 00 28 30 42 40 38 37 00 12 37 31 6B 21 18,Bell bass
+00 00 00 00 00 1A 00 00 00 00 3F 03 7F 7F 0C 7F 09 18,Jungle bass
+07 00 00 00 00 56 00 00 7F 00 4E 00 19 08 02 00 08 1D,LFO wow bass
+00 00 00 67 00 44 54 07 00 7F 40 00 63 56 0E 7F 29 10,Nasty bass
+00 00 00 67 00 44 54 07 00 7F 40 00 63 56 34 7F 49 10,Nasty bass from the pits (use unison)
+00 10 00 4E 00 32 00 00 00 21 3A 04 1A 36 11 7F 29 1E,Quiet bass
+00 00 00 00 00 00 44 40 00 7F 40 00 3D 00 00 7F 29 18,Resonant bass
+00 10 00 4E 00 32 72 00 00 21 37 04 1A 36 11 7F 29 1E,Sick resonant bass
+01 00 00 20 00 28 30 42 40 38 38 00 17 42 19 6B 19 18,Slow LFO string bass
+00 7F 00 00 00 30 00 00 00 00 61 00 7F 00 11 00 29 11,Thick bass, use with mono mode
+01 00 00 00 00 1B 11 42 00 38 38 00 17 42 19 6B 29 18,Very dull sub bass
+5A 00 00 66 00 1A 00 00 00 00 7F 03 7F 7F 0C 7F 29 18,Wobbly bass
+00 2B 00 00 07 1D 38 40 2C 00 39 00 19 1E 1A 7F 0A 18,Yer average fat bass
+00 00 00 00 00 2C 27 00 00 00 7F 3C 6F 7F 21 7F 31 18,Bowed bass
+00 7F 00 00 00 2D 28 4F 00 00 34 00 19 08 02 00 28 1D,Buzzy sub-bass
+03 00 00 48 00 00 54 4D 15 00 30 00 71 00 00 23 59 18,Extremely nice bass patch
+07 00 00 00 00 3C 1F 00 20 00 42 00 7F 7F 06 00 29 0A,Fast LFO bass
+00 7F 00 67 43 00 32 7F 15 00 41 00 0C 3A 00 7F 32 1D,Funky noise bass
+00 00 00 67 31 00 0E 7F 00 00 7F 00 14 28 00 7F 21 18,Funky slightly less noisy bass
+00 7F 00 00 00 40 00 00 20 00 4E 00 19 08 02 00 08 1D,Sub bass
+03 00 00 48 7F 06 00 4D 15 00 7F 00 7F 00 00 23 3A 18,Throbbing Gristle loud noise
+03 00 00 48 7F 06 00 4D 15 00 3E 00 7F 00 00 23 39 18,Throbbing Gristle noise bass
+03 00 00 48 7F 06 00 4D 15 00 30 00 7F 00 00 23 3A 18,Throbbing Gristle noise treble
+01 00 00 20 00 15 00 42 00 38 38 00 3A 4C 3A 7F 3C 10,Synth piano
+7F 10 00 4E 00 32 0E 00 00 21 7F 04 1A 36 34 00 4C 12,Disturbed piano
+00 10 00 4E 00 32 0E 00 00 21 7F 04 1A 36 34 00 0A 12,Ghost piano
+2A 00 00 67 00 32 33 00 00 21 7F 2A 00 18 43 00 14 12,Ghost piano going backwards
+00 10 00 4E 00 32 0E 00 00 21 7F 04 1A 36 34 00 4C 12,Shadow ghost echo piano
+2A 00 00 67 00 32 0E 00 00 21 7F 04 1A 36 34 00 14 12,Shadow ghost echo piano in a forest
+00 10 00 4E 00 32 0E 00 00 21 7F 04 1A 36 34 00 2C 12,Shadow ghost piano
+01 00 00 20 00 00 20 42 40 38 7F 00 3F 48 41 6B 1A 00,Slow LFO piano
+00 10 00 4E 00 3B 28 00 00 00 38 00 5E 7F 1F 7F 2A 1A,Sick of making up patch names already?
+02 00 1D 66 7F 15 00 20 00 00 7F 00 13 1E 00 00 00 1D,Very quiet thump
+03 00 00 48 7F 06 00 4D 00 00 7F 00 0D 00 00 7F 39 18,Tom Thump
+04 00 00 00 7F 7F 00 00 00 00 40 00 7F 32 16 00 24 00,Could be a snare
+02 00 1D 66 29 15 77 20 00 00 7F 00 13 19 00 00 20 1D,Descending pulsating thump
+00 00 00 00 7F 49 00 2F 00 00 37 00 0F 00 00 00 20 00,Dull sneeze snare
+01 00 00 20 00 07 7F 2C 00 00 7F 00 12 37 31 6B 21 18,Pulsating thump
+01 12 00 00 40 68 10 05 00 10 00 04 00 10 20 08 0A 08,Bottle blow
+00 10 00 00 00 3F 00 7F 00 21 7F 50 13 7F 11 7F 34 00,Brass
+03 00 0A 40 00 4A 08 6C 7F 7F 6D 00 7F 7F 2B 72 02 00,Buzzy synth lead
+01 00 00 20 00 28 30 42 40 38 3F 00 3F 48 41 6B 1A 18,Classic string sound
+01 00 00 20 00 35 30 42 40 38 48 00 3F 48 41 6B 1A 18,Echo string bass
+04 00 00 70 00 4B 00 0D 38 7F 40 00 7F 3E 23 00 2A 08,Excessive PWM lead sound
+1A 00 00 66 00 18 00 7F 7F 7F 33 00 5F 69 0C 00 59 18,Fearsome lead patch
+00 10 00 00 00 32 00 00 00 21 43 1E 2D 7F 11 7F 2A 1A,French horn
+00 10 00 4E 00 32 7F 00 7F 21 5A 04 1A 36 34 00 4C 12,Harsh self-oscillation
+01 00 00 20 00 0B 7F 42 40 38 42 00 3F 48 41 6B 1A 18,Long phase noise resonance
+04 00 00 66 00 2E 5E 0D 38 7F 40 00 7F 3E 23 00 2A 00,Nice non-stringy wow lead
+03 00 00 48 21 16 00 4D 00 00 7F 00 0D 00 00 00 2A 18,Pizzicato ha ha ha
+03 00 00 48 18 00 25 7F 15 00 44 00 55 7F 2B 23 1A 18,PWM string wash
+05 00 00 67 03 49 43 00 0E 00 2A 1D 1A 36 15 00 39 18,Reclusive string pad
+05 00 00 67 00 49 51 00 62 00 7F 1D 1A 36 15 00 3A 18,Repeated wow
+01 00 00 20 00 52 73 42 40 38 7F 00 3F 48 41 6B 3A 1A,Resonant release
+1A 00 00 66 00 18 00 7F 7F 7F 33 00 5F 69 0C 00 5C 18,Short bright string patch
+00 00 00 67 00 44 54 07 00 7F 40 00 63 56 34 7F 29 10,Slow release acid
+00 7F 00 00 00 40 00 00 20 00 7F 41 19 08 02 00 08 19,Soft backwards sound
+7F 1E 00 32 7F 00 7F 7F 7F 7F 3A 00 5F 69 1F 7F 11 00,Stoopid bubbly noisy sound
+7F 00 00 00 00 2A 00 00 00 00 3F 15 00 7F 0C 00 39 18,Strange quiet accidental patch
+00 7F 00 67 43 1C 00 7F 15 00 35 00 0C 3A 00 7F 32 19,Stupid noisy noise
+2A 00 00 67 00 43 00 00 00 7F 7F 00 1A 36 13 00 34 12,Stylophone
+00 2B 00 00 07 1D 38 40 2C 00 39 00 3A 1E 1A 7F 0A 18,Sweeping down no noise
+00 2B 00 00 07 1D 77 40 2C 00 39 00 3A 1E 1A 7F 0A 18,Sweeping down noise
+14 10 00 00 00 3C 00 00 00 00 42 00 7F 7F 06 00 29 0A,Synth Clarinet
+00 00 00 67 00 32 7F 40 2C 00 40 29 63 1C 7F 00 2A 10,The Resonance That Wouldn't Die
+01 00 00 32 00 52 00 7F 58 7F 3A 00 5F 69 1F 7F 04 00,Thin strings
+5E 2D 00 67 00 00 7F 7F 4C 00 7F 00 0C 3A 00 7F 3A 19,Wacky LFO resonance
+7F 1E 00 32 7F 00 7F 7F 7F 7F 3A 00 5F 69 1F 7F 11 00,Wacky noise bubbles
+58 00 00 32 00 18 00 7F 7F 7F 3A 00 5F 69 1F 7F 19 18,Wobbly mad strings
+00 10 24 21 7F 7F 00 7F 00 02 3C 04 0D 00 00 00 20 04,Just Noise (tm)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+29 0A,Fast LFO bass
+00 00 00 67 00 44 54 07 00 7F 40 00 63 56 34 7F 49 10,Nasty bass from the pits (use unison)
+00 00 00 66 00 2B 2F 0D 10 7F 40 00 63 56 34 7F 59 10,Another echo bass
+04 00 00 66 00 4B 00 0D 38 7F 40 00 7F 3E 23 00 2A 08,Excessive PWM lead sound
+04 00 00 66 00 2E 5E 0D 38 7F 40 00 7F 3E 23 00 2A 00,Nice non-stringy wow lead
+1A 00 00 66 00 18 00 7F 7F 7F 33 00 5F 69 0C 00 59 18,Fearsome lead patch
+15 04 06 00 00 22 01 12 00 00 00 20 02 00 01 01 00 00,Blank!
+01 22 08 09 00 20 02 04 41 60 20 00 28 11 42 01 40 0C,Blank!
+01 00 04 00 00 00 00 11 00 01 20 0A 00 20 04 00 04 00,Undescribed patch
+01 02 02 40 00 08 01 01 01 18 08 00 10 00 00 08 00 00,Undescribed patch
+03 00 00 00 00 00 00 00 42 10 08 00 00 00 00 02 00 00,Undescribed patch
+11 00 03 00 00 00 00 40 00 00 30 40 00 01 04 00 10 00,Undescribed patch
+01 00 40 00 10 00 00 00 00 00 00 00 00 40 00 00 00 00,Undescribed patch
+01 00 00 00 00 00 40 04 28 01 00 00 45 0A 00 16 01 10,Undescribed patch

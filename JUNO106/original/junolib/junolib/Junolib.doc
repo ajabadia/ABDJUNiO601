@@ -1,0 +1,4 @@
+The JUNOLIB.ZIP file contains the program junolib.exe and several
+patch files.  The program is an editor and librarian for the
+Roland Juno 106 synth.  Requires IBM PC, EGA or better, with
+MPU interface.  Use pkunzip to unarchive the files.

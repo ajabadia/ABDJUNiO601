@@ -1,0 +1,171 @@
+===========================================
+| Low-level MIDI input using Visual Basic |
+===========================================
+
+ What it is
+ ----------
+
+ An example of ways in which the low-level MIDI API can be used with 
+ Visual Basic. It was written for a MIDI patch editor (still under 
+ development). At the top level it provides simple MidiGet(), 
+ MidiSysexGet(), and MidiPut() functions for sending and receiving
+ MIDI data.
+ 
+ It was designed to be reusable for multiple applications without code
+ changes. It is not optimized for speed at all, and is quite slow on
+ a 486/66. You could get more speed by using the low-level functions
+ directly.
+ 
+ This documentation is obviously very skimpy but there are lots of 
+ comments in the code.
+
+ This is my first Visual Basic program and it's far from perfect. Please 
+ send constructive criticism and any code improvements to the email 
+ addresses below.
+
+
+ Files
+ -----
+
+ Midi library:
+ MIDI.BAS          Data structure and constant definitions, routines used
+                   by both input and output
+ MIDIIN.BAS        MIDI input routines
+ MIDIOUT.BAS       MIDI output routines
+ MIDICAP.BAS       MIDI device capability routines
+ ALLOC.BAS         Declarations for Windows memory allocation functions
+
+ Example app: a simple monitor with selectable input and output devices. 
+ It can echo input data to output data, and displays the incoming MIDI 
+ data in hex.
+ 
+ MIDIDEVC.FRM      MIDI input/output device selection form
+ MIDITEST.FRM      Main form for test application
+ MIDITEST.BAS      Code for test application
+ 
+
+ How to use the library
+ ======================
+ 
+ MIDI input
+ ----------
+ 
+ 1. Add MSGBLAST.VBX to your project and put a message blaster control 
+ on your form. In the message blaster's Message event code, put:
+
+    Call midiCallbackWndProc(MsgVal, wParam, lParam)
+    
+ 2. Put a label control on your form and set its Visible property to false.
+ When some MIDI input is received, this control's Change event will be
+ triggered.
+ 
+ 3. Call vbMidiInOpen with your main form's window handle (hwnd), the 
+ number of the MIDI device you want to open, the message blaster control,
+ and the label control. Save the midi input handle returned by
+ vbMidiInOpen. See OpenDev in MIDITEST.BAS for an example.
+ 
+ 4. Call midiInStart with the midi input handle.
+ 
+ 5. In the Change event procedure of the label from step 2, put code to
+ deal with MIDI input when it arrives. Call the MidiGet() function to 
+ retrieve short MIDI messages, or the MidiSysexGet() function to retrieve
+ Sysex data. See midiInputArrived in MIDITEST.BAS for an example.
+ 
+ 6. Call vbMidiOutClose when you've finished.
+
+ Note that the timing clock and active sensing MIDI messages are 
+ filtered out by some code in midiCallbackWndProc in MIDI.BAS, to 
+ improve performance slightly.
+
+ 
+ MIDI output
+ -----------
+ 
+ 1. Call vbMidiOutOpen with your main form's window handle and the number
+ of the midi device you want to open. Save the returned output handle.
+ See OpenDev in MIDITEST.BAS for an example.
+ 
+ 2. Send output using either MidiPut (takes string argument, works for 
+ short messages and sysex messages), vbMidiOutShortMsg (argument is MIDI
+ message bytes encoded in a Long), or vbMidiOutLongMsg (string argument,
+ long messages only).
+ 
+ Note that the output functions will loop until output is complete
+ (see comments in vbMidiOutLongMsg).
+ 
+ 
+ MIDI device capabilities
+ ------------------------
+ See MIDIDEVC.FRM for examples.
+
+
+ Sequence of events on Sysex input
+ ---------------------------------
+ 1. Synth sends sysex data
+
+ 2. The Windows MIDI device driver puts the data in one of the
+    buffers assigned to the input device by MidiInAddBuffer. When
+    the sysex end-of-transmission byte is received _or_ the buffer 
+    is full, the device driver marks the buffer as done and sends
+    a MM_MIM_LONGDATA message to the window handle specified in
+    MidiInOpen().
+
+    If there are no available buffers when sysex input is received,
+    the input is discarded. 
+
+ 3. The MIM_LONGDATA message triggers the MsgBlaster1_Message()
+    procedure which calls...
+
+ 4. midiCallbackWndProc() which calls midiLongInHandler (see below), 
+    then changes the text of the user's label control to trigger the 
+    label's Change method.
+
+ 5. midiLongInHandler locates the MIDIHDR structure that matches the 
+    incoming sysex data, copies the sysex data from the MIDIHDR into the 
+    global sysex buffer, and makes the MIDIHDR available for input again 
+    using vbMidiInAddBuffer().
+
+
+ Parameters to tweak
+ -------------------
+ 
+ If you're expecting lots of short sysex messages you will need to 
+ increase the number of low-level buffers by calling 
+ sysexInParameters(), otherwise some sysex messages will be lost because 
+ the sysex input will be discarded unless there's a buffer for it to go 
+ in. This will slow the system down slightly because there's a linear 
+ search of the global MIDI header array when sysex input arrives.
+
+ There's a MIDIINBUFFERMAXLEN parameter which limits the maximum
+ length of the global MIDI input buffers. You'll start to hit Visual
+ Basic's string length limit if you make it much larger. If you need
+ to deal with more sysex data than this you'll have to change the code
+ to use another storage method (e.g. Windows global memory).
+
+ 
+ Thanks
+ ======
+
+ To Tim Thompson <tjt@blink.att.com> for writing the glib3 C source,
+ which I used as example code. You can get this code by ftp: (please
+ restrict access to weekends or evening/night (i.e. between about
+ 20.00 and 0900 UTC).
+
+    ftp ftp.cs.ruu.nl [131.211.80.17]
+    user name: anonymous or ftp
+    password: your own email address (e.g. john@highbrow.edu)
+      Don't forget to set binary mode if the file is a tar/arc/zoo archive,
+      compressed or in any other way contains binary data.
+    get pub/MIDI/PROGRAMS/MSWINDOWS/glib3.zip
+
+ Thanks also to Ed Staffin <edstaff@mcs.com> for writing
+ MSGBLAST.VBX.  I used MSGBLAST v1.0 which is available, with
+ documentation, from ftp.microsoft.com.  MSGBLAST has been upgraded to
+ version 2.1b and is now shareware.  You can get the latest version
+ from ftp.mcs.com:mcsnet.users/edstaff/msgblast.zip.
+
+
+ Contacting me
+ =============
+ Please send email to either davec@wsti.demon.co.uk or 
+ dchurcher@cix.compulink.co.uk

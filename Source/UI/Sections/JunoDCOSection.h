@@ -71,7 +71,7 @@ public:
     }
 
     void setRange(int index) {
-        if (auto* p = apvts.getParameter("dcoRange")) p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)index));
+        if (auto* p = apvts.getParameter("dcoRange")) p->setValueNotifyingHost(p->convertTo0to1((float)index));
     }
     void updateRangeUI() {
         int val = (int)*apvts.getRawParameterValue("dcoRange");
@@ -91,7 +91,7 @@ public:
         g.setColour(JunoUI::kTextWhite);
         g.setFont(juce::FontOptions("Arial", 14.0f, juce::Font::bold));
         
-        // [FIX] DCO Header
+        // Header Text
         g.drawText("DCO", 0, 0, getWidth(), 28, juce::Justification::centred);
 
         // Sub-headers inside section
@@ -150,7 +150,7 @@ public:
 
     void resized() override
     {
-        auto r = getLocalBounds().reduced(0, 48); // Header (28) + SubHeaders (20)
+        auto r = getLocalBounds().reduced(0, 48); // Header(28) + SubHeaders(20)
         float colW = (float)getWidth() / 4.0f; 
         
         int sliderW = 30;
@@ -178,7 +178,7 @@ public:
 
         // COL 3: MODE & WAVE
         pwmModeSwitch.setBounds((int)(colW * 2 + (subColW - 20)/2), yControls + 20, 20, 40);
-        int waveBtnW = 50;
+        int waveBtnW = 55;
         int wxStart = (int)(colW * 2 + subColW + (subColW - waveBtnW)/2.0f);
         pulseButton.setBounds(wxStart, yControls + 20, waveBtnW, 25);
         sawButton.setBounds(wxStart, yControls + 55, waveBtnW, 25);

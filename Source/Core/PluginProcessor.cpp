@@ -171,7 +171,10 @@ void SimpleJuno106AudioProcessor::prepareToPlay (double sampleRate, int samplesP
     chorus.reset();
     dcBlocker.prepare(spec);
     *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 20.0f);
+    
+    // [Audit LFO]
     masterLfoPhase = 0.0f;
+    masterLfoDelayEnvelope = 0.0f;
 }
 
 void SimpleJuno106AudioProcessor::releaseResources() {}
@@ -229,13 +232,41 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     voiceManager.setPortamentoLegato(currentParams.portamentoLegato);
     voiceManager.updateParams(currentParams);
 
+    // [Audit LFO] Global LFO logic (Triangle Wave + Global Delay)
     float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
     float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, currentParams.lfoRate);
     float phaseIncrement = (lfoRateHz / (float)getSampleRate());
+    
+    float lfoDelaySeconds = currentParams.lfoDelay * 5.0f;
+    float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)getSampleRate())) : 1.0f;
 
-    masterLfoPhase += phaseIncrement * buffer.getNumSamples();
-    if (masterLfoPhase >= 1.0f) masterLfoPhase = std::fmod(masterLfoPhase, 1.0f);
-    float lfoVal = std::sin(masterLfoPhase * 2.0f * juce::MathConstants<float>::pi);
+    bool anyHeld = voiceManager.isAnyNoteHeld();
+    
+    // Disparador global: si no había notas y ahora hay, reset del delay
+    if (anyHeld && !wasAnyNoteHeld) {
+        masterLfoDelayEnvelope = 0.0f;
+    }
+    wasAnyNoteHeld = anyHeld;
+
+    // Calcular valor LFO representativo para este bloque (o podríamos pasarlo por muestra)
+    // Para fidelidad 100% calculamos el valor al inicio del bloque y lo usamos, 
+    // pero actualizamos la fase para el siguiente bloque.
+    
+    // Avanzar LFO y Delay
+    for (int s = 0; s < buffer.getNumSamples(); ++s) {
+        masterLfoPhase += phaseIncrement;
+        if (masterLfoPhase >= 1.0f) masterLfoPhase -= 1.0f;
+        
+        if (anyHeld) {
+            masterLfoDelayEnvelope = std::min(1.0f, masterLfoDelayEnvelope + delayIncrement);
+        } else {
+            masterLfoDelayEnvelope = 0.0f;
+        }
+    }
+
+    // [Fidelidad] Onda Triangular: 2.0f * std::abs(2.0f * (phase - 0.5f)) - 1.0f
+    float lfoTri = 2.0f * std::abs(2.0f * (masterLfoPhase - 0.5f)) - 1.0f;
+    float lfoVal = lfoTri * masterLfoDelayEnvelope;
 
     buffer.clear();
     voiceManager.renderNextBlock(buffer, 0, buffer.getNumSamples(), lfoVal);

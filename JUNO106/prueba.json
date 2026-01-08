@@ -1,0 +1,645 @@
+{
+  "libraryName": "Factory",
+  "presets": [
+    {
+      "name": "Brass",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.15748031437397\" lfoDelay=\"0.3858267664909363\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.2755905389785767\"\r\n            resonance=\"0.1023622080683708\" envAmount=\"0.4566929042339325\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.6771653294563293\" vcaLevel=\"0.8503937125205994\"\r\n            attack=\"0.0236220471560955\" decay=\"0.3858267664909363\" sustain=\"0.3543307185173035\"\r\n            release=\"0.2519685029983521\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Brass Swell",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.04724409431219101\" lfoDelay=\"0.3779527544975281\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4409448802471161\" noise=\"0.0\" vcfFreq=\"0.3385826647281647\"\r\n            resonance=\"0.1338582634925842\" envAmount=\"0.2047244161367416\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.6614173054695129\" vcaLevel=\"0.5905511975288391\"\r\n            attack=\"0.5039370059967041\" decay=\"0.9291338324546814\" sustain=\"0.2992126047611237\"\r\n            release=\"0.2913385927677155\" subOsc=\"0.5511810779571533\" dcoRange=\"1\"\r\n            pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\">\r\n  <PARAM id=\"attack\"/>\r\n  <PARAM id=\"bender\"/>\r\n  <PARAM id=\"benderToDCO\"/>\r\n  <PARAM id=\"benderToLFO\"/>\r\n  <PARAM id=\"benderToVCF\"/>\r\n  <PARAM id=\"chorus1\"/>\r\n  <PARAM id=\"chorus2\"/>\r\n  <PARAM id=\"dcoRange\"/>\r\n  <PARAM id=\"decay\"/>\r\n  <PARAM id=\"envAmount\"/>\r\n  <PARAM id=\"hpfFreq\"/>\r\n  <PARAM id=\"kybdTracking\"/>\r\n  <PARAM id=\"lfoDelay\"/>\r\n  <PARAM id=\"lfoRate\"/>\r\n  <PARAM id=\"lfoToDCO\"/>\r\n  <PARAM id=\"lfoToVCF\"/>\r\n  <PARAM id=\"midiOut\"/>\r\n  <PARAM id=\"noise\"/>\r\n  <PARAM id=\"polyMode\"/>\r\n  <PARAM id=\"portamentoLegato\"/>\r\n  <PARAM id=\"portamentoOn\"/>\r\n  <PARAM id=\"portamentoTime\"/>\r\n  <PARAM id=\"pulseOn\"/>\r\n  <PARAM id=\"pwm\"/>\r\n  <PARAM id=\"pwmMode\"/>\r\n  <PARAM id=\"release\"/>\r\n  <PARAM id=\"resonance\"/>\r\n  <PARAM id=\"sawOn\"/>\r\n  <PARAM id=\"subOsc\"/>\r\n  <PARAM id=\"sustain\"/>\r\n  <PARAM id=\"tune\"/>\r\n  <PARAM id=\"vcaLevel\"/>\r\n  <PARAM id=\"vcaMode\"/>\r\n  <PARAM id=\"vcfFreq\"/>\r\n  <PARAM id=\"vcfPolarity\"/>\r\n</Parameters>\r\n"
+    },
+    {
+      "name": "Trumpet",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.06299212574958801\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.4330708682537079\"\r\n            resonance=\"0.2677165269851685\" envAmount=\"0.188976377248764\"\r\n            lfoToVCF=\"0.007874015718698502\" kybdTracking=\"0.4645669162273407\"\r\n            vcaLevel=\"1.0\" attack=\"0.03937007859349251\" decay=\"0.5196850299835205\"\r\n            sustain=\"0.3779527544975281\" release=\"0.125984251499176\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"1\">\r\n  <PARAM id=\"attack\"/>\r\n  <PARAM id=\"bender\"/>\r\n  <PARAM id=\"benderToDCO\"/>\r\n  <PARAM id=\"benderToLFO\"/>\r\n  <PARAM id=\"benderToVCF\"/>\r\n  <PARAM id=\"chorus1\"/>\r\n  <PARAM id=\"chorus2\"/>\r\n  <PARAM id=\"dcoRange\"/>\r\n  <PARAM id=\"decay\"/>\r\n  <PARAM id=\"envAmount\"/>\r\n  <PARAM id=\"hpfFreq\"/>\r\n  <PARAM id=\"kybdTracking\"/>\r\n  <PARAM id=\"lfoDelay\"/>\r\n  <PARAM id=\"lfoRate\"/>\r\n  <PARAM id=\"lfoToDCO\"/>\r\n  <PARAM id=\"lfoToVCF\"/>\r\n  <PARAM id=\"midiOut\"/>\r\n  <PARAM id=\"noise\"/>\r\n  <PARAM id=\"polyMode\"/>\r\n  <PARAM id=\"portamentoLegato\"/>\r\n  <PARAM id=\"portamentoOn\"/>\r\n  <PARAM id=\"portamentoTime\"/>\r\n  <PARAM id=\"pulseOn\"/>\r\n  <PARAM id=\"pwm\"/>\r\n  <PARAM id=\"pwmMode\"/>\r\n  <PARAM id=\"release\"/>\r\n  <PARAM id=\"resonance\"/>\r\n  <PARAM id=\"sawOn\"/>\r\n  <PARAM id=\"subOsc\"/>\r\n  <PARAM id=\"sustain\"/>\r\n  <PARAM id=\"tune\"/>\r\n  <PARAM id=\"vcaLevel\"/>\r\n  <PARAM id=\"vcaMode\"/>\r\n  <PARAM id=\"vcfFreq\"/>\r\n  <PARAM id=\"vcfPolarity\"/>\r\n</Parameters>\r\n"
+    },
+    {
+      "name": "Flutes",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4724409580230713\" lfoDelay=\"0.3385826647281647\" lfoToDCO=\"0.007874015718698502\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.4330708682537079\" resonance=\"0.2519685029983521\"\r\n            envAmount=\"0.07874015718698502\" lfoToVCF=\"0.08661417663097382\"\r\n            kybdTracking=\"0.3228346407413483\" vcaLevel=\"1.0\" attack=\"0.1811023652553558\"\r\n            decay=\"0.6377952694892883\" sustain=\"0.0\" release=\"0.1417322903871536\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\">\r\n  <PARAM id=\"attack\"/>\r\n  <PARAM id=\"bender\"/>\r\n  <PARAM id=\"benderToDCO\"/>\r\n  <PARAM id=\"benderToLFO\"/>\r\n  <PARAM id=\"benderToVCF\"/>\r\n  <PARAM id=\"chorus1\"/>\r\n  <PARAM id=\"chorus2\"/>\r\n  <PARAM id=\"dcoRange\"/>\r\n  <PARAM id=\"decay\"/>\r\n  <PARAM id=\"envAmount\"/>\r\n  <PARAM id=\"hpfFreq\"/>\r\n  <PARAM id=\"kybdTracking\"/>\r\n  <PARAM id=\"lfoDelay\"/>\r\n  <PARAM id=\"lfoRate\"/>\r\n  <PARAM id=\"lfoToDCO\"/>\r\n  <PARAM id=\"lfoToVCF\"/>\r\n  <PARAM id=\"midiOut\"/>\r\n  <PARAM id=\"noise\"/>\r\n  <PARAM id=\"polyMode\"/>\r\n  <PARAM id=\"portamentoLegato\"/>\r\n  <PARAM id=\"portamentoOn\"/>\r\n  <PARAM id=\"portamentoTime\"/>\r\n  <PARAM id=\"pulseOn\"/>\r\n  <PARAM id=\"pwm\"/>\r\n  <PARAM id=\"pwmMode\"/>\r\n  <PARAM id=\"release\"/>\r\n  <PARAM id=\"resonance\"/>\r\n  <PARAM id=\"sawOn\"/>\r\n  <PARAM id=\"subOsc\"/>\r\n  <PARAM id=\"sustain\"/>\r\n  <PARAM id=\"tune\"/>\r\n  <PARAM id=\"vcaLevel\"/>\r\n  <PARAM id=\"vcaMode\"/>\r\n  <PARAM id=\"vcfFreq\"/>\r\n  <PARAM id=\"vcfPolarity\"/>\r\n</Parameters>\r\n"
+    },
+    {
+      "name": "Moving Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4960629940032959\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.3070866167545319\"\r\n            noise=\"0.0\" vcfFreq=\"0.6062992215156555\" resonance=\"0.15748031437397\"\r\n            envAmount=\"0.03149606287479401\" lfoToVCF=\"0.0\" kybdTracking=\"0.874015748500824\"\r\n            vcaLevel=\"0.2677165269851685\" attack=\"0.1023622080683708\" decay=\"0.6850393414497375\"\r\n            sustain=\"0.6929134130477905\" release=\"0.2755905389785767\" subOsc=\"0.110236220061779\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\">\r\n  <PARAM id=\"attack\"/>\r\n  <PARAM id=\"bender\"/>\r\n  <PARAM id=\"benderToDCO\"/>\r\n  <PARAM id=\"benderToLFO\"/>\r\n  <PARAM id=\"benderToVCF\"/>\r\n  <PARAM id=\"chorus1\"/>\r\n  <PARAM id=\"chorus2\"/>\r\n  <PARAM id=\"dcoRange\"/>\r\n  <PARAM id=\"decay\"/>\r\n  <PARAM id=\"envAmount\"/>\r\n  <PARAM id=\"hpfFreq\"/>\r\n  <PARAM id=\"kybdTracking\"/>\r\n  <PARAM id=\"lfoDelay\"/>\r\n  <PARAM id=\"lfoRate\"/>\r\n  <PARAM id=\"lfoToDCO\"/>\r\n  <PARAM id=\"lfoToVCF\"/>\r\n  <PARAM id=\"midiOut\"/>\r\n  <PARAM id=\"noise\"/>\r\n  <PARAM id=\"polyMode\"/>\r\n  <PARAM id=\"portamentoLegato\"/>\r\n  <PARAM id=\"portamentoOn\"/>\r\n  <PARAM id=\"portamentoTime\"/>\r\n  <PARAM id=\"pulseOn\"/>\r\n  <PARAM id=\"pwm\"/>\r\n  <PARAM id=\"pwmMode\"/>\r\n  <PARAM id=\"release\"/>\r\n  <PARAM id=\"resonance\"/>\r\n  <PARAM id=\"sawOn\"/>\r\n  <PARAM id=\"subOsc\"/>\r\n  <PARAM id=\"sustain\"/>\r\n  <PARAM id=\"tune\"/>\r\n  <PARAM id=\"vcaLevel\"/>\r\n  <PARAM id=\"vcaMode\"/>\r\n  <PARAM id=\"vcfFreq\"/>\r\n  <PARAM id=\"vcfPolarity\"/>\r\n</Parameters>\r\n"
+    },
+    {
+      "name": "Brass & Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2755905389785767\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4409448802471161\"\r\n            noise=\"0.0\" vcfFreq=\"0.5984252095222473\" resonance=\"0.1338582634925842\"\r\n            envAmount=\"0.03149606287479401\" lfoToVCF=\"0.0\" kybdTracking=\"0.3228346407413483\"\r\n            vcaLevel=\"0.6141732335090637\" attack=\"0.3464567065238953\" decay=\"0.5196850299835205\"\r\n            sustain=\"0.4173228442668915\" release=\"0.3464567065238953\" subOsc=\"0.1811023652553558\"\r\n            dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\">\r\n  <PARAM id=\"attack\"/>\r\n  <PARAM id=\"bender\"/>\r\n  <PARAM id=\"benderToDCO\"/>\r\n  <PARAM id=\"benderToLFO\"/>\r\n  <PARAM id=\"benderToVCF\"/>\r\n  <PARAM id=\"chorus1\"/>\r\n  <PARAM id=\"chorus2\"/>\r\n  <PARAM id=\"dcoRange\"/>\r\n  <PARAM id=\"decay\"/>\r\n  <PARAM id=\"envAmount\"/>\r\n  <PARAM id=\"hpfFreq\"/>\r\n  <PARAM id=\"kybdTracking\"/>\r\n  <PARAM id=\"lfoDelay\"/>\r\n  <PARAM id=\"lfoRate\"/>\r\n  <PARAM id=\"lfoToDCO\"/>\r\n  <PARAM id=\"lfoToVCF\"/>\r\n  <PARAM id=\"midiOut\"/>\r\n  <PARAM id=\"noise\"/>\r\n  <PARAM id=\"polyMode\"/>\r\n  <PARAM id=\"portamentoLegato\"/>\r\n  <PARAM id=\"portamentoOn\"/>\r\n  <PARAM id=\"portamentoTime\"/>\r\n  <PARAM id=\"pulseOn\"/>\r\n  <PARAM id=\"pwm\"/>\r\n  <PARAM id=\"pwmMode\"/>\r\n  <PARAM id=\"release\"/>\r\n  <PARAM id=\"resonance\"/>\r\n  <PARAM id=\"sawOn\"/>\r\n  <PARAM id=\"subOsc\"/>\r\n  <PARAM id=\"sustain\"/>\r\n  <PARAM id=\"tune\"/>\r\n  <PARAM id=\"vcaLevel\"/>\r\n  <PARAM id=\"vcaMode\"/>\r\n  <PARAM id=\"vcfFreq\"/>\r\n  <PARAM id=\"vcfPolarity\"/>\r\n</Parameters>\r\n"
+    },
+    {
+      "name": "Choir",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4645669162273407\" lfoDelay=\"0.110236220061779\" lfoToDCO=\"0.1023622080683708\"\r\n            pwm=\"0.1968503892421722\" noise=\"0.0\" vcfFreq=\"0.4645669162273407\"\r\n            resonance=\"0.7401574850082397\" envAmount=\"0.015748031437397\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4881889820098877\" vcaLevel=\"1.0\"\r\n            attack=\"0.5354330539703369\" decay=\"0.08661417663097382\" sustain=\"1.0\"\r\n            release=\"0.3779527544975281\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Piano I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.15748031437397\" lfoDelay=\"0.3858267664909363\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.6299212574958801\" noise=\"0.0\" vcfFreq=\"0.5118110179901123\"\r\n            resonance=\"0.09448818862438202\" envAmount=\"0.07874015718698502\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.2125984281301498\" vcaLevel=\"0.8110235929489136\"\r\n            attack=\"0.0\" decay=\"0.5196850299835205\" sustain=\"0.0\" release=\"0.2362204790115356\"\r\n            subOsc=\"0.6771653294563293\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Organ I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4251968562602997\" lfoDelay=\"0.1181102395057678\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4173228442668915\" noise=\"0.0\" vcfFreq=\"0.3385826647281647\"\r\n            resonance=\"0.5984252095222473\" envAmount=\"0.110236220061779\"\r\n            lfoToVCF=\"0.007874015718698502\" kybdTracking=\"1.0\" vcaLevel=\"0.787401556968689\"\r\n            attack=\"0.0\" decay=\"0.07874015718698502\" sustain=\"0.6456692814826965\"\r\n            release=\"0.0\" subOsc=\"0.1811023652553558\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Organ II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3464567065238953\" lfoDelay=\"0.1181102395057678\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4173228442668915\" noise=\"0.0\" vcfFreq=\"0.4173228442668915\"\r\n            resonance=\"0.5984252095222473\" envAmount=\"0.110236220061779\"\r\n            lfoToVCF=\"0.007874015718698502\" kybdTracking=\"0.6692913174629211\"\r\n            vcaLevel=\"0.5826771855354309\" attack=\"0.0\" decay=\"0.07874015718698502\"\r\n            sustain=\"0.6456692814826965\" release=\"0.0\" subOsc=\"0.4566929042339325\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Combo Organ",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5905511975288391\" lfoDelay=\"0.1653543263673782\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.4488188922405243\" noise=\"0.0\" vcfFreq=\"0.4960629940032959\"\r\n            resonance=\"0.5511810779571533\" envAmount=\"0.03149606287479401\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.8582677245140076\" vcaLevel=\"0.7559055089950562\"\r\n            attack=\"0.0\" decay=\"0.3779527544975281\" sustain=\"0.3385826647281647\"\r\n            release=\"0.3622047305107117\" subOsc=\"0.4803149700164795\" dcoRange=\"2\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Calliope",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6456692814826965\" lfoDelay=\"0.3149606287479401\" lfoToDCO=\"0.08661417663097382\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.6850393414497375\" resonance=\"0.2125984281301498\"\r\n            envAmount=\"0.1338582634925842\" lfoToVCF=\"0.0\" kybdTracking=\"0.4409448802471161\"\r\n            vcaLevel=\"0.7007874250411987\" attack=\"0.05511811003088951\" decay=\"1.0\"\r\n            sustain=\"1.0\" release=\"0.04724409431219101\" subOsc=\"0.3779527544975281\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Donald Pluck",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5984252095222473\" lfoDelay=\"0.1653543263673782\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.4488188922405243\" noise=\"0.0\" vcfFreq=\"0.5748031735420227\"\r\n            resonance=\"0.8267716765403748\" envAmount=\"0.1181102395057678\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.6141732335090637\" vcaLevel=\"0.6456692814826965\"\r\n            attack=\"0.015748031437397\" decay=\"0.03937007859349251\" sustain=\"0.3385826647281647\"\r\n            release=\"0.07874015718698502\" subOsc=\"1.0\" dcoRange=\"2\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"1\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Celeste",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.220472440123558\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.2598425149917603\" resonance=\"0.188976377248764\"\r\n            envAmount=\"0.4251968562602997\" lfoToVCF=\"0.0\" kybdTracking=\"0.2992126047611237\"\r\n            vcaLevel=\"0.7559055089950562\" attack=\"0.0\" decay=\"0.3464567065238953\"\r\n            sustain=\"0.0\" release=\"0.6377952694892883\" subOsc=\"0.1181102395057678\"\r\n            dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Elect. Piano I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4645669162273407\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.125984251499176\" resonance=\"0.2440944910049438\"\r\n            envAmount=\"0.4803149700164795\" lfoToVCF=\"0.04724409431219101\"\r\n            kybdTracking=\"0.2755905389785767\" vcaLevel=\"1.0\" attack=\"0.007874015718698502\"\r\n            decay=\"0.6692913174629211\" sustain=\"0.3385826647281647\" release=\"0.3149606287479401\"\r\n            subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Elect. Piano II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5590550899505615\"\r\n            noise=\"0.0\" vcfFreq=\"0.3937007784843445\" resonance=\"0.5433070659637451\"\r\n            envAmount=\"0.05511811003088951\" lfoToVCF=\"0.0\" kybdTracking=\"0.6299212574958801\"\r\n            vcaLevel=\"0.8031495809555054\" attack=\"0.0\" decay=\"0.5354330539703369\"\r\n            sustain=\"0.0\" release=\"0.1732283532619476\" subOsc=\"0.0\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Clock Chimes",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4645669162273407\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.1732283532619476\" vcfFreq=\"0.3464567065238953\" resonance=\"1.0\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.8188976645469666\"\r\n            attack=\"0.0\" decay=\"0.3779527544975281\" sustain=\"0.0\" release=\"0.4015747904777527\"\r\n            subOsc=\"1.0\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Steel Drums",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2598425149917603\" lfoDelay=\"0.4173228442668915\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.2519685029983521\" noise=\"0.07086614519357681\" vcfFreq=\"0.5590550899505615\"\r\n            resonance=\"0.3622047305107117\" envAmount=\"0.2047244161367416\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"1.0\" attack=\"0.0\"\r\n            decay=\"0.2047244161367416\" sustain=\"0.0\" release=\"0.2913385927677155\"\r\n            subOsc=\"0.2598425149917603\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Xylophone",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"0.0\"\r\n            vcfFreq=\"0.2283464521169662\" resonance=\"0.188976377248764\" envAmount=\"0.4251968562602997\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4015747904777527\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.2283464521169662\" sustain=\"0.2283464521169662\"\r\n            release=\"0.2992126047611237\" subOsc=\"0.1181102395057678\" dcoRange=\"2\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Brass III",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.15748031437397\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.2755905389785767\" noise=\"0.0\" vcfFreq=\"0.5196850299835205\"\r\n            resonance=\"0.188976377248764\" envAmount=\"0.08661417663097382\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.09448818862438202\" vcaLevel=\"1.0\"\r\n            attack=\"0.4566929042339325\" decay=\"0.787401556968689\" sustain=\"0.7401574850082397\"\r\n            release=\"0.2913385927677155\" subOsc=\"0.1732283532619476\" dcoRange=\"1\"\r\n            pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Fanfare",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3700787425041199\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5511810779571533\"\r\n            noise=\"0.0\" vcfFreq=\"0.3464567065238953\" resonance=\"0.0\" envAmount=\"0.2519685029983521\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5275590419769287\" vcaLevel=\"0.2598425149917603\"\r\n            attack=\"0.5669291615486145\" decay=\"0.8188976645469666\" sustain=\"0.5905511975288391\"\r\n            release=\"0.3858267664909363\" subOsc=\"0.3937007784843445\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Strings III",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3779527544975281\" lfoDelay=\"0.2125984281301498\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.5590550899505615\"\r\n            resonance=\"0.110236220061779\" envAmount=\"0.0\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.6614173054695129\" vcaLevel=\"0.5748031735420227\"\r\n            attack=\"0.4960629940032959\" decay=\"0.2440944910049438\" sustain=\"1.0\"\r\n            release=\"0.3543307185173035\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Pizzacato",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4724409580230713\" lfoDelay=\"0.1417322903871536\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.5196850299835205\"\r\n            resonance=\"0.015748031437397\" envAmount=\"0.03937007859349251\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.3307086527347565\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.08661417663097382\" sustain=\"0.0\" release=\"0.09448818862438202\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "High Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4566929042339325\" lfoDelay=\"0.110236220061779\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.6614173054695129\"\r\n            resonance=\"0.06299212574958801\" envAmount=\"0.015748031437397\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5590550899505615\" vcaLevel=\"0.6062992215156555\"\r\n            attack=\"0.1417322903871536\" decay=\"0.3464567065238953\" sustain=\"1.0\"\r\n            release=\"0.3149606287479401\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Bass Clarinet",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.06299212574958801\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.3779527544975281\" resonance=\"0.2834645807743073\"\r\n            envAmount=\"0.1968503892421722\" lfoToVCF=\"0.06299212574958801\"\r\n            kybdTracking=\"0.4566929042339325\" vcaLevel=\"0.8188976645469666\"\r\n            attack=\"0.08661417663097382\" decay=\"0.5905511975288391\" sustain=\"0.0\"\r\n            release=\"0.1968503892421722\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "English Horn",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3700787425041199\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.5511810779571533\"\r\n            resonance=\"0.3779527544975281\" envAmount=\"0.05511811003088951\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.2125984281301498\" vcaLevel=\"1.0\"\r\n            attack=\"0.06299212574958801\" decay=\"0.6377952694892883\" sustain=\"0.2047244161367416\"\r\n            release=\"0.125984251499176\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Brass Ensemble",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.3622047305107117\"\r\n            resonance=\"0.3464567065238953\" envAmount=\"0.2283464521169662\"\r\n            lfoToVCF=\"0.007874015718698502\" kybdTracking=\"0.4645669162273407\"\r\n            vcaLevel=\"0.8110235929489136\" attack=\"0.125984251499176\" decay=\"0.8110235929489136\"\r\n            sustain=\"0.7637795209884644\" release=\"0.2677165269851685\" subOsc=\"0.2440944910049438\"\r\n            dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Guitar",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6771653294563293\" lfoDelay=\"0.4566929042339325\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5118110179901123\" noise=\"0.0\" vcfFreq=\"0.09448818862438202\"\r\n            resonance=\"0.1181102395057678\" envAmount=\"0.5590550899505615\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.2362204790115356\" vcaLevel=\"0.7559055089950562\"\r\n            attack=\"0.0\" decay=\"0.4094488322734833\" sustain=\"0.4251968562602997\"\r\n            release=\"0.2440944910049438\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Koto",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.7086614370346069\" lfoDelay=\"0.220472440123558\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.7401574850082397\" noise=\"0.0\" vcfFreq=\"0.3149606287479401\"\r\n            resonance=\"0.4566929042339325\" envAmount=\"0.2283464521169662\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5905511975288391\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.4409448802471161\" sustain=\"0.0\" release=\"0.3070866167545319\"\r\n            subOsc=\"0.015748031437397\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Dark Pluck",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2440944910049438\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.6850393414497375\"\r\n            noise=\"0.0\" vcfFreq=\"0.2992126047611237\" resonance=\"0.4803149700164795\"\r\n            envAmount=\"0.2125984281301498\" lfoToVCF=\"0.0\" kybdTracking=\"0.5590550899505615\"\r\n            vcaLevel=\"0.7086614370346069\" attack=\"0.0\" decay=\"0.4094488322734833\"\r\n            sustain=\"0.1181102395057678\" release=\"0.4960629940032959\" subOsc=\"0.7637795209884644\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Funky I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.03149606287479401\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5748031735420227\"\r\n            noise=\"0.0\" vcfFreq=\"0.2440944910049438\" resonance=\"0.1811023652553558\"\r\n            envAmount=\"0.4015747904777527\" lfoToVCF=\"0.0\" kybdTracking=\"0.3228346407413483\"\r\n            vcaLevel=\"0.5590550899505615\" attack=\"0.0\" decay=\"0.2362204790115356\"\r\n            sustain=\"0.2834645807743073\" release=\"0.015748031437397\" subOsc=\"0.5039370059967041\"\r\n            dcoRange=\"0\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Synth Bass I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4566929042339325\" lfoDelay=\"0.125984251499176\" lfoToDCO=\"0.007874015718698502\"\r\n            pwm=\"0.4488188922405243\" noise=\"0.3937007784843445\" vcfFreq=\"0.2519685029983521\"\r\n            resonance=\"0.0\" envAmount=\"0.5196850299835205\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.2755905389785767\" vcaLevel=\"0.5905511975288391\"\r\n            attack=\"0.0\" decay=\"0.2677165269851685\" sustain=\"0.0\" release=\"0.2834645807743073\"\r\n            subOsc=\"0.8031495809555054\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Lead I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5669291615486145\" lfoDelay=\"0.6929134130477905\" lfoToDCO=\"0.1417322903871536\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.3149606287479401\" resonance=\"0.7637795209884644\"\r\n            envAmount=\"0.2834645807743073\" lfoToVCF=\"0.0\" kybdTracking=\"0.4094488322734833\"\r\n            vcaLevel=\"0.7795275449752808\" attack=\"0.0\" decay=\"0.3543307185173035\"\r\n            sustain=\"0.3858267664909363\" release=\"0.0\" subOsc=\"0.0\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Lead II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.188976377248764\" lfoDelay=\"0.6929134130477905\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4173228442668915\" noise=\"0.0\" vcfFreq=\"0.3543307185173035\"\r\n            resonance=\"0.0\" envAmount=\"0.3385826647281647\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.4094488322734833\" vcaLevel=\"0.4409448802471161\"\r\n            attack=\"0.007874015718698502\" decay=\"0.1811023652553558\" sustain=\"0.7165354490280151\"\r\n            release=\"0.5905511975288391\" subOsc=\"0.6220472455024719\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Lead III",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6771653294563293\" lfoDelay=\"0.5590550899505615\" lfoToDCO=\"0.1653543263673782\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.4724409580230713\"\r\n            resonance=\"0.2440944910049438\" envAmount=\"0.1417322903871536\"\r\n            lfoToVCF=\"0.007874015718698502\" kybdTracking=\"0.5984252095222473\"\r\n            vcaLevel=\"1.0\" attack=\"0.0\" decay=\"0.5196850299835205\" sustain=\"0.3779527544975281\"\r\n            release=\"0.08661417663097382\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Funky II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.03149606287479401\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.3779527544975281\"\r\n            noise=\"0.0\" vcfFreq=\"0.03937007859349251\" resonance=\"0.1811023652553558\"\r\n            envAmount=\"0.6377952694892883\" lfoToVCF=\"0.0\" kybdTracking=\"0.3228346407413483\"\r\n            vcaLevel=\"0.787401556968689\" attack=\"0.0\" decay=\"0.2362204790115356\"\r\n            sustain=\"0.3070866167545319\" release=\"0.015748031437397\" subOsc=\"0.4488188922405243\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Synth Bass II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.7086614370346069\" lfoDelay=\"0.1653543263673782\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.3385826647281647\" resonance=\"0.0\"\r\n            envAmount=\"0.3700787425041199\" lfoToVCF=\"0.0\" kybdTracking=\"0.0\"\r\n            vcaLevel=\"0.6141732335090637\" attack=\"0.0\" decay=\"0.2913385927677155\"\r\n            sustain=\"0.07086614519357681\" release=\"0.1732283532619476\" subOsc=\"0.3543307185173035\"\r\n            dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Funky III",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.03149606287479401\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.07086614519357681\"\r\n            noise=\"0.7952755689620972\" vcfFreq=\"0.2992126047611237\" resonance=\"0.4251968562602997\"\r\n            envAmount=\"0.3543307185173035\" lfoToVCF=\"0.0\" kybdTracking=\"0.07874015718698502\"\r\n            vcaLevel=\"0.6220472455024719\" attack=\"0.0\" decay=\"0.188976377248764\"\r\n            sustain=\"0.0\" release=\"0.015748031437397\" subOsc=\"1.0\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Thud Wah",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4881889820098877\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8031495809555054\"\r\n            noise=\"0.06299212574958801\" vcfFreq=\"0.6141732335090637\" resonance=\"0.7007874250411987\"\r\n            envAmount=\"0.2677165269851685\" lfoToVCF=\"0.0\" kybdTracking=\"0.0\"\r\n            vcaLevel=\"0.834645688533783\" attack=\"0.0\" decay=\"0.0\" sustain=\"0.8031495809555054\"\r\n            release=\"0.3543307185173035\" subOsc=\"0.2519685029983521\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Going Up",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.787401556968689\"\r\n            noise=\"0.220472440123558\" vcfFreq=\"0.6220472455024719\" resonance=\"1.0\"\r\n            envAmount=\"0.2913385927677155\" lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\"\r\n            vcaLevel=\"0.5905511975288391\" attack=\"0.0\" decay=\"0.8503937125205994\"\r\n            sustain=\"0.1417322903871536\" release=\"1.0\" subOsc=\"0.0\" dcoRange=\"1\"\r\n            pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Piano II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.007874015718698502\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5669291615486145\" noise=\"0.0\" vcfFreq=\"0.3700787425041199\"\r\n            resonance=\"0.0\" envAmount=\"0.3070866167545319\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.03937007859349251\" vcaLevel=\"0.6141732335090637\"\r\n            attack=\"0.0\" decay=\"0.7716535329818726\" sustain=\"0.0\" release=\"0.2519685029983521\"\r\n            subOsc=\"0.9055117964744568\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Clav.",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5196850299835205\" lfoDelay=\"0.1181102395057678\" lfoToDCO=\"0.007874015718698502\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.0\" vcfFreq=\"0.05511811003088951\"\r\n            resonance=\"0.08661417663097382\" envAmount=\"0.6771653294563293\"\r\n            lfoToVCF=\"0.015748031437397\" kybdTracking=\"0.0\" vcaLevel=\"0.9448819160461426\"\r\n            attack=\"0.0\" decay=\"0.3070866167545319\" sustain=\"0.3779527544975281\"\r\n            release=\"0.110236220061779\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Frontier Organ",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6220472455024719\" lfoDelay=\"0.1181102395057678\" lfoToDCO=\"0.0236220471560955\"\r\n            pwm=\"0.6692913174629211\" noise=\"0.0\" vcfFreq=\"0.5433070659637451\"\r\n            resonance=\"0.4251968562602997\" envAmount=\"0.0\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.4094488322734833\" vcaLevel=\"1.0\" attack=\"0.0\"\r\n            decay=\"0.0\" sustain=\"1.0\" release=\"0.0\" subOsc=\"0.2283464521169662\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Snare Drum",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.2125984281301498\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.0\" noise=\"0.7165354490280151\" vcfFreq=\"0.7401574850082397\"\r\n            resonance=\"0.08661417663097382\" envAmount=\"0.1338582634925842\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.0\" vcaLevel=\"0.7952755689620972\"\r\n            attack=\"0.0\" decay=\"0.1968503892421722\" sustain=\"0.0\" release=\"0.2362204790115356\"\r\n            subOsc=\"0.5039370059967041\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Tom Toms",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4881889820098877\" lfoDelay=\"0.125984251499176\" lfoToDCO=\"0.06299212574958801\"\r\n            pwm=\"0.0\" noise=\"1.0\" vcfFreq=\"0.4173228442668915\" resonance=\"0.03149606287479401\"\r\n            envAmount=\"0.3149606287479401\" lfoToVCF=\"0.0\" kybdTracking=\"0.1653543263673782\"\r\n            vcaLevel=\"0.7952755689620972\" attack=\"0.0\" decay=\"0.2362204790115356\"\r\n            sustain=\"0.1181102395057678\" release=\"0.3149606287479401\" subOsc=\"0.4566929042339325\"\r\n            dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Timpani",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.2755905389785767\"\r\n            noise=\"1.0\" vcfFreq=\"0.1968503892421722\" resonance=\"0.0\" envAmount=\"0.4251968562602997\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.188976377248764\" vcaLevel=\"1.0\"\r\n            attack=\"0.007874015718698502\" decay=\"0.4409448802471161\" sustain=\"0.2047244161367416\"\r\n            release=\"0.5590550899505615\" subOsc=\"0.3700787425041199\" dcoRange=\"0\"\r\n            pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Shaker",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1653543263673782\" lfoDelay=\"0.5590550899505615\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4566929042339325\" noise=\"1.0\" vcfFreq=\"0.7007874250411987\"\r\n            resonance=\"0.3543307185173035\" envAmount=\"0.007874015718698502\"\r\n            lfoToVCF=\"0.1338582634925842\" kybdTracking=\"0.6299212574958801\"\r\n            vcaLevel=\"1.0\" attack=\"0.07874015718698502\" decay=\"0.07086614519357681\"\r\n            sustain=\"0.0\" release=\"0.0\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Synth Pad",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4409448802471161\" lfoDelay=\"0.0\" lfoToDCO=\"0.03937007859349251\"\r\n            pwm=\"0.3385826647281647\" noise=\"0.0\" vcfFreq=\"0.2913385927677155\"\r\n            resonance=\"0.0\" envAmount=\"0.6614173054695129\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"1.0\" vcaLevel=\"0.4015747904777527\" attack=\"0.0\"\r\n            decay=\"0.6692913174629211\" sustain=\"0.5905511975288391\" release=\"0.4881889820098877\"\r\n            subOsc=\"0.2913385927677155\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Sweep I",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8031495809555054\"\r\n            noise=\"0.220472440123558\" vcfFreq=\"0.9055117964744568\" resonance=\"0.3149606287479401\"\r\n            envAmount=\"0.5275590419769287\" lfoToVCF=\"0.0\" kybdTracking=\"0.0\"\r\n            vcaLevel=\"0.7637795209884644\" attack=\"0.0\" decay=\"0.4960629940032959\"\r\n            sustain=\"1.0\" release=\"0.6456692814826965\" subOsc=\"0.3307086527347565\"\r\n            dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Pluck Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5354330539703369\" lfoDelay=\"0.3779527544975281\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5354330539703369\" noise=\"0.0\" vcfFreq=\"0.4724409580230713\"\r\n            resonance=\"0.874015748500824\" envAmount=\"0.07086614519357681\"\r\n            lfoToVCF=\"0.04724409431219101\" kybdTracking=\"0.7716535329818726\"\r\n            vcaLevel=\"0.3543307185173035\" attack=\"0.0\" decay=\"0.7165354490280151\"\r\n            sustain=\"0.0\" release=\"0.6062992215156555\" subOsc=\"0.9842519760131836\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Repeater",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6062992215156555\" lfoDelay=\"0.15748031437397\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.7952755689620972\" noise=\"0.0\" vcfFreq=\"0.7637795209884644\"\r\n            resonance=\"0.2362204790115356\" envAmount=\"0.4409448802471161\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4488188922405243\" vcaLevel=\"0.6850393414497375\"\r\n            attack=\"0.110236220061779\" decay=\"0.0\" sustain=\"0.3228346407413483\"\r\n            release=\"0.0\" subOsc=\"0.3464567065238953\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Sweep II",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6929134130477905\" lfoDelay=\"0.5669291615486145\" lfoToDCO=\"0.1181102395057678\"\r\n            pwm=\"0.7637795209884644\" noise=\"0.0\" vcfFreq=\"0.5196850299835205\"\r\n            resonance=\"0.8031495809555054\" envAmount=\"0.5354330539703369\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5511810779571533\" vcaLevel=\"0.7952755689620972\"\r\n            attack=\"0.0\" decay=\"0.7007874250411987\" sustain=\"0.4173228442668915\"\r\n            release=\"0.6141732335090637\" subOsc=\"0.3779527544975281\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Pluck Bell",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4015747904777527\" lfoDelay=\"0.0\" lfoToDCO=\"0.03937007859349251\"\r\n            pwm=\"0.1338582634925842\" noise=\"0.0\" vcfFreq=\"0.3070866167545319\"\r\n            resonance=\"0.0\" envAmount=\"0.3858267664909363\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"1.0\" vcaLevel=\"0.3858267664909363\" attack=\"0.0\"\r\n            decay=\"0.6692913174629211\" sustain=\"0.5905511975288391\" release=\"0.4173228442668915\"\r\n            subOsc=\"0.3858267664909363\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Dark Synth Piano",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"0.0\"\r\n            vcfFreq=\"0.4409448802471161\" resonance=\"0.6771653294563293\" envAmount=\"0.04724409431219101\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5590550899505615\" vcaLevel=\"0.6220472455024719\"\r\n            attack=\"0.0\" decay=\"0.3700787425041199\" sustain=\"0.0\" release=\"0.3937007784843445\"\r\n            subOsc=\"1.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Sustainer",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5590550899505615\" lfoDelay=\"0.0\" lfoToDCO=\"0.03937007859349251\"\r\n            pwm=\"0.3622047305107117\" noise=\"0.0\" vcfFreq=\"0.3070866167545319\"\r\n            resonance=\"0.0\" envAmount=\"0.6614173054695129\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"1.0\" vcaLevel=\"0.4488188922405243\" attack=\"0.0\"\r\n            decay=\"0.6692913174629211\" sustain=\"0.5905511975288391\" release=\"0.5511810779571533\"\r\n            subOsc=\"0.3858267664909363\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Wah Release",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.7007874250411987\" lfoDelay=\"0.110236220061779\" lfoToDCO=\"0.007874015718698502\"\r\n            pwm=\"0.1968503892421722\" noise=\"0.0\" vcfFreq=\"0.5669291615486145\"\r\n            resonance=\"0.6929134130477905\" envAmount=\"0.1496063023805618\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5196850299835205\" vcaLevel=\"0.8188976645469666\"\r\n            attack=\"0.0\" decay=\"0.6614173054695129\" sustain=\"0.0\" release=\"0.2283464521169662\"\r\n            subOsc=\"0.6850393414497375\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"0\"\r\n            hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Gong",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8031495809555054\"\r\n            noise=\"0.4409448802471161\" vcfFreq=\"0.5511810779571533\" resonance=\"0.8425197005271912\"\r\n            envAmount=\"0.03937007859349251\" lfoToVCF=\"0.0\" kybdTracking=\"0.5669291615486145\"\r\n            vcaLevel=\"0.7165354490280151\" attack=\"0.0236220471560955\" decay=\"0.3779527544975281\"\r\n            sustain=\"1.0\" release=\"0.7716535329818726\" subOsc=\"0.0\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Resonance Funk",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4645669162273407\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.2047244161367416\" resonance=\"1.0\" envAmount=\"0.3543307185173035\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.7007874250411987\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.1496063023805618\" sustain=\"0.0\" release=\"0.1732283532619476\"\r\n            subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Drum Booms",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8031495809555054\"\r\n            noise=\"1.0\" vcfFreq=\"0.3307086527347565\" resonance=\"0.0\" envAmount=\"0.2677165269851685\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4566929042339325\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.2834645807743073\" sustain=\"0.1181102395057678\"\r\n            release=\"0.3858267664909363\" subOsc=\"0.3622047305107117\" dcoRange=\"0\"\r\n            pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Dust Storm",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"1.0\"\r\n            vcfFreq=\"0.4094488322734833\" resonance=\"0.6692913174629211\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.3464567065238953\" kybdTracking=\"0.7401574850082397\"\r\n            vcaLevel=\"1.0\" attack=\"0.6929134130477905\" decay=\"0.7165354490280151\"\r\n            sustain=\"0.220472440123558\" release=\"0.6692913174629211\" subOsc=\"0.0\"\r\n            dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Rocket Men",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.06299212574958801\" lfoDelay=\"0.2519685029983521\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8031495809555054\" noise=\"0.7637795209884644\" vcfFreq=\"0.5748031735420227\"\r\n            resonance=\"0.8976377844810486\" envAmount=\"0.06299212574958801\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4409448802471161\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.7007874250411987\" sustain=\"1.0\" release=\"0.8188976645469666\"\r\n            subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Hand Claps",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4645669162273407\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"1.0\" vcfFreq=\"0.1338582634925842\" resonance=\"0.6929134130477905\"\r\n            envAmount=\"0.4251968562602997\" lfoToVCF=\"0.0\" kybdTracking=\"0.4330708682537079\"\r\n            vcaLevel=\"1.0\" attack=\"0.007874015718698502\" decay=\"0.08661417663097382\"\r\n            sustain=\"0.0\" release=\"0.06299212574958801\" subOsc=\"0.0\" dcoRange=\"0\"\r\n            pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "F X Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.5118110179901123\" lfoToDCO=\"0.913385808467865\"\r\n            pwm=\"0.8031495809555054\" noise=\"1.0\" vcfFreq=\"0.5590550899505615\"\r\n            resonance=\"0.3464567065238953\" envAmount=\"0.6535432934761047\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.7401574850082397\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.7401574850082397\" sustain=\"0.0\" release=\"0.8818897604942322\"\r\n            subOsc=\"1.0\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Caverns",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8031495809555054\"\r\n            noise=\"1.0\" vcfFreq=\"0.5354330539703369\" resonance=\"0.9291338324546814\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"0.5433070659637451\"\r\n            vcaLevel=\"0.8425197005271912\" attack=\"0.0\" decay=\"0.1023622080683708\"\r\n            sustain=\"0.2992126047611237\" release=\"0.3700787425041199\" subOsc=\"0.0\"\r\n            dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4488188922405243\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.4330708682537079\" noise=\"0.0\" vcfFreq=\"0.6692913174629211\"\r\n            resonance=\"0.0\" envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"0.8503937125205994\"\r\n            vcaLevel=\"0.4094488322734833\" attack=\"0.4645669162273407\" decay=\"0.2519685029983521\"\r\n            sustain=\"0.6771653294563293\" release=\"0.3149606287479401\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Violin",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5196850299835205\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.15748031437397\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.6062992215156555\" resonance=\"0.0\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"0.9448819160461426\"\r\n            vcaLevel=\"0.8661417365074158\" attack=\"0.3385826647281647\" decay=\"0.3543307185173035\"\r\n            sustain=\"0.4488188922405243\" release=\"0.2047244161367416\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Chorus Vibes",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5669291615486145\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.07874015718698502\" resonance=\"0.0\"\r\n            envAmount=\"0.4645669162273407\" lfoToVCF=\"0.0\" kybdTracking=\"0.1811023652553558\"\r\n            vcaLevel=\"0.6929134130477905\" attack=\"0.0\" decay=\"0.7007874250411987\"\r\n            sustain=\"0.3700787425041199\" release=\"0.5826771855354309\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Organ 1",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3543307185173035\" lfoDelay=\"0.3307086527347565\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5748031735420227\" noise=\"0.0\" vcfFreq=\"0.4724409580230713\"\r\n            resonance=\"0.5669291615486145\" envAmount=\"0.110236220061779\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.4566929042339325\"\r\n            attack=\"0.0\" decay=\"0.0\" sustain=\"0.0\" release=\"0.0\" subOsc=\"0.7637795209884644\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Harpsichord 1",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1811023652553558\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4251968562602997\"\r\n            noise=\"0.0\" vcfFreq=\"1.0\" resonance=\"1.0\" envAmount=\"0.7086614370346069\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.6771653294563293\" vcaLevel=\"0.9842519760131836\"\r\n            attack=\"0.0\" decay=\"0.4724409580230713\" sustain=\"0.0\" release=\"0.2440944910049438\"\r\n            subOsc=\"0.2755905389785767\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Recorder",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.06299212574958801\"\r\n            noise=\"0.0\" vcfFreq=\"0.04724409431219101\" resonance=\"0.0\" envAmount=\"0.3622047305107117\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"1.0\" attack=\"0.03937007859349251\"\r\n            decay=\"0.1653543263673782\" sustain=\"1.0\" release=\"0.2362204790115356\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Perc. Pluck",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4881889820098877\" lfoDelay=\"0.2992126047611237\" lfoToDCO=\"0.06299212574958801\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.0\" resonance=\"0.0\" envAmount=\"0.7086614370346069\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5748031735420227\" vcaLevel=\"0.5118110179901123\"\r\n            attack=\"0.0\" decay=\"0.125984251499176\" sustain=\"0.6141732335090637\"\r\n            release=\"0.913385808467865\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Noise Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"1.0\"\r\n            vcfFreq=\"0.015748031437397\" resonance=\"0.0\" envAmount=\"0.6062992215156555\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.8188976645469666\" vcaLevel=\"0.7244094610214233\"\r\n            attack=\"0.110236220061779\" decay=\"0.6141732335090637\" sustain=\"0.8503937125205994\"\r\n            release=\"0.9448819160461426\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Space Chimes",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.7795275449752808\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.5511810779571533\" resonance=\"1.0\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5826771855354309\" vcaLevel=\"0.6692913174629211\"\r\n            attack=\"0.0\" decay=\"0.1968503892421722\" sustain=\"0.0\" release=\"0.4724409580230713\"\r\n            subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Nylon Guitar",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5669291615486145\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.2283464521169662\" noise=\"0.0\" vcfFreq=\"0.4488188922405243\"\r\n            resonance=\"0.0\" envAmount=\"0.2047244161367416\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.1968503892421722\" vcaLevel=\"0.9055117964744568\"\r\n            attack=\"0.0\" decay=\"0.7007874250411987\" sustain=\"0.0\" release=\"0.2519685029983521\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Orchestral Pad",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1732283532619476\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8267716765403748\" noise=\"0.0\" vcfFreq=\"0.2598425149917603\"\r\n            resonance=\"0.0\" envAmount=\"0.4330708682537079\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.2834645807743073\" vcaLevel=\"0.0\" attack=\"0.2283464521169662\"\r\n            decay=\"0.6929134130477905\" sustain=\"0.3937007784843445\" release=\"0.4094488322734833\"\r\n            subOsc=\"1.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Bright Pluck",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4566929042339325\"\r\n            noise=\"0.0\" vcfFreq=\"0.4488188922405243\" resonance=\"0.0\" envAmount=\"0.3149606287479401\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.6771653294563293\" vcaLevel=\"0.8188976645469666\"\r\n            attack=\"0.0\" decay=\"0.1968503892421722\" sustain=\"0.3307086527347565\"\r\n            release=\"0.3464567065238953\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Organ Bell",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.04724409431219101\"\r\n            pwm=\"0.5354330539703369\" noise=\"0.0\" vcfFreq=\"0.4803149700164795\"\r\n            resonance=\"0.0\" envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.4881889820098877\" attack=\"0.0\" decay=\"0.0\" sustain=\"1.0\"\r\n            release=\"0.2047244161367416\" subOsc=\"0.6692913174629211\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Accordion",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5039370059967041\"\r\n            noise=\"0.0\" vcfFreq=\"0.6062992215156555\" resonance=\"0.0\" envAmount=\"0.110236220061779\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5826771855354309\" vcaLevel=\"0.5196850299835205\"\r\n            attack=\"0.06299212574958801\" decay=\"0.08661417663097382\" sustain=\"0.8661417365074158\"\r\n            release=\"0.07086614519357681\" subOsc=\"0.6299212574958801\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "FX Rise 1",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.913385808467865\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.8503937125205994\" resonance=\"1.0\" envAmount=\"0.125984251499176\"\r\n            lfoToVCF=\"1.0\" kybdTracking=\"0.5039370059967041\" vcaLevel=\"0.0\"\r\n            attack=\"0.0\" decay=\"0.0\" sustain=\"1.0\" release=\"0.6614173054695129\"\r\n            subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"0\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "FX Rise 2",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.8503937125205994\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.7401574850082397\" resonance=\"1.0\" envAmount=\"0.6299212574958801\"\r\n            lfoToVCF=\"0.1811023652553558\" kybdTracking=\"1.0\" vcaLevel=\"0.0\"\r\n            attack=\"0.0\" decay=\"1.0\" sustain=\"0.4015747904777527\" release=\"0.5590550899505615\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Brass",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4015747904777527\" lfoDelay=\"1.0\" lfoToDCO=\"0.0\" pwm=\"0.5748031735420227\"\r\n            noise=\"0.0\" vcfFreq=\"0.0\" resonance=\"0.0\" envAmount=\"0.7401574850082397\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.5669291615486145\"\r\n            attack=\"0.0236220471560955\" decay=\"0.3464567065238953\" sustain=\"0.4015747904777527\"\r\n            release=\"0.08661417663097382\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Helicopter",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.834645688533783\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.3779527544975281\"\r\n            noise=\"0.0\" vcfFreq=\"0.6456692814826965\" resonance=\"0.03937007859349251\"\r\n            envAmount=\"0.7322834730148315\" lfoToVCF=\"1.0\" kybdTracking=\"0.0\"\r\n            vcaLevel=\"0.5669291615486145\" attack=\"0.0\" decay=\"0.0\" sustain=\"0.2755905389785767\"\r\n            release=\"0.5984252095222473\" subOsc=\"1.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Lute",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.0\" lfoToDCO=\"0.015748031437397\"\r\n            pwm=\"0.8267716765403748\" noise=\"0.0\" vcfFreq=\"0.2283464521169662\"\r\n            resonance=\"0.0\" envAmount=\"0.2755905389785767\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.6771653294563293\" vcaLevel=\"1.0\" attack=\"0.0\"\r\n            decay=\"0.3779527544975281\" sustain=\"0.2677165269851685\" release=\"0.6850393414497375\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Chorus Funk",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6062992215156555\" lfoDelay=\"0.7401574850082397\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5748031735420227\" noise=\"0.0\" vcfFreq=\"0.3700787425041199\"\r\n            resonance=\"0.2677165269851685\" envAmount=\"0.4173228442668915\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\" vcaLevel=\"0.3307086527347565\"\r\n            attack=\"0.0\" decay=\"0.08661417663097382\" sustain=\"0.2677165269851685\"\r\n            release=\"0.0\" subOsc=\"0.6220472455024719\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Tomita",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8267716765403748\"\r\n            noise=\"0.0\" vcfFreq=\"0.3858267664909363\" resonance=\"0.9842519760131836\"\r\n            envAmount=\"0.1181102395057678\" lfoToVCF=\"0.015748031437397\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.4488188922405243\" attack=\"0.0\" decay=\"0.110236220061779\"\r\n            sustain=\"0.6220472455024719\" release=\"0.0\" subOsc=\"0.0\" dcoRange=\"2\"\r\n            pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "FX Sweep 1",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"0.0\"\r\n            vcfFreq=\"0.4566929042339325\" resonance=\"1.0\" envAmount=\"0.125984251499176\"\r\n            lfoToVCF=\"0.5984252095222473\" kybdTracking=\"0.5039370059967041\"\r\n            vcaLevel=\"0.0\" attack=\"0.0\" decay=\"0.0\" sustain=\"1.0\" release=\"0.6692913174629211\"\r\n            subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Sharp Reed",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1653543263673782\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5748031735420227\"\r\n            noise=\"0.0\" vcfFreq=\"0.2598425149917603\" resonance=\"0.0\" envAmount=\"0.4173228442668915\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\" vcaLevel=\"0.4330708682537079\"\r\n            attack=\"0.015748031437397\" decay=\"0.1417322903871536\" sustain=\"0.8818897604942322\"\r\n            release=\"0.0\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"1\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Bass Pluck",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4724409580230713\"\r\n            noise=\"0.0\" vcfFreq=\"0.2913385927677155\" resonance=\"0.2283464521169662\"\r\n            envAmount=\"0.220472440123558\" lfoToVCF=\"0.0\" kybdTracking=\"0.3385826647281647\"\r\n            vcaLevel=\"0.7244094610214233\" attack=\"0.0\" decay=\"0.3307086527347565\"\r\n            sustain=\"0.2755905389785767\" release=\"0.0\" subOsc=\"0.0\" dcoRange=\"0\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Resonant Rise",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4094488322734833\" lfoDelay=\"0.0\" lfoToDCO=\"0.1181102395057678\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.5196850299835205\" resonance=\"0.8425197005271912\"\r\n            envAmount=\"0.2440944910049438\" lfoToVCF=\"0.0\" kybdTracking=\"0.5748031735420227\"\r\n            vcaLevel=\"0.4881889820098877\" attack=\"0.0\" decay=\"0.4094488322734833\"\r\n            sustain=\"0.3070866167545319\" release=\"0.0\" subOsc=\"0.0\" dcoRange=\"0\"\r\n            pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"1\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Harpsichord 2",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8267716765403748\"\r\n            noise=\"0.0\" vcfFreq=\"1.0\" resonance=\"0.7480314970016479\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.8425197005271912\"\r\n            attack=\"0.0\" decay=\"0.3543307185173035\" sustain=\"0.0\" release=\"0.0\"\r\n            subOsc=\"0.2755905389785767\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Dark Ensemble",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4488188922405243\"\r\n            noise=\"0.0\" vcfFreq=\"0.4330708682537079\" resonance=\"0.0\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.8425197005271912\" vcaLevel=\"0.5275590419769287\"\r\n            attack=\"0.1653543263673782\" decay=\"0.0\" sustain=\"1.0\" release=\"0.2755905389785767\"\r\n            subOsc=\"0.5905511975288391\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\"\r\n            chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Contact Wah",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.6377952694892883\"\r\n            noise=\"0.0\" vcfFreq=\"0.4803149700164795\" resonance=\"0.7952755689620972\"\r\n            envAmount=\"0.3622047305107117\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"1.0\" attack=\"0.0\" decay=\"0.0\" sustain=\"0.0\" release=\"0.0\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"1\" vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Noise Sweep 2",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"1.0\"\r\n            vcfFreq=\"1.0\" resonance=\"0.0\" envAmount=\"0.6535432934761047\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.8188976645469666\" vcaLevel=\"0.913385808467865\"\r\n            attack=\"1.0\" decay=\"0.6220472455024719\" sustain=\"0.2047244161367416\"\r\n            release=\"0.6535432934761047\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Glassy Wah",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.7401574850082397\" lfoToDCO=\"0.0\" pwm=\"0.220472440123558\"\r\n            noise=\"0.0\" vcfFreq=\"0.188976377248764\" resonance=\"0.2677165269851685\"\r\n            envAmount=\"0.4803149700164795\" lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\"\r\n            vcaLevel=\"0.8818897604942322\" attack=\"0.04724409431219101\" decay=\"0.1417322903871536\"\r\n            sustain=\"0.3937007784843445\" release=\"0.2992126047611237\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Phase Ensemble",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.08661417663097382\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.03937007859349251\"\r\n            pwm=\"0.8267716765403748\" noise=\"0.0\" vcfFreq=\"0.6220472455024719\"\r\n            resonance=\"0.0\" envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.7795275449752808\" attack=\"0.6614173054695129\" decay=\"0.3543307185173035\"\r\n            sustain=\"0.4488188922405243\" release=\"0.3858267664909363\" subOsc=\"0.0\"\r\n            dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Chorused Bell",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.08661417663097382\" lfoToDCO=\"0.0\" pwm=\"0.8267716765403748\"\r\n            noise=\"0.0\" vcfFreq=\"0.4645669162273407\" resonance=\"1.0\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.4881889820098877\"\r\n            attack=\"0.0\" decay=\"0.4881889820098877\" sustain=\"0.0\" release=\"0.4488188922405243\"\r\n            subOsc=\"0.7952755689620972\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Clav.",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3937007784843445\" lfoDelay=\"0.08661417663097382\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.7165354490280151\" noise=\"0.0\" vcfFreq=\"0.2519685029983521\"\r\n            resonance=\"0.0\" envAmount=\"0.4960629940032959\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.0\" vcaLevel=\"0.8503937125205994\" attack=\"0.0\"\r\n            decay=\"0.3385826647281647\" sustain=\"0.4330708682537079\" release=\"0.0\"\r\n            subOsc=\"0.05511811003088951\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\"\r\n            hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Organ 2",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6377952694892883\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8188976645469666\"\r\n            noise=\"0.0\" vcfFreq=\"0.4251968562602997\" resonance=\"0.834645688533783\"\r\n            envAmount=\"0.05511811003088951\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.6220472455024719\" attack=\"0.0\" decay=\"0.0\" sustain=\"0.0\"\r\n            release=\"0.0\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\"\r\n            chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"1\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Bassoon",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6614173054695129\" lfoDelay=\"0.2992126047611237\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.7086614370346069\" noise=\"0.0\" vcfFreq=\"0.2755905389785767\"\r\n            resonance=\"0.0\" envAmount=\"0.3385826647281647\" lfoToVCF=\"0.07086614519357681\"\r\n            kybdTracking=\"0.7716535329818726\" vcaLevel=\"1.0\" attack=\"0.03937007859349251\"\r\n            decay=\"1.0\" sustain=\"0.834645688533783\" release=\"0.015748031437397\"\r\n            subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"1\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Auto Release Noise Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"1.0\"\r\n            vcfFreq=\"1.0\" resonance=\"0.0\" envAmount=\"1.0\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.8188976645469666\" vcaLevel=\"0.8425197005271912\"\r\n            attack=\"0.0\" decay=\"0.6220472455024719\" sustain=\"0.4488188922405243\"\r\n            release=\"0.6535432934761047\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Brass Ensemble",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1968503892421722\" lfoDelay=\"0.7401574850082397\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5748031735420227\" noise=\"0.0\" vcfFreq=\"0.3700787425041199\"\r\n            resonance=\"0.2677165269851685\" envAmount=\"0.2755905389785767\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\" vcaLevel=\"0.3070866167545319\"\r\n            attack=\"0.04724409431219101\" decay=\"0.5354330539703369\" sustain=\"0.5275590419769287\"\r\n            release=\"0.2992126047611237\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Guitar",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5433070659637451\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8267716765403748\"\r\n            noise=\"0.0\" vcfFreq=\"0.3700787425041199\" resonance=\"0.9448819160461426\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.4724409580230713\"\r\n            attack=\"0.7244094610214233\" decay=\"0.3937007784843445\" sustain=\"1.0\"\r\n            release=\"0.4330708682537079\" subOsc=\"0.4645669162273407\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Soft Lead",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5669291615486145\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.2283464521169662\" noise=\"0.0\" vcfFreq=\"0.0\" resonance=\"0.8031495809555054\"\r\n            envAmount=\"0.4881889820098877\" lfoToVCF=\"0.0\" kybdTracking=\"0.7086614370346069\"\r\n            vcaLevel=\"0.2362204790115356\" attack=\"0.0\" decay=\"0.9212598204612732\"\r\n            sustain=\"0.0\" release=\"0.9448819160461426\" subOsc=\"0.0\" dcoRange=\"1\"\r\n            pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Power Lead",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.007874015718698502\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8267716765403748\" noise=\"1.0\" vcfFreq=\"0.4409448802471161\"\r\n            resonance=\"0.7007874250411987\" envAmount=\"0.05511811003088951\"\r\n            lfoToVCF=\"0.2992126047611237\" kybdTracking=\"0.9527559280395508\"\r\n            vcaLevel=\"1.0\" attack=\"0.6141732335090637\" decay=\"0.7716535329818726\"\r\n            sustain=\"0.6850393414497375\" release=\"0.6141732335090637\" subOsc=\"0.0\"\r\n            dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "String Pad",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3464567065238953\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.1653543263673782\"\r\n            noise=\"0.0\" vcfFreq=\"0.1732283532619476\" resonance=\"0.0\" envAmount=\"0.2755905389785767\"\r\n            lfoToVCF=\"0.05511811003088951\" kybdTracking=\"0.8425197005271912\"\r\n            vcaLevel=\"0.8110235929489136\" attack=\"0.0\" decay=\"0.5118110179901123\"\r\n            sustain=\"0.4724409580230713\" release=\"0.7716535329818726\" subOsc=\"1.0\"\r\n            dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "String Swell",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5433070659637451\" lfoDelay=\"0.1732283532619476\" lfoToDCO=\"0.07086614519357681\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.2755905389785767\" resonance=\"0.0\"\r\n            envAmount=\"0.3385826647281647\" lfoToVCF=\"0.05511811003088951\"\r\n            kybdTracking=\"0.7716535329818726\" vcaLevel=\"0.8188976645469666\"\r\n            attack=\"0.03937007859349251\" decay=\"1.0\" sustain=\"0.834645688533783\"\r\n            release=\"0.05511811003088951\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "String Ensemble",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"1.0\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\" noise=\"1.0\"\r\n            vcfFreq=\"0.015748031437397\" resonance=\"0.0\" envAmount=\"0.6062992215156555\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.8188976645469666\" vcaLevel=\"0.8425197005271912\"\r\n            attack=\"0.0\" decay=\"0.1732283532619476\" sustain=\"0.8503937125205994\"\r\n            release=\"0.9448819160461426\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Bright Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2755905389785767\" lfoDelay=\"0.1417322903871536\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.5748031735420227\" noise=\"0.0\" vcfFreq=\"0.2598425149917603\"\r\n            resonance=\"0.0\" envAmount=\"0.4173228442668915\" lfoToVCF=\"0.0\"\r\n            kybdTracking=\"0.5118110179901123\" vcaLevel=\"0.5433070659637451\"\r\n            attack=\"0.0236220471560955\" decay=\"0.3464567065238953\" sustain=\"0.8582677245140076\"\r\n            release=\"0.0\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\"\r\n            chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"1\"\r\n            hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Fast Attack Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2677165269851685\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.4645669162273407\"\r\n            noise=\"0.0\" vcfFreq=\"0.1968503892421722\" resonance=\"0.0\" envAmount=\"0.3307086527347565\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\" vcaLevel=\"0.1732283532619476\"\r\n            attack=\"0.1653543263673782\" decay=\"0.5748031735420227\" sustain=\"0.5590550899505615\"\r\n            release=\"0.3779527544975281\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Slow Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2362204790115356\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"1.0\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.4566929042339325\" resonance=\"1.0\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.8425197005271912\"\r\n            attack=\"0.0\" decay=\"0.7007874250411987\" sustain=\"0.0\" release=\"0.3070866167545319\"\r\n            subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Arco Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.007874015718698502\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.8267716765403748\" noise=\"1.0\" vcfFreq=\"0.6614173054695129\"\r\n            resonance=\"0.08661417663097382\" envAmount=\"0.0\" lfoToVCF=\"0.3858267664909363\"\r\n            kybdTracking=\"0.4251968562602997\" vcaLevel=\"0.5905511975288391\"\r\n            attack=\"0.2598425149917603\" decay=\"0.7637795209884644\" sustain=\"1.0\"\r\n            release=\"0.9527559280395508\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"1\"\r\n            vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Chorus Strings",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3937007784843445\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.3937007784843445\"\r\n            noise=\"0.0\" vcfFreq=\"0.4960629940032959\" resonance=\"0.6614173054695129\"\r\n            envAmount=\"0.5118110179901123\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.5511810779571533\" attack=\"1.0\" decay=\"0.0\" sustain=\"0.8425197005271912\"\r\n            release=\"0.0\" subOsc=\"0.3700787425041199\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"1\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Piano",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5511810779571533\" lfoDelay=\"0.220472440123558\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.110236220061779\" noise=\"0.0\" vcfFreq=\"0.03149606287479401\"\r\n            resonance=\"0.0\" envAmount=\"0.4960629940032959\" lfoToVCF=\"0.125984251499176\"\r\n            kybdTracking=\"0.7716535329818726\" vcaLevel=\"0.6850393414497375\"\r\n            attack=\"0.125984251499176\" decay=\"0.8110235929489136\" sustain=\"0.834645688533783\"\r\n            release=\"0.1653543263673782\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"1\"/>\r\n"
+    },
+    {
+      "name": "Electric Piano",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.7795275449752808\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"1.0\" vcfFreq=\"0.5669291615486145\" resonance=\"0.8818897604942322\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"1.0\"\r\n            attack=\"0.0\" decay=\"0.188976377248764\" sustain=\"0.0\" release=\"0.188976377248764\"\r\n            subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\"\r\n            pwmMode=\"0\" vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Clavichord",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4015747904777527\" lfoDelay=\"1.0\" lfoToDCO=\"0.0\" pwm=\"0.5748031735420227\"\r\n            noise=\"0.0\" vcfFreq=\"0.3543307185173035\" resonance=\"0.787401556968689\"\r\n            envAmount=\"0.2755905389785767\" lfoToVCF=\"0.0\" kybdTracking=\"0.5118110179901123\"\r\n            vcaLevel=\"0.6614173054695129\" attack=\"0.03149606287479401\" decay=\"0.7086614370346069\"\r\n            sustain=\"0.0\" release=\"0.2125984281301498\" subOsc=\"0.0\" dcoRange=\"1\"\r\n            pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Harpsichord",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.5590550899505615\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.1732283532619476\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.7007874250411987\" resonance=\"0.0\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0236220471560955\" kybdTracking=\"0.9448819160461426\"\r\n            vcaLevel=\"0.6692913174629211\" attack=\"0.3385826647281647\" decay=\"0.3543307185173035\"\r\n            sustain=\"0.4488188922405243\" release=\"0.2047244161367416\" subOsc=\"0.0\"\r\n            dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Guitar",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2362204790115356\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"1.0\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.5984252095222473\" resonance=\"1.0\"\r\n            envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.874015748500824\"\r\n            attack=\"0.0\" decay=\"0.1732283532619476\" sustain=\"0.4094488322734833\"\r\n            release=\"0.4645669162273407\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"0\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "Bass",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.2834645807743073\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.8267716765403748\"\r\n            noise=\"0.0\" vcfFreq=\"0.4724409580230713\" resonance=\"0.07086614519357681\"\r\n            envAmount=\"0.0\" lfoToVCF=\"1.0\" kybdTracking=\"0.0\" vcaLevel=\"0.6062992215156555\"\r\n            attack=\"0.2677165269851685\" decay=\"0.4330708682537079\" sustain=\"1.0\"\r\n            release=\"0.8267716765403748\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Percussive Synth",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.0\" lfoDelay=\"0.08661417663097382\" lfoToDCO=\"0.0\" pwm=\"0.8188976645469666\"\r\n            noise=\"0.0\" vcfFreq=\"0.5984252095222473\" resonance=\"1.0\" envAmount=\"0.0\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.6535432934761047\"\r\n            attack=\"0.0\" decay=\"0.1811023652553558\" sustain=\"0.1811023652553558\"\r\n            release=\"0.4488188922405243\" subOsc=\"0.0\" dcoRange=\"2\" pulseOn=\"1\"\r\n            sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Wah Synth",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.125984251499176\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.5354330539703369\"\r\n            noise=\"0.0\" vcfFreq=\"0.06299212574958801\" resonance=\"0.0\" envAmount=\"0.6850393414497375\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"0.4094488322734833\" vcaLevel=\"0.110236220061779\"\r\n            attack=\"0.0\" decay=\"0.2834645807743073\" sustain=\"0.8582677245140076\"\r\n            release=\"0.0\" subOsc=\"0.4409448802471161\" dcoRange=\"0\" pulseOn=\"1\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.1653543263673782\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.03937007859349251\"\r\n            pwm=\"0.6377952694892883\" noise=\"0.0\" vcfFreq=\"0.5590550899505615\"\r\n            resonance=\"0.0\" envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"0.8110235929489136\"\r\n            vcaLevel=\"0.3149606287479401\" attack=\"0.6535432934761047\" decay=\"0.1811023652553558\"\r\n            sustain=\"0.8582677245140076\" release=\"0.3307086527347565\" subOsc=\"0.0\"\r\n            dcoRange=\"0\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Filter Sweep",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4015747904777527\" lfoDelay=\"1.0\" lfoToDCO=\"0.0\" pwm=\"0.5748031735420227\"\r\n            noise=\"0.0\" vcfFreq=\"0.0\" resonance=\"0.0\" envAmount=\"0.7401574850082397\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.7637795209884644\"\r\n            attack=\"0.0236220471560955\" decay=\"0.3464567065238953\" sustain=\"0.4015747904777527\"\r\n            release=\"0.08661417663097382\" subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"1\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Pluck Synth",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.4488188922405243\" lfoDelay=\"0.3543307185173035\" lfoToDCO=\"0.1653543263673782\"\r\n            pwm=\"0.0\" noise=\"0.0\" vcfFreq=\"0.5905511975288391\" resonance=\"0.0\"\r\n            envAmount=\"0.0236220471560955\" lfoToVCF=\"0.007874015718698502\"\r\n            kybdTracking=\"0.3543307185173035\" vcaLevel=\"0.8582677245140076\"\r\n            attack=\"0.3779527544975281\" decay=\"0.5118110179901123\" sustain=\"0.7086614370346069\"\r\n            release=\"0.2677165269851685\" subOsc=\"0.0\" dcoRange=\"0\" pulseOn=\"0\"\r\n            sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcfPolarity=\"0\"\r\n            vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Lead Synth",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6299212574958801\" lfoDelay=\"0.0\" lfoToDCO=\"0.07874015718698502\"\r\n            pwm=\"0.5511810779571533\" noise=\"0.0\" vcfFreq=\"0.7244094610214233\"\r\n            resonance=\"0.0\" envAmount=\"0.0\" lfoToVCF=\"0.0\" kybdTracking=\"0.5590550899505615\"\r\n            vcaLevel=\"0.3779527544975281\" attack=\"0.2125984281301498\" decay=\"0.4488188922405243\"\r\n            sustain=\"0.4488188922405243\" release=\"0.3228346407413483\" subOsc=\"0.0\"\r\n            dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Synth Pad",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.8503937125205994\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.8661417365074158\" resonance=\"1.0\" envAmount=\"0.6299212574958801\"\r\n            lfoToVCF=\"0.4960629940032959\" kybdTracking=\"1.0\" vcaLevel=\"0.0\"\r\n            attack=\"0.0\" decay=\"1.0\" sustain=\"0.4015747904777527\" release=\"0.7007874250411987\"\r\n            subOsc=\"0.0\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\"\r\n            pwmMode=\"0\" vcfPolarity=\"1\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    },
+    {
+      "name": "Atmospheric Pad",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3937007784843445\" lfoDelay=\"0.08661417663097382\" lfoToDCO=\"0.0\"\r\n            pwm=\"0.3464567065238953\" noise=\"0.0\" vcfFreq=\"0.2283464521169662\"\r\n            resonance=\"0.03149606287479401\" envAmount=\"0.6929134130477905\"\r\n            lfoToVCF=\"0.03937007859349251\" kybdTracking=\"0.7480314970016479\"\r\n            vcaLevel=\"0.6220472455024719\" attack=\"0.0\" decay=\"0.3779527544975281\"\r\n            sustain=\"0.1811023652553558\" release=\"0.3307086527347565\" subOsc=\"0.07086614519357681\"\r\n            dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"0\"/>\r\n"
+    },
+    {
+      "name": "FX",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.6141732335090637\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.0\"\r\n            noise=\"0.0\" vcfFreq=\"0.4330708682537079\" resonance=\"1.0\" envAmount=\"0.3385826647281647\"\r\n            lfoToVCF=\"0.0\" kybdTracking=\"1.0\" vcaLevel=\"0.6062992215156555\"\r\n            attack=\"0.0\" decay=\"0.0\" sustain=\"0.0\" release=\"0.0\" subOsc=\"1.0\"\r\n            dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"1\" vcaMode=\"1\" hpfFreq=\"2\"/>\r\n"
+    },
+    {
+      "name": "Noise FX",
+      "category": "Factory",
+      "state": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<Parameters lfoRate=\"0.3937007784843445\" lfoDelay=\"0.0\" lfoToDCO=\"0.0\" pwm=\"0.3543307185173035\"\r\n            noise=\"0.0\" vcfFreq=\"0.2992126047611237\" resonance=\"0.6614173054695129\"\r\n            envAmount=\"0.2519685029983521\" lfoToVCF=\"0.0\" kybdTracking=\"1.0\"\r\n            vcaLevel=\"0.7952755689620972\" attack=\"0.0\" decay=\"0.3858267664909363\"\r\n            sustain=\"0.4330708682537079\" release=\"0.0\" subOsc=\"0.4409448802471161\"\r\n            dcoRange=\"0\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\"\r\n            vcfPolarity=\"0\" vcaMode=\"0\" hpfFreq=\"3\"/>\r\n"
+    }
+  ]
+}

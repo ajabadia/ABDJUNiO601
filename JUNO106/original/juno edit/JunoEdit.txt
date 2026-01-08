@@ -1,0 +1,265 @@
+---------------------------------------------------------------
+Date: Thu, 23 Apr 1998 21:11:55 +0200 (MET DST)
+From: Rik <rik@Bijlmer.NL.net>
+To: Mike Perkowitz <map@cs.washington.edu>
+Subject: Juno Editor
+
+Hello, 
+Some time ago you posted an editor for the alpha Juno I sent you on your
+Music/machines page (JunoEdit.zip an editor for the alpha juno 1 & 2 and
+MKS-50 for windows 95/NT). Last week someone mailed me that the editor
+doesnt work in his studio! I wondered if you have had similar complaints,
+an if you could add a warning to the info of Junoedit.zip that according
+to some people the editior doesnt work on their system. 
+I am very sorry, and I am working on a fix for the problem right now, or
+more accurately, I am trying to find the problem in the first place! 
+In our studio we have an alpha Juno 1, the person who complained to me has
+an alpha juno 2. Do you know if there are any (undocumented?) differences
+between the sysex codes of the Juno 1 and 2?
+bye, 
+Rik
+
+rik@hot.cl
+-------------------------------------------------------------
+
+
+Juno Editor for Windows 95/NT
+version 2.01
+(c) BijlmerSoft, Bijlmer Budget Studios - 1998
+
+Editor for Roland Alpha Juno-1, Alpha Juno-2, and MKS-50
+
+
+1 - Features:  This program should be very easy to use for any Juno owner
+who has a PC with windows 95/NT. I have grouped the different sliders,not
+in a logical, but in a quick-to-find way. The 'waveforms' and 'Envelope &
+LFO' windows have a simple, pretty-but-useless g
+
+raphical representation.  In this program a 'patch' means one sound
+(preset or memory), a bank is a bank of eight sounds just like on the
+Juno, and memory stands for all banks in the memory section. If you want
+to save a sound in the permanent memory of your Juno you still have to
+
+ do this by hand on your Juno.  This version only supports sending sysex
+from the PC to the Juno, version 3.0 should support sysex both ways (MIDI
+dump send/receive, and recording the changes made to parameters on your
+Juno by hand). It should also feature 'grouping' sliders, so you can
+
+ change several parameters at the same time.  Experienced windows users
+can skip the 'how to use this program' part of this text. Do take note
+however that you change names of patches by double-clicking the name of
+the patch on the main window (an edit box then appears, enter the name,
+and press [Ent
+
+er] to enter the new name), which may not be immediately obvious. Also
+note that every change you enter in the Juno Editor is only sent to the
+patch (sound) you have presently selected on your Juno.
+
+2 - Installation:  Nothing to it. This is a standalone program, it
+requires no installation, no DLL's, VBX-es etc. It does not mess with your
+system settings, registry etc. Just run (click) the JunoEdit.exe file. If
+you want the preset names to appear in the menu, you must
+
+make sure that the file 'presets.txt' is present in the same directory as
+the program (JunoEdit.exe) file. There will be no stray files left
+anywhere by this program, except for one: if you run this program when the
+program can't find 'presets.txt', it cr
+
+eates a dummy presets.txt file in the same directory as the program file
+(JunoEdit.exe). I havent added the parameters of the presets (yet), as
+this would be a lot of work, and not very useful if you ask me. They will
+be added however, once I get the MIDI
+
+ dump to work properly, in a future version. Uninstalling this program is
+done by simply deleting it. 
+
+3 - How to use this program:  I have tried to follow the windows protocol
+as much as possible: you can change a parameter by moving the appropriate
+slider (scrollbar) with your mouse, either by clicking the slider or the
+arrows on the sides of the slider, or by dragging the button on
+
+the slider. Select the window with the parameters you want to change from
+the menu. Everything is also accessible from the PC keyboard. Select the
+item you want from the menubar by pressing [Alt] + the underlined letter,
+or with the arrow keys. Sliders ca
+
+n also be controlled with the arrow keys, and you can swith to another
+slider by pressing [Tab]. I will walk through the controls:  - Starting
+the program:  When the program starts, you should see a little window on
+the bottom right hand side of your screen. If your taskbar on your windows
+desktop has it's auto hide option turned off (if it is always visible),
+the Juno Editor window is partially hidden by you
+
+r taskbar. Sorry, this is a bug, it will be fixed in a future version. You
+can move the window to any part of the screen you like, by dragging it
+with your mouse. I positioned it at the bottom right for my own
+convenience.  - Midi Setup:  On the little window you should see two boxes
+marked 'Port' and 'Channel'. These are off course the Midi Port you Juno
+is connected to, and the Midi Channel it listens to. Default values are
+Port 2 Channel 15 as in my studio, but you can change these sett
+
+ings with the up/down arrows in these boxes, or by selecting the box (with
+the mouse or with the [Tab] key) and entering the value you want on your
+PC's keyboard.  Then Click the OK button to enter these settings, or
+Cancel to cancel changing the Midi Settings. You can also select these
+buttons with the [Tab] key and then press [Enter], or by pressing the key
+with the underlined letter on the button you want to sele
+
+ct. The Midi Setup part of the window then disappears. It will reappear
+when you select 'Setup' from the MIDI menu.  - Changing the name of a
+patch:  Double Click the name of the patch on the main window. That's the
+little window you started with. (This is the only thing you can't do with
+the PC keyboard only. I'll fix that for the next version) A box then
+appears. Select this box (with [Tab] or with t
+
+he mouse), and type the new name for the patch. Press enter to enter this
+new name. (For some reason your PC-speaker then goes beep. This is a bug,
+I'll fix it for a later version). It may strike you as strange, but Juno
+Editor won't let you change the na
+
+me of a preset (if you can, you've found a bug!). If you must, change the
+names in the presets.txt file.  - The Menu: On the Menu bar of the main
+window you should see the words File, Patches, Controls, MIDI and Help.
+This is what they are for:  - File:  With Reset you can set all sliders in
+a patch, bank or the entire memory to zero. These zeroes are only sent to
+the patch you have presently selected on your Juno, it wont mute all your
+sounds.  With Open you get the usual Windows open-dialog box that lets you
+load a patch or a memory (all eight banks of memory) from disk. This
+program only supports patches and memories saved with Juno Editor, as I
+dont have the source of any other editor, I have
+
+ no way of knowing the usual format of these files. This version does not
+support the savin of banks, as I never use that feature my self, but I
+could easily add it if someone needs it. Save As... opens the usual
+windows save as-dialog box, to let you sav
+
+e a patch or the entire memory to disk. The Option Save saved the patch
+you are presently working on with the filename you last entered for it, or
+with the same name as the patch if you havent entered a filename for it
+yet. With Exit you close the Juno Ed
+
+itor.  - Patches:  Under the Patches menu you find eight banks of presets
+(not working in this version yet, but they're in your Juno if you want
+them) and eight banks of memory. Each bank holds eight sounds, called
+patches in this program. The banks and sounds are numbered
+
+the same way as on your Juno.  You can select the patch (sound) you want
+to edit by clicking it with your mouse, or with the PC keyboard as
+described earlier. The presets are added for future expansion, i havent
+entered the settings for the preset sounds yet, but I will fix this for a
+
+future version. You can store settings in preset patches, and save them to
+file if you want, but you can't save all the presets like you can save the
+memory. If you feel like it you can enter the right settings for each
+preset, and save them to patch file
+
+s, or enter them in memory patches, and save them as a memory file. If you
+do so, please send me a copy, so I can include them in the next version of
+this program.  - Controls:  Here you find all parameters you can change
+with this program. Upon selecting All Sliders, a large window appears,
+that contains sliders (scrollbars) to change every parameter that makes up
+a sound on the Juno. What I forgot to add were parameters that af
+
+fect all sounds on your Juno (things like portamento on/off, portamento
+time etc), these will be added in a future version. Every parameter is
+named the same as on your Juno. With DCO, Waveforms, Filters, VCA,
+Envelope & LFO and Modulation you open window
+
+s to change the parameters that I find belong there for ease of use, which
+may not allways be logical for the techies amongst you. I did this, so you
+dont always have to have huge windows open, that block the view on the
+sequencer program (or other progra
+
+ms you may be running), so for the most part I have tried to put
+parameters I might like to change at the same time on the same window. If
+you think they should be arranged differently, please let me know.  All of
+these 'controls'-windows communicate with each other. You can open and
+close them at will without affecting their settings, you can even minimize
+them, but I have had to make them non-resizeable for now. I may make them
+all resizeable in the future
+
+, (this is not difficult, but a lot of work).  - MIDI:  Under the MIDI
+menu you'll find setup, with which you make the Midi port and Midi channel
+setup dialog reappear on the main window. You'll also find Receive MIDI
+Dump and Send MIDI Dump, which I have conveniently disabled for you, as
+these options aren't
+
+working yet.  - Help:  With Help in the Help Menu you make this text
+appear, if it is in the same directory as the Juno Editor program
+(JunoEdit.exe), and About makes a little About Box appear. I wont go
+through the trouble of creating a proper windows help file if you dont min
+
+d, as this program is (should be) so easy to use (just like the Juno) that
+no one would use it anyway. 
+
+4 - Error Messages / Trouble Shooting:  As I tried to follow the windows
+protocol as much as possible, I made the error messages as puzzling,
+criptical and non-informative as possible. They are there for debugging
+purposes only. You should get an error message if the program can't find a
+soundc
+
+ard, if it cant find a midi port, if it can't open the midi port, etc. If
+none of these things are the problem and the Juno Editor still doesn't
+work properly, please let me know, I have only been able to test this
+program on my computer with my Juno. Oth
+
+er documented errors can be:  - If the program can't find the file
+'helpfile.txt', or this file has become corrupted (if it has fewer than 64
+names in it), the patches menu may not be created properly. If presets.txt
+is missing, all presets will simply be named preset. If it has been
+
+corrupted, just delete it, or replace it with a text file (.txt format) of
+your own, any 64 names will do.  - If the program can't find this text in
+Rich Text format (helpfile.rtf) in thre same directory (folder) as the
+Juno Editor program file (JunoEdit.exe), the help window may be blank.  -
+Sometimes the drivers of Windows 95 can get corrupted. When this happons
+Juno Editor may fail to open the selected Midi Port, or even open it
+successfully but under a wrong port number! The best possible remedy I can
+think of is to restart Windows, or i
+
+f that doesnt work, to reset your PC. 
+
+5 - Notes / Obligatory Disclaimer:  I wrote this program because I wanted
+to use it my self, not to make money as a custom software developer.
+Therefore anyone else can use it for free. There are no annoying shareware
+hints. This program may be freely distributed (but not sold!) for any pur
+
+pose, except to make fun of me. I may make the source codes (Borland
+Delphi 3.0 / Object Pascal) available if you want to improve or customize
+it, just let me know.  As I didn't write this program as an official
+commercial release, I cannot guarantee the stability of this program. I
+haven't experienced any problems so far, but I won't be held responsible
+for any loss of data resulting from the use of this Juno Editor. 
+
+ If in any event this program crashes, and you can't close it, press
+[Ctrl-Alt-Del] or right-click the taskbar on your desktop, and select task
+manager to end the task (called JunoEdit.exe). However, it has never
+crashed on any of the PC's I have tested i
+
+t on, and so far I haven't found any bugs other than the ones I have
+mentioned earlier. 
+
+6 - System Requirements:  This program has been tested on a 486/40 mHz PC
+and on a Cyrix P200+ PC, both with a (the same) Turtle Beach Maui Midi
+card, in a home studio that includes several different synthesizers and a
+drummachine. It has also been tested running together with two
+
+ different popular commercial sequencer programs, and it seems to run
+smoothly, without affecting the sequencer programs or the timing, or any
+of the other synthesizers in any noticeable way. The program communicates
+with windows, not with the hardware di
+
+rectly, so it shouldn't make any difference what kind of soundcard you
+have. Juno Editor should run on any PC capable of running Windows 95. 
+
+7 - About Us:  The Bijlmer Budget Studios* are located in Amsterdam, the
+Netherlands.  If you encounter any bugs, or the program doesn't work
+properly, or not at all, please let us know. Also if you have suggestions
+for improvement, let us know.  You can contact BijlmerSoft and the Bijlmer
+Budget Studios by sending an e-mail to rik@hot.cl (Rik) or merijn@hot.cl
+(Merijn). 
+
+Rik v. E. <rik@hot.cl> Merijn S. <merijn@hot.cl>
+
+*The tiniest and nastiest studio complex in the world! 
+

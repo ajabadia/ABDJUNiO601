@@ -64,7 +64,7 @@ public:
     void updateParamsFromAPVTS();
     void applyPerformanceModulations(SynthParams& p);
     void sendPatchDump();
-    void sendManualMode(); // [reimplement.md] Added for hardware sync
+    void sendManualMode(); 
 
     bool isTestMode = false;
     void triggerTestProgram(int bankIndex);
@@ -90,7 +90,10 @@ private:
     juce::Random chorusNoiseGen; 
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker;
 
+    // [Audit LFO] Global LFO State
     float masterLfoPhase = 0.0f;
+    float masterLfoDelayEnvelope = 0.0f;
+    bool wasAnyNoteHeld = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };

@@ -40,7 +40,7 @@ Thumbs.db
 
 # Old Source Code
 SOURCE_BUNDLE_OLD/
-JUNO106/
+# JUNO106/ # Temporarily unblocked for manual audit
 
 # Logs
 # *_log.txt

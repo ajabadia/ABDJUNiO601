@@ -1,0 +1,92 @@
+
+                              JUNOLIB
+
+Program Function:  While the JUNO-106 can create great synth sounds, 
+and the various sliders are a great help for modifying sounds, editing 
+patches can be frustrating since the JUNO does not have any way to 
+indicate the instrument settings when you select a new patch.  In 
+addition, there is no way to name patches, and saving them to tape is 
+tedious and limiting.
+
+        To address these problems, I have developed a helpful, easy to 
+use program.  This editor/librarian has several functions:
+
+        - On screen display of patch parameters AND changes you have 
+made to them.
+
+        - A graphic display of the ADSR envelope.
+
+        - The ability to save and load patches to disk.
+
+        - Random patch creation.
+
+        - Printing of patch parameters.
+
+	    - Selectable MIDI Channel.
+	
+	
+
+System Requirements: IBM Compatible PC, EGA or VGA monitor, MPU 401 or
+compatible midi interface.
+
+
+Operation: This program is very easy to use.  To start the program, 
+type JUNOLIB.  Be sure your JUNO 106 is correctly connected to the 
+MIDI interface.  Also make sure the MIDI Function switch on the 106 is 
+set to mode III.  By default, the program transmits on MIDI channel 1.  
+Function keys 'F3' and  'F4' decrease and increase the midi transmit 
+channel.
+
+	Once the program has started, there are three ways to load patch 
+data.  You can send it from the JUNO, load a patch from your disk, or 
+generate a random patch.
+ 	
+	- Receiving patch from data from JUNO: In order to receive patch 
+data from the JUNO, the program's receive mode must be set to 
+'ON'(default).  The F5 key toggles this function on and off.  
+Once the receive mode is set to 'ON', patch data will 
+automatically be received and displayed by the program each time 
+you select a patch on the 106.  The main reason you would want 
+to turn the receive mode off is so that you could select a 
+different patch without the program receiving new patch data 
+(which would wipe out the old data). This is useful if you want 
+to transmit a new patch to the JUNO 106 to a different 
+instrument number.
+
+	- Loading/Saving from the disk:  You can save and load files to 
+your disk with a couple of minor limitations.  First of all the 
+program will only save and load programs with the '.jno' 
+extension.  You do not need to include this extension when 
+saving or loading, the program will append it automatically. If 
+you have saved files using a different program, you can rename 
+them using the '.jno' extension.  The second limitation is that 
+all the files must be in the same directory as the program.  I 
+think these are reasonable limitations!  To load a file, select 
+'F9'.  To save a file select 'F10'.  The either case the program 
+will prompt you for a file name. Again DO NOT include the file 
+extension. You can hit the 'F2' key at any time to see a list of 
+files in your directory. Hitting any key will then return you 
+back to the filename prompt.  Once a file is loaded, the patch 
+parameters will be displayed and the file transmitted to your 
+JUNO.  If the JUNO wasn't ready, 'F6' will retransmit the file.
+
+	- Random Patch: Hit 'F6' to generate a random patch and send it to 
+the JUNO. This patch can then be modified, if necessary, and 
+saved to the disk. Please note that since, the parameters are 
+purely random, the patch may not actually result in a sound on 
+the JUNO.  If that is the case you can either hit 'F6' again to 
+create another patch, or edit the existing one.
+
+	- Patch Print: To print the patch parameters, be sure you printer 
+is on. Hit the 'F7' key to print the patch name and values.  The 
+program assumes the printer is connected to the parallel port.
+
+	
+	- 'F1' to exit the program.
+
+	That's about it!!
+
+        This is a freeware program!   
+
+        Questions or problems can be sent to 
+        PWYKES@homemail.COM

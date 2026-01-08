@@ -1,0 +1,13 @@
+ Hi hyperreal chaps,
+ 
+ JUNOLIB2.ZIP is Windows 3.1 patch editor and librarian for the Roland 
+Juno-106 synthesiser.
+
+ This file should replace /machines/software/Windows/junolib2.zip, which
+ had a corrupt EXE file in it. Sorry about that!
+ 
+ Regards,
+ Dave
+ 
+ davec@wsti.demon.co.uk.
+

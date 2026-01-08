@@ -1,0 +1,53 @@
+Juno-106 Patch Librarian for Windows
+------------------------------------
+
+ This is a Windows 3.1 patch editor and librarian for the Roland 
+Juno-106 synthesiser.
+ 
+System requirements: Windows 3.1, an installed and working MIDI 
+interface, a Juno-106 hooked up for MIDI input and output.
+
+To Install the Juno-106 Librarian
+
+1.  Copy the files from the distribution archive into any directory on 
+your PC.
+
+2.  If you don't already have it, get a copy of VBRUN300.DLL and put it 
+in your Windows system directory.  It's available for Internet ftp from
+ftp.cica.indiana.edu:/pub/pc/win3/util/vbrun300.exe.
+
+2.  Run JUNOLIBR.EXE using Program Manager or File Manager.
+
+3.  Select MIDI... from the Options menu and choose the correct input 
+and output devices and MIDI channel for the Juno
+
+4.  Make sure the Function switch on the back of the Juno (next to the 
+MIDI in socket) is set to position III
+
+5.  Select bank A, patch 11 on the Juno using the front panel switches 
+on the synth
+
+6.  If everything is working the description for patch A11 on the screen 
+should change to "Undescribed patch", and the sliders and switches on 
+the screen display should change to match the synth. If this doesn't 
+happen, see the Troubleshooting section in the help file JUNOLIBR.HLP.
+
+If you have any problems please contact davec@wsti.demon.co.uk. 
+
+Thanks to everyone who sent email with comments and bug reports, I 
+appreciate it!
+
+
+Change history
+--------------
+
+Version 2.0: 
+
+Export to Cakewalk 2 was broken in the released version,
+now fixed. 
+
+Added Export to Cakewalk 3. 
+
+Fixed an "index out of range" error that could occur when you pressed a 
+high-numbered patch button after loading a partially-empty patch file.
+
