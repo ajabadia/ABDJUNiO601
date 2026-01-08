@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="JUNO106">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JUNO106/factory_patches.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/j106.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/jarvik7_favorites_I.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/best_of_orion.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

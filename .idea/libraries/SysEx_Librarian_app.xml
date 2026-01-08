@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SysEx_Librarian.app">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/sysex/SysEx_Librarian.app.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

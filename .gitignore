@@ -1,0 +1,47 @@
+# JUCE / Builds
+build/
+Builds/
+JuceLibraryCode/
+*.jucer
+!SimpleJuno106.jucer
+
+# Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.sln
+*.suo
+*.sdf
+*.opensdf
+*.ipch
+
+# Temporary and Output
+x64/
+Debug/
+Release/
+*.exe
+*.vst3
+*.obj
+*.ilk
+*.pdb
+*.idb
+*.tlog
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Editor / User
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Old Source Code
+SOURCE_BUNDLE_OLD/
+JUNO106/
+
+# Logs
+# *_log.txt
+# build_*.txt

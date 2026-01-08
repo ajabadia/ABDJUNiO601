@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="junosrc">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/junolib2/junosrc.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

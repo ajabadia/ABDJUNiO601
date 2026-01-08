@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="juno edit">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/JunoEdit.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/junolib2.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/junoptch.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/juno.zip!/" />
+      <root url="jar://$PROJECT_DIR$/JUNO106/original/juno edit/junoedit (1).zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
