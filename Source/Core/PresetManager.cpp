@@ -71,9 +71,8 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);     
     state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);     
     state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    int hpfBits = (sw2 >> 3) & 0x03;
-    state.setProperty("hpfFreq", 3 - hpfBits, nullptr); 
-    return Preset(name, "Factory", state);
+    state.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr); 
+    return Preset(name, "User", state);
 }
 
 void PresetManager::loadFactoryPresets() {
@@ -87,18 +86,16 @@ void PresetManager::loadUserPresets() {
     int idx = -1;
     for(int i=0; i<(int)libraries.size(); ++i) if(libraries[i].name == "User") idx = i;
     if (idx == -1) return;
-    
     Library& lib = libraries[idx];
     lib.patches.clear();
     auto userDir = getUserPresetsDirectory();
     if (!userDir.exists()) userDir.createDirectory();
-    
     auto files = userDir.findChildFiles(juce::File::findFiles, false, "*.json");
     for (const auto& f : files) {
         auto json = juce::JSON::parse(f);
         if (json.isObject()) {
             auto obj = json.getDynamicObject();
-            if (obj->hasProperty("state"))
+            if (obj && obj->hasProperty("state"))
                 lib.patches.push_back(Preset(obj->getProperty("name").toString(), "User", juce::ValueTree::fromXml(obj->getProperty("state").toString())));
         }
     }
@@ -108,25 +105,18 @@ void PresetManager::saveUserPreset(const juce::String& name, const juce::ValueTr
     if (!state.isValid()) return;
     auto userDir = getUserPresetsDirectory();
     if (!userDir.exists()) userDir.createDirectory();
-    
-    // Sanitize filename
     juce::String safeName = juce::File::createLegalFileName(name);
     auto file = userDir.getChildFile(safeName + ".json");
-    
     juce::DynamicObject::Ptr obj = new juce::DynamicObject();
     obj->setProperty("name", name);
     obj->setProperty("state", state.toXmlString());
-    
     if (file.replaceWithText(juce::JSON::toString(juce::var(obj.get())))) {
         loadUserPresets();
         for(int i=0; i<(int)libraries.size(); ++i) {
             if(libraries[i].name == "User") {
                 currentLibraryIndex = i;
                 for(int k=0; k<(int)libraries[i].patches.size(); ++k) {
-                    if(libraries[i].patches[k].name == name) {
-                        currentPresetIndex = k;
-                        break;
-                    }
+                    if(libraries[i].patches[k].name == name) { currentPresetIndex = k; break; }
                 }
                 break;
             }
@@ -150,7 +140,6 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
     }
     if (found.empty() && s >= 18) { RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[k]); found.push_back(p); }
     if (found.empty()) return juce::Result::fail("No patches");
-
     if (found.size() > 1) {
         addLibrary(file.getFileNameWithoutExtension());
         int libIdx = getNumLibraries() - 1;
@@ -180,13 +169,13 @@ void PresetManager::exportAllLibrariesToJson(const juce::File& file) {
     setLastPath(file.getParentDirectory().getFullPathName());
     juce::Array<juce::var> libs;
     for (const auto& lib : libraries) {
-        juce::Array<juce::var> presetsArray;
+        juce::Array<juce::var> arr;
         for (const auto& p : lib.patches) {
             juce::DynamicObject::Ptr o = new juce::DynamicObject();
-            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); presetsArray.add(juce::var(o.get()));
+            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); arr.add(juce::var(o.get()));
         }
         juce::DynamicObject::Ptr lObj = new juce::DynamicObject();
-        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", presetsArray); libs.add(juce::var(lObj.get()));
+        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", arr); libs.add(juce::var(lObj.get()));
     }
     juce::DynamicObject::Ptr root = new juce::DynamicObject();
     root->setProperty("allLibraries", libs);
