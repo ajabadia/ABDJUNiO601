@@ -40,8 +40,13 @@ public:
     void saveUserPreset(const juce::String& name, const juce::ValueTree& state);
     void deleteUserPreset(const juce::String& name);
 
+    // [Refactored] Generic File Import
     void addLibraryFromSysEx(const uint8_t* data, int size);
+    juce::Result importPresetsFromFile(const juce::File& file);
+    
+    // [reimplement.md] Export features
     void exportLibraryToJson(const juce::File& file);
+    void exportAllLibrariesToJson(const juce::File& file);
     
     juce::StringArray getPresetNames() const;
     const Preset* getPreset(int index) const; 
@@ -55,7 +60,10 @@ public:
     
     juce::File getUserPresetsDirectory() const;
     
-    // [reimplement.md] RANDOM Patch Generator
+    // [reimplement.md] Path persistence
+    juce::String getLastPath() const;
+    void setLastPath(const juce::String& path);
+
     void randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts);
     
 private:
