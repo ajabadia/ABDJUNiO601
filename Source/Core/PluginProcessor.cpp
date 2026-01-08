@@ -41,7 +41,7 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     midiLearnHandler.bind(32, "vcaLevel");
     keyboardState.addListener(this);
 
-    // [reimplement.md] Bidirectional SysEx: Register listener
+    // Bidirectional SysEx: Register listener
     apvts.addParameterListener("lfoRate", this);
     apvts.addParameterListener("lfoDelay", this);
     apvts.addParameterListener("lfoToDCO", this);
@@ -274,7 +274,7 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     }
     dcBlocker.process(context);
 
-    // [reimplement.md] Flush SysEx Output
+    // Flush SysEx Output
     if (midiOutEnabled) {
         midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0);
         midiOutBuffer.clear();
@@ -304,8 +304,14 @@ void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     setBool("chorus1", prog.chorus1); setBool("chorus2", prog.chorus2);
 }
 
-void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { voiceManager.noteOn(channel, midiNoteNumber, velocity); }
-void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
+void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { 
+    juce::ignoreUnused(channel, velocity);
+    voiceManager.noteOn(channel, midiNoteNumber, velocity); 
+}
+void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { 
+    juce::ignoreUnused(channel, velocity);
+    performanceState.handleNoteOff(midiNoteNumber, voiceManager); 
+}
 
 void SimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
     auto getVal = [this](juce::String id) { return apvts.getRawParameterValue(id)->load(); };

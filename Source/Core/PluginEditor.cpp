@@ -16,7 +16,8 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
       performanceSection(p.getAPVTS(), p.getMidiLearnHandler()),
       midiKeyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    setSize (1500, 700); 
+    // [reimplement.md] Increased height to 750 to accommodate new control rows
+    setSize (1500, 750); 
 
     addAndMakeVisible(lfoSection);
     addAndMakeVisible(dcoSection);
@@ -29,7 +30,6 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
     addAndMakeVisible(performanceSection);
     addAndMakeVisible(midiKeyboard);
     
-    // === CALLBACKS ===
     controlSection.onPresetLoad = [this](int index) {
         audioProcessor.loadPreset(index);
     };
@@ -42,9 +42,7 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
         audioProcessor.sendPatchDump();
     };
     
-    // Range: C2 (36) to C7 (96) = 61 keys (Authentic Juno-106)
     midiKeyboard.setAvailableRange(36, 96); 
-    
     setLookAndFeel(&lookAndFeel);
 }
 
@@ -56,10 +54,9 @@ SimpleJuno106AudioProcessorEditor::~SimpleJuno106AudioProcessorEditor()
 namespace {
     constexpr int kHeaderHeight = 40;
     constexpr int kSynthHeight = 240;
-    constexpr int kCtrlHeight = 150;
+    constexpr int kCtrlHeight = 180; // Increased from 150 to avoid crowding
     constexpr int kPerfWidth = 220;
     
-    // Synth Strip Widths (Total ~1500)
     constexpr int kWidthLFO = 130;
     constexpr int kWidthDCO = 440; 
     constexpr int kWidthHPF = 100;
@@ -72,12 +69,11 @@ void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (JunoUI::kPanelGrey);
     
-    // Identity and Brand
     g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(20.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
     g.drawText("JUNiO 601", 10, 0, 200, kHeaderHeight, juce::Justification::centredLeft);
     
-    g.setFont(juce::Font(12.0f));
+    g.setFont(juce::FontOptions(12.0f));
     g.drawText("Build: " JUNO_BUILD_VERSION " (" JUNO_BUILD_TIMESTAMP ")", 
                getWidth() - 310, 0, 300, kHeaderHeight, juce::Justification::centredRight);
 }
@@ -86,12 +82,9 @@ void SimpleJuno106AudioProcessorEditor::resized()
 {
     auto r = getLocalBounds();
     
-    // 1. Header
     r.removeFromTop(kHeaderHeight);
     
-    // 2. Synth Strip
     auto synthArea = r.removeFromTop(kSynthHeight);
-    
     lfoSection.setBounds(synthArea.removeFromLeft(kWidthLFO).reduced(1));
     dcoSection.setBounds(synthArea.removeFromLeft(kWidthDCO).reduced(1));
     hpfSection.setBounds(synthArea.removeFromLeft(kWidthHPF).reduced(1));
@@ -100,10 +93,8 @@ void SimpleJuno106AudioProcessorEditor::resized()
     envSection.setBounds(synthArea.removeFromLeft(kWidthENV).reduced(1));
     chorusSection.setBounds(synthArea.reduced(1)); 
     
-    // 3. Control Strip
     controlSection.setBounds(r.removeFromTop(kCtrlHeight).reduced(1));
     
-    // 4. Performance & Keyboard
     auto bottomArea = r; 
     performanceSection.setBounds(bottomArea.removeFromLeft(kPerfWidth).reduced(1));
     

@@ -34,8 +34,11 @@ private:
     juce::TextButton incBankButton, decBankButton;
     juce::TextButton panicButton; 
     
-    // [reimplement.md] Random Button
     juce::TextButton randomButton;
+
+    // [reimplement.md] Manual & Group Selection
+    juce::TextButton manualButton;
+    juce::TextButton groupAButton, groupBButton;
 
     JunoUI::JunoLCD lcd;
     
@@ -55,4 +58,7 @@ private:
     juce::AudioProcessorValueTreeState& apvtsRef;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::OwnedArray<JunoUI::MidiLearnMouseListener> midiLearnListeners;
+    
+    int activeGroup = 0; // 0 = A, 1 = B
+    void updateGroupUI();
 };

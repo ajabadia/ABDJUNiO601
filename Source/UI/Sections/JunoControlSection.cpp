@@ -53,11 +53,20 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     setupFunc(dumpButton, "EXPORT");
     setupFunc(prevPatchButton, "<");
     setupFunc(nextPatchButton, ">");
-    
-    // [reimplement.md] Random Button implementation
     setupFunc(randomButton, "RANDOM");
-    randomButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff60a8d6)); // Blue
+    randomButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff60a8d6));
     randomButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+
+    // [reimplement.md] Manual & Groups
+    setupFunc(manualButton, "MANUAL");
+    manualButton.setColour(juce::TextButton::buttonColourId, juce::Colours::orange);
+    
+    setupFunc(groupAButton, "GROUP A");
+    setupFunc(groupBButton, "GROUP B");
+    groupAButton.setClickingTogglesState(true);
+    groupBButton.setClickingTogglesState(true);
+    groupAButton.setRadioGroupId(202);
+    groupBButton.setRadioGroupId(202);
 
     for (int i = 0; i < 8; ++i) {
         bankSelectButtons[i].setButtonText(juce::String(i + 1));
@@ -66,7 +75,6 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
              if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
                  auto* pm = proc->getPresetManager();
                  int currentIdx = pm->getCurrentPresetIndex();
-                 int activeGroup = currentIdx / 64; 
                  int activePatch = (currentIdx % 8) + 1;
                  pm->selectPresetByBankAndPatch(activeGroup, i + 1, activePatch);
                  int newIndex = pm->getCurrentPresetIndex();
@@ -83,7 +91,6 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
                 else {
                     auto* pm = proc->getPresetManager();
                     int currentIdx = pm->getCurrentPresetIndex();
-                    int activeGroup = currentIdx / 64;
                     int activeBank = ((currentIdx % 64) / 8) + 1;
                     pm->selectPresetByBankAndPatch(activeGroup, activeBank, i + 1);
                     int newIndex = pm->getCurrentPresetIndex();
@@ -120,7 +127,14 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     presetBrowser.onGetCurrentState = [&]() { return apvtsRef.copyState(); };
 
     connectButtons();
+    updateGroupUI();
     startTimer(50);
+}
+
+void JunoControlSection::updateGroupUI()
+{
+    groupAButton.setToggleState(activeGroup == 0, juce::dontSendNotification);
+    groupBButton.setToggleState(activeGroup == 1, juce::dontSendNotification);
 }
 
 void JunoControlSection::paint(juce::Graphics& g)
@@ -175,13 +189,13 @@ void JunoControlSection::resized()
 
     int rightX = getWidth() - 410;
     int funcY = 35;
-    int funcW = 60; // Slightly narrower to fit RANDOM
+    int funcW = 60; 
     saveButton.setBounds(rightX, funcY, funcW, 30);
     sysexButton.setBounds(rightX + 65, funcY, funcW, 30);
     loadTapeButton.setBounds(rightX + 130, funcY, funcW + 15, 30);
     loadButton.setBounds(rightX + 210, funcY, funcW, 30);
     dumpButton.setBounds(rightX + 275, funcY, funcW + 5, 30);
-    randomButton.setBounds(rightX + 345, funcY, funcW + 5, 30); // Random Button on the right
+    randomButton.setBounds(rightX + 345, funcY, funcW + 5, 30);
     
     int gridX = rightX + 40;
     int gridY = 75;
@@ -195,9 +209,15 @@ void JunoControlSection::resized()
     decBankButton.setBounds(gridX, bottomY, 40, 25);
     incBankButton.setBounds(gridX + 45, bottomY, 40, 25);
     
-    midiOutButton.setBounds(gridX + 120, bottomY, 90, 25);
-    panicButton.setBounds(gridX + 220, bottomY, 90, 25);
-    powerButton.setBounds(gridX + 320, bottomY, btnW, 25);
+    // Group & Manual
+    groupAButton.setBounds(gridX + 90, bottomY, 60, 25);
+    groupBButton.setBounds(gridX + 155, bottomY, 60, 25);
+    manualButton.setBounds(gridX + 220, bottomY, 65, 25);
+    
+    midiOutButton.setBounds(gridX + 295, bottomY, 80, 25);
+    powerButton.setBounds(gridX + 380, bottomY, btnW, 25);
+    
+    panicButton.setBounds(centerX, 145, 100, 25);
 }
 
 void JunoControlSection::timerCallback()
@@ -208,9 +228,10 @@ void JunoControlSection::timerCallback()
         else {
             auto* pm = proc->getPresetManager();
             int patchIdx = pm->getCurrentPresetIndex();
-            int b = (patchIdx / 8) + 1;
+            juce::String groupName = (patchIdx < 64) ? "A" : "B";
+            int b = ((patchIdx % 64) / 8) + 1;
             int p = (patchIdx % 8) + 1;
-            lcd.setText(juce::String(b) + "-" + juce::String(p) + "  " + pm->getCurrentPresetName());
+            lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pm->getCurrentPresetName());
         }
     }
 }
@@ -240,6 +261,17 @@ void JunoControlSection::connectButtons()
             lcd.setText("RANDOM PATCH");
         }
     };
+
+    manualButton.onClick = [this] {
+        if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
+            // Manual Mode: Force engine to update from UI state
+            proc->updateParamsFromAPVTS();
+            lcd.setText("MANUAL MODE");
+        }
+    };
+
+    groupAButton.onClick = [this] { activeGroup = 0; updateGroupUI(); };
+    groupBButton.onClick = [this] { activeGroup = 1; updateGroupUI(); };
 
     loadButton.onClick = [this] { presetBrowser.loadPreset(); };
     prevPatchButton.onClick = [this] { presetBrowser.prevPreset(); };
@@ -287,7 +319,7 @@ void JunoControlSection::connectButtons()
     powerButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
             proc->enterTestMode(!proc->isTestMode);
-            powerButton.setColour(juce::TextButton::buttonColourId, 
+            powerButton.setColour(juce::TextButton::textColourOffId, 
                 proc->isTestMode ? juce::Colours::red : juce::Colours::black);
         }
     };
