@@ -196,35 +196,37 @@ void JunoControlSection::resized()
 
 void JunoControlSection::timerCallback()
 {
-    auto& pm = presetBrowser.getPresetManager();
+    PresetManager& pmRef = presetBrowser.getPresetManager();
     if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
         if (proc->isTestMode) lcd.setText("TEST MODE");
         else {
-            int patchIdx = pm.getCurrentPresetIndex();
+            int patchIdx = pmRef.getCurrentPresetIndex();
             juce::String groupName = (patchIdx < 64) ? "A" : "B";
             int b = ((patchIdx % 64) / 8) + 1;
             int p = (patchIdx % 8) + 1;
-            lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pm.getCurrentPresetName());
+            lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pmRef.getCurrentPresetName());
         }
     }
 }
 
 void JunoControlSection::connectButtons()
 {
+    // [FIXED] SAVE Button logic
     saveButton.onClick = [this] {
-        auto* w = new juce::AlertWindow("Save Preset", "Enter preset name:", juce::MessageBoxIconType::QuestionIcon);
-        w->addTextEditor("name", "New Patch", "Preset Name:");
-        w->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        w->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        auto currentState = apvtsRef.copyState();
+        auto* w = new juce::AlertWindow("Save Patch", "Enter name:", juce::MessageBoxIconType::QuestionIcon);
+        w->addTextEditor("name", "New Sound", "Patch Name:");
+        w->addButton("SAVE", 1, juce::KeyPress(juce::KeyPress::returnKey));
+        w->addButton("CANCEL", 0, juce::KeyPress(juce::KeyPress::escapeKey));
         
-        w->enterModalState(true, juce::ModalCallbackFunction::create([this, w](int result) {
+        w->enterModalState(true, juce::ModalCallbackFunction::create([this, currentState, w](int result) {
             if (result == 1) {
                 juce::String name = w->getTextEditorContents("name");
                 if (name.isNotEmpty()) {
-                    auto& pmRef = presetBrowser.getPresetManager();
-                    pmRef.saveUserPreset(name, apvtsRef.copyState());
+                    PresetManager& pm = presetBrowser.getPresetManager();
+                    pm.saveUserPreset(name, currentState);
                     presetBrowser.refreshPresetList();
-                    presetBrowser.setPresetIndex(pmRef.getCurrentPresetIndex());
+                    presetBrowser.setPresetIndex(pm.getCurrentPresetIndex());
                     lcd.setText("PATCH SAVED");
                 }
             }
@@ -232,30 +234,21 @@ void JunoControlSection::connectButtons()
         }), true);
     };
     
+    // [FIXED] EXPORT Button: Persistent instance
     dumpButton.onClick = [this] {
-        juce::PopupMenu m;
-        m.addItem(1, "Export Current Bank (.json)");
-        m.addItem(2, "Export All Libraries (.json)");
-        
-        m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(dumpButton),
-            [this](int result) {
-                if (result == 0) return;
-                
-                auto& pmRef = presetBrowser.getPresetManager();
-                auto chooser = std::make_shared<juce::FileChooser>(
-                    result == 1 ? "Export Current Bank..." : "Export All Libraries...",
-                    juce::File(pmRef.getLastPath()), "*.json");
+        PresetManager& pm = presetBrowser.getPresetManager();
+        fileChooser = std::make_unique<juce::FileChooser>(
+            "Export Current Bank to JSON...",
+            juce::File(pm.getLastPath()), "*.json");
 
-                chooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
-                    [this, chooser, result](const juce::FileChooser& fc) {
-                        auto file = fc.getResult();
-                        if (file != juce::File()) {
-                            auto& pmRefInner = presetBrowser.getPresetManager();
-                            if (result == 1) pmRefInner.exportLibraryToJson(file);
-                            else pmRefInner.exportAllLibrariesToJson(file);
-                            lcd.setText("JSON EXPORTED");
-                        }
-                    });
+        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
+            [this](const juce::FileChooser& fc) {
+                auto file = fc.getResult();
+                if (file != juce::File()) {
+                    PresetManager& pmRef = presetBrowser.getPresetManager();
+                    pmRef.exportLibraryToJson(file);
+                    lcd.setText("BANK EXPORTED");
+                }
             });
     };
 
@@ -276,24 +269,22 @@ void JunoControlSection::connectButtons()
     groupBButton.onClick = [this] { activeGroup = 1; updateGroupUI(); };
 
     loadButton.onClick = [this] { 
-        auto& pmRef = presetBrowser.getPresetManager();
-        auto chooser = std::make_shared<juce::FileChooser>("Load User Preset (.json)...",
-            juce::File(pmRef.getLastPath()), "*.json");
-        chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-            [this, chooser](const juce::FileChooser& fc) {
+        PresetManager& pm = presetBrowser.getPresetManager();
+        fileChooser = std::make_unique<juce::FileChooser>("Load Patch (.json)...",
+            juce::File(pm.getLastPath()), "*.json");
+        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc) {
                 auto file = fc.getResult();
                 if (file.existsAsFile()) {
                     auto json = juce::JSON::parse(file);
                     if (json.isObject()) {
                         auto obj = json.getDynamicObject();
                         if (obj && obj->hasProperty("state")) {
-                            auto& pmRefInner = presetBrowser.getPresetManager();
-                            juce::ValueTree state = juce::ValueTree::fromXml(obj->getProperty("state").toString());
-                            juce::String name = obj->getProperty("name").toString();
-                            pmRefInner.saveUserPreset(name, state); 
-                            pmRefInner.setLastPath(file.getParentDirectory().getFullPathName());
+                            PresetManager& pmRef = presetBrowser.getPresetManager();
+                            pmRef.saveUserPreset(obj->getProperty("name").toString(), juce::ValueTree::fromXml(obj->getProperty("state").toString())); 
+                            pmRef.setLastPath(file.getParentDirectory().getFullPathName());
                             presetBrowser.refreshPresetList();
-                            lcd.setText("USER PATCH LOADED");
+                            lcd.setText("PATCH LOADED");
                         }
                     }
                 }
@@ -304,45 +295,43 @@ void JunoControlSection::connectButtons()
     nextPatchButton.onClick = [this] { presetBrowser.nextPreset(); };
     
     sysexButton.onClick = [this] {
-        auto& pmRef = presetBrowser.getPresetManager();
-        auto chooser = std::make_shared<juce::FileChooser>("Import Juno Patches (.syx / .jno)...",
-            juce::File(pmRef.getLastPath()), "*.syx;*.jno");
+        PresetManager& pm = presetBrowser.getPresetManager();
+        fileChooser = std::make_unique<juce::FileChooser>("Import Juno Patches (.syx / .jno)...",
+            juce::File(pm.getLastPath()), "*.syx;*.jno");
 
-        chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-            [this, chooser](const juce::FileChooser& fc) {
+        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc) {
                 auto file = fc.getResult();
                 if (file.existsAsFile()) {
-                     auto& pmRefInner = presetBrowser.getPresetManager();
-                     auto res = pmRefInner.importPresetsFromFile(file);
+                     PresetManager& pmRef = presetBrowser.getPresetManager();
+                     auto res = pmRef.importPresetsFromFile(file);
                      if (res.wasOk()) {
                          presetBrowser.refreshPresetList();
-                         lcd.setText("PATCHES IMPORTED");
+                         lcd.setText("IMPORTED");
                          if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor))
-                             proc->loadPreset(pmRefInner.getCurrentPresetIndex());
+                             proc->loadPreset(pmRef.getCurrentPresetIndex());
                      } else {
-                         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, 
-                            "Import Error", res.getErrorMessage(), "OK");
+                         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Import Error", res.getErrorMessage(), "OK");
                      }
                 }
             });
     };
 
     loadTapeButton.onClick = [this] {
-        auto& pmRef = presetBrowser.getPresetManager();
-        auto chooser = std::make_shared<juce::FileChooser>("Load Tape WAV...",
-             juce::File(pmRef.getLastPath()), "*.wav");
-        chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-             [this, chooser](const juce::FileChooser& fc) {
+        PresetManager& pm = presetBrowser.getPresetManager();
+        fileChooser = std::make_unique<juce::FileChooser>("Load Tape WAV...",
+             juce::File(pm.getLastPath()), "*.wav");
+        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+             [this](const juce::FileChooser& fc) {
                  auto file = fc.getResult();
                  if (file.existsAsFile()) {
-                     auto& pmRefInner = presetBrowser.getPresetManager();
-                     auto res = pmRefInner.loadTape(file);
+                     PresetManager& pmRef = presetBrowser.getPresetManager();
+                     auto res = pmRef.loadTape(file);
                      if (res.wasOk()) {
                          presetBrowser.refreshPresetList();
                          lcd.setText("TAPE LOADED");
                      } else {
-                         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, 
-                            "Tape Load Error", res.getErrorMessage(), "OK");
+                         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Tape Error", res.getErrorMessage(), "OK");
                      }
                  }
              });
@@ -351,8 +340,7 @@ void JunoControlSection::connectButtons()
     powerButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
             proc->enterTestMode(!proc->isTestMode);
-            powerButton.setColour(juce::TextButton::buttonColourId, 
-                proc->isTestMode ? juce::Colours::red : juce::Colours::black);
+            powerButton.setColour(juce::TextButton::buttonColourId, proc->isTestMode ? juce::Colours::red : juce::Colours::black);
         }
     };
     

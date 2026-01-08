@@ -16,7 +16,6 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
       performanceSection(p.getAPVTS(), p.getMidiLearnHandler()),
       midiKeyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    // [reimplement.md] Increased width to 1700 to allow DCO and Chorus to breathe
     setSize (1700, 750); 
 
     addAndMakeVisible(lfoSection);
@@ -30,6 +29,7 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
     addAndMakeVisible(performanceSection);
     addAndMakeVisible(midiKeyboard);
     
+    // === CALLBACKS ===
     controlSection.onPresetLoad = [this](int index) {
         audioProcessor.loadPreset(index);
     };
@@ -38,9 +38,8 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
         audioProcessor.sendPatchDump();
     };
 
-    controlSection.dumpButton.onClick = [this] {
-        audioProcessor.sendPatchDump();
-    };
+    // [FIX] Eliminada la sobrescritura del botón EXPORT (dumpButton) 
+    // para que la lógica de archivos de ControlSection funcione.
     
     midiKeyboard.setAvailableRange(36, 96); 
     setLookAndFeel(&lookAndFeel);
@@ -58,7 +57,7 @@ namespace {
     constexpr int kPerfWidth = 220;
     
     constexpr int kWidthLFO = 130;
-    constexpr int kWidthDCO = 520; // Increased from 480
+    constexpr int kWidthDCO = 520; 
     constexpr int kWidthHPF = 100;
     constexpr int kWidthVCF = 360; 
     constexpr int kWidthVCA = 140;
@@ -70,7 +69,6 @@ void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (JunoUI::kPanelGrey);
     
     g.setColour(juce::Colours::white);
-    // [FIX] Modern juce::FontOptions usage to avoid C4996
     g.setFont (juce::Font (juce::FontOptions (20.0f).withStyle ("Bold")));
     g.drawText("JUNiO 601", 10, 0, 200, kHeaderHeight, juce::Justification::centredLeft);
     
@@ -82,9 +80,7 @@ void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
 void SimpleJuno106AudioProcessorEditor::resized()
 {
     auto r = getLocalBounds();
-    
     r.removeFromTop(kHeaderHeight);
-    
     auto synthArea = r.removeFromTop(kSynthHeight);
     lfoSection.setBounds(synthArea.removeFromLeft(kWidthLFO).reduced(1));
     dcoSection.setBounds(synthArea.removeFromLeft(kWidthDCO).reduced(1));
@@ -93,12 +89,9 @@ void SimpleJuno106AudioProcessorEditor::resized()
     vcaSection.setBounds(synthArea.removeFromLeft(kWidthVCA).reduced(1));
     envSection.setBounds(synthArea.removeFromLeft(kWidthENV).reduced(1));
     chorusSection.setBounds(synthArea.reduced(1)); 
-    
     controlSection.setBounds(r.removeFromTop(kCtrlHeight).reduced(1));
-    
     auto bottomArea = r; 
     performanceSection.setBounds(bottomArea.removeFromLeft(kPerfWidth).reduced(1));
-    
     float keyWidth = (float)bottomArea.getWidth() / 36.0f;
     midiKeyboard.setKeyWidth(keyWidth);
     midiKeyboard.setBounds(bottomArea.reduced(1));

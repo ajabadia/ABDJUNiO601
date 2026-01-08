@@ -1,0 +1,35 @@
+﻿========================================
+JUNiO 601 Build Script
+========================================
+
+[INFO] CMake localizado en: C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe
+
+1. Configurando proyecto...
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Configuring done (1.6s)
+-- Generating done (0.2s)
+-- Build files have been written to: D:/desarrollos/ABDJUNiO601/build
+
+2. Compilando JUNiO 601 (Release)...
+Versi├│n de MSBuild 18.3.0-preview-25570-20+708535641 para .NET Framework
+
+  Checking File Globs
+  ABDSimpleJuno106_rc_lib.vcxproj -> D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106_rc_lib.dir\Release\ABDSimpleJuno106_rc_lib.lib
+  PresetManager.cpp
+  PluginEditor.cpp
+  ABDSimpleJuno106.vcxproj -> D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106_artefacts\Release\ABDSimpleJuno106_SharedCode.lib
+  Generando c├│digo
+  Generaci├│n de c├│digo finalizada
+  ABDSimpleJuno106_Standalone.vcxproj -> D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106_artefacts\Release\Standalone\ABDSimpleJuno106.exe
+
+3. Finalizando...
+
+========================================
+BUILD EXITOSA (Build #25
+Ejecutable: JUNiO_601.exe
+========================================

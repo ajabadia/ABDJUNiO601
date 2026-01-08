@@ -88,10 +88,12 @@ float JunoADSR::getNextSample()
     {
         case Stage::Attack:
         {
-            // Exponential attack: currentValue approaches 1.0
-            currentValue += attackRate * (1.0f - currentValue);
+            // [reimplement.md] Analyzed Hardware: Attack targets 1.5V (internal) to ensure 
+            // linear-like snap in the 0-1.0V range, then clamps.
+            // Formula: val += rate * (target - val)
+            currentValue += attackRate * (1.5f - currentValue);
             
-            if (currentValue >= 0.999f) {
+            if (currentValue >= 1.0f) {
                 currentValue = 1.0f;
                 stage = Stage::Decay;
             }
@@ -100,10 +102,11 @@ float JunoADSR::getNextSample()
         
         case Stage::Decay:
         {
-            // Exponential decay from 1.0 towards sustainLevel
-            currentValue -= decayRate * (currentValue - sustainLevel);
+            // Standard exponential decay to Sustain
+            currentValue += decayRate * (sustainLevel - currentValue);
             
-            if (currentValue <= (sustainLevel + 0.001f)) {
+            // Tolerance threshold
+            if (std::abs(currentValue - sustainLevel) < 0.001f) {
                 currentValue = sustainLevel;
                 stage = Stage::Sustain;
             }
@@ -118,10 +121,11 @@ float JunoADSR::getNextSample()
         
         case Stage::Release:
         {
-            // Exponential release from current value towards 0.0
-            currentValue *= (1.0f - releaseRate);
+            // [reimplement.md] Release targets -0.2f to ensure tail usually finishes cleanly 
+            // rather than hanging mathematically forever.
+            currentValue += releaseRate * (-0.2f - currentValue);
             
-            if (currentValue <= 0.001f) {
+            if (currentValue <= 0.0f) {
                 currentValue = 0.0f;
                 stage = Stage::Idle;
             }
@@ -143,23 +147,29 @@ void JunoADSR::calculateRates()
 {
     if (sampleRate <= 0.0) return;
     
-    // Attack: reach 99.9% in attackTime
+    // Attack: Target 1.5, Threshold 1.0. 
+    // Remaining ratio at threshold = (1.5 - 1.0) / 1.5 = 0.3333...
     double attackTau = (double)attackTime * sampleRate;
-    attackRate = 1.0f - std::pow(0.001f, 1.0f / static_cast<float>(attackTau));
+    attackRate = 1.0f - std::pow(0.333333f, 1.0f / static_cast<float>(attackTau));
     attackRate = juce::jlimit(0.0f, 1.0f, attackRate);
     
-    // Decay: reach sustainLevel + 0.001 asymptotically 
+    // Decay: Target Sustain. We want to reach within 0.001 produced deviation.
+    // Standard exp logic.
     double decayTau = (double)decayTime * sampleRate;
-    float decayRange = 1.0f - sustainLevel;
-    if (decayRange > 0.001f) {
-        decayRate = 1.0f - std::pow(0.001f / decayRange, 1.0f / static_cast<float>(decayTau));
-    } else {
-        decayRate = 0.0f;
-    }
+    // We assume calculating rate for a full 1.0 drop reference for consistency? 
+    // Or closer: (1.0 - sustain) is the drop. We want to settle.
+    // Let's use standard time-constant approx: reaching 99.9% in decayTime.
+    // tau of RC circuit logic: rate = 1 - e^(-1/tauSamples).
+    // If input 'seconds' is meant to be 5*tau (full settlement), we adjust.
+    // Existing code used a specific threshold logic. Let's stick to valid approximation:
+    // Rate to clear 99.9% difference.
+    decayRate = 1.0f - std::pow(0.001f, 1.0f / static_cast<float>(decayTau));
     decayRate = juce::jlimit(0.0f, 1.0f, decayRate);
     
-    // Release: go from current value to 0.001
+    // Release: Target -0.2. Start (worst case) 1.0. Range 1.2.
+    // Threshold 0.0. Distance to target at threshold = 0.2.
+    // Ratio = 0.2 / 1.2 = 1/6 = 0.16666...
     double releaseTau = (double)releaseTime * sampleRate;
-    releaseRate = 1.0f - std::pow(0.001f, 1.0f / static_cast<float>(releaseTau));
+    releaseRate = 1.0f - std::pow(0.166667f, 1.0f / static_cast<float>(releaseTau));
     releaseRate = juce::jlimit(0.0f, 1.0f, releaseRate);
 }

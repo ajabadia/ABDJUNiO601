@@ -1,0 +1,517 @@
+{
+  "libraryName": "Factory Presets",
+  "presets": [
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.05511811\" pwm=\"0.59842520\" noise=\"0.82677165\" vcfFreq=\"0.77165354\" resonance=\"0.89763780\" envAmount=\"0.76377953\" lfoToVCF=\"0.89763780\" kybdTracking=\"0.95275591\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.02362205\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.11811024\" pwm=\"0.55118110\" noise=\"0.76377953\" vcfFreq=\"0.77952756\" resonance=\"0.91338583\" envAmount=\"0.87401575\" lfoToVCF=\"0.89763780\" kybdTracking=\"0.95275591\" vcaLevel=\"0.25196850\" attack=\"0.62992126\" decay=\"0.76377953\" sustain=\"0.91338583\" release=\"0.77952756\" subOsc=\"0.81889764\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"1.00787402\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00787402\" vcaLevel=\"1.11811024\" attack=\"0.03937008\" decay=\"1.65354331\" sustain=\"1.49606299\" release=\"1.11811024\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"1.96062992\" lfoDelay=\"1.88976378\" lfoToDCO=\"0.83464567\" pwm=\"1.83464567\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.07086614\" lfoToVCF=\"0.51181102\" kybdTracking=\"0.77952756\" vcaLevel=\"0.77952756\" attack=\"0.87401575\" decay=\"0.89763780\" sustain=\"0.78740157\" release=\"0.82677165\" subOsc=\"0.87401575\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.28346457\" lfoToDCO=\"0.77952756\" pwm=\"0.76377953\" noise=\"0.77952756\" vcfFreq=\"0.38582677\" resonance=\"0.39370079\" envAmount=\"0.40157480\" lfoToVCF=\"0.43307087\" kybdTracking=\"0.41732283\" vcaLevel=\"0.35433071\" attack=\"0.80314961\" decay=\"0.78740157\" sustain=\"0.40944882\" release=\"0.77165354\" subOsc=\"0.35433071\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "3f-812f-159aa6f6b668",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.09448819\" release=\"1.00787402\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\n",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.03937008\" lfoToDCO=\"1.38582677\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.14960630\" resonance=\"1.32283465\" envAmount=\"0.07874016\" lfoToVCF=\"0.62992126\" kybdTracking=\"0.02362205\" vcaLevel=\"0.44094488\" attack=\"0.01574803\" decay=\"1.25196850\" sustain=\"0.14173228\" release=\"0.96062992\" subOsc=\"0.00787402\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0010\u0018",
+      "state": "<Parameters lfoRate=\"0.97637795\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.72440945\" resonance=\"0.10236220\" envAmount=\"0.07086614\" lfoToVCF=\"1.62204724\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.18897638\" sustain=\"0.51181102\" release=\"0.92125984\" subOsc=\"0.91338583\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Release Noise Sweep",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44094488\" noise=\"0.44094488\" vcfFreq=\"0.43307087\" resonance=\"0.40944882\" envAmount=\"0.79527559\" lfoToVCF=\"0.80314961\" kybdTracking=\"0.78740157\" vcaLevel=\"0.37795276\" attack=\"0.35433071\" decay=\"0.39370079\" sustain=\"0.41732283\" release=\"0.77165354\" subOsc=\"0.78740157\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "3b6-9a93-923d635355f3",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.25984252\" lfoToVCF=\"1.48031496\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.16535433\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "O",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.27559055\" lfoToDCO=\"0.44881890\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.01574803\" resonance=\"0.88188976\" envAmount=\"0.15748031\" lfoToVCF=\"1.81102362\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.11811024\" decay=\"0.86614173\" sustain=\"0.05511811\" release=\"0.25196850\" subOsc=\"0.25984252\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.14173228\" lfoDelay=\"0.12598425\" lfoToDCO=\"0.03149606\" pwm=\"0.12598425\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"1.93700787\" kybdTracking=\"1.66141732\" vcaLevel=\"1.15748031\" attack=\"1.71653543\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.10236220\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "ss clarinet",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.42519685\" noise=\"0.77165354\" vcfFreq=\"0.43307087\" resonance=\"0.43307087\" envAmount=\"0.79527559\" lfoToVCF=\"0.37795276\" kybdTracking=\"0.40944882\" vcaLevel=\"0.43307087\" attack=\"0.35433071\" decay=\"0.41732283\" sustain=\"0.37795276\" release=\"0.40157480\" subOsc=\"0.43307087\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "cc2-b56a-c7f9f66832cf",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00787402\" lfoToVCF=\"0.44094488\" kybdTracking=\"0.06299213\" vcaLevel=\"1.59055118\" attack=\"0.00787402\" decay=\"0.88188976\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "\u0004\u0006\u0001@\u0017V\u0018\u0001\u000e[",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.04724409\" lfoToDCO=\"1.88188976\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"1.93700787\" envAmount=\"0.02362205\" lfoToVCF=\"0.64566929\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"1.80314961\" release=\"1.80314961\" subOsc=\"1.11023622\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.05511811\" lfoToDCO=\"0.51968504\" pwm=\"0.76377953\" noise=\"0.90551181\" vcfFreq=\"0.90551181\" resonance=\"0.87401575\" envAmount=\"0.87401575\" lfoToVCF=\"0.86614173\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.28346457\" sustain=\"0.44881890\" release=\"0.76377953\" subOsc=\"0.39370079\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "14c-682a-4c07-9921-8df3eabce088",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.25984252\" lfoToVCF=\"1.60629921\" kybdTracking=\"0.07086614\" vcaLevel=\"0.11023622\" attack=\"0.00787402\" decay=\"1.03149606\" sustain=\"0.13385827\" release=\"0.45669291\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"0.01574803\" pwm=\"0.00787402\" noise=\"1.52755906\" vcfFreq=\"0.13385827\" resonance=\"1.22834646\" envAmount=\"0.18897638\" lfoToVCF=\"1.62204724\" kybdTracking=\"0.00000000\" vcaLevel=\"1.25984252\" attack=\"0.40157480\" decay=\"1.19685039\" sustain=\"0.11023622\" release=\"0.15748031\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.12598425\" lfoDelay=\"1.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.48031496\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.61417323\" kybdTracking=\"1.14960630\" vcaLevel=\"1.09448819\" attack=\"0.88976378\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.07874016\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "ss Pluck",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.37795276\" noise=\"0.78740157\" vcfFreq=\"0.38582677\" resonance=\"0.79527559\" envAmount=\"0.78740157\" lfoToVCF=\"0.78740157\" kybdTracking=\"0.41732283\" vcaLevel=\"0.42519685\" attack=\"0.35433071\" decay=\"0.38582677\" sustain=\"0.42519685\" release=\"0.40157480\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "b79-8af9-4ac5a20607c3",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.18897638\" release=\"0.75590551\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0004\u000bD",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.05511811\" lfoToDCO=\"0.44881890\" pwm=\"0.13385827\" noise=\"1.22834646\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.08661417\" lfoToVCF=\"1.30708661\" kybdTracking=\"0.12598425\" vcaLevel=\"1.92125984\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.07874016\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.94488189\" noise=\"0.60629921\" vcfFreq=\"1.59842520\" resonance=\"0.46456693\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.06299213\" attack=\"0.51968504\" decay=\"0.85039370\" sustain=\"0.82677165\" release=\"0.96062992\" subOsc=\"0.96062992\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "d",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.78740157\" noise=\"0.44881890\" vcfFreq=\"0.80314961\" resonance=\"0.44881890\" envAmount=\"0.80314961\" lfoToVCF=\"0.40157480\" kybdTracking=\"0.76377953\" vcaLevel=\"0.39370079\" attack=\"0.35433071\" decay=\"0.77952756\" sustain=\"0.42519685\" release=\"0.37795276\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "e9c-922f-514d6233e79c",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.33858268\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.22834646\" release=\"0.24409449\" subOsc=\"0.48031496\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "P\u0011b\u0001B\u0007l\u000f 3\n\\\u001a\b\r\u001fb",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.04724409\" lfoToDCO=\"0.09448819\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.15748031\" vcaLevel=\"1.92125984\" attack=\"1.81889764\" decay=\"1.48818898\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "rass",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.78740157\" noise=\"0.38582677\" vcfFreq=\"0.76377953\" resonance=\"0.41732283\" envAmount=\"0.44094488\" lfoToVCF=\"0.42519685\" kybdTracking=\"0.44881890\" vcaLevel=\"0.40944882\" attack=\"0.35433071\" decay=\"0.79527559\" sustain=\"0.40944882\" release=\"0.42519685\" subOsc=\"0.40944882\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "73a-81bc-fc844c50b7be",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.04724409\" lfoToVCF=\"0.75590551\" kybdTracking=\"0.40157480\" vcaLevel=\"1.19685039\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.14960630\" release=\"0.78740157\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.11811024\" pwm=\"1.59055118\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.17322835\" envAmount=\"0.65354331\" lfoToVCF=\"0.14960630\" kybdTracking=\"1.95275591\" vcaLevel=\"0.00787402\" attack=\"0.91338583\" decay=\"0.00787402\" sustain=\"0.06299213\" release=\"0.07086614\" subOsc=\"1.93700787\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.07874016\" lfoToDCO=\"0.50393701\" pwm=\"0.08661417\" noise=\"0.75590551\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.24409449\" vcaLevel=\"1.48031496\" attack=\"0.92913386\" decay=\"1.57480315\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "rass & Strings",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77952756\" noise=\"0.37795276\" vcfFreq=\"0.38582677\" resonance=\"0.43307087\" envAmount=\"0.43307087\" lfoToVCF=\"0.37795276\" kybdTracking=\"0.37795276\" vcaLevel=\"0.38582677\" attack=\"0.35433071\" decay=\"0.78740157\" sustain=\"0.76377953\" release=\"0.44094488\" subOsc=\"0.39370079\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "efb-b87e-657a21706539",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.04724409\" lfoToVCF=\"0.30708661\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00787402\" release=\"0.62992126\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0003R",
+      "state": "<Parameters lfoRate=\"1.00787402\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.03937008\" noise=\"0.89763780\" vcfFreq=\"0.15748031\" resonance=\"1.44881890\" envAmount=\"0.04724409\" lfoToVCF=\"1.76377953\" kybdTracking=\"0.20472441\" vcaLevel=\"1.11811024\" attack=\"0.09448819\" decay=\"1.26771654\" sustain=\"0.05511811\" release=\"0.78740157\" subOsc=\"0.03149606\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0006",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.37007874\" noise=\"0.63779528\" vcfFreq=\"1.80314961\" resonance=\"0.49606299\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.14173228\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "nsemble (A)",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.79527559\" noise=\"0.77165354\" vcfFreq=\"0.80314961\" resonance=\"0.39370079\" envAmount=\"0.40944882\" lfoToVCF=\"0.77952756\" kybdTracking=\"0.77165354\" vcaLevel=\"0.79527559\" attack=\"0.35433071\" decay=\"0.37795276\" sustain=\"0.80314961\" release=\"0.76377953\" subOsc=\"0.39370079\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "9f0-a324-50ca835ea447",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.04724409\" lfoToVCF=\"1.82677165\" kybdTracking=\"0.08661417\" vcaLevel=\"1.92125984\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.32283465\" release=\"0.07874016\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\bl\u0005\u0019",
+      "state": "<Parameters lfoRate=\"0.55905512\" lfoDelay=\"0.22047244\" lfoToDCO=\"1.16535433\" pwm=\"0.01574803\" noise=\"0.83464567\" vcfFreq=\"0.02362205\" resonance=\"0.25196850\" envAmount=\"0.14173228\" lfoToVCF=\"1.02362205\" kybdTracking=\"0.14173228\" vcaLevel=\"1.90551181\" attack=\"0.03149606\" decay=\"0.50393701\" sustain=\"0.09448819\" release=\"1.19685039\" subOsc=\"0.07874016\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.72440945\" noise=\"0.96062992\" vcfFreq=\"1.22047244\" resonance=\"1.75590551\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.14173228\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "nsemble (B)",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44881890\" noise=\"0.77952756\" vcfFreq=\"0.41732283\" resonance=\"0.38582677\" envAmount=\"0.76377953\" lfoToVCF=\"0.39370079\" kybdTracking=\"0.43307087\" vcaLevel=\"0.37795276\" attack=\"0.35433071\" decay=\"0.43307087\" sustain=\"0.44881890\" release=\"0.76377953\" subOsc=\"0.37795276\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "079-ae8a-8934e7b85cb2",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.09448819\" lfoToVCF=\"0.22047244\" kybdTracking=\"0.01574803\" vcaLevel=\"0.40944882\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.10236220\" release=\"0.23622047\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\r\u0004",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.07874016\" lfoToDCO=\"0.31496063\" pwm=\"0.11811024\" noise=\"1.39370079\" vcfFreq=\"0.00787402\" resonance=\"0.86614173\" envAmount=\"0.08661417\" lfoToVCF=\"0.85039370\" kybdTracking=\"0.09448819\" vcaLevel=\"1.66141732\" attack=\"0.04724409\" decay=\"1.37007874\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.33858268\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.36220472\" noise=\"0.20472441\" vcfFreq=\"1.89763780\" resonance=\"0.55905512\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.07086614\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "II",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77952756\" noise=\"0.43307087\" vcfFreq=\"0.41732283\" resonance=\"0.44881890\" envAmount=\"0.41732283\" lfoToVCF=\"0.79527559\" kybdTracking=\"0.37795276\" vcaLevel=\"0.78740157\" attack=\"0.35433071\" decay=\"0.79527559\" sustain=\"0.37795276\" release=\"0.80314961\" subOsc=\"0.44881890\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "8e3-8e09-3170a92c893a",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.06299213\" lfoToVCF=\"0.25196850\" kybdTracking=\"0.06299213\" vcaLevel=\"0.09448819\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.03937008\" release=\"1.77165354\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0006\u0005T",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.01574803\" lfoToDCO=\"0.69291339\" pwm=\"0.17322835\" noise=\"1.65354331\" vcfFreq=\"0.08661417\" resonance=\"0.66141732\" envAmount=\"0.09448819\" lfoToVCF=\"1.00787402\" kybdTracking=\"0.29921260\" vcaLevel=\"0.37795276\" attack=\"0.03149606\" decay=\"1.84251969\" sustain=\"0.03937008\" release=\"1.70078740\" subOsc=\"0.09448819\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u000f",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.10236220\" noise=\"1.50393701\" vcfFreq=\"1.69291339\" resonance=\"0.20472441\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.08661417\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "et 1",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.42519685\" noise=\"0.37795276\" vcfFreq=\"0.43307087\" resonance=\"0.78740157\" envAmount=\"0.40157480\" lfoToVCF=\"0.43307087\" kybdTracking=\"0.76377953\" vcaLevel=\"0.77952756\" attack=\"0.35433071\" decay=\"0.79527559\" sustain=\"0.40944882\" release=\"0.40157480\" subOsc=\"0.78740157\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "a71-b85c-becab30f13ff",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.02362205\" lfoToVCF=\"1.82677165\" kybdTracking=\"0.06299213\" vcaLevel=\"1.62204724\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.09448819\" release=\"1.51181102\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\u0003t\t\u0010",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.15748031\" lfoToDCO=\"0.99212598\" pwm=\"0.14173228\" noise=\"0.28346457\" vcfFreq=\"0.00000000\" resonance=\"1.15748031\" envAmount=\"0.06299213\" lfoToVCF=\"1.23622047\" kybdTracking=\"0.09448819\" vcaLevel=\"0.96850394\" attack=\"0.11811024\" decay=\"1.00787402\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.11811024\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\u000e",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.09448819\" noise=\"0.44094488\" vcfFreq=\"1.76377953\" resonance=\"1.98425197\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.08661417\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "well",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77952756\" noise=\"0.77165354\" vcfFreq=\"0.77165354\" resonance=\"0.38582677\" envAmount=\"0.40157480\" lfoToVCF=\"0.40944882\" kybdTracking=\"0.77952756\" vcaLevel=\"0.37795276\" attack=\"0.35433071\" decay=\"0.41732283\" sustain=\"0.40944882\" release=\"0.79527559\" subOsc=\"0.79527559\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "f31-a029-57444d23b44d",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00787402\" lfoToVCF=\"0.86614173\" kybdTracking=\"0.06299213\" vcaLevel=\"0.12598425\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.07086614\" release=\"1.70078740\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.80314961\" lfoDelay=\"0.03937008\" lfoToDCO=\"0.15748031\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.12598425\" resonance=\"0.81889764\" envAmount=\"0.07086614\" lfoToVCF=\"0.75590551\" kybdTracking=\"0.20472441\" vcaLevel=\"0.00000000\" attack=\"0.11811024\" decay=\"1.35433071\" sustain=\"0.07874016\" release=\"0.18897638\" subOsc=\"0.03937008\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "*\u0013\u00043",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.95275591\" noise=\"0.03149606\" vcfFreq=\"1.46456693\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.09448819\" attack=\"0.51968504\" decay=\"0.89763780\" sustain=\"0.76377953\" release=\"0.90551181\" subOsc=\"0.90551181\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Organ",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.80314961\" noise=\"0.77952756\" vcfFreq=\"0.77165354\" resonance=\"0.41732283\" envAmount=\"0.78740157\" lfoToVCF=\"0.40157480\" kybdTracking=\"0.40157480\" vcaLevel=\"0.79527559\" attack=\"0.35433071\" decay=\"0.79527559\" sustain=\"0.44881890\" release=\"0.38582677\" subOsc=\"0.76377953\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "16c-83d8-99218e44c8b0",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.02362205\" lfoToVCF=\"0.25196850\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.07086614\" release=\"0.06299213\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "@",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.15748031\" lfoToDCO=\"1.47244094\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.07086614\" resonance=\"1.92125984\" envAmount=\"0.01574803\" lfoToVCF=\"0.92913386\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.13385827\" decay=\"0.88188976\" sustain=\"0.01574803\" release=\"1.11811024\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0010\u0011b\u0003",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.00000000\" noise=\"0.94488189\" vcfFreq=\"1.92125984\" resonance=\"0.40157480\" envAmount=\"1.21259843\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.09448819\" decay=\"0.51968504\" sustain=\"0.89763780\" release=\"0.82677165\" subOsc=\"0.81102362\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": " Pluck",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77165354\" noise=\"0.77165354\" vcfFreq=\"0.40944882\" resonance=\"0.37795276\" envAmount=\"0.78740157\" lfoToVCF=\"0.40944882\" kybdTracking=\"0.76377953\" vcaLevel=\"0.41732283\" attack=\"0.35433071\" decay=\"0.78740157\" sustain=\"0.77952756\" release=\"0.44881890\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "725-9d1d-796490932050",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.22047244\" release=\"0.18897638\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\"",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.05511811\" lfoToDCO=\"1.63779528\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.26771654\" resonance=\"1.88976378\" envAmount=\"0.10236220\" lfoToVCF=\"1.63779528\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.02362205\" decay=\"1.82677165\" sustain=\"0.12598425\" release=\"1.81102362\" subOsc=\"0.07874016\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.06299213\" lfoDelay=\"0.07874016\" lfoToDCO=\"0.01574803\" pwm=\"1.99212598\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"1.08661417\" kybdTracking=\"0.71653543\" vcaLevel=\"0.21259843\" attack=\"0.36220472\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.06299213\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "lliope",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44881890\" noise=\"0.39370079\" vcfFreq=\"0.77952756\" resonance=\"0.40944882\" envAmount=\"0.37795276\" lfoToVCF=\"0.78740157\" kybdTracking=\"0.38582677\" vcaLevel=\"0.42519685\" attack=\"0.35433071\" decay=\"0.43307087\" sustain=\"0.77952756\" release=\"0.40157480\" subOsc=\"0.42519685\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "723-8052-fdab595a9218",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.25984252\" lfoToVCF=\"0.62992126\" kybdTracking=\"0.03937008\" vcaLevel=\"0.62992126\" attack=\"0.01574803\" decay=\"1.85826772\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "\u0004\u0003A",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.11811024\" lfoToDCO=\"1.07086614\" pwm=\"0.33858268\" noise=\"0.22047244\" vcfFreq=\"0.00000000\" resonance=\"0.33070866\" envAmount=\"0.18897638\" lfoToVCF=\"1.62204724\" kybdTracking=\"0.17322835\" vcaLevel=\"1.65354331\" attack=\"0.00787402\" decay=\"0.34645669\" sustain=\"0.04724409\" release=\"0.00000000\" subOsc=\"0.23622047\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "v",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.75590551\" noise=\"1.40157480\" vcfFreq=\"1.48031496\" resonance=\"1.76377953\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.05511811\" attack=\"0.52755906\" decay=\"0.76377953\" sustain=\"0.92913386\" release=\"0.79527559\" subOsc=\"0.89763780\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.37795276\" noise=\"0.44094488\" vcfFreq=\"0.76377953\" resonance=\"0.37795276\" envAmount=\"0.77165354\" lfoToVCF=\"0.78740157\" kybdTracking=\"0.37795276\" vcaLevel=\"0.80314961\" attack=\"0.35433071\" decay=\"0.44881890\" sustain=\"0.77952756\" release=\"0.77165354\" subOsc=\"0.78740157\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "993-9714-8cfac08e1ff8",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.14960630\" release=\"1.85826772\" subOsc=\"0.17322835\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "H\u000e",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.14173228\" noise=\"0.66141732\" vcfFreq=\"0.12598425\" resonance=\"1.44881890\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.02362205\" vcaLevel=\"0.19685039\" attack=\"0.04724409\" decay=\"0.77165354\" sustain=\"0.06299213\" release=\"2.00787402\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "'\u0003",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.29921260\" noise=\"1.00787402\" vcfFreq=\"1.92913386\" resonance=\"1.46456693\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.14960630\" attack=\"0.52755906\" decay=\"0.79527559\" sustain=\"0.85039370\" release=\"0.79527559\" subOsc=\"0.90551181\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "* (1 oct.up)",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.78740157\" noise=\"0.42519685\" vcfFreq=\"0.77165354\" resonance=\"0.40157480\" envAmount=\"0.40944882\" lfoToVCF=\"0.80314961\" kybdTracking=\"0.79527559\" vcaLevel=\"0.37795276\" attack=\"0.35433071\" decay=\"0.41732283\" sustain=\"0.78740157\" release=\"0.76377953\" subOsc=\"0.42519685\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "c44-ad37-4c20bd19d683",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.05511811\" lfoToVCF=\"0.88188976\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Q\u00048\u000e",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"1.79527559\" pwm=\"0.14173228\" noise=\"1.51181102\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.06299213\" lfoToVCF=\"1.19685039\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.25196850\" decay=\"1.82677165\" sustain=\"0.00787402\" release=\"2.00000000\" subOsc=\"0.08661417\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.81102362\" noise=\"1.00787402\" vcfFreq=\"1.40157480\" resonance=\"1.02362205\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.03937008\" attack=\"0.52755906\" decay=\"0.79527559\" sustain=\"0.85039370\" release=\"0.85039370\" subOsc=\"0.87401575\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.28346457\" lfoDelay=\"0.43307087\" lfoToDCO=\"0.37795276\" pwm=\"0.37795276\" noise=\"0.41732283\" vcfFreq=\"0.44881890\" resonance=\"0.77952756\" envAmount=\"0.42519685\" lfoToVCF=\"0.37795276\" kybdTracking=\"0.35433071\" vcaLevel=\"0.37795276\" attack=\"0.41732283\" decay=\"0.44094488\" sustain=\"0.44094488\" release=\"0.35433071\" subOsc=\"0.40944882\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "7-a43f-23561a0b0331",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00787402\" lfoToVCF=\"0.67716535\" kybdTracking=\"0.06299213\" vcaLevel=\"1.59055118\" attack=\"0.02362205\" decay=\"1.55905512\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "x",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"1.60629921\" pwm=\"0.00000000\" noise=\"0.31496063\" vcfFreq=\"0.14173228\" resonance=\"0.21259843\" envAmount=\"0.19685039\" lfoToVCF=\"1.96062992\" kybdTracking=\"0.06299213\" vcaLevel=\"0.12598425\" attack=\"0.09448819\" decay=\"0.88976378\" sustain=\"0.11811024\" release=\"1.65354331\" subOsc=\"0.07086614\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00787402\" lfoDelay=\"0.29921260\" lfoToDCO=\"0.03149606\" pwm=\"1.38582677\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"1.66141732\" kybdTracking=\"1.25196850\" vcaLevel=\"1.94488189\" attack=\"1.05511811\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.03937008\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "oir",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77165354\" noise=\"0.79527559\" vcfFreq=\"0.78740157\" resonance=\"0.44881890\" envAmount=\"0.77952756\" lfoToVCF=\"0.80314961\" kybdTracking=\"0.37795276\" vcaLevel=\"0.38582677\" attack=\"0.35433071\" decay=\"0.42519685\" sustain=\"0.43307087\" release=\"0.41732283\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "6db-a01b-e126c33ffe96",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.18110236\" lfoToVCF=\"1.48818898\" kybdTracking=\"0.02362205\" vcaLevel=\"0.67716535\" attack=\"0.01574803\" decay=\"0.37007874\" sustain=\"0.03149606\" release=\"1.58267717\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "]-",
+      "state": "<Parameters lfoRate=\"0.09448819\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.08661417\" noise=\"0.28346457\" vcfFreq=\"0.18897638\" resonance=\"1.62204724\" envAmount=\"0.06299213\" lfoToVCF=\"1.00787402\" kybdTracking=\"0.03149606\" vcaLevel=\"0.94488189\" attack=\"0.12598425\" decay=\"1.74803150\" sustain=\"0.09448819\" release=\"1.51181102\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "\u0002%",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.24409449\" noise=\"1.94488189\" vcfFreq=\"0.18897638\" resonance=\"0.44881890\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.10236220\" attack=\"0.52755906\" decay=\"0.81889764\" sustain=\"0.87401575\" release=\"0.89763780\" subOsc=\"0.92125984\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Bell 2",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.41732283\" noise=\"0.78740157\" vcfFreq=\"0.79527559\" resonance=\"0.40944882\" envAmount=\"0.44881890\" lfoToVCF=\"0.44094488\" kybdTracking=\"0.77165354\" vcaLevel=\"0.77952756\" attack=\"0.35433071\" decay=\"0.79527559\" sustain=\"0.44094488\" release=\"0.39370079\" subOsc=\"0.77165354\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "345-acc9-fbe66ce80510",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.09448819\" lfoToVCF=\"1.88976378\" kybdTracking=\"0.06299213\" vcaLevel=\"1.59055118\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.08661417\" release=\"1.57480315\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.11811024\" lfoDelay=\"1.88976378\" lfoToDCO=\"0.18897638\" pwm=\"1.90551181\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.11811024\" envAmount=\"0.23622047\" lfoToVCF=\"0.03937008\" kybdTracking=\"1.49606299\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.25196850\" sustain=\"0.90551181\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"1\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.12598425\" lfoToDCO=\"0.34645669\" pwm=\"0.03149606\" noise=\"1.77952756\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"1.00000000\" vcaLevel=\"1.12598425\" attack=\"1.42519685\" decay=\"1.72440945\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "horused Bell",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.40157480\" noise=\"0.77165354\" vcfFreq=\"0.80314961\" resonance=\"0.44094488\" envAmount=\"0.79527559\" lfoToVCF=\"0.40157480\" kybdTracking=\"0.77165354\" vcaLevel=\"0.41732283\" attack=\"0.35433071\" decay=\"0.39370079\" sustain=\"0.41732283\" release=\"0.78740157\" subOsc=\"0.39370079\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "1eb-9118-069f76326064",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.01574803\" vcaLevel=\"0.21259843\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.22834646\" release=\"0.24409449\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "b\u0018",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.11811024\" noise=\"1.76377953\" vcfFreq=\"0.19685039\" resonance=\"0.37795276\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.12598425\" vcaLevel=\"0.94488189\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.17322835\" release=\"1.88188976\" subOsc=\"0.18897638\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0004",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.94488189\" noise=\"0.84251969\" vcfFreq=\"0.73228346\" resonance=\"1.16535433\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.08661417\" attack=\"0.52755906\" decay=\"0.81889764\" sustain=\"0.87401575\" release=\"0.89763780\" subOsc=\"0.92125984\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Funk",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.38582677\" noise=\"0.80314961\" vcfFreq=\"0.40157480\" resonance=\"0.39370079\" envAmount=\"0.77952756\" lfoToVCF=\"0.76377953\" kybdTracking=\"0.43307087\" vcaLevel=\"0.42519685\" attack=\"0.35433071\" decay=\"0.77952756\" sustain=\"0.80314961\" release=\"0.44094488\" subOsc=\"0.37795276\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "046-8ac0-bf1d58aae396",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.07086614\" lfoToVCF=\"1.25984252\" kybdTracking=\"0.29921260\" vcaLevel=\"0.37795276\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.14960630\" release=\"0.78740157\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "\b\u001a\b",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.08661417\" lfoToDCO=\"0.85826772\" pwm=\"0.08661417\" noise=\"1.30708661\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.51968504\" kybdTracking=\"0.04724409\" vcaLevel=\"1.29133858\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.11811024\" release=\"0.86614173\" subOsc=\"0.08661417\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.66929134\" noise=\"1.44094488\" vcfFreq=\"0.63779528\" resonance=\"1.49606299\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.09448819\" attack=\"0.52755906\" decay=\"0.81889764\" sustain=\"0.87401575\" release=\"0.89763780\" subOsc=\"0.92125984\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "Vibes",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.77165354\" noise=\"0.37795276\" vcfFreq=\"0.77165354\" resonance=\"0.80314961\" envAmount=\"0.37795276\" lfoToVCF=\"0.79527559\" kybdTracking=\"0.43307087\" vcaLevel=\"0.41732283\" attack=\"0.35433071\" decay=\"0.40157480\" sustain=\"0.80314961\" release=\"0.44881890\" subOsc=\"0.77952756\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "9e9-ad5d-df63f3e4107d",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.09448819\" lfoToVCF=\"1.32283465\" kybdTracking=\"0.09448819\" vcaLevel=\"0.96850394\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.05511811\" lfoToDCO=\"0.75590551\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.02362205\" resonance=\"0.11023622\" envAmount=\"0.18110236\" lfoToVCF=\"0.75590551\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.27559055\" decay=\"1.62992126\" sustain=\"0.08661417\" release=\"0.40157480\" subOsc=\"0.09448819\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.10236220\" lfoDelay=\"0.01574803\" lfoToDCO=\"0.04724409\" pwm=\"1.88188976\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.33858268\" kybdTracking=\"1.37007874\" vcaLevel=\"0.36220472\" attack=\"1.82677165\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.06299213\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "arinet",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.38582677\" noise=\"0.39370079\" vcfFreq=\"0.77952756\" resonance=\"0.44881890\" envAmount=\"0.43307087\" lfoToVCF=\"0.77165354\" kybdTracking=\"0.41732283\" vcaLevel=\"0.77165354\" attack=\"0.35433071\" decay=\"0.76377953\" sustain=\"0.80314961\" release=\"0.77165354\" subOsc=\"0.80314961\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "249-bb5a-070ca5280147",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.07086614\" lfoToVCF=\"0.33070866\" kybdTracking=\"0.03937008\" vcaLevel=\"1.70078740\" attack=\"0.00787402\" decay=\"0.81889764\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.05511811\" lfoToDCO=\"1.12598425\" pwm=\"0.00787402\" noise=\"1.89763780\" vcfFreq=\"0.37007874\" resonance=\"0.94488189\" envAmount=\"0.01574803\" lfoToVCF=\"0.88188976\" kybdTracking=\"0.00000000\" vcaLevel=\"1.96850394\" attack=\"0.17322835\" decay=\"1.65354331\" sustain=\"0.15748031\" release=\"1.41732283\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.03937008\" lfoDelay=\"1.16535433\" lfoToDCO=\"0.00000000\" pwm=\"0.53543307\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.13385827\" kybdTracking=\"0.40944882\" vcaLevel=\"0.18897638\" attack=\"1.89763780\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.06299213\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "av (A)",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.40157480\" noise=\"0.40157480\" vcfFreq=\"0.44094488\" resonance=\"0.78740157\" envAmount=\"0.38582677\" lfoToVCF=\"0.43307087\" kybdTracking=\"0.77165354\" vcaLevel=\"0.80314961\" attack=\"0.35433071\" decay=\"0.44094488\" sustain=\"0.42519685\" release=\"0.79527559\" subOsc=\"0.43307087\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "a00-b316-7e64fb09a324",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.24409449\" lfoToVCF=\"1.95275591\" kybdTracking=\"0.00000000\" vcaLevel=\"0.70866142\" attack=\"0.00000000\" decay=\"0.39370079\" sustain=\"0.14173228\" release=\"0.66141732\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\u0004x\u000bl",
+      "state": "<Parameters lfoRate=\"1.07086614\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.37795276\" noise=\"0.56692913\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.04724409\" lfoToVCF=\"1.11023622\" kybdTracking=\"0.07086614\" vcaLevel=\"0.37795276\" attack=\"0.01574803\" decay=\"0.92913386\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.27559055\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "~",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.59842520\" noise=\"1.89763780\" vcfFreq=\"0.50393701\" resonance=\"0.69291339\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.06299213\" attack=\"0.52755906\" decay=\"0.85039370\" sustain=\"0.76377953\" release=\"0.92913386\" subOsc=\"0.25196850\" dcoRange=\"2\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": ")",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44881890\" noise=\"0.44094488\" vcfFreq=\"0.40157480\" resonance=\"0.78740157\" envAmount=\"0.42519685\" lfoToVCF=\"0.38582677\" kybdTracking=\"0.43307087\" vcaLevel=\"0.38582677\" attack=\"0.35433071\" decay=\"0.76377953\" sustain=\"0.77952756\" release=\"0.41732283\" subOsc=\"0.40944882\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "edc-a5e9-3ffd3f1b13f7",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.05511811\" lfoToVCF=\"1.63779528\" kybdTracking=\"0.03149606\" vcaLevel=\"0.85826772\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.11811024\" release=\"0.57480315\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.23622047\" lfoToDCO=\"1.03937008\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.14960630\" lfoToVCF=\"0.81889764\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.03937008\" decay=\"0.75590551\" sustain=\"0.17322835\" release=\"0.69291339\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "\u0006h\u0003",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.22047244\" noise=\"0.62992126\" vcfFreq=\"1.03937008\" resonance=\"1.99212598\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.19685039\" attack=\"0.52755906\" decay=\"0.85039370\" sustain=\"0.87401575\" release=\"0.77952756\" subOsc=\"0.84251969\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "himes* (1 oct. up)",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.41732283\" noise=\"0.77165354\" vcfFreq=\"0.44094488\" resonance=\"0.80314961\" envAmount=\"0.38582677\" lfoToVCF=\"0.79527559\" kybdTracking=\"0.44094488\" vcaLevel=\"0.37795276\" attack=\"0.35433071\" decay=\"0.78740157\" sustain=\"0.80314961\" release=\"0.78740157\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "323-95f0-a38bad363c0a",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.08661417\" lfoToVCF=\"1.05511811\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.06299213\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "!",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.23622047\" noise=\"0.52755906\" vcfFreq=\"0.13385827\" resonance=\"0.94488189\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.06299213\" vcaLevel=\"0.88188976\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.18897638\" release=\"1.41732283\" subOsc=\"0.01574803\" dcoRange=\"1\" pulseOn=\"1\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "H\u0004",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.47244094\" noise=\"1.26771654\" vcfFreq=\"1.76377953\" resonance=\"1.02362205\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.08661417\" attack=\"0.52755906\" decay=\"0.87401575\" sustain=\"0.85826772\" release=\"0.77165354\" subOsc=\"0.87401575\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"1\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "rgan",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44094488\" noise=\"0.42519685\" vcfFreq=\"0.41732283\" resonance=\"0.39370079\" envAmount=\"0.78740157\" lfoToVCF=\"0.80314961\" kybdTracking=\"0.44881890\" vcaLevel=\"0.77165354\" attack=\"0.35433071\" decay=\"0.40944882\" sustain=\"0.41732283\" release=\"0.43307087\" subOsc=\"0.44881890\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "087-83a0-cad9ccbd3147",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.13385827\" lfoToVCF=\"1.75590551\" kybdTracking=\"0.02362205\" vcaLevel=\"1.06299213\" attack=\"0.00787402\" decay=\"1.45669291\" sustain=\"0.07874016\" release=\"0.03937008\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"0\" />"
+    },
+    {
+      "name": "\u0001",
+      "state": "<Parameters lfoRate=\"1.57480315\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.16535433\" noise=\"0.58267717\" vcfFreq=\"0.09448819\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.04724409\" vcaLevel=\"0.75590551\" attack=\"0.08661417\" decay=\"0.85039370\" sustain=\"0.05511811\" release=\"0.37795276\" subOsc=\"0.18897638\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "|\u0002/",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.58267717\" noise=\"0.68503937\" vcfFreq=\"0.48818898\" resonance=\"0.88976378\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.08661417\" attack=\"0.52755906\" decay=\"0.87401575\" sustain=\"0.86614173\" release=\"0.91338583\" subOsc=\"0.76377953\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": " Wah",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.44094488\" noise=\"0.79527559\" vcfFreq=\"0.42519685\" resonance=\"0.40944882\" envAmount=\"0.40944882\" lfoToVCF=\"0.79527559\" kybdTracking=\"0.41732283\" vcaLevel=\"0.40157480\" attack=\"0.35433071\" decay=\"0.78740157\" sustain=\"0.80314961\" release=\"0.39370079\" subOsc=\"0.40944882\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "cef-8235-14b385b60dbf",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.11811024\" lfoToVCF=\"0.47244094\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.07874016\" release=\"1.52755906\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "(\n",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.18897638\" lfoToDCO=\"0.62204724\" pwm=\"0.17322835\" noise=\"0.65354331\" vcfFreq=\"0.00000000\" resonance=\"0.00000000\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.00000000\" release=\"0.00000000\" subOsc=\"0.06299213\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"3\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"1.56692913\" noise=\"1.59055118\" vcfFreq=\"1.93700787\" resonance=\"0.74803150\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.10236220\" attack=\"0.53543307\" decay=\"0.76377953\" sustain=\"0.89763780\" release=\"0.84251969\" subOsc=\"0.25196850\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "semble",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.39370079\" noise=\"0.77952756\" vcfFreq=\"0.40157480\" resonance=\"0.78740157\" envAmount=\"0.80314961\" lfoToVCF=\"0.80314961\" kybdTracking=\"0.43307087\" vcaLevel=\"0.40157480\" attack=\"0.35433071\" decay=\"0.42519685\" sustain=\"0.77952756\" release=\"0.77952756\" subOsc=\"0.40157480\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "339-a314-48f0f7040653",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.21259843\" release=\"1.22834646\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"0\" vcaMode=\"1\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.00000000\" noise=\"0.00000000\" vcfFreq=\"0.33858268\" resonance=\"0.94488189\" envAmount=\"0.06299213\" lfoToVCF=\"1.81102362\" kybdTracking=\"0.03937008\" vcaLevel=\"1.16535433\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.40157480\" release=\"0.19685039\" subOsc=\"0.06299213\" dcoRange=\"0\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "\u0011:\u0004",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.00000000\" pwm=\"0.13385827\" noise=\"0.89763780\" vcfFreq=\"0.05511811\" resonance=\"1.37007874\" envAmount=\"0.00000000\" lfoToVCF=\"0.00000000\" kybdTracking=\"0.00000000\" vcaLevel=\"0.07874016\" attack=\"0.53543307\" decay=\"0.76377953\" sustain=\"0.89763780\" release=\"0.84251969\" subOsc=\"0.25196850\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"1\" chorus1=\"1\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"2\" />"
+    },
+    {
+      "name": "uck",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00000000\" lfoToDCO=\"0.28346457\" pwm=\"0.40944882\" noise=\"0.78740157\" vcfFreq=\"0.76377953\" resonance=\"0.40944882\" envAmount=\"0.40157480\" lfoToVCF=\"0.77165354\" kybdTracking=\"0.78740157\" vcaLevel=\"0.77952756\" attack=\"0.35433071\" decay=\"0.43307087\" sustain=\"0.80314961\" release=\"0.79527559\" subOsc=\"0.77952756\" dcoRange=\"0\" pulseOn=\"1\" sawOn=\"0\" chorus1=\"0\" chorus2=\"0\" pwmMode=\"0\" vcaMode=\"0\" vcfPolarity=\"1\" hpfFreq=\"1\" />"
+    },
+    {
+      "name": "e1e-84fa-6b4d776c6521",
+      "state": "<Parameters lfoRate=\"0.00000000\" lfoDelay=\"0.00787402\" lfoToDCO=\"1.11811024\" pwm=\"0.03937008\" noise=\"1.65354331\" vcfFreq=\"1.28346457\" resonance=\"0.85039370\" envAmount=\"0.09448819\" lfoToVCF=\"1.19685039\" kybdTracking=\"0.00000000\" vcaLevel=\"0.00000000\" attack=\"0.00000000\" decay=\"0.00000000\" sustain=\"0.10236220\" release=\"1.19685039\" subOsc=\"0.00000000\" dcoRange=\"2\" pulseOn=\"0\" sawOn=\"0\" chorus1=\"0\" chorus2=\"1\" pwmMode=\"1\" vcaMode=\"0\" vcfPolarity=\"0\" hpfFreq=\"2\" />"
+    }
+  ]
+}

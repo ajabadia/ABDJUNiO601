@@ -70,10 +70,19 @@ void Voice::noteOff() {
 
 void Voice::updateParams(const SynthParams& p) {
     params = p;
-    
-    smoothedCutoff.setTargetValue(p.vcfFreq);
-    smoothedResonance.setTargetValue(p.resonance * 0.95f);
-    smoothedVCALevel.setTargetValue(p.vcaLevel);
+    // VCF
+    // [reimplement.md] Unlocking self-oscillation: Resonance * 1.05 provides legitimate self-osc at max
+    smoothedCutoff.setTargetValue(params.vcfFreq);
+    smoothedResonance.setTargetValue(juce::jmin(1.05f, params.resonance * 1.05f)); 
+
+    // VCA
+    // [reimplement.md] Authentic behavior: VCA Level slider only affects GATE mode
+    // In ENV mode, the level is determined by the ADSR peak (fixed)
+    if (params.vcaMode == 1) { // 1 = Gate (VCA Level active)
+        smoothedVCALevel.setTargetValue(params.vcaLevel);
+    } else { // 0 = Env (Full dynamic range)
+        smoothedVCALevel.setTargetValue(1.0f); 
+    }
     
     dco.setRange(static_cast<JunoDCO::Range>(p.dcoRange));
     dco.setSawLevel(p.sawOn ? 1.0f : 0.0f); 
@@ -197,7 +206,7 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
         
         filter.setCutoffFrequencyHz(modulatedCutoff);
         filter.setResonance(resParam);
-        filter.setDrive(1.2f);
+        filter.setDrive(1.3f);
         
         juce::dsp::AudioBlock<float> subBlock = block.getSubBlock(i, currentBatchSize);
         juce::dsp::ProcessContextReplacing<float> subContext(subBlock);
