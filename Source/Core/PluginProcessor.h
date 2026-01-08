@@ -15,7 +15,8 @@ class PresetManager;
  * SimpleJuno106AudioProcessor
  */
 class SimpleJuno106AudioProcessor : public juce::AudioProcessor,
-                                     public juce::MidiKeyboardState::Listener {
+                                     public juce::MidiKeyboardState::Listener,
+                                     public juce::AudioProcessorValueTreeState::Listener {
 public:
     SimpleJuno106AudioProcessor();
     ~SimpleJuno106AudioProcessor() override;
@@ -26,6 +27,9 @@ public:
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     
+    // APVTS Listener
+    void parameterChanged(const juce::String& parameterID, float newValue) override;
+
     // MIDI / SysEx Support
     bool midiOutEnabled = false;
     int midiChannel = 1; 
@@ -85,7 +89,6 @@ private:
     juce::Random chorusNoiseGen; 
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker;
 
-    // [reimplement.md] Global LFO Phase
     float masterLfoPhase = 0.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)

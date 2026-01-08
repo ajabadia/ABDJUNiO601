@@ -40,9 +40,62 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     midiLearnHandler.bind(31, "release");
     midiLearnHandler.bind(32, "vcaLevel");
     keyboardState.addListener(this);
+
+    // [reimplement.md] Bidirectional SysEx: Register listener
+    apvts.addParameterListener("lfoRate", this);
+    apvts.addParameterListener("lfoDelay", this);
+    apvts.addParameterListener("lfoToDCO", this);
+    apvts.addParameterListener("pwm", this);
+    apvts.addParameterListener("noise", this);
+    apvts.addParameterListener("vcfFreq", this);
+    apvts.addParameterListener("resonance", this);
+    apvts.addParameterListener("envAmount", this);
+    apvts.addParameterListener("lfoToVCF", this);
+    apvts.addParameterListener("kybdTracking", this);
+    apvts.addParameterListener("vcaLevel", this);
+    apvts.addParameterListener("attack", this);
+    apvts.addParameterListener("decay", this);
+    apvts.addParameterListener("sustain", this);
+    apvts.addParameterListener("release", this);
+    apvts.addParameterListener("subOsc", this);
+    apvts.addParameterListener("dcoRange", this);
+    apvts.addParameterListener("pulseOn", this);
+    apvts.addParameterListener("sawOn", this);
+    apvts.addParameterListener("chorus1", this);
+    apvts.addParameterListener("chorus2", this);
+    apvts.addParameterListener("pwmMode", this);
+    apvts.addParameterListener("vcfPolarity", this);
+    apvts.addParameterListener("vcaMode", this);
+    apvts.addParameterListener("hpfFreq", this);
 }
 
-SimpleJuno106AudioProcessor::~SimpleJuno106AudioProcessor() {}
+SimpleJuno106AudioProcessor::~SimpleJuno106AudioProcessor() {
+    apvts.removeParameterListener("lfoRate", this);
+    apvts.removeParameterListener("lfoDelay", this);
+    apvts.removeParameterListener("lfoToDCO", this);
+    apvts.removeParameterListener("pwm", this);
+    apvts.removeParameterListener("noise", this);
+    apvts.removeParameterListener("vcfFreq", this);
+    apvts.removeParameterListener("resonance", this);
+    apvts.removeParameterListener("envAmount", this);
+    apvts.removeParameterListener("lfoToVCF", this);
+    apvts.removeParameterListener("kybdTracking", this);
+    apvts.removeParameterListener("vcaLevel", this);
+    apvts.removeParameterListener("attack", this);
+    apvts.removeParameterListener("decay", this);
+    apvts.removeParameterListener("sustain", this);
+    apvts.removeParameterListener("release", this);
+    apvts.removeParameterListener("subOsc", this);
+    apvts.removeParameterListener("dcoRange", this);
+    apvts.removeParameterListener("pulseOn", this);
+    apvts.removeParameterListener("sawOn", this);
+    apvts.removeParameterListener("chorus1", this);
+    apvts.removeParameterListener("chorus2", this);
+    apvts.removeParameterListener("pwmMode", this);
+    apvts.removeParameterListener("vcfPolarity", this);
+    apvts.removeParameterListener("vcaMode", this);
+    apvts.removeParameterListener("hpfFreq", this);
+}
 
 const juce::String SimpleJuno106AudioProcessor::getName() const { return JucePlugin_Name; }
 bool SimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
@@ -54,6 +107,60 @@ int SimpleJuno106AudioProcessor::getCurrentProgram() { return 0; }
 void SimpleJuno106AudioProcessor::setCurrentProgram (int index) { juce::ignoreUnused(index); }
 const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { juce::ignoreUnused(index); return {}; }
 void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
+
+void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameterID, float newValue) {
+    if (!midiOutEnabled) return;
+
+    int sysExValue = 0;
+    int sysExParamID = -1;
+
+    // Mapping logic for 0x32 Parameter Change
+    if (parameterID == "lfoRate") { sysExParamID = JunoSysEx::LFO_RATE; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "lfoDelay") { sysExParamID = JunoSysEx::LFO_DELAY; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "lfoToDCO") { sysExParamID = JunoSysEx::DCO_LFO; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "pwm") { sysExParamID = JunoSysEx::DCO_PWM; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "noise") { sysExParamID = JunoSysEx::DCO_NOISE; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "vcfFreq") { sysExParamID = JunoSysEx::VCF_FREQ; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "resonance") { sysExParamID = JunoSysEx::VCF_RES; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "envAmount") { sysExParamID = JunoSysEx::VCF_ENV; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "lfoToVCF") { sysExParamID = JunoSysEx::VCF_LFO; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "kybdTracking") { sysExParamID = JunoSysEx::VCF_KYBD; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "vcaLevel") { sysExParamID = JunoSysEx::VCA_LEVEL; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "attack") { sysExParamID = JunoSysEx::ENV_A; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "decay") { sysExParamID = JunoSysEx::ENV_D; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "sustain") { sysExParamID = JunoSysEx::ENV_S; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "release") { sysExParamID = JunoSysEx::ENV_R; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "subOsc") { sysExParamID = JunoSysEx::DCO_SUB; sysExValue = (int)(newValue * 127.0f); }
+    else if (parameterID == "dcoRange" || parameterID == "pulseOn" || parameterID == "sawOn" || parameterID == "chorus1" || parameterID == "chorus2") {
+        sysExParamID = JunoSysEx::SWITCHES_1;
+        uint8_t sw1 = 0;
+        int range = (int)*apvts.getRawParameterValue("dcoRange");
+        if (range == 0) sw1 |= 1 << 0;
+        if (range == 1) sw1 |= 1 << 1;
+        if (range == 2) sw1 |= 1 << 2;
+        if (*apvts.getRawParameterValue("pulseOn") > 0.5f) sw1 |= 1 << 3;
+        if (*apvts.getRawParameterValue("sawOn") > 0.5f) sw1 |= 1 << 4;
+        bool c1 = *apvts.getRawParameterValue("chorus1") > 0.5f;
+        bool c2 = *apvts.getRawParameterValue("chorus2") > 0.5f;
+        if (c1 || c2) sw1 |= 1 << 5;
+        if (c1 && !c2) sw1 |= 1 << 6;
+        sysExValue = sw1;
+    }
+    else if (parameterID == "pwmMode" || parameterID == "vcfPolarity" || parameterID == "vcaMode" || parameterID == "hpfFreq") {
+        sysExParamID = JunoSysEx::SWITCHES_2;
+        uint8_t sw2 = 0;
+        if (*apvts.getRawParameterValue("pwmMode") > 0.5f) sw2 |= 1 << 0;
+        if (*apvts.getRawParameterValue("vcfPolarity") > 0.5f) sw2 |= 1 << 1;
+        if (*apvts.getRawParameterValue("vcaMode") > 0.5f) sw2 |= 1 << 2;
+        int hpf = (int)*apvts.getRawParameterValue("hpfFreq");
+        sw2 |= (hpf & 0x03) << 3;
+        sysExValue = sw2;
+    }
+
+    if (sysExParamID != -1) {
+        midiOutBuffer.addEvent(JunoSysEx::createParamChange(midiChannel - 1, sysExParamID, sysExValue), 0);
+    }
+}
 
 void SimpleJuno106AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
@@ -88,7 +195,6 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         buffer.clear (i, 0, buffer.getNumSamples());
 
     keyboardState.processNextMidiBuffer (midiMessages, 0, buffer.getNumSamples(), true);
-    juce::MidiBuffer midiOutEvents;
 
     for (const auto metadata : midiMessages)
     {
@@ -125,12 +231,10 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     voiceManager.setPortamentoLegato(currentParams.portamentoLegato);
     voiceManager.updateParams(currentParams);
 
-    // [reimplement.md] Global LFO Phase calculation
     float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
     float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, currentParams.lfoRate);
     float phaseIncrement = (lfoRateHz / (float)getSampleRate());
 
-    // Single LFO value for the block start (optimization) or increment per sample
     masterLfoPhase += phaseIncrement * buffer.getNumSamples();
     if (masterLfoPhase >= 1.0f) masterLfoPhase = std::fmod(masterLfoPhase, 1.0f);
     float lfoVal = std::sin(masterLfoPhase * 2.0f * juce::MathConstants<float>::pi);
@@ -169,8 +273,9 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
          chorus.process(context);
     }
     dcBlocker.process(context);
+
+    // [reimplement.md] Flush SysEx Output
     if (midiOutEnabled) {
-        midiMessages.addEvents(midiOutEvents, 0, buffer.getNumSamples(), 0);
         midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0);
         midiOutBuffer.clear();
     }
@@ -315,6 +420,8 @@ void SimpleJuno106AudioProcessor::setStateInformation(const void* data, int size
             if (auto* paramsXml = xmlState->getChildByName(apvts.state.getType())) apvts.replaceState(juce::ValueTree::fromXml(*paramsXml));
             if (auto* midiXml = xmlState->getChildByName("MIDI_MAPPINGS")) midiLearnHandler.loadState(juce::ValueTree::fromXml(*midiXml));
         }
-        else if (xmlState->hasTagName(apvts.state.getType())) apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+        else if (xmlState->hasTagName(apvts.state.getType())) {
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+        }
     }
 }

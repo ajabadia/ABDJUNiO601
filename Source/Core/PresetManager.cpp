@@ -224,3 +224,61 @@ juce::File PresetManager::getUserPresetsDirectory() const {
     return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
         .getChildFile("JUNiO601").getChildFile("UserPresets");
 }
+
+void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts) {
+    auto& rand = juce::Random::getSystemRandom();
+    auto setP = [&](juce::String id, float val) {
+        if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val);
+    };
+    auto setI = [&](juce::String id, int val) {
+        if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)val));
+    };
+    auto setB = [&](juce::String id, bool val) {
+        if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val ? 1.0f : 0.0f);
+    };
+
+    // 1. DCO - Garantizar sonido
+    setI("dcoRange", rand.nextInt(3));
+    bool saw = rand.nextBool();
+    setB("sawOn", saw);
+    setB("pulseOn", !saw || rand.nextBool());
+    setP("pwm", rand.nextFloat());
+    setI("pwmMode", rand.nextInt(2));
+    setP("subOsc", rand.nextFloat() * 0.8f);
+    setP("noise", rand.nextFloat() * 0.3f);
+    setP("lfoToDCO", rand.nextFloat() * 0.2f);
+
+    // 2. VCF - Musical
+    setP("vcfFreq", 0.2f + (rand.nextFloat() * 0.8f));
+    setP("resonance", rand.nextFloat() * 0.7f);
+    setP("envAmount", rand.nextFloat());
+    setI("vcfPolarity", rand.nextInt(2));
+    setP("lfoToVCF", rand.nextFloat() * 0.4f);
+    setP("kybdTracking", rand.nextFloat());
+    setI("hpfFreq", rand.nextInt(4));
+
+    // 3. VCA
+    setI("vcaMode", rand.nextInt(2));
+    setP("vcaLevel", 0.6f + (rand.nextFloat() * 0.4f));
+
+    // 4. ENV - Evitar silencios
+    setP("attack", rand.nextFloat() * 0.5f);
+    setP("decay", 0.1f + rand.nextFloat() * 0.9f);
+    setP("sustain", 0.2f + rand.nextFloat() * 0.8f);
+    setP("release", 0.1f + rand.nextFloat() * 0.7f);
+
+    // 5. LFO
+    setP("lfoRate", rand.nextFloat());
+    setP("lfoDelay", rand.nextFloat() * 0.5f);
+
+    // 6. Chorus - 70% Probabilidad
+    bool cOn = rand.nextFloat() < 0.7f;
+    if (cOn) {
+        int m = rand.nextInt(3); // 0=I, 1=II, 2=I+II
+        setB("chorus1", m == 0 || m == 2);
+        setB("chorus2", m == 1 || m == 2);
+    } else {
+        setB("chorus1", false);
+        setB("chorus2", false);
+    }
+}

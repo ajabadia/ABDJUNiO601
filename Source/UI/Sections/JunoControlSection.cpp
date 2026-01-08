@@ -3,11 +3,10 @@
 #include "../../Core/PresetManager.h"
 
 JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProcessorValueTreeState& apvts, PresetManager& pm, MidiLearnHandler& mlh)
-    : presetBrowser(pm), processor(p)
+    : presetBrowser(pm), processor(p), apvtsRef(apvts)
 {
     juce::ignoreUnused(mlh);
 
-    // --- Portamento ---
     portSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     portSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     portSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f, 
@@ -22,7 +21,6 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     portButton.setButtonText("ON");
     portButtonAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "portamentoOn", portButton);
 
-    // --- Assign Mode ---
     addAndMakeVisible(modeCombo);
     modeCombo.addItem("POLY 1", 1);
     modeCombo.addItem("POLY 2", 2);
@@ -34,18 +32,15 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
 
     addAndMakeVisible(presetBrowser);
     
-    // --- MIDI OUT ---
     midiOutButton.setButtonText("MIDI OUT");
     midiOutButton.setClickingTogglesState(true); 
     addAndMakeVisible(midiOutButton);
     midiOutAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "midiOut", midiOutButton);
 
-    // --- TEST Mode ---
     addAndMakeVisible(powerButton); powerButton.setButtonText("TEST");
     powerButton.setColour(juce::TextButton::buttonColourId, juce::Colours::lightgrey);
     powerButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
     
-    // Functions
     auto setupFunc = [&](juce::TextButton& b, const juce::String& txt) {
         b.setButtonText(txt);
         b.getProperties().set("isFunctionButton", true);
@@ -55,11 +50,15 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
     setupFunc(sysexButton, "SYSEX");
     setupFunc(loadTapeButton, "LOAD TAPE");
     setupFunc(loadButton, "LOAD");
-    setupFunc(dumpButton, "EXPORT"); // [reimplement.md] EXPORT Button
+    setupFunc(dumpButton, "EXPORT");
     setupFunc(prevPatchButton, "<");
     setupFunc(nextPatchButton, ">");
+    
+    // [reimplement.md] Random Button implementation
+    setupFunc(randomButton, "RANDOM");
+    randomButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff60a8d6)); // Blue
+    randomButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
 
-    // Banks & Patches
     for (int i = 0; i < 8; ++i) {
         bankSelectButtons[i].setButtonText(juce::String(i + 1));
         addAndMakeVisible(bankSelectButtons[i]);
@@ -118,7 +117,7 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
              if(onPresetLoad) onPresetLoad(p->getPresetManager()->getCurrentPresetIndex());
         }
     };
-    presetBrowser.onGetCurrentState = [&]() { return apvts.copyState(); };
+    presetBrowser.onGetCurrentState = [&]() { return apvtsRef.copyState(); };
 
     connectButtons();
     startTimer(50);
@@ -153,11 +152,9 @@ void JunoControlSection::paint(juce::Graphics& g)
 
 void JunoControlSection::resized()
 {
-    // [reimplement.md] Fixed coordinates to avoid crowding
     auto b = getLocalBounds();
     int margin = 10;
     
-    // Left: Portamento/Assign
     int leftX = margin;
     portLabel.setBounds(leftX, 35, 60, 20);
     portSlider.setBounds(leftX, 55, 60, 60);
@@ -167,7 +164,6 @@ void JunoControlSection::resized()
     modeLabel.setBounds(assignX, 35, 70, 20);
     modeCombo.setBounds(assignX, 60, 75, 25);
 
-    // Center: LCD & Browser
     int centerW = 400;
     int centerX = (getWidth() - centerW) / 2;
     lcd.setBounds(centerX, 35, centerW, 50);
@@ -177,15 +173,15 @@ void JunoControlSection::resized()
     nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
     presetBrowser.setBounds(centerX + 40, browserY, centerW - 80, 30);
 
-    // Right: Memory/Banks
     int rightX = getWidth() - 410;
     int funcY = 35;
-    int funcW = 75;
+    int funcW = 60; // Slightly narrower to fit RANDOM
     saveButton.setBounds(rightX, funcY, funcW, 30);
-    sysexButton.setBounds(rightX + 80, funcY, funcW, 30);
-    loadTapeButton.setBounds(rightX + 160, funcY, funcW, 30);
-    loadButton.setBounds(rightX + 240, funcY, funcW, 30);
-    dumpButton.setBounds(rightX + 320, funcY, funcW, 30); // EXPORT
+    sysexButton.setBounds(rightX + 65, funcY, funcW, 30);
+    loadTapeButton.setBounds(rightX + 130, funcY, funcW + 15, 30);
+    loadButton.setBounds(rightX + 210, funcY, funcW, 30);
+    dumpButton.setBounds(rightX + 275, funcY, funcW + 5, 30);
+    randomButton.setBounds(rightX + 345, funcY, funcW + 5, 30); // Random Button on the right
     
     int gridX = rightX + 40;
     int gridY = 75;
@@ -222,13 +218,11 @@ void JunoControlSection::timerCallback()
 void JunoControlSection::connectButtons()
 {
     saveButton.onClick = [this] {
-        // [reimplement.md] SAVE: Save only current preset to user folder
         presetBrowser.savePreset();
         lcd.setText("PRESET SAVED");
     };
     
     dumpButton.onClick = [this] {
-        // [reimplement.md] EXPORT: Export complete bank
         fileChooser = std::make_unique<juce::FileChooser>("Export Bank JSON...",
             juce::File::getSpecialLocation(juce::File::userHomeDirectory), "*.json");
         fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
@@ -238,6 +232,13 @@ void JunoControlSection::connectButtons()
                      lcd.setText("BANK EXPORTED");
                  }
             });
+    };
+
+    randomButton.onClick = [this] {
+        if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
+            proc->getPresetManager()->randomizeCurrentParameters(apvtsRef);
+            lcd.setText("RANDOM PATCH");
+        }
     };
 
     loadButton.onClick = [this] { presetBrowser.loadPreset(); };
@@ -286,7 +287,7 @@ void JunoControlSection::connectButtons()
     powerButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
             proc->enterTestMode(!proc->isTestMode);
-            powerButton.setColour(juce::TextButton::textColourOffId, 
+            powerButton.setColour(juce::TextButton::buttonColourId, 
                 proc->isTestMode ? juce::Colours::red : juce::Colours::black);
         }
     };
