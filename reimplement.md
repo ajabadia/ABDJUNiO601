@@ -1,30 +1,30 @@
-# Guía de Reimplementación para JUNiO 601 - ESTADO ACTUAL
+# Plan de Evolución para JUNiO 601 (Post-Auditoría)
 
-Este documento registra la evolución del proyecto tras la recuperación.
+**Objetivo**: Alcanzar el 100% de fidelidad funcional y sónica con el hardware Roland Juno-106, partiendo de la base de código actual.
 
-## ✅ 1. Identidad y Construcción (Completado)
-- **Marca**: Plugin renombrado a **JUNiO 601**.
-- **Build System**: Implementado contador automático y versión dinámica en el header.
+### Fase 1: Corrección del Motor de Voces (Crítico)
+- [ ] **Solucionar Ataques Sordos**: Modificar `JunoVoiceManager` para forzar el reinicio de la envolvente y el DCO en cada `noteOn` que no sea un legato explícito.
+- [ ] **Legato Auténtico**: Asegurar que el modo legato solo se active en Unison cuando una tecla esté físicamente pulsada.
 
-## ✅ 2. Motor de Audio y Modulación (Completado)
-- **DCO/HPF**: Reset de fase en Note-On y lógica de 4 posiciones del filtro HPF corregida.
-- **LFO Global**: Implementada **onda triangular** real y delay global monofónico per-sample.
-- **Chorus Hiss**: Ruido dinámico calibrado (Modo II > Modo I).
-- **Voice Stealing**: Corregidos ataques "sordos" mediante re-trigger forzado de envolventes.
+### Fase 2: Alineación de Presets y SysEx (Fidelidad de Datos)
+- [ ] **Presets de Fábrica**: Reemplazar los datos de `FactoryPresets.h` con los 128 volcados de la ROM original.
+- [ ] **Mapeo SysEx**: Corregir la lógica de bits en `PresetManager` y `JunoSysExEngine` para el Chorus (bit 5 invertido) y el HPF (lógica descendente).
+- [ ] **Checksum**: Eliminar el byte de checksum de los mensajes de Patch Dump (0x30) para cumplir el estándar de 23 bytes.
 
-## ✅ 3. Conectividad y SysEx (Completado)
-- **Bidireccionalidad**: Envío de Parameter Change (0x32) y Manual Mode (0x31).
-- **Protocolo**: Ajustado a 23 bytes (sin Checksum) para compatibilidad 1:1 con hardware Roland.
+### Fase 3: Auditoría de Módulos (Hardware vs. Software)
+- [ ] **LFO**: 
+    - [ ] Cambiar la forma de onda de Senoidal a **Triangular**.
+    - [ ] Mover el cálculo de fase para que sea **per-sample** y no por bloque.
+    - [ ] Implementar el **Delay (fade-in) global** en `PluginProcessor`.
+- [ ] **VCF**: Ajustar la curva logarítmica del Cutoff para que el rango útil coincida con el del IR3109 (5Hz-20kHz).
+- [ ] **Chorus**: Calibrar el nivel de "hiss" para que el Modo II sea ligeramente más ruidoso que el Modo I.
 
-## ✅ 4. Gestión de Memoria Pro (NUEVO)
-- **Importación Inteligente**: Soporte nativo para `.syx` y `.jno`. Creación automática de bancos para archivos multi-patch.
-- **Banco User Dinámico**: Los parches individuales se acumulan en la librería User manteniendo el nombre del archivo original.
-- **Persistencia de Rutas**: El plugin recuerda la última carpeta de importación/exportación entre sesiones.
-- **Exportación JSON**: Recuperada la función de volcado de bancos individuales o backup total de la librería.
+### Fase 4: Sistema de Archivos Profesional (UX)
+- [ ] **Importación Inteligente**: Implementar la lógica para gestionar bancos nuevos para archivos multi-patch (`.syx`) y añadir patches sueltos (`.jno`) a la librería "User".
+- [ ] **Botón SAVE**: Asegurar que siempre guarde en el banco "User", escriba el archivo en disco y refresque la UI.
+- [ ] **Botón EXPORT**: Corregir el ciclo de vida del `FileChooser` para permitir la exportación de bancos a JSON.
+- [ ] **Persistencia de Rutas**: Guardar y recuperar la última carpeta utilizada para cualquier operación de archivo.
 
-## ✅ 5. Interfaz de Usuario (Completado)
-- **Ergonomía**: Ancho ampliado a 1700px. Botones físicos con LED para ondas y chorus.
-- **Layout**: Alineación perfecta de rejilla de memoria y utilidades centrales [ALL OFF][TEST][RANDOM].
-
-## ⏳ 6. Próximo Paso: Monitor LCD (Pendiente)
-- Implementar la persistencia de parámetros temporal para visualización de edición.
+### Fase 5: LCD Interactivo (Final)
+- [ ] **Feedback de Parámetros**: Implementar `parameterChanged` en el `PluginProcessor` para que envíe el nombre y valor del parámetro que se está editando a la UI.
+- [ ] **Display Temporal**: Hacer que el LCD muestre la información del parámetro durante 2-3 segundos y luego vuelva a mostrar el nombre del preset.

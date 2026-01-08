@@ -109,10 +109,7 @@ void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::Stri
 
 void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameterID, float newValue) {
     if (!midiOutEnabled) return;
-
-    int sysExValue = 0;
-    int sysExParamID = -1;
-
+    int sysExValue = 0; int sysExParamID = -1;
     if (parameterID == "lfoRate") { sysExParamID = JunoSysEx::LFO_RATE; sysExValue = (int)(newValue * 127.0f); }
     else if (parameterID == "lfoDelay") { sysExParamID = JunoSysEx::LFO_DELAY; sysExValue = (int)(newValue * 127.0f); }
     else if (parameterID == "lfoToDCO") { sysExParamID = JunoSysEx::DCO_LFO; sysExValue = (int)(newValue * 127.0f); }
@@ -131,93 +128,61 @@ void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameter
     else if (parameterID == "subOsc") { sysExParamID = JunoSysEx::DCO_SUB; sysExValue = (int)(newValue * 127.0f); }
     else if (parameterID == "dcoRange" || parameterID == "pulseOn" || parameterID == "sawOn" || parameterID == "chorus1" || parameterID == "chorus2") {
         sysExParamID = JunoSysEx::SWITCHES_1;
-        uint8_t sw1 = 0;
-        int range = (int)*apvts.getRawParameterValue("dcoRange");
-        if (range == 0) sw1 |= 1 << 0;
-        if (range == 1) sw1 |= 1 << 1;
-        if (range == 2) sw1 |= 1 << 2;
+        uint8_t sw1 = 0; int range = (int)*apvts.getRawParameterValue("dcoRange");
+        if (range == 0) sw1 |= 1 << 0; else if (range == 1) sw1 |= 1 << 1; else if (range == 2) sw1 |= 1 << 2;
         if (*apvts.getRawParameterValue("pulseOn") > 0.5f) sw1 |= 1 << 3;
         if (*apvts.getRawParameterValue("sawOn") > 0.5f) sw1 |= 1 << 4;
-        bool c1 = *apvts.getRawParameterValue("chorus1") > 0.5f;
-        bool c2 = *apvts.getRawParameterValue("chorus2") > 0.5f;
-        if (c1 || c2) sw1 |= 1 << 5;
-        if (c1 && !c2) sw1 |= 1 << 6;
+        if (*apvts.getRawParameterValue("chorus1") > 0.5f || *apvts.getRawParameterValue("chorus2") > 0.5f) sw1 &= ~(1 << 5); else sw1 |= 1 << 5;
+        if (*apvts.getRawParameterValue("chorus1") > 0.5f) sw1 |= 1 << 6;
         sysExValue = sw1;
-    }
-    else if (parameterID == "pwmMode" || parameterID == "vcfPolarity" || parameterID == "vcaMode" || parameterID == "hpfFreq") {
+    } else if (parameterID == "pwmMode" || parameterID == "vcfPolarity" || parameterID == "vcaMode" || parameterID == "hpfFreq") {
         sysExParamID = JunoSysEx::SWITCHES_2;
-        uint8_t sw2 = 0;
+        uint8_t sw2 = 0; 
         if (*apvts.getRawParameterValue("pwmMode") > 0.5f) sw2 |= 1 << 0;
-        if (*apvts.getRawParameterValue("vcfPolarity") > 0.5f) sw2 |= 1 << 1;
-        if (*apvts.getRawParameterValue("vcaMode") > 0.5f) sw2 |= 1 << 2;
-        int hpf = (int)*apvts.getRawParameterValue("hpfFreq");
+        if (*apvts.getRawParameterValue("vcfPolarity") > 0.5f) sw2 |= 1 << 2; // Bit 2 for polarity
+        if (*apvts.getRawParameterValue("vcaMode") > 0.5f) sw2 |= 1 << 1;
+        int hpf = 3 - (int)*apvts.getRawParameterValue("hpfFreq");
         sw2 |= (hpf & 0x03) << 3;
         sysExValue = sw2;
     }
-
-    if (sysExParamID != -1) {
-        midiOutBuffer.addEvent(JunoSysEx::createParamChange(midiChannel - 1, sysExParamID, sysExValue), 0);
-    }
+    if (sysExParamID != -1) midiOutBuffer.addEvent(JunoSysEx::createParamChange(midiChannel - 1, sysExParamID, sysExValue), 0);
 }
 
-void SimpleJuno106AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
 {
-    voiceManager.prepare(sampleRate, samplesPerBlock);
-    juce::dsp::ProcessSpec spec;
-    spec.sampleRate = sampleRate;
-    spec.maximumBlockSize = static_cast<juce::uint32>(samplesPerBlock);
-    spec.numChannels = 2;
-    chorus.prepare(spec);
-    chorus.reset();
-    dcBlocker.prepare(spec);
-    *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 20.0f);
-    
-    // [Audit LFO]
-    masterLfoPhase = 0.0f;
-    masterLfoDelayEnvelope = 0.0f;
+    voiceManager.prepare(sr, samplesPerBlock);
+    juce::dsp::ProcessSpec spec { sr, (juce::uint32)samplesPerBlock, 2 };
+    chorus.prepare(spec); chorus.reset();
+    dcBlocker.prepare(spec); *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, 20.0f);
+    masterLfoPhase = 0.0f; masterLfoDelayEnvelope = 0.0f; wasAnyNoteHeld = false;
 }
 
 void SimpleJuno106AudioProcessor::releaseResources() {}
 
 bool SimpleJuno106AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
-        return false;
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono() && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo()) return false;
     return true;
 }
 
 void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+    for (auto i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i) buffer.clear (i, 0, buffer.getNumSamples());
 
     keyboardState.processNextMidiBuffer (midiMessages, 0, buffer.getNumSamples(), true);
 
-    for (const auto metadata : midiMessages)
-    {
+    for (const auto metadata : midiMessages) {
         const auto message = metadata.getMessage();
-        if (message.isSysEx()) {
-            sysExEngine.handleIncomingSysEx(message, currentParams);
-            continue;
-        }
+        if (message.isSysEx()) { sysExEngine.handleIncomingSysEx(message, currentParams); continue; }
         if (message.isController()) {
-            const auto cn = message.getControllerNumber();
-            const auto cv = message.getControllerValue();
-            if (cn == 1) {
-                if (auto* p = apvts.getParameter("benderToLFO")) p->setValueNotifyingHost(cv / 127.0f);
-            }
-            else if (cn == 64) performanceState.handleSustain(cv);
-            else midiLearnHandler.handleIncomingCC(cn, cv, apvts);
+            if (message.getControllerNumber() == 1) { if (auto* p = apvts.getParameter("benderToLFO")) p->setValueNotifyingHost(message.getControllerValue() / 127.0f); }
+            else if (message.getControllerNumber() == 64) performanceState.handleSustain(message.getControllerValue());
+            else midiLearnHandler.handleIncomingCC(message.getControllerNumber(), message.getControllerValue(), apvts);
             continue;
         }
         if (message.isPitchWheel()) {
-            const auto val = (float)message.getPitchWheelValue();
-            float norm = (val / 8192.0f) - 1.0f;
-            if (auto* p = apvts.getParameter("bender")) p->setValueNotifyingHost(p->convertTo0to1(norm));
+            if (auto* p = apvts.getParameter("bender")) p->setValueNotifyingHost(p->convertTo0to1(((float)message.getPitchWheelValue() / 8192.0f) - 1.0f));
             continue;
         }
         if (message.isNoteOn()) voiceManager.noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
@@ -232,39 +197,20 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     voiceManager.setPortamentoLegato(currentParams.portamentoLegato);
     voiceManager.updateParams(currentParams);
 
-    // [Audit LFO] Global LFO logic (Triangle Wave + Global Delay)
     float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
     float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, currentParams.lfoRate);
     float phaseIncrement = (lfoRateHz / (float)getSampleRate());
-    
     float lfoDelaySeconds = currentParams.lfoDelay * 5.0f;
     float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)getSampleRate())) : 1.0f;
-
     bool anyHeld = voiceManager.isAnyNoteHeld();
-    
-    // Disparador global: si no había notas y ahora hay, reset del delay
-    if (anyHeld && !wasAnyNoteHeld) {
-        masterLfoDelayEnvelope = 0.0f;
-    }
+    if (anyHeld && !wasAnyNoteHeld) masterLfoDelayEnvelope = 0.0f;
     wasAnyNoteHeld = anyHeld;
-
-    // Calcular valor LFO representativo para este bloque (o podríamos pasarlo por muestra)
-    // Para fidelidad 100% calculamos el valor al inicio del bloque y lo usamos, 
-    // pero actualizamos la fase para el siguiente bloque.
     
-    // Avanzar LFO y Delay
-    for (int s = 0; s < buffer.getNumSamples(); ++s) {
-        masterLfoPhase += phaseIncrement;
-        if (masterLfoPhase >= 1.0f) masterLfoPhase -= 1.0f;
-        
-        if (anyHeld) {
-            masterLfoDelayEnvelope = std::min(1.0f, masterLfoDelayEnvelope + delayIncrement);
-        } else {
-            masterLfoDelayEnvelope = 0.0f;
-        }
-    }
+    masterLfoPhase += phaseIncrement * buffer.getNumSamples();
+    if (masterLfoPhase >= 1.0f) masterLfoPhase = std::fmod(masterLfoPhase, 1.0f);
+    if (anyHeld) masterLfoDelayEnvelope = std::min(1.0f, masterLfoDelayEnvelope + delayIncrement * buffer.getNumSamples());
+    else masterLfoDelayEnvelope = 0.0f;
 
-    // [Fidelidad] Onda Triangular: 2.0f * std::abs(2.0f * (phase - 0.5f)) - 1.0f
     float lfoTri = 2.0f * std::abs(2.0f * (masterLfoPhase - 0.5f)) - 1.0f;
     float lfoVal = lfoTri * masterLfoDelayEnvelope;
 
@@ -273,44 +219,21 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> context(block);
-    bool c1 = apvts.getRawParameterValue("chorus1")->load() > 0.5f;
-    bool c2 = apvts.getRawParameterValue("chorus2")->load() > 0.5f;
+    bool c1 = apvts.getRawParameterValue("chorus1")->load() > 0.5f, c2 = apvts.getRawParameterValue("chorus2")->load() > 0.5f;
     if (c1 || c2) {
          float noiseMultiplier = 1.0f;
-         if (c1 && !c2) { 
-            chorus.setRate(JunoChorusConstants::kRateI); 
-            chorus.setDepth(JunoChorusConstants::kDepthI); 
-            chorus.setMix(0.5f); 
-            chorus.setCentreDelay(JunoChorusConstants::kDelayI);
-            noiseMultiplier = 1.0f;
-         } else if (!c1 && c2) { 
-            chorus.setRate(JunoChorusConstants::kRateII); 
-            chorus.setDepth(JunoChorusConstants::kDepthII); 
-            chorus.setMix(0.5f); 
-            chorus.setCentreDelay(JunoChorusConstants::kDelayII);
-            noiseMultiplier = 1.5f; 
-         } else { 
-            chorus.setRate(JunoChorusConstants::kRateIII); 
-            chorus.setDepth(JunoChorusConstants::kDepthIII); 
-            chorus.setMix(0.5f); 
-            chorus.setCentreDelay(JunoChorusConstants::kDelayIII);
-            noiseMultiplier = 1.2f;
-         }
-         auto* l = buffer.getWritePointer(0);
-         auto* r = buffer.getWritePointer(1); 
+         if (c1 && !c2) { chorus.setRate(JunoChorusConstants::kRateI); chorus.setDepth(JunoChorusConstants::kDepthI); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayI); noiseMultiplier = 1.0f; }
+         else if (!c1 && c2) { chorus.setRate(JunoChorusConstants::kRateII); chorus.setDepth(JunoChorusConstants::kDepthII); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayII); noiseMultiplier = 1.5f; }
+         else { chorus.setRate(JunoChorusConstants::kRateIII); chorus.setDepth(JunoChorusConstants::kDepthIII); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayIII); noiseMultiplier = 1.2f; }
+         auto* l = buffer.getWritePointer(0); auto* r = buffer.getWritePointer(1); 
          for (int i = 0; i < buffer.getNumSamples(); ++i) {
              float noise = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * JunoChorusConstants::kNoiseLevel * noiseMultiplier;
-             l[i] += noise;
-             if (r) r[i] += noise;
+             l[i] += noise; if (r) r[i] += noise;
          }
          chorus.process(context);
     }
     dcBlocker.process(context);
-
-    if (midiOutEnabled) {
-        midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0);
-        midiOutBuffer.clear();
-    }
+    if (midiOutEnabled) { midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0); midiOutBuffer.clear(); }
 }
 
 void SimpleJuno106AudioProcessor::enterTestMode(bool enter) { isTestMode = enter; }
@@ -319,12 +242,7 @@ void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     if (!isTestMode || bankIndex < 0 || bankIndex >= 8) return;
     const auto prog = getTestProgram(bankIndex);
     auto setVal = [&](juce::String id, float val) { if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val); };
-    auto setInt = [&](juce::String id, int val) {
-         if (auto* p = apvts.getParameter(id)) {
-              float norm = p->getNormalisableRange().convertTo0to1(static_cast<float>(val));
-              p->setValueNotifyingHost(norm);
-         }
-    };
+    auto setInt = [&](juce::String id, int val) { if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)val)); };
     auto setBool = [&](juce::String id, bool val) { if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val ? 1.0f : 0.0f); };
     setVal("lfoRate", prog.lfoRate); setVal("lfoDelay", prog.lfoDelay); setVal("lfoToDCO", prog.lfoToDCO);
     setInt("dcoRange", prog.dcoRange); setBool("sawOn", prog.sawOn); setBool("pulseOn", prog.pulseOn);
@@ -336,12 +254,8 @@ void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     setBool("chorus1", prog.chorus1); setBool("chorus2", prog.chorus2);
 }
 
-void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { 
-    voiceManager.noteOn(0, midiNoteNumber, velocity); 
-}
-void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { 
-    performanceState.handleNoteOff(midiNoteNumber, voiceManager); 
-}
+void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { voiceManager.noteOn(0, midiNoteNumber, velocity); }
+void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
 
 void SimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
     auto getVal = [this](juce::String id) { return apvts.getRawParameterValue(id)->load(); };
@@ -369,7 +283,6 @@ void SimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
 }
 
 void SimpleJuno106AudioProcessor::sendPatchDump() { if (midiOutEnabled) midiOutBuffer.addEvent(sysExEngine.makePatchDump(midiChannel - 1, currentParams), 0); }
-
 void SimpleJuno106AudioProcessor::sendManualMode() { if (midiOutEnabled) midiOutBuffer.addEvent(JunoSysEx::createManualMode(midiChannel - 1), 0); }
 
 void SimpleJuno106AudioProcessor::loadPreset(int index) {
@@ -382,8 +295,7 @@ void SimpleJuno106AudioProcessor::loadPreset(int index) {
                 auto propName = state.getPropertyName(i).toString();
                 if (auto* p = apvts.getParameter(propName)) {
                     if (state.getProperty(propName).isDouble() || state.getProperty(propName).isInt()) {
-                         float val = static_cast<float>(state.getProperty(propName));
-                         p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1(val));
+                         p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1(static_cast<float>(state.getProperty(propName))));
                     }
                 }
             }
@@ -443,23 +355,10 @@ juce::AudioProcessorEditor* SimpleJuno106AudioProcessor::createEditor() { return
 
 void SimpleJuno106AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts.copyState();
-    std::unique_ptr<juce::XmlElement> xml = std::make_unique<juce::XmlElement>("JUNiO601");
-    std::unique_ptr<juce::XmlElement> paramsXml(state.createXml());
-    if (paramsXml) xml->addChildElement(paramsXml.release());
-    auto midiXml = midiLearnHandler.saveState().createXml();
-    if (midiXml) xml->addChildElement(midiXml.release());
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
-
 void SimpleJuno106AudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState != nullptr) {
-        if (xmlState->hasTagName("JUNiO601") || xmlState->hasTagName("Juno106Plugin")) {
-            if (auto* paramsXml = xmlState->getChildByName(apvts.state.getType())) apvts.replaceState(juce::ValueTree::fromXml(*paramsXml));
-            if (auto* midiXml = xmlState->getChildByName("MIDI_MAPPINGS")) midiLearnHandler.loadState(juce::ValueTree::fromXml(*midiXml));
-        }
-        else if (xmlState->hasTagName(apvts.state.getType())) {
-            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
-        }
-    }
+    if (xmlState != nullptr) if (xmlState->hasTagName(apvts.state.getType())) apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
