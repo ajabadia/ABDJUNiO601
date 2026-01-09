@@ -3,10 +3,6 @@
 #include <vector>
 #include <cmath>
 
-/**
- * JunoTapeDecoder
- * Decodes Roland Juno-106 FSK tape audio (1300Hz/2100Hz) into binary patch data.
- */
 class JunoTapeDecoder {
 public:
     struct DecodeResult {
@@ -14,9 +10,6 @@ public:
         std::vector<uint8_t> data;
         juce::String errorMessage;
     };
-
-    static constexpr float kFreq0 = 1300.0f;
-    static constexpr float kFreq1 = 2100.0f;
 
     static inline DecodeResult decodeWavFile(const juce::File& file)
     {
@@ -30,37 +23,59 @@ public:
             return result;
         }
         
-        // Handle stereo files by reading both channels and mixing to mono
         juce::AudioBuffer<float> buffer(reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&buffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        
+
+        // --- Signal Pre-processing for Robustness ---
+
+        // 1. Mix to mono if the source is stereo.
         if (buffer.getNumChannels() > 1) {
-            buffer.addFrom(0, 0, buffer, 1, 0, buffer.getNumSamples()); // Mix right channel into left
-            buffer.applyGain(0.5f); // Attenuate to avoid clipping
+            buffer.addFrom(0, 0, buffer, 1, 0, buffer.getNumSamples());
+            buffer.applyGain(0.5f);
+        }
+
+        float* samples = buffer.getWritePointer(0);
+        const int numSamples = buffer.getNumSamples();
+
+        // 2. Manually calculate and remove DC offset.
+        double dcOffset = 0.0;
+        for (int i = 0; i < numSamples; ++i) {
+            dcOffset += samples[i];
+        }
+        if (numSamples > 0) {
+            dcOffset /= numSamples;
+        }
+        if (std::abs(dcOffset) > 0.0) {
+            for (int i = 0; i < numSamples; ++i) {
+                samples[i] -= static_cast<float>(dcOffset);
+            }
         }
         
-        // Auto-Normalization of input buffer (now operating on mono channel 0)
-        float maxPeak = buffer.getMagnitude(0, 0, buffer.getNumSamples());
-
+        // 3. Normalize the signal to use the full dynamic range.
+        float maxPeak = buffer.getMagnitude(0, 0, numSamples);
         if (maxPeak > 0.0001f) {
             buffer.applyGain(1.0f / maxPeak);
         } else {
-            result.errorMessage = "Signal is silence.";
+            result.errorMessage = "Signal is silence or too quiet after DC removal.";
             return result;
         }
 
-        const float* samples = buffer.getReadPointer(0);
-        double sr = reader->sampleRate;
-        const int numSamples = buffer.getNumSamples();
+        // --- FSK Decoding ---
 
-        // Energy Window detection for noisy recordings
+        double sr = reader->sampleRate;
+        
+        // [Final Fix] Re-instating the robust energy window detection.
         std::vector<int> crossings;
         bool isPositive = samples[0] > 0.0f;
         
         int windowSize = (int)(sr / 1200.0) / 4;
+        if (windowSize == 0) windowSize = 1;
+        
         for (int i = windowSize; i < numSamples - windowSize; ++i) {
             float windowEnergy = 0.0f;
-            for(int w = -windowSize; w <= windowSize; ++w) windowEnergy += std::abs(samples[i+w]);
+            for(int w = -windowSize; w <= windowSize; ++w) {
+                windowEnergy += std::abs(samples[i+w]);
+            }
             windowEnergy /= (windowSize * 2 + 1);
             
             float threshold = windowEnergy * 0.15f; 
@@ -76,7 +91,7 @@ public:
         }
         
         if (crossings.size() < 20) { 
-            result.errorMessage = "Signal too weak or short.";
+            result.errorMessage = "Signal too weak or short after processing.";
             return result;
         }
 
@@ -97,8 +112,8 @@ public:
         
         int s = 0;
         while (s < numSamples - (int)(samplesPerBit * 11)) {
-            if (state[s] == true && state[s+1] == false) { // Start bit detected (Mark to Space transition)
-                double checkPos = (double)s + 1.0 + samplesPerBit * 1.5; // Center of first data bit
+            if (state[s] == true && state[s+1] == false) { // Start bit
+                double checkPos = (double)s + 1.0 + samplesPerBit * 1.5; 
                 
                 uint8_t byte = 0;
                 bool validFrame = true;
@@ -109,10 +124,9 @@ public:
                     checkPos += samplesPerBit;
                 }
                 
-                // Check for stop bit (Mark)
-                if (validFrame && checkPos < numSamples && state[(int)checkPos] == true) {
+                if (validFrame && checkPos < numSamples && state[(int)checkPos] == true) { // Stop bit
                      decodedBytes.push_back(byte);
-                     s = (int)checkPos; // Move to the end of the frame
+                     s = (int)checkPos; 
                      continue;
                 }
             }
@@ -120,33 +134,27 @@ public:
         }
         
         if (decodedBytes.empty()) {
-            result.errorMessage = "No bytes were decoded from the signal.";
+            result.errorMessage = "No valid serial frames found in the signal.";
             return result;
         }
 
         // --- Block Parsing and Checksum Validation ---
         std::vector<uint8_t> validatedPatches;
-        const uint8_t blockHeader = 0xA5; // Standard Roland Tape Header
-        const uint8_t blockEnd = 0xAC;    // Standard Roland Tape End-of-Block
+        const uint8_t blockHeader = 0xA5;
+        const uint8_t blockEnd = 0xAC;
 
-        for (size_t i = 0; i < decodedBytes.size(); ++i)
-        {
-            if (decodedBytes[i] == blockHeader)
-            {
-                // Found a potential block. Format: A5, 18 data bytes, checksum, AC. Total size: 21 bytes.
-                if (i + 20 < decodedBytes.size() && decodedBytes[i + 20] == blockEnd)
-                {
+        for (size_t i = 0; i < decodedBytes.size(); ++i) {
+            if (decodedBytes[i] == blockHeader) {
+                if (i + 20 < decodedBytes.size() && decodedBytes[i + 20] == blockEnd) {
                     uint8_t checksum = 0;
                     for (int j = 0; j < 18; ++j) {
                         checksum += decodedBytes[i + 1 + j];
                     }
-                    checksum &= 0x7F; // Checksum is the 7-bit sum of the 18 data bytes.
+                    checksum &= 0x7F;
 
-                    if (checksum == decodedBytes[i + 19])
-                    {
-                        // Block is valid, add the 18 patch bytes to our results.
+                    if (checksum == decodedBytes[i + 19]) {
                         validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i + 1, decodedBytes.begin() + i + 19);
-                        i += 20; // Skip past this validated block.
+                        i += 20;
                     }
                 }
             }

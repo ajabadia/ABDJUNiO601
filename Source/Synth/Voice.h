@@ -2,7 +2,6 @@
 
 #include <JuceHeader.h>
 #include "JunoDCO.h"
-#include "JunoLFO.h"
 #include "JunoADSR.h"
 #include "../Core/SynthParams.h"
 
@@ -17,7 +16,7 @@ public:
     
     void prepare(double sampleRate, int maxBlockSize);
     
-    // [reimplement.md] renderNextBlock now takes the global lfoBuffer (per sample)
+    // The voice now processes a buffer containing the GLOBAL LFO signal
     void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer);
     
     void noteOn(int midiNote, float velocity, bool isLegato);
@@ -39,11 +38,13 @@ public:
 private:
     // Components
     JunoDCO dco;
-    JunoLFO lfo;
+    // LFO has been removed from the voice; it's now global in PluginProcessor
     JunoADSR adsr;
     
     juce::dsp::LadderFilter<float> filter;
     juce::dsp::IIR::Filter<float> hpFilter;
+    // [VCF Audit] Add a filter for resonance bass compensation
+    juce::dsp::IIR::Filter<float> bassBoostFilter;
     
     // Smoothing
     juce::LinearSmoothedValue<float> smoothedCutoff;
