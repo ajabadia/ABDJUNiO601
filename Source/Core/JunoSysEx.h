@@ -48,20 +48,20 @@ namespace JunoSysEx
         return juce::MidiMessage(data, 6);
     }
 
-    /** Patch Dump (0x30) - 24 bytes (Header+Data+EOX) */
+    /** Patch Dump (0x30) - 24 bytes (F0, Header, 18-byte Body, F7) */
     inline juce::MidiMessage createPatchDump(int channel, const uint8_t* params16, uint8_t sw1, uint8_t sw2)
     {
-        uint8_t data[24]; // Fixed size to 24 bytes as per spec (5 header + 16 params + 2 switches + 1 EOX)
+        uint8_t data[24];
         data[0] = 0xF0;
         data[1] = kRolandID;
         data[2] = kMsgPatchDump;
         data[3] = static_cast<uint8_t>(channel & 0x0F);
         data[4] = 0x00; // Patch Number placeholder
 
-        for (int i = 0; i < 16; ++i) data[5 + i] = params16[i] & 0x7F;
+        memcpy(data + 5, params16, 16);
         data[21] = sw1 & 0x7F;
         data[22] = sw2 & 0x7F;
-        data[23] = 0xF7; // EOX at byte 23 (0-indexed)
+        data[23] = 0xF7;
 
         return juce::MidiMessage(data, 24);
     }
@@ -69,24 +69,29 @@ namespace JunoSysEx
     inline bool parseMessage(const juce::MidiMessage& msg, int& type, int& channel, int& p1, int& p2, uint8_t* dumpBody18Bytes)
     {
         if (!msg.isSysEx()) return false;
+        
         const uint8_t* data = msg.getSysExData();
-        int size = msg.getRawDataSize() - 2; 
-        if (size < 3 || data[0] != kRolandID) return false;
+        const int size = msg.getSysExDataSize();
+        
+        if (size < 2 || data[0] != kRolandID) return false;
         
         type = data[1];
         channel = data[2] & 0x0F;
 
-        if (type == kMsgParamChange && size >= 5) {
+        if (type == kMsgParamChange && size == 5) {
             p1 = data[3] & 0x7F;
             p2 = data[4] & 0x7F;
             return true;
         }
-        else if (type == kMsgPatchDump && size >= 21) { // Header(3) + PatchNum(1) + Body(18) = 22 bytes + EOX implicit? size excludes F0/F7? F0 is at 0, data starts at 1? Juce getRawDataSize includes all. size was getRawDataSize - 2. So 24-2 = 22. Header 3 (41,30,ch), Patch 1 (00), Data 18 = 22. Correct.
+        else if (type == kMsgPatchDump && size == 22) { // RolandID(1) + Type(1) + Chan(1) + PatchNum(1) + Body(18) = 22
             if (dumpBody18Bytes) {
-                for (int i = 0; i < 18; ++i) dumpBody18Bytes[i] = data[4 + i];
+                memcpy(dumpBody18Bytes, data + 4, 18);
             }
             return true;
         }
-        return (type == kMsgManualMode);
+        else if (type == kMsgManualMode && size == 4) {
+             return true;
+        }
+        return false;
     }
 }

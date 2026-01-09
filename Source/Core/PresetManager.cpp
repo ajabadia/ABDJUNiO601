@@ -63,7 +63,7 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("dcoRange", range, nullptr);
     state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
     state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
-    bool chorusOn = (sw1 & (1 << 5)) == 0;
+    bool chorusOn = (sw1 & (1 << 5)) == 0; // 0=ON (Spec)
     bool chorusI = (sw1 & (1 << 6)) != 0;
     state.setProperty("chorus1", chorusOn && chorusI, nullptr);
     state.setProperty("chorus2", chorusOn && !chorusI, nullptr);

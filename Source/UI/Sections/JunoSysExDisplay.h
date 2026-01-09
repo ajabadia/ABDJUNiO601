@@ -23,11 +23,11 @@ public:
     void resized() override;
     
     /** Update the display with new SysEx data. Highlights changed bytes. */
-    void updateData(const juce::MidiMessage& sysexMsg);
+    void setDumpData(const std::vector<uint8_t>& dump);
 
 private:
-    std::vector<uint8_t> currentData;
-    int lastChangedIndex = -1;
+    std::vector<uint8_t> lastDump;
+    std::vector<uint8_t> currentDump;
     juce::Colour defaultColour = juce::Colours::grey;
     juce::Colour highlightColour = juce::Colours::red;
     

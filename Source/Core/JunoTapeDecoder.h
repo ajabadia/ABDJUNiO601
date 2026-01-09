@@ -30,15 +30,17 @@ public:
             return result;
         }
         
-        juce::AudioBuffer<float> buffer(1, (int)reader->lengthInSamples);
+        // Handle stereo files by reading both channels and mixing to mono
+        juce::AudioBuffer<float> buffer(reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&buffer, 0, (int)reader->lengthInSamples, 0, true, true);
         
-        // [reimplement.md] Auto-Normalization of input buffer
-        float maxPeak = 0.0f;
-        for (int c = 0; c < buffer.getNumChannels(); ++c) {
-            float peak = buffer.getMagnitude(c, 0, buffer.getNumSamples());
-            if (peak > maxPeak) maxPeak = peak;
+        if (buffer.getNumChannels() > 1) {
+            buffer.addFrom(0, 0, buffer, 1, 0, buffer.getNumSamples()); // Mix right channel into left
+            buffer.applyGain(0.5f); // Attenuate to avoid clipping
         }
+        
+        // Auto-Normalization of input buffer (now operating on mono channel 0)
+        float maxPeak = buffer.getMagnitude(0, 0, buffer.getNumSamples());
 
         if (maxPeak > 0.0001f) {
             buffer.applyGain(1.0f / maxPeak);
@@ -51,7 +53,7 @@ public:
         double sr = reader->sampleRate;
         const int numSamples = buffer.getNumSamples();
 
-        // [reimplement.md] Energy Window detection for noisy recordings
+        // Energy Window detection for noisy recordings
         std::vector<int> crossings;
         bool isPositive = samples[0] > 0.0f;
         
@@ -95,32 +97,66 @@ public:
         
         int s = 0;
         while (s < numSamples - (int)(samplesPerBit * 11)) {
-            if (state[s] == true && state[s+1] == false) {
-                double centerOffset = samplesPerBit * 0.5;
-                double checkPos = (double)s + 1.0 + centerOffset;
+            if (state[s] == true && state[s+1] == false) { // Start bit detected (Mark to Space transition)
+                double checkPos = (double)s + 1.0 + samplesPerBit * 1.5; // Center of first data bit
                 
                 uint8_t byte = 0;
                 bool validFrame = true;
                 
                 for (int b = 0; b < 8; ++b) {
-                    checkPos += samplesPerBit;
                     if (checkPos >= numSamples) { validFrame = false; break; }
                     if (state[(int)checkPos]) byte |= (1 << b);
+                    checkPos += samplesPerBit;
                 }
                 
-                checkPos += samplesPerBit; 
-                if (checkPos < numSamples && state[(int)checkPos] == true && validFrame) {
+                // Check for stop bit (Mark)
+                if (validFrame && checkPos < numSamples && state[(int)checkPos] == true) {
                      decodedBytes.push_back(byte);
-                     s = (int)checkPos; 
+                     s = (int)checkPos; // Move to the end of the frame
                      continue;
                 }
             }
             s++;
         }
         
-        result.data = std::move(decodedBytes);
+        if (decodedBytes.empty()) {
+            result.errorMessage = "No bytes were decoded from the signal.";
+            return result;
+        }
+
+        // --- Block Parsing and Checksum Validation ---
+        std::vector<uint8_t> validatedPatches;
+        const uint8_t blockHeader = 0xA5; // Standard Roland Tape Header
+        const uint8_t blockEnd = 0xAC;    // Standard Roland Tape End-of-Block
+
+        for (size_t i = 0; i < decodedBytes.size(); ++i)
+        {
+            if (decodedBytes[i] == blockHeader)
+            {
+                // Found a potential block. Format: A5, 18 data bytes, checksum, AC. Total size: 21 bytes.
+                if (i + 20 < decodedBytes.size() && decodedBytes[i + 20] == blockEnd)
+                {
+                    uint8_t checksum = 0;
+                    for (int j = 0; j < 18; ++j) {
+                        checksum += decodedBytes[i + 1 + j];
+                    }
+                    checksum &= 0x7F; // Checksum is the 7-bit sum of the 18 data bytes.
+
+                    if (checksum == decodedBytes[i + 19])
+                    {
+                        // Block is valid, add the 18 patch bytes to our results.
+                        validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i + 1, decodedBytes.begin() + i + 19);
+                        i += 20; // Skip past this validated block.
+                    }
+                }
+            }
+        }
+
+        result.data = std::move(validatedPatches);
         result.success = !result.data.empty();
-        if (!result.success) result.errorMessage = "No valid data found.";
+        if (!result.success) {
+            result.errorMessage = "Decoded audio, but no valid Juno-106 data blocks were found.";
+        }
         
         return result;
     }

@@ -13,36 +13,21 @@
 JunoSysExDisplay::JunoSysExDisplay()
 {
     // Default empty state 
-    currentData.resize(24, 0);
+    currentDump.resize(24, 0);
+	lastDump = currentDump;
 }
 
 JunoSysExDisplay::~JunoSysExDisplay()
 {
 }
 
-void JunoSysExDisplay::updateData(const juce::MidiMessage& msg)
+void JunoSysExDisplay::setDumpData(const std::vector<uint8_t>& dump)
 {
-    if (!msg.isSysEx()) return;
-    
-    const uint8_t* raw = msg.getRawData();
-    int size = msg.getRawDataSize();
-    
-    // Check for changes to highlight
-    lastChangedIndex = -1;
-    bool sizeChanged = (size != (int)currentData.size());
-    
-    if (sizeChanged) {
-        currentData.resize(size);
-    }
-    
-    for (int i = 0; i < size; ++i) {
-        if (i < currentData.size()) {
-            if (currentData[i] != raw[i]) {
-                lastChangedIndex = i;
-            }
-        }
-        currentData[i] = raw[i];
-    }
+    if (dump == currentDump) 
+        return;
+
+    lastDump = currentDump;
+    currentDump = dump;
     
     repaint();
 }
@@ -53,7 +38,7 @@ void JunoSysExDisplay::paint(juce::Graphics& g)
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), 4.0f);
     
-    if (currentData.empty()) return;
+    if (currentDump.empty()) return;
     
     int fontSize = 14; 
     g.setFont(juce::FontOptions("Courier New", (float)fontSize, juce::Font::plain));
@@ -64,16 +49,18 @@ void JunoSysExDisplay::paint(juce::Graphics& g)
     int w = 20; // width per byte char pair
     int rowHeight = getHeight() / 2;
     
-    for (int i = 0; i < (int)currentData.size(); ++i) {
+    for (int i = 0; i < (int)currentDump.size(); ++i) {
         if (i == 12) { // Start second row
              x = xStart;
              y += rowHeight;
         }
 
-        juce::String hex = juce::String::toHexString(currentData[i]).toUpperCase();
+        juce::String hex = juce::String::toHexString(currentDump[i]).toUpperCase();
         if (hex.length() < 2) hex = "0" + hex;
         
-        if (i == lastChangedIndex) g.setColour(highlightColour);
+		bool isChanged = (i >= lastDump.size() || lastDump[i] != currentDump[i]);
+
+        if (isChanged) g.setColour(highlightColour);
         else g.setColour(defaultColour);
         
         g.drawText(hex, x, y, w, rowHeight, juce::Justification::centredLeft);

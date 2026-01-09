@@ -121,7 +121,6 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
 
 void JunoControlSection::connectButtons()
 {
-    // [FIXED] SAVE Button logic
     saveButton.onClick = [this] {
         auto currentState = apvtsRef.copyState();
         auto* w = new juce::AlertWindow("Save Patch", "Enter name:", juce::MessageBoxIconType::QuestionIcon);
@@ -144,7 +143,6 @@ void JunoControlSection::connectButtons()
         }), true);
     };
     
-    // [FIXED] EXPORT Button: Persistent instance
     dumpButton.onClick = [this] {
         PresetManager& pm = presetBrowser.getPresetManager();
         fileChooser = std::make_unique<juce::FileChooser>(
@@ -361,11 +359,12 @@ void JunoControlSection::timerCallback()
 {
     PresetManager& pmRef = presetBrowser.getPresetManager();
     if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
-        // [New] Update SysEx Display
-        // We need a way to get the current SysEx data from Processor without triggering a dump
         if (proc->lastParamsChangeCounter != lastSeenParamsChange) {
              lastSeenParamsChange = proc->lastParamsChangeCounter;
-             sysExDisplay.updateData(proc->getCurrentSysExData());
+             // [FIX] Use the new API for JunoSysExDisplay
+             auto dump = proc->getCurrentSysExData(); 
+             std::vector<uint8_t> vec(dump.getRawData(), dump.getRawData() + dump.getRawDataSize());
+             sysExDisplay.setDumpData(vec);
         }
 
         if (proc->isTestMode) lcd.setText("TEST MODE");

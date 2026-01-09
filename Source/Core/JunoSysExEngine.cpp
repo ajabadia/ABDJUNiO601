@@ -57,9 +57,14 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     if (params.pulseOn)       sw1 |= (uint8_t)(1 << 3);
     if (params.sawOn)         sw1 |= (uint8_t)(1 << 4);
     
-    // [Audit Fix] Chorus Bit 5: 0=ON, 1=OFF. Bit 6: 0=II, 1=I
+    // [Spec Verification] 
+    // Manual says: Bit 5: 0 => Chorus ON (Active Low)
     const bool chorusOn = params.chorus1 || params.chorus2;
     if (!chorusOn) sw1 |= (uint8_t)(1 << 5); 
+    
+    // Manual says: Bit 6: 0 => Level 2, 1 => Level 1
+    // We assume this applies only when On. 
+    // Standard interpretation: 1=I, 0=II.
     if (params.chorus1) sw1 |= (uint8_t)(1 << 6);
 
     uint8_t sw2 = 0;
@@ -108,7 +113,7 @@ void JunoSysExEngine::applyParamChange (int paramId,
              params.sawOn   = (value7bit & (1 << 4)) != 0;
              
              {
-                 bool cOn = (value7bit & (1 << 5)) == 0; // 0=ON
+                 bool cOn = (value7bit & (1 << 5)) == 0; // 0=ON (Spec)
                  bool cI = (value7bit & (1 << 6)) != 0;  // 1=I
                  params.chorus1 = cOn && cI;
                  params.chorus2 = cOn && !cI;
@@ -161,7 +166,7 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     params.pulseOn = (sw1 & (1 << 3)) != 0;
     params.sawOn   = (sw1 & (1 << 4)) != 0;
 
-    const bool chorusOn   = (sw1 & (1 << 5)) == 0;
+    const bool chorusOn   = (sw1 & (1 << 5)) == 0; // 0=ON (Spec)
     const bool chorusI = (sw1 & (1 << 6)) != 0;
     params.chorus1 = chorusOn && chorusI;
     params.chorus2 = chorusOn && !chorusI;
