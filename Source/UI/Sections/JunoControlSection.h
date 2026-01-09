@@ -1,9 +1,11 @@
 #pragma once
+
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 #include "../../UI/PresetBrowser.h"
 #include "../../UI/JunoBender.h"
 #include "../ParameterDisplay.h"
+#include "JunoSysExDisplay.h"
 
 class PresetManager;
 class MidiLearnHandler;
@@ -42,6 +44,8 @@ private:
 
     JunoUI::JunoLCD lcd;
     ParameterDisplay paramDisplay;
+    JunoSysExDisplay sysExDisplay;
+    int lastSeenParamsChange = -1;
     
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> midiOutAtt;
     

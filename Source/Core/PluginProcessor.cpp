@@ -108,6 +108,7 @@ const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { juc
 void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
 
 void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameterID, float newValue) {
+    lastParamsChangeCounter++;
     // UI Update Logic
     if (editor != nullptr) {
         if (auto* param = apvts.getParameter(parameterID)) {
@@ -299,6 +300,19 @@ void SimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
     currentParams.portamentoTime = getVal("portamentoTime"); currentParams.portamentoOn = getBool("portamentoOn");
     currentParams.benderValue = getVal("bender"); currentParams.benderToDCO = getVal("benderToDCO"); currentParams.benderToVCF = getVal("benderToVCF");
     currentParams.tune = getVal("tune"); midiOutEnabled = getBool("midiOut"); lastParams = currentParams;
+    
+    // Force update of SysEx display if params changed (simple check or always increment?)
+    // This is called every block, so we should check for changes. 
+    // For now, simpler to increment on specific changes OR just rely on the editor polling (but we need to know IF it changed).
+    // Actually, updateParamsFromAPVTS reads ALL params every block. If we diff with lastParams?
+    // lastParams was just assigned currentParams. So diff before assignment.
+    // However, for visualization, maybe incrementing in parameterChanged is better?
+    // But parameterChanged is only for UI interactions or automation.
+    // Let's increment on parameterChanged AND when loading presets.
+}
+
+juce::MidiMessage SimpleJuno106AudioProcessor::getCurrentSysExData() {
+    return sysExEngine.makePatchDump(midiChannel - 1, currentParams);
 }
 
 void SimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
@@ -325,6 +339,7 @@ void SimpleJuno106AudioProcessor::loadPreset(int index) {
                 }
             }
             updateParamsFromAPVTS(); 
+            lastParamsChangeCounter++;
         }
     }
 }

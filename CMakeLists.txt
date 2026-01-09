@@ -67,6 +67,9 @@ if(NOT BUILD_HEADLESS)
         Source/UI/PresetBrowser.cpp
         Source/UI/ParameterDisplay.h
         
+        Source/UI/Sections/JunoSysExDisplay.h
+        Source/UI/Sections/JunoSysExDisplay.cpp
+
         Source/UI/Sections/JunoChorusSection.h
         Source/UI/Sections/JunoControlSection.h
         Source/UI/Sections/JunoControlSection.cpp

@@ -71,6 +71,9 @@ public:
     juce::String lastChangedParamValue;
     juce::AudioProcessorEditor* editor = nullptr;
 
+    juce::MidiMessage getCurrentSysExData();
+    std::atomic<int> lastParamsChangeCounter {0};
+
 private:
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

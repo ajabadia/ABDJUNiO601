@@ -264,8 +264,10 @@ void JunoControlSection::connectButtons()
         }
     };
 
-    addChildComponent(paramDisplay); // Hidden by default
+    addChildComponent(paramDisplay); // Hidden by default (shown by showParameter)
     paramDisplay.setAlwaysOnTop(true);
+    
+    addAndMakeVisible(sysExDisplay);
 }
 
 void JunoControlSection::updateGroupUI()
@@ -311,14 +313,17 @@ void JunoControlSection::resized()
     int centerW = 500;
     int centerX = (getWidth() - centerW) / 2;
     lcd.setBounds(centerX, 35, centerW, 50);
-    
+
     int gapX = assignX + 90; // End of Assign section (approx)
     int gapW = centerX - gapX - 10; // Width available before LCD
     
-    // Parameter Display in the gap between Assign and LCD
+    // Parameter Display in the gap
     paramDisplay.setBounds(gapX, 35, gapW, 50); 
+    
+    // SysEx Display under Param Display
+    sysExDisplay.setBounds(gapX, 90, gapW, 40); 
 
-    int browserY = 105;
+    int browserY = 108; // Shifted down slightly to fit SysEx
     prevPatchButton.setBounds(centerX, browserY, 35, 30);
     nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
     presetBrowser.setBounds(centerX + 45, browserY, centerW - 90, 30);
@@ -356,6 +361,13 @@ void JunoControlSection::timerCallback()
 {
     PresetManager& pmRef = presetBrowser.getPresetManager();
     if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
+        // [New] Update SysEx Display
+        // We need a way to get the current SysEx data from Processor without triggering a dump
+        if (proc->lastParamsChangeCounter != lastSeenParamsChange) {
+             lastSeenParamsChange = proc->lastParamsChangeCounter;
+             sysExDisplay.updateData(proc->getCurrentSysExData());
+        }
+
         if (proc->isTestMode) lcd.setText("TEST MODE");
         else {
             int patchIdx = pmRef.getCurrentPresetIndex();
