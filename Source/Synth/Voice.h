@@ -66,7 +66,7 @@ private:
     juce::AudioBuffer<float> tempBuffer;
     
     int releaseCounter = 0;
-    static constexpr int kReleaseTimeoutMs = 2000;
+    static constexpr int kReleaseTimeoutMs = 30000;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Voice)
 };

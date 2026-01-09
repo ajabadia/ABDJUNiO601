@@ -57,22 +57,25 @@ struct SynthParams {
 };
 
 /**
- * [Audit] Authentic Juno-106 Chorus Constants (Service Manual Aligned)
+ * [VCA/Chorus Audit] Authentic Juno-106 Chorus Constants (Service Manual Aligned)
  */
 struct JunoChorusConstants {
-    static constexpr float kRateI = 0.4f;       // Fixed ~0.4 Hz
-    static constexpr float kDepthI = 0.12f;
-    static constexpr float kDelayI = 6.0f;      
+    // Juno-106 Service Manual: LFO is ~0.5Hz for I, ~0.83Hz for II
+    static constexpr float kRateI = 0.5f;
+    static constexpr float kDepthI = 0.15f; // Approximated depth
+    static constexpr float kDelayI = 14.5f;   // ~14.5ms delay
 
-    static constexpr float kRateII = 0.6f;      // Fixed ~0.6 Hz
-    static constexpr float kDepthII = 0.25f;    
-    static constexpr float kDelayII = 8.0f;     
+    static constexpr float kRateII = 0.83f;
+    static constexpr float kDepthII = 0.35f;  // Approximated depth
+    static constexpr float kDelayII = 14.5f;  // ~14.5ms delay
 
-    static constexpr float kRateIII = 1.0f;     // Mode I+II
-    static constexpr float kDepthIII = 0.15f;   
-    static constexpr float kDelayIII = 7.0f;    
+    // Mode I+II is not a standard feature. We use values that create a pleasant, richer effect.
+    static constexpr float kRateIII = 0.9f;
+    static constexpr float kDepthIII = 0.25f;
+    static constexpr float kDelayIII = 12.0f;
     
-    static constexpr float kNoiseLevel = 0.0005f; 
+    // Noise level, slightly reduced for musicality
+    static constexpr float kNoiseLevel = 0.0004f;
 };
 
 struct JunoTimeCurves {
@@ -86,3 +89,4 @@ struct JunoTimeCurves {
     static constexpr float kLfoMinHz = 0.1f;
     static constexpr float kLfoMaxHz = 30.0f;
 };
+

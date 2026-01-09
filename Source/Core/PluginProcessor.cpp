@@ -109,11 +109,9 @@ void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::Stri
 
 void SimpleJuno106AudioProcessor::parameterChanged(const juce::String& parameterID, float newValue) {
     lastParamsChangeCounter++;
-    // UI Update Logic
     if (editor != nullptr) {
         if (auto* param = apvts.getParameter(parameterID)) {
              lastChangedParamName = param->name;
-             // Format based on type (int/bool/float)
              if (dynamic_cast<juce::AudioParameterBool*>(param)) lastChangedParamValue = newValue > 0.5f ? "ON" : "OFF";
              else if (dynamic_cast<juce::AudioParameterInt*>(param)) lastChangedParamValue = juce::String((int)apvts.getRawParameterValue(parameterID)->load());
              else lastChangedParamValue = juce::String(newValue, 2);
@@ -166,9 +164,25 @@ void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
 {
     voiceManager.prepare(sr, samplesPerBlock);
     juce::dsp::ProcessSpec spec { sr, (juce::uint32)samplesPerBlock, 2 };
-    chorus.prepare(spec); chorus.reset();
-    dcBlocker.prepare(spec); *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, 20.0f);
-    masterLfoPhase = 0.0f; masterLfoDelayEnvelope = 0.0f; wasAnyNoteHeld = false;
+    chorus.prepare(spec);
+    chorus.reset();
+
+    dcBlocker.prepare(spec); 
+    *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, 20.0f);
+    
+    chorusPreEmphasisFilter.prepare(spec);
+    chorusDeEmphasisFilter.prepare(spec);
+    chorusNoiseFilter.prepare(spec);
+    
+    *chorusPreEmphasisFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sr, 8000.0f, 0.707f, 1.5f);
+    *chorusDeEmphasisFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, 12000.0f, 0.707f);
+    *chorusNoiseFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, 8000.0f, 0.707f);
+
+    chorusNoiseBuffer.setSize(2, samplesPerBlock);
+
+    masterLfoPhase = 0.0f; 
+    masterLfoDelayEnvelope = 0.0f; 
+    wasAnyNoteHeld = false;
     lfoBuffer.resize(samplesPerBlock);
 }
 
@@ -221,7 +235,6 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     if (anyHeld && !wasAnyNoteHeld) masterLfoDelayEnvelope = 0.0f;
     wasAnyNoteHeld = anyHeld;
     
-    // [Audit Fix] Per-sample LFO generation
     int numSamples = buffer.getNumSamples();
     if (lfoBuffer.size() < (size_t)numSamples) lfoBuffer.resize(numSamples);
 
@@ -251,12 +264,36 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
          if (c1 && !c2) { chorus.setRate(JunoChorusConstants::kRateI); chorus.setDepth(JunoChorusConstants::kDepthI); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayI); noiseMultiplier = 1.0f; }
          else if (!c1 && c2) { chorus.setRate(JunoChorusConstants::kRateII); chorus.setDepth(JunoChorusConstants::kDepthII); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayII); noiseMultiplier = 1.5f; }
          else { chorus.setRate(JunoChorusConstants::kRateIII); chorus.setDepth(JunoChorusConstants::kDepthIII); chorus.setMix(0.5f); chorus.setCentreDelay(JunoChorusConstants::kDelayIII); noiseMultiplier = 1.2f; }
-         auto* l = buffer.getWritePointer(0); auto* r = buffer.getWritePointer(1); 
+         
+         chorusPreEmphasisFilter.process(context);
+
+         // Generate and filter noise in separate buffer
+         chorusNoiseBuffer.clear();
+         auto* nl = chorusNoiseBuffer.getWritePointer(0);
+         auto* nr = chorusNoiseBuffer.getNumChannels() > 1 ? chorusNoiseBuffer.getWritePointer(1) : nullptr;
+         
          for (int i = 0; i < buffer.getNumSamples(); ++i) {
              float noise = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * JunoChorusConstants::kNoiseLevel * noiseMultiplier;
-             l[i] += noise; if (r) r[i] += noise;
+             nl[i] = noise;
+             if (nr) nr[i] = noise;
          }
+         
+         juce::dsp::AudioBlock<float> noiseBlock(chorusNoiseBuffer);
+         // ProcessContextReplacing works on the block we give it, which wraps chorusNoiseBuffer
+         // But we must limit it to numSamples just in case buffer size varies? 
+         // chorusNoiseBuffer was resized to maxBlockSize. 
+         // Let's take a sub-block to be safe if buffer is smaller than max.
+         juce::dsp::AudioBlock<float> activeNoiseBlock = noiseBlock.getSubBlock(0, buffer.getNumSamples());
+         juce::dsp::ProcessContextReplacing<float> noiseContext(activeNoiseBlock);
+         chorusNoiseFilter.process(noiseContext);
+         
+         // Mix noise into main signal
+         buffer.addFrom(0, 0, chorusNoiseBuffer, 0, 0, buffer.getNumSamples());
+         if(buffer.getNumChannels() > 1 && chorusNoiseBuffer.getNumChannels() > 1) 
+             buffer.addFrom(1, 0, chorusNoiseBuffer, 1, 0, buffer.getNumSamples());
+
          chorus.process(context);
+         chorusDeEmphasisFilter.process(context);
     }
     dcBlocker.process(context);
     if (midiOutEnabled) { midiMessages.addEvents(midiOutBuffer, 0, buffer.getNumSamples(), 0); midiOutBuffer.clear(); }
@@ -300,15 +337,6 @@ void SimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
     currentParams.portamentoTime = getVal("portamentoTime"); currentParams.portamentoOn = getBool("portamentoOn");
     currentParams.benderValue = getVal("bender"); currentParams.benderToDCO = getVal("benderToDCO"); currentParams.benderToVCF = getVal("benderToVCF");
     currentParams.tune = getVal("tune"); midiOutEnabled = getBool("midiOut"); lastParams = currentParams;
-    
-    // Force update of SysEx display if params changed (simple check or always increment?)
-    // This is called every block, so we should check for changes. 
-    // For now, simpler to increment on specific changes OR just rely on the editor polling (but we need to know IF it changed).
-    // Actually, updateParamsFromAPVTS reads ALL params every block. If we diff with lastParams?
-    // lastParams was just assigned currentParams. So diff before assignment.
-    // However, for visualization, maybe incrementing in parameterChanged is better?
-    // But parameterChanged is only for UI interactions or automation.
-    // Let's increment on parameterChanged AND when loading presets.
 }
 
 juce::MidiMessage SimpleJuno106AudioProcessor::getCurrentSysExData() {

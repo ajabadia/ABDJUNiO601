@@ -91,6 +91,12 @@ private:
     juce::Random chorusNoiseGen; 
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker;
 
+    // [VCA/Chorus Audit] Filters for authentic chorus emulation
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusPreEmphasisFilter;
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusDeEmphasisFilter;
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusNoiseFilter;
+    juce::AudioBuffer<float> chorusNoiseBuffer;
+
     float masterLfoPhase = 0.0f;
     float masterLfoDelayEnvelope = 0.0f;
     bool wasAnyNoteHeld = false;

@@ -27,8 +27,10 @@ void Voice::prepare(double sr, int maxBlockSize) {
     bassBoostFilter.reset();
 
     smoothedCutoff.reset(sr, 0.02);
+    smoothedCutoff.setCurrentAndTargetValue(params.vcfFreq); // Avoid zero start
     smoothedResonance.reset(sr, 0.02);
     smoothedVCALevel.reset(sr, 0.02);
+    smoothedVCALevel.setCurrentAndTargetValue(params.vcaLevel);
     
     tempBuffer.setSize(1, maxBlockSize);
 }
@@ -44,12 +46,14 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
     bool shouldGlide = params.portamentoOn && isLegato;
     
     adsr.setSampleRate(sampleRate);
-    adsr.setAttack(JunoTimeCurves::kAttackMin + (JunoTimeCurves::kAttackMax - JunoTimeCurves::kAttackMin) * std::pow(params.attack, 3.0f));
-    adsr.setDecay(JunoTimeCurves::kDecayMin + (JunoTimeCurves::kDecayMax - JunoTimeCurves::kDecayMin) * std::pow(params.decay, 3.0f));
+    // [ENV Audit] Set simplified, linear times. The ADSR class now handles the exponential curve.
+    adsr.setAttack(juce::jmap(params.attack, 0.0f, 1.0f, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
+    adsr.setDecay(juce::jmap(params.decay, 0.0f, 1.0f, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
     adsr.setSustain(params.sustain);
-    adsr.setRelease(JunoTimeCurves::kReleaseMin + (JunoTimeCurves::kReleaseMax - JunoTimeCurves::kReleaseMin) * std::pow(params.release, 3.0f));
+    adsr.setRelease(juce::jmap(params.release, 0.0f, 1.0f, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
     
     if (!isLegato) {
+        adsr.reset(); // [Fidelidad] Force envelope reset to 0 on new attack (Avoids "floating" attacks on voice stealing)
         adsr.noteOn();
         lastModOctaves = 0.0f;
         dco.reset(); 
@@ -69,12 +73,9 @@ void Voice::updateParams(const SynthParams& p) {
     params = p;
     smoothedCutoff.setTargetValue(params.vcfFreq);
     smoothedResonance.setTargetValue(params.resonance);
-
-    if (params.vcaMode == 1) {
-        smoothedVCALevel.setTargetValue(params.vcaLevel);
-    } else {
-        smoothedVCALevel.setTargetValue(1.0f); 
-    }
+    
+    // [VCA Audit] VCA level is now a master gain control for the voice
+    smoothedVCALevel.setTargetValue(params.vcaLevel);
     
     dco.setRange(static_cast<JunoDCO::Range>(p.dcoRange));
     dco.setSawLevel(p.sawOn ? 1.0f : 0.0f); 
@@ -88,16 +89,17 @@ void Voice::updateParams(const SynthParams& p) {
     
     adsr.setGateMode(p.vcaMode == 1);
     
+    // [ENV Audit] Simplified time calculations, ADSR class now handles curve
     if (p.vcaMode == 1) {
         adsr.setAttack(0.001f);
         adsr.setDecay(0.001f);
         adsr.setSustain(1.0f);
         adsr.setRelease(0.001f);
     } else {
-        adsr.setAttack(JunoTimeCurves::kAttackMin + (JunoTimeCurves::kAttackMax - JunoTimeCurves::kAttackMin) * std::pow(p.attack, 3.0f));
-        adsr.setDecay(JunoTimeCurves::kDecayMin + (JunoTimeCurves::kDecayMax - JunoTimeCurves::kDecayMin) * std::pow(p.decay, 3.0f));
+        adsr.setAttack(juce::jmap(p.attack, 0.0f, 1.0f, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
+        adsr.setDecay(juce::jmap(p.decay, 0.0f, 1.0f, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
         adsr.setSustain(p.sustain);
-        adsr.setRelease(JunoTimeCurves::kReleaseMin + (JunoTimeCurves::kReleaseMax - JunoTimeCurves::kReleaseMin) * std::pow(p.release, 3.0f));
+        adsr.setRelease(juce::jmap(p.release, 0.0f, 1.0f, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
     }
     
     updateHPF();
@@ -148,10 +150,25 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     for (int i = 0; i < numSamples; ++i) {
         float voiceLfo = lfoBuffer[i];
         float envVal = adsr.getNextSample(); 
-        float vcaSmooth = smoothedVCALevel.getNextValue();
+        // [VCA Audit] VCA Level is now a smoothed final gain control
+        // [VCA Audit] VCA Logic:
+        // User requested VCA Slider to be active. We will make it a Voice Level control in BOTH modes.
+        // Mode 1 (GATE): Gate (1.0) * VCA Level.
+        // Mode 0 (ENV): EnvVal * VCA Level.
+        
+        float finalGain = 0.0f;
+        if (params.vcaMode == 1) { // GATE
+             // In Gate mode, attack/release are hardcoded fast (gate-like)
+             // envVal basically tracks the Gate signal with slight smoothing
+             finalGain = envVal; 
+        } else { // ENV
+             finalGain = envVal; 
+        }
+        // Apply VCA Level Slider to both modes
+        finalGain *= smoothedVCALevel.getNextValue();
         
         float dcoSample = dco.getNextSample(voiceLfo);
-        voiceData[i] = dcoSample * envVal * velocity * vcaSmooth;
+        voiceData[i] = dcoSample * finalGain;
     }
 
     juce::dsp::AudioBlock<float> block(voiceBuffer);
@@ -169,15 +186,14 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
         int currentBatchSize = std::min(8, numSamples - i);
         float vcfParam = smoothedCutoff.getNextValue();
         
-        float baseCutoff = 10.0f * std::pow(12000.0f / 10.0f, vcfParam);
+        // [VCF Audit] Curve Adjustment: 20Hz to 20kHz
+        // Center (0.5) becomes ~632Hz, which is musically balanced.
+        float baseCutoff = 20.0f * std::pow(20000.0f / 20.0f, vcfParam);
         
-        float kybdTrackValue = 0.0f;
-        if (params.kybdTracking > 0.4f && params.kybdTracking < 0.6f) kybdTrackValue = 0.5f;
-        else if (params.kybdTracking >= 0.9f) kybdTrackValue = 1.0f;
-
-        if (kybdTrackValue > 0.0f) {
+        if (params.kybdTracking > 0.001f) {
             float semitones = static_cast<float>(currentNote) - 60.0f;
-            baseCutoff *= std::pow(2.0f, (semitones * kybdTrackValue) / 12.0f);
+            // [Fidelidad] Continuous tracking slider (0.0 to 1.0)
+            baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
         }
 
         float envVal = adsr.getCurrentValue();
