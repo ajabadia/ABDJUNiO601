@@ -66,6 +66,43 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     apvts.addParameterListener("vcfPolarity", this);
     apvts.addParameterListener("vcaMode", this);
     apvts.addParameterListener("hpfFreq", this);
+    apvts.addParameterListener("hpfFreq", this);
+
+    // [Optimization] Initialize Cached Pointers
+    fmtDcoRange = apvts.getRawParameterValue("dcoRange");
+    fmtSawOn = apvts.getRawParameterValue("sawOn");
+    fmtPulseOn = apvts.getRawParameterValue("pulseOn");
+    fmtPwm = apvts.getRawParameterValue("pwm");
+    fmtPwmMode = apvts.getRawParameterValue("pwmMode");
+    fmtSubOsc = apvts.getRawParameterValue("subOsc");
+    fmtNoise = apvts.getRawParameterValue("noise");
+    fmtLfoToDCO = apvts.getRawParameterValue("lfoToDCO");
+    fmtHpfFreq = apvts.getRawParameterValue("hpfFreq");
+    fmtVcfFreq = apvts.getRawParameterValue("vcfFreq");
+    fmtResonance = apvts.getRawParameterValue("resonance");
+    fmtEnvAmount = apvts.getRawParameterValue("envAmount");
+    fmtVcfPolarity = apvts.getRawParameterValue("vcfPolarity");
+    fmtKybdTracking = apvts.getRawParameterValue("kybdTracking");
+    fmtLfoToVCF = apvts.getRawParameterValue("lfoToVCF");
+    fmtVcaMode = apvts.getRawParameterValue("vcaMode");
+    fmtVcaLevel = apvts.getRawParameterValue("vcaLevel");
+    fmtAttack = apvts.getRawParameterValue("attack");
+    fmtDecay = apvts.getRawParameterValue("decay");
+    fmtSustain = apvts.getRawParameterValue("sustain");
+    fmtRelease = apvts.getRawParameterValue("release");
+    fmtLfoRate = apvts.getRawParameterValue("lfoRate");
+    fmtLfoDelay = apvts.getRawParameterValue("lfoDelay");
+    fmtChorus1 = apvts.getRawParameterValue("chorus1");
+    fmtChorus2 = apvts.getRawParameterValue("chorus2");
+    fmtPolyMode = apvts.getRawParameterValue("polyMode");
+    fmtPortTime = apvts.getRawParameterValue("portamentoTime");
+    fmtPortOn = apvts.getRawParameterValue("portamentoOn");
+    fmtPortLegato = apvts.getRawParameterValue("portamentoLegato");
+    fmtBender = apvts.getRawParameterValue("bender");
+    fmtBenderDCO = apvts.getRawParameterValue("benderToDCO");
+    fmtBenderVCF = apvts.getRawParameterValue("benderToVCF");
+    fmtBenderLFO = apvts.getRawParameterValue("benderToLFO");
+    fmtTune = apvts.getRawParameterValue("tune");
 }
 
 SimpleJuno106AudioProcessor::~SimpleJuno106AudioProcessor() {
@@ -520,27 +557,43 @@ void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*
 
 SynthParams SimpleJuno106AudioProcessor::getMirrorParameters() {
     SynthParams p;
-    auto getVal = [this](juce::String id) -> float { 
-        auto* v = apvts.getRawParameterValue(id);
-        return v ? v->load() : 0.0f;
-    };
-    auto getBool = [this, getVal](juce::String id) { return getVal(id) > 0.5f; };
-    auto getInt = [this, getVal](juce::String id) { return static_cast<int>(getVal(id)); };
-
-    p.dcoRange = getInt("dcoRange"); p.sawOn = getBool("sawOn"); p.pulseOn = getBool("pulseOn");
-    p.pwmAmount = getVal("pwm"); p.pwmMode = getInt("pwmMode"); p.subOscLevel = getVal("subOsc");
-    p.noiseLevel = getVal("noise"); p.lfoToDCO = getVal("lfoToDCO"); p.hpfFreq = getInt("hpfFreq");
-    p.vcfFreq = getVal("vcfFreq"); p.resonance = getVal("resonance"); p.envAmount = getVal("envAmount");
-    p.lfoToVCF = getVal("lfoToVCF"); p.kybdTracking = getVal("kybdTracking"); p.vcfPolarity = getInt("vcfPolarity");
-    p.vcaMode = getInt("vcaMode"); p.vcaLevel = getVal("vcaLevel"); p.attack = getVal("attack");
-    p.decay = getVal("decay"); p.sustain = getVal("sustain"); p.release = getVal("release");
-    p.lfoRate = getVal("lfoRate"); p.lfoDelay = getVal("lfoDelay");
-    p.chorus1 = getBool("chorus1"); p.chorus2 = getBool("chorus2");
-    p.polyMode = getInt("polyMode"); p.portamentoTime = getVal("portamentoTime");
-    p.portamentoOn = getBool("portamentoOn"); p.portamentoLegato = getBool("portamentoLegato");
-    p.benderValue = getVal("bender"); p.benderToDCO = getVal("benderToDCO");
-    p.benderToVCF = getVal("benderToVCF"); p.benderToLFO = getVal("benderToLFO");
-    p.tune = getVal("tune"); p.midiChannel = midiChannel; 
+    // [Optimization] Fast pointer access (No string lookups)
+    
+    p.dcoRange = (int)fmtDcoRange->load(); 
+    p.sawOn = fmtSawOn->load() > 0.5f; 
+    p.pulseOn = fmtPulseOn->load() > 0.5f;
+    p.pwmAmount = fmtPwm->load(); 
+    p.pwmMode = (int)fmtPwmMode->load(); 
+    p.subOscLevel = fmtSubOsc->load();
+    p.noiseLevel = fmtNoise->load(); 
+    p.lfoToDCO = fmtLfoToDCO->load(); 
+    p.hpfFreq = (int)fmtHpfFreq->load();
+    p.vcfFreq = fmtVcfFreq->load(); 
+    p.resonance = fmtResonance->load(); 
+    p.envAmount = fmtEnvAmount->load();
+    p.lfoToVCF = fmtLfoToVCF->load(); 
+    p.kybdTracking = fmtKybdTracking->load(); 
+    p.vcfPolarity = (int)fmtVcfPolarity->load();
+    p.vcaMode = (int)fmtVcaMode->load(); 
+    p.vcaLevel = fmtVcaLevel->load(); 
+    p.attack = fmtAttack->load();
+    p.decay = fmtDecay->load(); 
+    p.sustain = fmtSustain->load(); 
+    p.release = fmtRelease->load();
+    p.lfoRate = fmtLfoRate->load(); 
+    p.lfoDelay = fmtLfoDelay->load();
+    p.chorus1 = fmtChorus1->load() > 0.5f; 
+    p.chorus2 = fmtChorus2->load() > 0.5f;
+    p.polyMode = (int)fmtPolyMode->load(); 
+    p.portamentoTime = fmtPortTime->load();
+    p.portamentoOn = fmtPortOn->load() > 0.5f; 
+    p.portamentoLegato = fmtPortLegato->load() > 0.5f;
+    p.benderValue = fmtBender->load(); 
+    p.benderToDCO = fmtBenderDCO->load();
+    p.benderToVCF = fmtBenderVCF->load(); 
+    p.benderToLFO = fmtBenderLFO->load();
+    p.tune = fmtTune->load(); 
+    p.midiChannel = midiChannel; 
     return p;
 }
 

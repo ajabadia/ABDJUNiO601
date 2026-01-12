@@ -32,10 +32,14 @@ public:
     bool hasEditor() const override;
 
     const juce::String getName() const override;
+    
+    // [Fidelidad] TailTime: Release max 12s + Chorus 25ms => ~14s safety margin
+    double getTailLengthSeconds() const override { return 14.0; }
+
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
-    double getTailLengthSeconds() const override;
+    // double getTailLengthSeconds() const override; // [Removed duplicate]
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -55,9 +59,18 @@ public:
 
     void loadPreset(int index);
     void updateParamsFromAPVTS();
+    
     void applyPerformanceModulations(SynthParams& p);
     void sendPatchDump();
     void sendManualMode(); 
+    void triggerPanic();
+    void setSustainPolarity(bool inverted) { sustainInverted = inverted; }
+
+    SynthParams getMirrorParameters(); // [Fidelidad] Block-consistent mirror
+
+    float getChorusLfoPhase(int mode) const { 
+        return (mode == 1) ? chorusLfoPhaseI : chorusLfoPhaseII; 
+    }
 
     bool isTestMode = false;
     void triggerTestProgram(int bankIndex);
@@ -80,12 +93,13 @@ private:
     
     JunoVoiceManager voiceManager;
     SynthParams currentParams;
-    SynthParams lastParams; 
+    SynthParams lastParams;
 
     std::unique_ptr<class PresetManager> presetManager;
     
     JunoSysExEngine sysExEngine;
     PerformanceState performanceState;
+    bool sustainInverted = false;
 
     juce::dsp::Chorus<float> chorus; 
     juce::Random chorusNoiseGen; 
@@ -99,9 +113,59 @@ private:
 
     float masterLfoPhase = 0.0f;
     float masterLfoDelayEnvelope = 0.0f;
+    
+    // [Fidelidad] Chorus LFOs para Leakage y LED
+    float chorusLfoPhaseI = 0.0f;
+    float chorusLfoPhaseII = 0.0f;
+    
+    float currentPowerSag = 0.0f;
+    float chorusFade = 0.0f;
+
+    int powerOnDelaySamples = 0;
     bool wasAnyNoteHeld = false;
+    
+    double warmUpTime = 0.0;
+    float globalDriftAudible = 0.0f;
+    int thermalCounter = 0;
+    float thermalTarget = 0.0f;
 
     std::vector<float> lfoBuffer;
+
+    // [Optimization] Cached Parameter Pointers (Audio Thread Safe)
+    std::atomic<float>* fmtDcoRange = nullptr;
+    std::atomic<float>* fmtSawOn = nullptr;
+    std::atomic<float>* fmtPulseOn = nullptr;
+    std::atomic<float>* fmtPwm = nullptr;
+    std::atomic<float>* fmtPwmMode = nullptr;
+    std::atomic<float>* fmtSubOsc = nullptr;
+    std::atomic<float>* fmtNoise = nullptr;
+    std::atomic<float>* fmtLfoToDCO = nullptr;
+    std::atomic<float>* fmtHpfFreq = nullptr;
+    std::atomic<float>* fmtVcfFreq = nullptr;
+    std::atomic<float>* fmtResonance = nullptr;
+    std::atomic<float>* fmtEnvAmount = nullptr;
+    std::atomic<float>* fmtVcfPolarity = nullptr;
+    std::atomic<float>* fmtKybdTracking = nullptr;
+    std::atomic<float>* fmtLfoToVCF = nullptr;
+    std::atomic<float>* fmtVcaMode = nullptr;
+    std::atomic<float>* fmtVcaLevel = nullptr;
+    std::atomic<float>* fmtAttack = nullptr;
+    std::atomic<float>* fmtDecay = nullptr;
+    std::atomic<float>* fmtSustain = nullptr;
+    std::atomic<float>* fmtRelease = nullptr;
+    std::atomic<float>* fmtLfoRate = nullptr;
+    std::atomic<float>* fmtLfoDelay = nullptr;
+    std::atomic<float>* fmtChorus1 = nullptr;
+    std::atomic<float>* fmtChorus2 = nullptr;
+    std::atomic<float>* fmtPolyMode = nullptr;
+    std::atomic<float>* fmtPortTime = nullptr;
+    std::atomic<float>* fmtPortOn = nullptr;
+    std::atomic<float>* fmtPortLegato = nullptr;
+    std::atomic<float>* fmtBender = nullptr;
+    std::atomic<float>* fmtBenderDCO = nullptr;
+    std::atomic<float>* fmtBenderVCF = nullptr;
+    std::atomic<float>* fmtBenderLFO = nullptr;
+    std::atomic<float>* fmtTune = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };
