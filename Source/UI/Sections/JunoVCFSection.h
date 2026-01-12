@@ -77,13 +77,14 @@ public:
         float switchColW = standardColW * 0.6f; // Switch 60% ancho
         
         int startX = area.getX();
-        int sliderWidth = (int)(standardColW * 0.8f); 
-        int sliderY = area.getY() + 30; // Debajo de las labels
-        int sliderH = area.getHeight() - 30;
+        int sliderWidth = 30; // Standard
+        int sliderY = area.getY() + 25; // Standard
+        int sliderH = area.getHeight() - 30; // Standard
         int labelH = 20;
         
-        auto formatCol = [&](juce::Component& comp, juce::Component& label, float w) {
+        auto formatCol = [&](juce::Component& comp, juce::Label& label, float w) {
             label.setBounds(startX, area.getY(), (int)w, labelH);
+            label.setJustificationType(juce::Justification::centred);
             comp.setBounds(startX + ((int)w - sliderWidth)/2, sliderY, sliderWidth, sliderH);
             startX += (int)w;
         };
@@ -96,7 +97,7 @@ public:
         // Polarity Switch
         int switchW = 30;
         int switchH = 50;
-        int switchY = area.getY() + (area.getHeight() - switchH) / 2;
+        int switchY = sliderY + (sliderH - switchH) / 2; // Centered in slider area
         invSwitch.setBounds(startX + ((int)switchColW - switchW)/2, switchY, switchW, switchH);
         startX += (int)switchColW;
 

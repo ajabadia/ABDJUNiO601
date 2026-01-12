@@ -1,4 +1,5 @@
 #include "JunoControlSection.h"
+#include "../../Core/JunoTapeEncoder.h"
 #include "../../Core/PluginProcessor.h"
 #include "../../Core/PresetManager.h"
 
@@ -108,14 +109,35 @@ JunoControlSection::JunoControlSection(juce::AudioProcessor& p, juce::AudioProce
 
     addAndMakeVisible(lcd);
     presetBrowser.onPresetChanged = [&](const juce::String&) {
-        if(onPresetLoad) onPresetLoad(presetBrowser.getPresetManager().getCurrentPresetIndex());
+        int idx = presetBrowser.getPresetManager().getCurrentPresetIndex();
+        activeGroup = (idx < 64) ? 0 : 1; 
+        updateGroupUI();
+        if(onPresetLoad) onPresetLoad(idx);
     };
     presetBrowser.onGetCurrentState = [&]() { return apvtsRef.copyState(); };
+
+    // [Senior Audit] TUNE KNOB
+    JunoUI::setupLabel(masterTuneLabel, "TUNE", *this);
+    masterTuneLabel.setJustificationType(juce::Justification::centred);
+    JunoUI::styleSmallSlider(masterTuneKnob);
+    addAndMakeVisible(masterTuneKnob);
+    masterTuneAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvtsRef, "tune", masterTuneKnob);
+    
+    // [Senior Audit] MIDI LED
+    addAndMakeVisible(midiLed);
 
     connectButtons();
     updateGroupUI();
     startTimer(50);
 }
+
+// ... existing code ...
+
+// INSERT IN RESIZED
+// We need to place it. I'll inject into resized via replace_file logic.
+// But first let's handle the timer callback update.
+
+// ... existing code ...
 
 
 
@@ -144,20 +166,43 @@ void JunoControlSection::connectButtons()
     };
     
     dumpButton.onClick = [this] {
-        PresetManager& pm = presetBrowser.getPresetManager();
-        fileChooser = std::make_unique<juce::FileChooser>(
-            "Export Current Bank to JSON...",
-            juce::File(pm.getLastPath()), "*.json");
-
-        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
-            [this](const juce::FileChooser& fc) {
-                auto file = fc.getResult();
-                if (file != juce::File()) {
-                    PresetManager& pmRef = presetBrowser.getPresetManager();
-                    pmRef.exportLibraryToJson(file);
-                    lcd.setText("BANK EXPORTED");
-                }
-            });
+        juce::PopupMenu m;
+        m.addItem(1, "Export Bank (JSON)");
+        m.addItem(2, "Export All Libraries (JSON)");
+        m.addItem(3, "Export Patch (Tape Audio .wav)");
+        
+        m.showMenuAsync(juce::PopupMenu::Options(), [this](int result) {
+            PresetManager& pm = presetBrowser.getPresetManager();
+            if (result == 1) {
+                fileChooser = std::make_unique<juce::FileChooser>("Export Bank (JSON)...", juce::File(pm.getLastPath()), "*.json");
+                fileChooser->launchAsync(juce::FileBrowserComponent::saveMode, [this](const juce::FileChooser& fc) {
+                    if (fc.getResult() != juce::File()) {
+                        presetBrowser.getPresetManager().exportLibraryToJson(fc.getResult());
+                        lcd.setText("BANK EXPORTED");
+                    }
+                });
+            } else if (result == 3) {
+                 fileChooser = std::make_unique<juce::FileChooser>("Export Tape Audio (.wav)...", 
+                    juce::File(pm.getLastPath()).getChildFile(pm.getCurrentPresetName() + ".wav"), "*.wav");
+                 fileChooser->launchAsync(juce::FileBrowserComponent::saveMode, [this](const juce::FileChooser& fc) {
+                     auto f = fc.getResult();
+                     if (f != juce::File()) {
+                         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
+                             uint8_t bytes[18];
+                             auto msg = proc->getCurrentSysExData();
+                             if (msg.getRawDataSize() >= 23) {
+                                 const uint8_t* rd = msg.getRawData();
+                                 memcpy(bytes, rd + 5, 16);
+                                 bytes[16] = rd[21];
+                                 bytes[17] = rd[22];
+                                 JunoTapeEncoder::saveToWav(f, bytes);
+                                 lcd.setText("TAPE EXPORTED");
+                             }
+                         }
+                     }
+                 });
+            }
+        });
     };
 
     randomButton.onClick = [this] {
@@ -257,8 +302,8 @@ void JunoControlSection::connectButtons()
     panicButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
     panicButton.onClick = [this] {
         if (auto* proc = dynamic_cast<SimpleJuno106AudioProcessor*>(&processor)) {
-             proc->getVoiceManagerNC().resetAllVoices();
-             lcd.setText("ALL NOTES OFF");
+             proc->triggerPanic();
+             lcd.setText("PANIC (FADE EXITS)");
         }
     };
 
@@ -266,6 +311,18 @@ void JunoControlSection::connectButtons()
     paramDisplay.setAlwaysOnTop(true);
     
     addAndMakeVisible(sysExDisplay);
+}
+
+void JunoControlSection::mouseDown(const juce::MouseEvent& e) {
+    if (lcd.getBounds().contains(e.getPosition())) {
+        if (e.mods.isShiftDown()) {
+            presetBrowser.getPresetManager().triggerMemoryCorruption(apvtsRef);
+            lcd.setText("MEM ERROR");
+        } else if (e.mods.isAltDown()) {
+             presetBrowser.getPresetManager().randomizeCurrentParameters(apvtsRef);
+             lcd.setText("RANDOMIZED");
+        }
+    }
 }
 
 void JunoControlSection::updateGroupUI()
@@ -300,59 +357,82 @@ void JunoControlSection::paint(juce::Graphics& g)
 void JunoControlSection::resized()
 {
     auto b = getLocalBounds();
-    int margin = 15;
+    int margin = 10;
     int leftX = margin;
-    portLabel.setBounds(leftX, 35, 60, 20);
-    portSlider.setBounds(leftX, 55, 60, 60);
-    portButton.setBounds(leftX, 120, 60, 25);
-    int assignX = leftX + 75;
+    
+    // PORT & ASSIGN - Compacted
+    portLabel.setBounds(leftX, 35, 50, 20);
+    portSlider.setBounds(leftX, 55, 50, 50);
+    portButton.setBounds(leftX, 110, 50, 25);
+    
+    int assignX = leftX + 60;
     modeLabel.setBounds(assignX, 35, 70, 20);
     modeCombo.setBounds(assignX, 60, 80, 25);
-    int centerW = 500;
-    int centerX = (getWidth() - centerW) / 2;
-    lcd.setBounds(centerX, 35, centerW, 50);
-
-    int gapX = assignX + 90; // End of Assign section (approx)
-    int gapW = centerX - gapX - 10; // Width available before LCD
     
-    // Parameter Display in the gap
-    paramDisplay.setBounds(gapX, 35, gapW, 50); 
-    
-    // SysEx Display under Param Display
-    sysExDisplay.setBounds(gapX, 90, gapW, 40); 
+    masterTuneLabel.setBounds(assignX + 90, 35, 40, 20);
+    masterTuneKnob.setBounds(assignX + 90, 60, 40, 40);
 
-    int browserY = 108; // Shifted down slightly to fit SysEx
-    prevPatchButton.setBounds(centerX, browserY, 35, 30);
-    nextPatchButton.setBounds(centerX + centerW - 35, browserY, 35, 30);
-    presetBrowser.setBounds(centerX + 45, browserY, centerW - 90, 30);
-    int centerBtnY = 145;
-    panicButton.setBounds(centerX + 50, centerBtnY, 100, 25);
-    powerButton.setBounds(centerX + 160, centerBtnY, 60, 25);
-    randomButton.setBounds(centerX + 230, centerBtnY, 80, 25);
-    int rightW = 550;
-    int rightX = getWidth() - rightW - margin;
-    int gridX = rightX + 45;
-    int gridY = 75;
-    int btnW = 60; 
-    int funcY = 35;
-    int funcW = 85;
+    // CENTRAL BLOCK (LCD, Browser, Buttons)
+    int lcdX = assignX + 150;
+    int lcdW = 400; // Reduced from 500
+    lcd.setBounds(lcdX, 35, lcdW, 50);
+
+    // Browser under LCD
+    int browserY = 95;
+    prevPatchButton.setBounds(lcdX, browserY, 30, 25);
+    presetBrowser.setBounds(lcdX + 35, browserY, lcdW - 70, 25);
+    nextPatchButton.setBounds(lcdX + lcdW - 30, browserY, 30, 25);
+
+    // Function Buttons under Browser
+    int btnY = 125;
+    // int btnW = 80;
+    panicButton.setBounds(lcdX, btnY, 80, 25);
+    powerButton.setBounds(lcdX + 90, btnY, 50, 25);
+    randomButton.setBounds(lcdX + 150, btnY, 70, 25);
+
+    // RIGHT SIDE GRID (Banks) - Anchored to Right Edge
+    int rightMargin = 10;
+    int rightBlockW = 450; // Enough for buttons
+    int gridX = getWidth() - rightBlockW - rightMargin;
+
+    // SysEx & Param Display in the gap
+    int gapX = lcdX + lcdW + 20;
+    int gapW = gridX - gapX - 10; // Fill available space
+    
+    // SysEx Display (Expanded)
+    sysExDisplay.setBounds(gapX, 35, gapW, 40);
+    
+    // Param Display (Below SysEx)
+    paramDisplay.setBounds(gapX, 80, gapW, 20); 
+    paramDisplay.setJustificationType(juce::Justification::centredLeft); // Readable
+
+    
+    int gridY = 55;
+    int bankBtnW = 50; 
+    
+    // Top Functions
+    int funcY = 20;
     int fGap = 5;
-    saveButton.setBounds(gridX, funcY, funcW, 30);
-    sysexButton.setBounds(gridX + funcW + fGap, funcY, funcW, 30);
-    loadTapeButton.setBounds(gridX + (funcW + fGap)*2, funcY, funcW + 20, 30);
-    loadButton.setBounds(gridX + (funcW + fGap)*3 + 25, funcY, funcW, 30);
-    dumpButton.setBounds(gridX + (funcW + fGap)*4 + 35, funcY, funcW, 30);
+    int fW = 70;
+    saveButton.setBounds(gridX, funcY, fW, 25);
+    sysexButton.setBounds(gridX + fW + fGap, funcY, fW, 25);
+    loadTapeButton.setBounds(gridX + (fW + fGap)*2, funcY, fW + 20, 25);
+    loadButton.setBounds(gridX + (fW + fGap)*3 + 20, funcY, fW, 25);
+    dumpButton.setBounds(gridX + (fW + fGap)*4 + 30, funcY, fW, 25);
+
     for(int i=0; i<8; ++i) {
-        bankButtons[i].setBounds(gridX + (i * btnW), gridY, btnW - 4, 28);
-        bankSelectButtons[i].setBounds(gridX + (i * btnW), gridY + 32, btnW - 4, 28);
+        bankButtons[i].setBounds(gridX + (i * bankBtnW), gridY, bankBtnW - 4, 25);
+        bankSelectButtons[i].setBounds(gridX + (i * bankBtnW), gridY + 28, bankBtnW - 4, 25);
     }
-    int bottomY = 145;
-    decBankButton.setBounds(gridX, bottomY, 45, 25);
-    incBankButton.setBounds(gridX + 50, bottomY, 45, 25);
-    groupAButton.setBounds(gridX + 110, bottomY, 70, 25);
-    groupBButton.setBounds(gridX + 185, bottomY, 70, 25);
-    manualButton.setBounds(gridX + 265, bottomY, 80, 25);
-    midiOutButton.setBounds(gridX + 355, bottomY, 90, 25);
+    
+    int bottomY = 125;
+    decBankButton.setBounds(gridX, bottomY, 40, 25);
+    incBankButton.setBounds(gridX + 45, bottomY, 40, 25);
+    groupAButton.setBounds(gridX + 100, bottomY, 60, 25);
+    groupBButton.setBounds(gridX + 165, bottomY, 60, 25);
+    manualButton.setBounds(gridX + 240, bottomY, 70, 25);
+    midiOutButton.setBounds(gridX + 320, bottomY, 80, 25);
+    midiLed.setBounds(gridX + 405, bottomY + 5, 15, 15);
 }
 
 void JunoControlSection::timerCallback()
@@ -365,6 +445,11 @@ void JunoControlSection::timerCallback()
              auto dump = proc->getCurrentSysExData(); 
              std::vector<uint8_t> vec(dump.getRawData(), dump.getRawData() + dump.getRawDataSize());
              sysExDisplay.setDumpData(vec);
+             
+             // Flash MIDI LED on activity
+             if (midiOutButton.getToggleState()) {
+                 midiFlashCounter = 3; 
+             }
         }
 
         if (proc->isTestMode) lcd.setText("TEST MODE");
@@ -375,6 +460,15 @@ void JunoControlSection::timerCallback()
             int p = (patchIdx % 8) + 1;
             lcd.setText(groupName + "-" + juce::String(b) + "-" + juce::String(p) + "  " + pmRef.getCurrentPresetName());
         }
+        
+        // Blink logic
+        if (midiFlashCounter > 0) {
+            midiFlashCounter--;
+            midiLed.on = true;
+        } else {
+            midiLed.on = false;
+        }
+        midiLed.repaint();
     }
 }
 

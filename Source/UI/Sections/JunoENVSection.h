@@ -33,14 +33,19 @@ public:
 
     void resized() override {
         auto r = getLocalBounds().reduced(0, 24); // Saltar cabecera
-        int w = r.getWidth() / 4;
+        // [Resize] Tighter spacing
         int sliderW = 30;
-        int sliderH = r.getHeight() - 25;
-        int y = r.getY() + 20;
+        int sliderH = r.getHeight() - 30; // Standard
+        int y = r.getY() + 25;            // Standard
+        
+        int spacing = 45; // Fixed spacing instead of width/4
+        int startX = (getWidth() - (spacing * 4)) / 2; // Centered group
 
         auto layout = [&](juce::Slider& s, juce::Label& l, int idx) {
-            l.setBounds(idx * w, r.getY(), w, 20);
-            s.setBounds(idx * w + (w - sliderW)/2, y, sliderW, sliderH);
+            int cx = startX + (idx * spacing) + (spacing/2);
+            l.setBounds(cx - 20, r.getY(), 40, 20); // Label centered
+            l.setJustificationType(juce::Justification::centred);
+            s.setBounds(cx - sliderW/2, y, sliderW, sliderH);
         };
 
         layout(aSlider, aLabel, 0);

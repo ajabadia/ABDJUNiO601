@@ -10,13 +10,13 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
       vcfSection(p.getAPVTS(), p.getMidiLearnHandler()),
       vcaSection(p.getAPVTS(), p.getMidiLearnHandler()),
       envSection(p.getAPVTS(), p.getMidiLearnHandler()),
-      chorusSection(p.getAPVTS(), p.getMidiLearnHandler()),
+      chorusSection(p, p.getAPVTS(), p.getMidiLearnHandler()),
       controlSection(p, p.getAPVTS(), *p.getPresetManager(), p.getMidiLearnHandler()),
       performanceSection(p.getAPVTS(), p.getMidiLearnHandler()),
       midiKeyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    setSize (1700, 750); 
-
+    setSize (1500, 650); // [Resize] User requested 1500px width and shorter keyboard
+ 
     addAndMakeVisible(lfoSection);
     addAndMakeVisible(dcoSection);
     addAndMakeVisible(hpfSection);
@@ -56,12 +56,12 @@ namespace {
     constexpr int kCtrlHeight = 180; 
     constexpr int kPerfWidth = 220;
     
-    constexpr int kWidthLFO = 130;
-    constexpr int kWidthDCO = 520; 
-    constexpr int kWidthHPF = 100;
-    constexpr int kWidthVCF = 360; 
-    constexpr int kWidthVCA = 140;
-    constexpr int kWidthENV = 240;
+    constexpr int kWidthLFO = 120;
+    constexpr int kWidthDCO = 440; // Reduced for stacked buttons
+    constexpr int kWidthHPF = 90;
+    constexpr int kWidthVCF = 320; 
+    constexpr int kWidthVCA = 110;
+    constexpr int kWidthENV = 190; // Compressed sliders
 }
 
 void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)

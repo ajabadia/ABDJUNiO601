@@ -38,17 +38,20 @@ public:
 
     void resized() override
     {
-        auto area = getLocalBounds().reduced(5, 24); // Standard header skip
+        auto area = getLocalBounds().reduced(5, 30); // 24 -> 30 to match others (approx, others use reduced(5,30))
+        // Wait, other sections used reduced(5,30) because kHeaderHeight is 28 approx.
+        // Let's stick to consistent internal area: Y+25, H-30.
+        
         int halfW = area.getWidth() / 2;
         int startX = area.getX();
         
-        // Align with other sections (e.g., JunoDCOSection: sliderH = r.getHeight() - 30, y = r.getY() + 25)
         int sliderW = 30;
-        int sliderH = area.getHeight() - 25;
-        int yControls = area.getY() + 20;
+        int sliderH = area.getHeight() - 30; // Standard
+        int yControls = area.getY() + 25;    // Standard
 
         // Level
         levelLabel.setBounds(startX, area.getY(), halfW, 20);
+        levelLabel.setJustificationType(juce::Justification::centred);
         levelSlider.setBounds(startX + (halfW - sliderW)/2, yControls, sliderW, sliderH);
 
         // Mode Switch
@@ -56,14 +59,11 @@ public:
         int switchH = 50; 
         
         modeLabel.setBounds(startX + halfW, area.getY(), halfW, 20);
-        
-        // "Literales encima y debajo"
-        // ENV (Top) - Switch (Mid) - GATE (Bot)
+        modeLabel.setJustificationType(juce::Justification::centred);
         
         int switchCenterX = startX + halfW + (halfW - switchW)/2;
         int centerY = yControls + sliderH/2;
         
-        // Authentic Layout: GATE (Top), ENV (Bottom)
         lblGate.setBounds(switchCenterX - 10, centerY - switchH/2 - 20, 50, 20);
         modeSwitch.setBounds(switchCenterX, centerY - switchH/2, switchW, switchH);
         lblEnv.setBounds(switchCenterX - 10, centerY + switchH/2, 50, 20);

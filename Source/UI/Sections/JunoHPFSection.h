@@ -28,11 +28,12 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced(5, 30);
-        int sliderWidth = 40;
-        int sliderY = area.getY() + 20;
-        int sliderH = area.getHeight() - 20;
+        int sliderWidth = 30; // Standard
+        int sliderY = area.getY() + 25; // Standard Y
+        int sliderH = area.getHeight() - 30; // Standard H
 
         freqLabel.setBounds(area.getX(), area.getY(), area.getWidth(), 20);
+        freqLabel.setJustificationType(juce::Justification::centred);
         freqSlider.setBounds(area.getX() + (area.getWidth() - sliderWidth)/2, sliderY, sliderWidth, sliderH);
     }
 

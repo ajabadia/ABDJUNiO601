@@ -28,18 +28,19 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced(5, 30); // Espacio para cabecera
-        int sliderWidth = 50;
+        int sliderWidth = 30; // Standard 30px
+        
+        int labelHeight = 20;
+        int sliderY = area.getY() + 25; // Standard Y
+        int sliderHeight = area.getHeight() - 30; // Standard Height
+
         int gap = (area.getWidth() - (sliderWidth * 2)) / 3;
 
-        int labelHeight = 15;
-        int sliderY = area.getY() + labelHeight + 5; // Un poco más abajo de la label
-        int sliderHeight = area.getHeight() - labelHeight - 10;
+        rateLabel.setBounds(area.getX() + gap, area.getY(), sliderWidth + 10, labelHeight);
+        rateSlider.setBounds(area.getX() + gap + 5, sliderY, sliderWidth, sliderHeight);
 
-        rateLabel.setBounds(area.getX() + gap, area.getY(), sliderWidth, labelHeight);
-        rateSlider.setBounds(area.getX() + gap + (sliderWidth - 40)/2, sliderY, 40, sliderHeight); // Ajustar ancho slider
-
-        delayLabel.setBounds(rateSlider.getRight() + gap, area.getY(), sliderWidth, labelHeight);
-        delaySlider.setBounds(rateSlider.getRight() + gap + (sliderWidth - 40)/2, sliderY, 40, sliderHeight);
+        delayLabel.setBounds(rateSlider.getRight() + gap, area.getY(), sliderWidth + 10, labelHeight);
+        delaySlider.setBounds(rateSlider.getRight() + gap + 5, sliderY, sliderWidth, sliderHeight);
     }
 
 private:

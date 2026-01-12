@@ -46,7 +46,17 @@ public:
         noiseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "noise", noiseSlider);
 
         addAndMakeVisible(pwmModeSwitch);
-        JunoUI::styleSwitchSlider(pwmModeSwitch);
+        addAndMakeVisible(pwmModeSwitch);
+        // [Senior Audit] PWM Switch is Rotary 2-pos
+        pwmModeSwitch.setSliderStyle(juce::Slider::LinearBarVertical); // Wait, User asked for ROTARY.
+        // Actually, "LinearBarVertical" acts as a toggle, but visually weird. 
+        // Let's use RotaryHorizontalVerticalDrag.
+        pwmModeSwitch.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        pwmModeSwitch.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        pwmModeSwitch.setSliderSnapsToMousePosition(false); // Rotary logic
+        pwmModeSwitch.setRotaryParameters(juce::MathConstants<float>::pi * 1.2f, 
+                                          juce::MathConstants<float>::pi * 1.8f, true); // Small arc (2 pos)
+        
         pwmModeSwitch.setRange(0.0, 1.0, 1.0);
         pwmModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "pwmMode", pwmModeSwitch);
 
@@ -96,18 +106,26 @@ public:
 
         // Sub-headers inside section
         g.setFont(10.0f);
-        float colW = (float)getWidth() / 4.0f;
-        auto drawSubHdr = [&](const juce::String& t, float x, float w) {
-            g.drawText(t, (int)x, 28, (int)w, 20, juce::Justification::centred);
-        };
         
-        drawSubHdr("RANGE", 0, colW);
-        drawSubHdr("LFO", colW, colW/2);
-        drawSubHdr("PWM", colW + colW/2, colW/2);
-        drawSubHdr("MODE", colW * 2, colW/2); 
-        drawSubHdr("WAVE", colW * 2 + colW/2, colW/2); 
-        drawSubHdr("SUB", colW * 3, colW/2);
-        drawSubHdr("NOISE", colW * 3 + colW/2, colW/2);
+        // Manual placement matching resized()
+        int x1 = 15;
+        g.drawText("RANGE", x1 - 10, 28, 60, 20, juce::Justification::centred);
+        
+        int xCursor = x1 + 40 + 20;
+        int spacing = 65;
+        g.drawText("LFO", xCursor - 15, 28, 60, 20, juce::Justification::centred);
+        xCursor += spacing;
+        g.drawText("PWM", xCursor - 15, 28, 60, 20, juce::Justification::centred);
+        xCursor += spacing;
+        
+        g.drawText("MODE", xCursor - 10, 28, 60, 20, juce::Justification::centred);
+        xCursor += 55;
+        g.drawText("WAVE", xCursor - 10, 28, 70, 20, juce::Justification::centred);
+        xCursor += 55 + 25;
+        
+        g.drawText("SUB", xCursor - 15, 28, 60, 20, juce::Justification::centred);
+        xCursor += spacing;
+        g.drawText("NOISE", xCursor - 15, 28, 60, 20, juce::Justification::centred);
 
         g.setColour(juce::Colours::black);
         g.drawVerticalLine(getWidth() - 1, 0, (float)getHeight());
@@ -151,41 +169,51 @@ public:
     void resized() override
     {
         auto r = getLocalBounds().reduced(0, 48); // Header(28) + SubHeaders(20)
-        float colW = (float)getWidth() / 4.0f; 
         
         int sliderW = 30;
-        int sliderH = r.getHeight() - 20; 
-        int yControls = r.getY() + 10;
+        int sliderH = r.getHeight() - 30;  // Standard
+        int yControls = r.getY() + 25;     // Standard
         
-        // COL 1: RANGE
+        // COL 1: RANGE (Stacked Vertically)
         int btnW = 40; 
         int btnH = 25;
-        int gap = 8;
-        int totalW = (btnW * 3) + (gap * 2);
-        int x1 = (int)((colW - totalW)/2);
-        range16.setBounds(x1, yControls + 30, btnW, btnH);
-        range8.setBounds(x1 + btnW + gap, yControls + 30, btnW, btnH);
-        range4.setBounds(x1 + (btnW + gap)*2, yControls + 30, btnW, btnH);
+        int gap = 5;
+        
+        int x1 = 15; // Left margin
+        int btnY = yControls; // Start at same Y as sliders top
+        
+        // Stack them
+        range16.setBounds(x1, btnY, btnW, btnH);
+        range8.setBounds(x1, btnY + btnH + gap, btnW, btnH);
+        range4.setBounds(x1, btnY + (btnH + gap)*2, btnW, btnH);
 
-        // COL 2: LFO & PWM
-        float subColW = colW / 2.0f;
-        auto placeSlider = [&](juce::Slider& s, float xOffset) {
-            int cx = (int)(xOffset + (subColW - (float)sliderW)/2.0f);
-            s.setBounds(cx, yControls, sliderW, sliderH);
-        };
-        placeSlider(lfoSlider, colW);
-        placeSlider(pwmSlider, colW + subColW);
-
-        // COL 3: MODE & WAVE
-        pwmModeSwitch.setBounds((int)(colW * 2 + (subColW - 20)/2), yControls + 20, 20, 40);
+        // Shift everything else left
+        int xCursor = x1 + btnW + 20;
+        
+        // LFO & PWM
+        int spacing = 65;
+        lfoSlider.setBounds(xCursor, yControls, sliderW, sliderH);
+        xCursor += spacing;
+        
+        pwmSlider.setBounds(xCursor, yControls, sliderW, sliderH);
+        xCursor += spacing;
+        
+        // PWM MODE & SWITCHES
+        // Center switches vertically relative to sliders
+        int switchY = yControls + (sliderH - 40) / 2;
+        pwmModeSwitch.setBounds(xCursor, switchY - 15, 40, 40); // Shifted up slightly
+        xCursor += 55;
+        
         int waveBtnW = 55;
-        int wxStart = (int)(colW * 2 + subColW + (subColW - waveBtnW)/2.0f);
-        pulseButton.setBounds(wxStart, yControls + 20, waveBtnW, 25);
-        sawButton.setBounds(wxStart, yControls + 55, waveBtnW, 25);
-
-        // COL 4: SUB & NOISE
-        placeSlider(subSlider, colW * 3);
-        placeSlider(noiseSlider, colW * 3 + subColW);
+        int waveY = switchY - 15;
+        pulseButton.setBounds(xCursor, waveY, waveBtnW, 25);
+        sawButton.setBounds(xCursor, waveY + 35, waveBtnW, 25);
+        xCursor += waveBtnW + 25;
+        
+        // SUB & NOISE
+        subSlider.setBounds(xCursor, yControls, sliderW, sliderH);
+        xCursor += spacing;
+        noiseSlider.setBounds(xCursor, yControls, sliderW, sliderH);
     }
 private:
     juce::AudioProcessorValueTreeState& apvts;
