@@ -15,7 +15,7 @@ struct SynthParams {
     float noiseLevel = 0.0f;    
     float lfoToDCO = 0.0f;      
     
-    float vcfFreq = 0.8f;       
+    float vcfFreq = 1.0f;       
     float resonance = 0.0f;     
     float envAmount = 0.5f;     
     
@@ -41,8 +41,9 @@ struct SynthParams {
     float benderToVCF = 0.0f;   
     float benderToLFO = 0.0f;   
     
-    float drift = 0.0f;            
-    float tune = 0.0f;             
+    float thermalDrift = 0.0f; // [Senior Audit] Global drift
+    float tune = 0.5f;          
+    int midiChannel = 1;        // [Added for SysEx]
     
     float vcfLFOAmount = 0.0f;     
     float lfoToVCF = 0.0f;         
@@ -54,28 +55,28 @@ struct SynthParams {
     bool portamentoOn = false;     
     bool portamentoLegato = false; 
     float portamentoTime = 0.0f;   
+    bool midiOut = false;          // [Added] Sync for SysEx
 };
 
 /**
  * [VCA/Chorus Audit] Authentic Juno-106 Chorus Constants (Service Manual Aligned)
  */
 struct JunoChorusConstants {
-    // Juno-106 Service Manual: LFO is ~0.5Hz for I, ~0.83Hz for II
-    static constexpr float kRateI = 0.5f;
-    static constexpr float kDepthI = 0.15f; // Approximated depth
-    static constexpr float kDelayI = 14.5f;   // ~14.5ms delay
+    // [Fidelidad] Medidas de servicio (BDD capacitor 2.2 uF): 0.47Hz y 0.78Hz
+    static constexpr float kRateI = 0.47f;
+    static constexpr float kDepthI = 0.15f; 
+    static constexpr float kDelayI = 14.5f;   
 
-    static constexpr float kRateII = 0.83f;
-    static constexpr float kDepthII = 0.35f;  // Approximated depth
-    static constexpr float kDelayII = 14.5f;  // ~14.5ms delay
+    static constexpr float kRateII = 0.78f;
+    static constexpr float kDepthII = 0.35f;  
+    static constexpr float kDelayII = 14.5f;  
 
-    // Mode I+II is not a standard feature. We use values that create a pleasant, richer effect.
     static constexpr float kRateIII = 0.9f;
     static constexpr float kDepthIII = 0.25f;
     static constexpr float kDelayIII = 12.0f;
     
-    // Noise level, slightly reduced for musicality
-    static constexpr float kNoiseLevel = 0.0004f;
+    // [Fidelidad] El nivel de ruido de los BBD es constante e independiente del modo
+    static constexpr float kNoiseLevel = 0.0006f; 
 };
 
 struct JunoTimeCurves {

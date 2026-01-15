@@ -1,7 +1,7 @@
 import os, sys
 
 # Path to the .106 file containing factory patches
-path = r'd:\\desarrollos\\ABDJUNiO601\\JUNO106\\patches\\factory_patches\\factory patches.106'
+path = r'd:\\desarrollos\\ABDJUNiO601\\JUNO106\\patches\\factory_patches\\factory patches (with position).106'
 
 with open(path, 'rb') as f:
     data = f.read()
@@ -27,8 +27,8 @@ while offset < len(data):
         break
     patch = data[offset:offset + 18]
     offset += 18
-    # Keep only entries whose name starts with 'A' (factory presets)
-    if name.startswith('A'):
+    # Keep only entries whose name starts with 'A' or 'B' (factory presets)
+    if name.startswith('A') or name.startswith('B'):
         entries.append((name, patch))
     # Stop when we have 128 factory presets
     if len(entries) >= 128:

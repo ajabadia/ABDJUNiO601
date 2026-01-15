@@ -96,9 +96,12 @@ private:
     float driftMigrator = 0.0f;   // Current erratic tuning offset
     float driftTarget = 0.0f;     // Target for random walk
     int driftCounter = 0;         // Decimator for drift updates
-    
     // Sub-osc flip-flop (authentic)
     bool subFlipFlop = false;
+    // JUCE DSP
+    juce::dsp::Oscillator<float> sawOsc;
+    juce::dsp::IIR::Filter<float> noiseFilter;
+    // noiseGen removed (duplicate)
     
     // Helpers
     void updateRangeMultiplier();

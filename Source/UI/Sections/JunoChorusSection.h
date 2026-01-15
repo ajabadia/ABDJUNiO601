@@ -2,11 +2,12 @@
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 
-class JunoChorusSection : public juce::Component, public juce::AudioProcessorValueTreeState::Listener, public juce::AsyncUpdater
+class JunoChorusSection : public juce::Component, public juce::AudioProcessorValueTreeState::Listener, public juce::AsyncUpdater, public juce::Timer
 {
 public:
-    JunoChorusSection(juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh) : apvts(apvts)
+    JunoChorusSection(class SimpleJuno106AudioProcessor& p, juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh) : processor(p), apvts(apvts)
     {
+        startTimerHz(30);
         auto cfgBtn = [&](juce::TextButton& b, const char* txt) {
             b.setButtonText(txt);
             b.setClickingTogglesState(true);
@@ -22,8 +23,8 @@ public:
         att1 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus1", b1);
         att2 = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "chorus2", b2);
 
-        JunoUI::setupMidiLearn(b1, mlh, "chorus1", midiLearnListeners);
-        JunoUI::setupMidiLearn(b2, mlh, "chorus2", midiLearnListeners);
+        JunoUI::setupMidiLearn(b1, mlh, "chorus1");
+        JunoUI::setupMidiLearn(b2, mlh, "chorus2");
 
         apvts.addParameterListener("chorus1", this);
         apvts.addParameterListener("chorus2", this);
@@ -36,6 +37,7 @@ public:
     
     void parameterChanged(const juce::String&, float) override { triggerAsyncUpdate(); }
     void handleAsyncUpdate() override { repaint(); }
+    void timerCallback() override { repaint(); }
 
     void paint(juce::Graphics& g) override
     {
@@ -46,7 +48,7 @@ public:
         g.setColour(JunoUI::kTextWhite);
         g.drawText("MODE", 0, 28, getWidth(), 20, juce::Justification::centred);
 
-        auto drawLED = [&](juce::TextButton& btn) {
+        auto drawLED = [&](juce::TextButton& btn, int mode) {
             if (!btn.isVisible()) return;
             auto b = btn.getBounds();
             float ledSize = 6.0f;
@@ -55,17 +57,23 @@ public:
             
             g.setColour(juce::Colours::black); g.fillEllipse(x, y, ledSize, ledSize);
             if (btn.getToggleState()) {
-                g.setColour(juce::Colour(0xffff3030));
+                // [Fidelidad] LED Modulation based on Chorus LFO phase
+                float phase = processor.getChorusLfoPhase(mode);
+                float blink = 0.6f + 0.4f * std::sin(phase * juce::MathConstants<float>::twoPi);
+                
+                juce::Colour ledRed (0xffff3030);
+                g.setColour(ledRed.withMultipliedAlpha(blink));
                 g.fillEllipse(x+1, y+1, ledSize-2, ledSize-2);
-                g.setColour(juce::Colour(0xffff3030).withAlpha(0.4f));
+                
+                g.setColour(ledRed.withAlpha(0.4f * blink));
                 g.fillEllipse(x-2, y-2, ledSize+4, ledSize+4);
             } else {
                  g.setColour(juce::Colour(0xff502020));
                  g.fillEllipse(x+1, y+1, ledSize-2, ledSize-2);
             }
         };
-        drawLED(b1);
-        drawLED(b2);
+        drawLED(b1, 1);
+        drawLED(b2, 2);
     }
 
     void resized() override
@@ -82,8 +90,9 @@ public:
     }
 
 private:
+    SimpleJuno106AudioProcessor& processor;
     juce::TextButton b1, b2;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> att1, att2;
-    juce::OwnedArray<JunoUI::MidiLearnMouseListener, juce::DummyCriticalSection> midiLearnListeners;
+    // juce::OwnedArray<JunoUI::MidiLearnMouseListener, juce::DummyCriticalSection> midiLearnListeners; // Removed for safety
     juce::AudioProcessorValueTreeState& apvts;
 };

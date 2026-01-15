@@ -46,11 +46,13 @@ void JunoSysExDisplay::paint(juce::Graphics& g)
     int xStart = 5;
     int x = xStart;
     int y = 0;
-    int w = 20; // width per byte char pair
-    int rowHeight = getHeight() / 2;
+    int byteW = 22; // Width per byte block
+    int rowHeight = 16;
+    int maxW = getWidth() - 10;
     
     for (int i = 0; i < (int)currentDump.size(); ++i) {
-        if (i == 12) { // Start second row
+        // Wrap if needed
+        if (x + byteW > maxW) {
              x = xStart;
              y += rowHeight;
         }
@@ -58,13 +60,13 @@ void JunoSysExDisplay::paint(juce::Graphics& g)
         juce::String hex = juce::String::toHexString(currentDump[i]).toUpperCase();
         if (hex.length() < 2) hex = "0" + hex;
         
-		bool isChanged = (i >= lastDump.size() || lastDump[i] != currentDump[i]);
+        bool isChanged = (i >= lastDump.size() || lastDump[i] != currentDump[i]);
 
         if (isChanged) g.setColour(highlightColour);
         else g.setColour(defaultColour);
         
-        g.drawText(hex, x, y, w, rowHeight, juce::Justification::centredLeft);
-        x += 24; // advance with some spacing
+        g.drawText(hex, x, y, byteW, rowHeight, juce::Justification::centredLeft);
+        x += 24; 
     }
 }
 

@@ -23,6 +23,7 @@ public:
     void outputActiveVoiceInfo(); 
     
     void updateParams(const SynthParams& params);
+    void forceUpdate(); // [Fix] Instant parameter update for patch load
     
     void setPolyMode(int mode); 
     int getLastTriggeredVoiceIndex() const { return lastAllocatedVoiceIndex; }
@@ -38,7 +39,18 @@ public:
         setAllNotesOff();
     }
 
-    // [Fidelidad] Helper to check if any key is physically held down
+    float getTotalEnvelopeLevel() const {
+        float sum = 0.0f;
+        for (const auto& v : voices) if (v.isActive()) sum += v.lastActiveOutputLevel();
+        return sum;
+    }
+
+    int getActiveVoiceCount() const {
+        int count = 0;
+        for (const auto& v : voices) if (v.isActive()) count++;
+        return count;
+    }
+
     bool isAnyNoteHeld() const {
         for (const auto& v : voices) if (v.isGateOnActive()) return true;
         return false;
@@ -48,13 +60,16 @@ private:
     static constexpr int MAX_VOICES = 6;
     std::array<Voice, MAX_VOICES> voices;
     
-    std::array<uint64_t, MAX_VOICES> voiceTimestamps;
-    uint64_t currentTimestamp = 0;
+    std::array<std::atomic<uint64_t>, MAX_VOICES> voiceTimestamps;
+    std::atomic<uint64_t> currentTimestamp {0};
     
-    int lastAllocatedVoiceIndex = -1; 
-    int polyMode = 1; 
+    std::atomic<int> lastAllocatedVoiceIndex {-1}; 
+    std::atomic<int> polyMode {1}; 
     
     bool anyVoiceActive() const;
     int findFreeVoiceIndex();
     int findVoiceToSteal();
+
+    juce::CriticalSection lock;
+    int nextPoly1Index = 0; // [Fidelidad] Authentic Cyclic allocation state
 };

@@ -9,6 +9,11 @@ JunoDCO::JunoDCO() {
 
 void JunoDCO::prepare(double sr, int maxBlockSize) {
     sampleRate = sr;
+    
+    juce::dsp::ProcessSpec spec { sr, (juce::uint32)maxBlockSize, 1 };
+    noiseFilter.prepare(spec);
+    noiseFilter.reset(); 
+    noiseFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sr, 4000.0f, 0.707f, 0.707f); // -3dB peak at 4kHz
     reset();
 }
 
@@ -18,7 +23,8 @@ void JunoDCO::reset() {
     driftTarget = 0.0f;
     driftCounter = 0;
     currentPWM = pwmValue;
-    subFlipFlop = false;
+    // [Fidelidad] Fase aleatoria para el Sub-Osc (Flip-flop del 8253 arranca en estado desconocido)
+    subFlipFlop = noiseGen.nextBool(); 
 }
 
 void JunoDCO::setFrequency(float hz) {
@@ -72,40 +78,62 @@ void JunoDCO::setDrift(float amount) {
 
 float JunoDCO::getNextSample(float lfoValue) {
     // === ANALOG DRIFT (Random Walk) ===
-    // Update target occasionally to create "wandering" pitch
-    if (++driftCounter > 1000) {
+    // [Fidelidad] Drift lento y sutil (Authentic: Temperature varies slowly, not 6ms jitter)
+    // Update every ~0.1s (4410 samples @ 44.1k)
+    if (++driftCounter > 4096) {
         driftCounter = 0;
-        // Random walk target between -1.0 and 1.0
         driftTarget = (noiseGen.nextFloat() * 2.0f - 1.0f); 
     }
     
-    // Smoothly migrate towards target (Simulate thermal capacitance/instability)
-    driftMigrator += (driftTarget - driftMigrator) * 0.005f;
+    // Smoothly migrate towards target (Thermal Inertia)
+    driftMigrator += (driftTarget - driftMigrator) * 0.001f;
     
-    // Scale by user drift amount (Max 15 cents equivalent)
-    float driftSemitones = driftMigrator * driftAmount * 0.15f; 
+    // Scale by user drift amount (Max 2 cents = 0.02 semitones)
+    // Authentic Juno DCOs are very stable, minimal jitter.
+    float driftSemitones = driftMigrator * driftAmount * 0.02f; 
     
     // === FREQUENCY with RANGE, LFO, and DRIFT ===
     float freq = baseFrequency * rangeMultiplier;
     
     // Apply LFO to pitch (vibrato)
-    float lfoSemitones = lfoValue * lfoDepth * 0.5f; // LFO max range ~ half semitone (checked/reduced)
+    float lfoSemitones = (lfoValue * 0.5f + 0.5f) * lfoDepth * 0.5f; 
     freq *= std::pow(2.0f, (lfoSemitones + driftSemitones) / 12.0f);
+
+    // [Fidelidad] 8253 TIMER QUANTIZATION (STRICT IMPL)
+    // The Juno-106 DCO is driven by an Intel 8253 Programmable Interval Timer.
+    // Master Clock = 8MHz. Divider = Freq * 256 (Prescaler/Integrator steps).
+    // The counter is a 16-bit integer. This causes frequency stepping.
     
-    // Nyquist check
-    if (freq >= sampleRate * 0.49f) {
-        freq = static_cast<float>(sampleRate * 0.49);
+    static constexpr float kMasterClock = 8000000.0f; 
+
+    if (freq > 0.0f) {
+        // Calculate required ticks (Float)
+        float rawTicks = kMasterClock / (freq * 256.0f);
+        
+        // Quantize to Integer (The Counter Register)
+        // [Audit Fix] Strict integer casting/rounding
+        uint32_t quantizedTicks = (uint32_t)(rawTicks + 0.5f);
+        
+        if (quantizedTicks < 1) quantizedTicks = 1;
+        // 16-bit Timer Limit (though freq would be super low)
+        if (quantizedTicks > 65535) quantizedTicks = 65535;
+        
+        // Recalculate EXACT Frequency driven by the Timer
+        freq = kMasterClock / (quantizedTicks * 256.0f);
     }
     
     // updateRangeMultiplier() handles the range. baseFrequency is bended.
     // DCO phase update happens below using current freq.
     
-    // === UPDATE PHASE (Must happen even if Pulse is OFF for Sub Osc) ===
+    // === UPDATE PHASE ===
+    if (sampleRate <= 0.0) return 0.0f;
+    
     double dt = freq / sampleRate;
     pulsePhase += dt;
+    
     if (pulsePhase >= 1.0) {
         pulsePhase -= 1.0;
-        subFlipFlop = !subFlipFlop; // Authentic: Sub is derived from DCO clock
+        subFlipFlop = !subFlipFlop; // Always toggle (Authentic Aliasing/Divider behavior)
     }
     
     float output = 0.0f;
@@ -122,11 +150,11 @@ float JunoDCO::getNextSample(float lfoValue) {
         return 0.0f;
     };
 
-    // === 1. SAWTOOTH (PolyBLEP) ===
     if (sawLevel > 0.0f) {
-        // Falling saw: jump from -1.0 to 1.0 at phase 0.0 (Magnitude +2.0)
+        // Falling saw: jumps from -1.0 to 1.0 at phase 0.0 (Magnitude +2.0)
         float saw = 1.0f - 2.0f * (float)pulsePhase;
-        saw += polyBlep((float)pulsePhase, (float)dt);
+        // Corrected Sign & Magnitude: Subtracting 2x the BLEP residue for -2.0 jump
+        saw -= 2.0f * polyBlep((float)pulsePhase, (float)dt);
         output += saw * sawLevel;
     }
     
@@ -134,42 +162,59 @@ float JunoDCO::getNextSample(float lfoValue) {
     if (pulseLevel > 0.0f) {
         float targetPWM = 0.5f;
         if (pwmMode == PWMMode::Manual) {
-            targetPWM = juce::jlimit(0.05f, 0.95f, pwmValue);
+            // [Fidelidad] Offset de fábrica +7% para evitar ancho muerto en 50%
+            targetPWM = 0.07f + pwmValue * 0.86f; 
         } else {
             targetPWM = juce::jlimit(0.05f, 0.95f, 0.5f + lfoValue * pwmValue * 0.45f);
         }
         
-        currentPWM += (targetPWM - currentPWM) * 0.01f;
+        // [Fidelidad] PWM Slew Calibrated
+        // Manual: 220ms (0.0009f), LFO: 470ms (0.00047f)
+        float slewRate = (pwmMode == PWMMode::Manual) ? 0.0009f : 0.00047f;
+        currentPWM += (targetPWM - currentPWM) * slewRate;
         
         float pulse = (pulsePhase < currentPWM) ? 1.0f : -1.0f;
         
-        // Risng edge at 0
-        pulse += polyBlep((float)pulsePhase, (float)dt);
+        // Rising edge at 0 (Jump +2.0)
+        pulse += 2.0f * polyBlep((float)pulsePhase, (float)dt);
         
-        // Falling edge at currentPWM
+        // Falling edge at currentPWM (Jump -2.0)
         float relativePhase = (float)pulsePhase - currentPWM;
         if (relativePhase < 0.0f) relativePhase += 1.0f;
-        pulse -= polyBlep(relativePhase, (float)dt);
+        pulse -= 2.0f * polyBlep(relativePhase, (float)dt);
         
         output += pulse * pulseLevel;
     }
     
     // === 3. SUB-OSCILLATOR (PolyBLEP) ===
     if (subLevel > 0.0f) {
-        float sub = subFlipFlop ? 1.0f : -1.0f;
-        float blep = polyBlep((float)pulsePhase, (float)dt); // Sync with DCO wrap
+        // [Fidelidad] Sub-Osc is a square wave from 8253 divider.
+        // It toggles at pulsePhase == 0.5 and remains continuous at pulsePhase == 0.0.
+        // Thus, we only need PolyBLEP at the 0.5 threshold.
+        float subThreshold = 0.5f; 
+        float sub = (pulsePhase < subThreshold) == subFlipFlop ? 1.0f : -1.0f;
         
-        if (subFlipFlop) sub += blep;
-        else sub -= blep;
+        // PolyBLEP at 0.5 transition
+        float relativePhase = (float)pulsePhase - subThreshold;
+        if (relativePhase < 0.0f) relativePhase += 1.0f;
+        
+        // The jump magnitude is 2.0 (1 to -1 or -1 to 1) 
+        // If subFlipFlop is T: jumps 1->-1 at 0.5. If F: jumps -1->1 at 0.5.
+        float blep = polyBlep(relativePhase, (float)dt);
+        if (subFlipFlop) sub -= 2.0f * blep;
+        else sub += 2.0f * blep;
         
         output += sub * subLevel;
     }
     
     // === 4. NOISE ===
     if (noiseLevel > 0.0f) {
-        float noise = noiseGen.nextFloat() * 2.0f - 1.0f;
+        float noise = (noiseGen.nextFloat() * 2.0f - 1.0f);
+        // [Fidelidad] Noise color (Peaking filter a 4kHz)
+        noise = noiseFilter.processSample(noise);
         output += noise * noiseLevel;
     }
     
-    return output * 0.5f;  
+    // [Fidelidad] Output Gain restored (removed 0.5f factor)
+    return output;  
 }

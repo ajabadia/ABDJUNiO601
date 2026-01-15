@@ -27,7 +27,6 @@ if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] No se pudo encontrar CMake. 
     echo Por favor, asegúrate de que Visual Studio tenga instalado el componente 
     echo "Herramientas de CMake para C++" o que CMake esté en tu PATH.
-    pause
     exit /b 1
 )
 
@@ -55,19 +54,18 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo 2. Compilando JUNiO 601 (Release)...
-"%CMAKE_PATH%" --build %BUILD_DIR% --config Release --target ABDSimpleJuno106_Standalone
+echo 2. Compilando JUNiO 601 (Debug)...
+"%CMAKE_PATH%" --build %BUILD_DIR% --config Debug --target ABDSimpleJuno106_Standalone
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] La compilacion ha fallado.
-    pause
     exit /b %ERRORLEVEL%
 )
 
 :: 5. Mover ejecutable
 echo.
 echo 3. Finalizando...
-set EXE_SRC=%BUILD_DIR%\ABDSimpleJuno106_artefacts\Release\Standalone\ABDSimpleJuno106.exe
-if not exist "%EXE_SRC%" set EXE_SRC=%BUILD_DIR%\Release\ABDSimpleJuno106.exe
+set EXE_SRC=%BUILD_DIR%\ABDSimpleJuno106_artefacts\Debug\Standalone\ABDSimpleJuno106.exe
+if not exist "%EXE_SRC%" set EXE_SRC=%BUILD_DIR%\Debug\ABDSimpleJuno106.exe
 
 if exist "%EXE_SRC%" (
     copy /Y "%EXE_SRC%" "JUNiO_601.exe" >nul
@@ -76,10 +74,5 @@ if exist "%EXE_SRC%" (
     echo BUILD EXITOSA! (Build #%build_no%)
     echo Ejecutable: JUNiO_601.exe
     echo ========================================
-    set /p RESP=¿Quieres ejecutarlo ahora? [S/N]: 
-    if /i "!RESP!"=="S" start JUNiO_601.exe
-) else (
-    echo [ADVERTENCIA] No se encontro el .exe compilado, revisa la carpeta build.
-)
+    echo [INFO] Build finalizado.
 
-pause

@@ -9,8 +9,6 @@ public:
     {
         JunoUI::setupVerticalSlider(levelSlider); addAndMakeVisible(levelSlider); 
         
-        // "VCA... sliders tienen un tamaño diferente al resto y no están alineados" -> Use standard helper setup or manual to match sizes.
-        
         JunoUI::setupLabel(levelLabel, "LEVEL", *this);
         
         // Mode Switch (ENV / GATE)
@@ -19,7 +17,6 @@ public:
         modeSwitch.setRange(0.0, 1.0, 1.0); // 0=ENV, 1=GATE
         modeSwitch.getProperties().set("isSwitch", true);
 
-        // "pon los literales del switch del vca encima y debajo del switch"
         JunoUI::setupLabel(modeLabel, "MODE", *this);
         JunoUI::setupLabel(lblEnv, "ENV", *this);
         JunoUI::setupLabel(lblGate, "GATE", *this);
@@ -27,8 +24,8 @@ public:
         levelAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "vcaLevel", levelSlider);
         modeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "vcaMode", modeSwitch);
 
-        JunoUI::setupMidiLearn(levelSlider, mlh, "vcaLevel", midiLearnListeners);
-        JunoUI::setupMidiLearn(modeSwitch, mlh, "vcaMode", midiLearnListeners);
+        JunoUI::setupMidiLearn(levelSlider, mlh, "vcaLevel");
+        JunoUI::setupMidiLearn(modeSwitch, mlh, "vcaMode");
     }
 
     void paint(juce::Graphics& g) override
@@ -38,35 +35,33 @@ public:
 
     void resized() override
     {
-        auto area = getLocalBounds().reduced(5, 30); // 24 -> 30 to match others (approx, others use reduced(5,30))
-        // Wait, other sections used reduced(5,30) because kHeaderHeight is 28 approx.
-        // Let's stick to consistent internal area: Y+25, H-30.
+        auto area = getLocalBounds().reduced(5, 30); 
         
+        int sliderWidth = 30;
+        int sliderH = area.getHeight() - 30; 
+        int yControls = area.getY() + 25;    
+
+        // Split 50/50 for Level / Mode
         int halfW = area.getWidth() / 2;
         int startX = area.getX();
         
-        int sliderW = 30;
-        int sliderH = area.getHeight() - 30; // Standard
-        int yControls = area.getY() + 25;    // Standard
+        // Level Col
+        int cxLevel = startX + halfW / 2;
+        levelLabel.setBounds(cxLevel - 20, area.getY(), 40, 20);
+        levelSlider.setBounds(cxLevel - sliderWidth/2, yControls, sliderWidth, sliderH);
 
-        // Level
-        levelLabel.setBounds(startX, area.getY(), halfW, 20);
-        levelLabel.setJustificationType(juce::Justification::centred);
-        levelSlider.setBounds(startX + (halfW - sliderW)/2, yControls, sliderW, sliderH);
-
-        // Mode Switch
+        // Mode Col
+        int cxMode = startX + halfW + halfW/2;
+        modeLabel.setBounds(cxMode - 20, area.getY(), 40, 20);
+        
         int switchW = 30;
         int switchH = 50; 
-        
-        modeLabel.setBounds(startX + halfW, area.getY(), halfW, 20);
-        modeLabel.setJustificationType(juce::Justification::centred);
-        
-        int switchCenterX = startX + halfW + (halfW - switchW)/2;
         int centerY = yControls + sliderH/2;
         
-        lblGate.setBounds(switchCenterX - 10, centerY - switchH/2 - 20, 50, 20);
-        modeSwitch.setBounds(switchCenterX, centerY - switchH/2, switchW, switchH);
-        lblEnv.setBounds(switchCenterX - 10, centerY + switchH/2, 50, 20);
+        modeSwitch.setBounds(cxMode - switchW/2, centerY - switchH/2, switchW, switchH);
+        
+        lblGate.setBounds(cxMode - 40, centerY - switchH/2 - 20, 80, 20);
+        lblEnv.setBounds(cxMode - 40, centerY + switchH/2, 80, 20);
     }
 
 private:

@@ -11,7 +11,10 @@ public:
     MidiLearnHandler() = default;
 
     static bool isProtectedCC(int cc) {
-        return cc == 1 || cc == 64; // Mod Wheel & Sustain
+        // Protected: Mod(1), Vol(7), Pan(10), Sustain(64), 
+        // AllSoundOff(120), Reset(121), AllNotesOff(123)
+        return cc == 1 || cc == 7 || cc == 10 || cc == 64 || 
+               cc == 120 || cc == 121 || cc == 123;
     }
 
     /** Processes an incoming CC message */

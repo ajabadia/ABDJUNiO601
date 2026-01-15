@@ -71,8 +71,7 @@ if(NOT BUILD_HEADLESS)
         Source/UI/Sections/JunoSysExDisplay.cpp
 
         Source/UI/Sections/JunoChorusSection.h
-        Source/UI/Sections/JunoControlSection.h
-        Source/UI/Sections/JunoControlSection.cpp
+        Source/UI/Sections/JunoChorusSection.h
         Source/UI/Sections/JunoDCOSection.h
         Source/UI/Sections/JunoENVSection.h
         Source/UI/Sections/JunoHPFSection.h

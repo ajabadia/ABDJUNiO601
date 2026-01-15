@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../DesignTokens.h"
 #include "../JunoUIHelpers.h"
 
 class JunoSysExDisplay : public juce::Component
@@ -28,8 +29,8 @@ public:
 private:
     std::vector<uint8_t> lastDump;
     std::vector<uint8_t> currentDump;
-    juce::Colour defaultColour = juce::Colours::grey;
-    juce::Colour highlightColour = juce::Colours::red;
+    juce::Colour defaultColour = JunoUI::Colors::kTextGrey;
+    juce::Colour highlightColour = JunoUI::Colors::kStripRed;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JunoSysExDisplay)
 };

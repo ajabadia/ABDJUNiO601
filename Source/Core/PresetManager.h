@@ -1,11 +1,13 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "FactoryPresets.h"
 
 /**
  * PresetManager - Manages factory and user presets
  */
-class PresetManager {
+class PresetManager 
+{
 public:
     struct Preset {
         juce::String name;
@@ -65,6 +67,7 @@ public:
     void setLastPath(const juce::String& path);
 
     void randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts);
+    void triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts); // [Fidelidad] Easter Egg
     
 private:
     std::vector<Library> libraries;
@@ -72,6 +75,7 @@ private:
     int currentPresetIndex = 0;
     
     Preset createPresetFromJunoBytes(const juce::String& name, const unsigned char* bytes);
+    Preset createPresetFromJunoPatch(const struct JunoPatch& p);
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetManager)
 };

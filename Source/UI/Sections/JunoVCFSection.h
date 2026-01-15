@@ -29,7 +29,7 @@ public:
         invAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "vcfPolarity", invSwitch); 
 
         // MIDI Learn
-        auto setupMidi = [&](juce::Component& c, const juce::String& p) { JunoUI::setupMidiLearn(c, mlh, p, midiLearnListeners); };
+        auto setupMidi = [&](juce::Component& c, const juce::String& p) { JunoUI::setupMidiLearn(c, mlh, p); };
         setupMidi(cutoffSlider, "vcfFreq");
         setupMidi(resSlider, "resonance");
         setupMidi(invSwitch, "vcfPolarity");
@@ -71,42 +71,45 @@ public:
     void resized() override
     {
         auto area = getLocalBounds().reduced(5, 30); // Margen para cabecera y texto
-        // 6 columnas: Freq, Res, Switch, Env, LFO, Kybd
-        float totalColumns = 5.6f; // El switch es mas estrecho
-        float standardColW = area.getWidth() / totalColumns;
-        float switchColW = standardColW * 0.6f; // Switch 60% ancho
         
-        int startX = area.getX();
         int sliderWidth = 30; // Standard
         int sliderY = area.getY() + 25; // Standard
         int sliderH = area.getHeight() - 30; // Standard
         int labelH = 20;
         
-        auto formatCol = [&](juce::Component& comp, juce::Label& label, float w) {
-            label.setBounds(startX, area.getY(), (int)w, labelH);
-            label.setJustificationType(juce::Justification::centred);
-            comp.setBounds(startX + ((int)w - sliderWidth)/2, sliderY, sliderWidth, sliderH);
-            startX += (int)w;
+        // Manual calculations to match DCO style grouping if possible, but 6 columns tight.
+        // Let's rely on distributed centers.
+        
+        float numCols = 6.0f; // Treat switch as full column for centering simplicity
+        float colW = area.getWidth() / numCols;
+        
+        auto formatCol = [&](juce::Component& comp, juce::Label& label, int idx) {
+             float cx = area.getX() + (colW * idx) + (colW / 2);
+             
+             label.setBounds((int)(cx - 20), area.getY(), 40, labelH);
+             label.setJustificationType(juce::Justification::centred);
+             
+             comp.setBounds((int)(cx - sliderWidth/2), sliderY, sliderWidth, sliderH);
         };
 
-        // Freq
-        formatCol(cutoffSlider, cutoffLabel, standardColW);
-        // Res
-        formatCol(resSlider, resLabel, standardColW);
+        // Freq (0)
+        formatCol(cutoffSlider, cutoffLabel, 0);
+        // Res (1)
+        formatCol(resSlider, resLabel, 1);
         
-        // Polarity Switch
+        // Polarity Switch (2)
         int switchW = 30;
         int switchH = 50;
-        int switchY = sliderY + (sliderH - switchH) / 2; // Centered in slider area
-        invSwitch.setBounds(startX + ((int)switchColW - switchW)/2, switchY, switchW, switchH);
-        startX += (int)switchColW;
+        int switchY = sliderY + (sliderH - switchH) / 2;
+        float cxSw = area.getX() + (colW * 2) + (colW / 2);
+        invSwitch.setBounds((int)(cxSw - switchW/2), switchY, switchW, switchH);
 
-        // Env
-        formatCol(envSlider, envLabel, standardColW);
-        // LFO
-        formatCol(lfoSlider, lfoLabel, standardColW);
-        // Kybd
-        formatCol(keySlider, keyLabel, standardColW);
+        // Env (3)
+        formatCol(envSlider, envLabel, 3);
+        // LFO (4)
+        formatCol(lfoSlider, lfoLabel, 4);
+        // Kybd (5)
+        formatCol(keySlider, keyLabel, 5);
     }
 
 private:

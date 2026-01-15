@@ -23,7 +23,7 @@ public:
         // RANGE Buttons
         cfgBtn(range16, "16'", 101); cfgBtn(range8, "8'", 101); cfgBtn(range4, "4'", 101);
         
-        // WAVE Buttons (Changed to TextButton to match RANGE style)
+        // WAVE Buttons
         cfgBtn(pulseButton, "PULSE"); 
         cfgBtn(sawButton, "SAW");
 
@@ -32,8 +32,10 @@ public:
         range4.onClick  = [this] { if (range4.getToggleState())  setRange(2); else updateRangeUI(); };
         
         auto cfgSld = [&](juce::Slider& s, const char* id) {
-            JunoUI::setupVerticalSlider(s); addAndMakeVisible(s); 
-            JunoUI::setupMidiLearn(s, mlh, id, midiLearnListeners);
+            JunoUI::setupVerticalSlider(s); 
+            s.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0); // HIDDEN VALUES
+            addAndMakeVisible(s); 
+            JunoUI::setupMidiLearn(s, mlh, id);
         };
         cfgSld(lfoSlider, "lfoToDCO");
         cfgSld(pwmSlider, "pwm");
@@ -45,20 +47,29 @@ public:
         subAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "subOsc", subSlider);
         noiseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "noise", noiseSlider);
 
-        addAndMakeVisible(pwmModeSwitch);
-        addAndMakeVisible(pwmModeSwitch);
-        // [Senior Audit] PWM Switch is Rotary 2-pos
-        pwmModeSwitch.setSliderStyle(juce::Slider::LinearBarVertical); // Wait, User asked for ROTARY.
-        // Actually, "LinearBarVertical" acts as a toggle, but visually weird. 
-        // Let's use RotaryHorizontalVerticalDrag.
-        pwmModeSwitch.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        pwmModeSwitch.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-        pwmModeSwitch.setSliderSnapsToMousePosition(false); // Rotary logic
-        pwmModeSwitch.setRotaryParameters(juce::MathConstants<float>::pi * 1.2f, 
-                                          juce::MathConstants<float>::pi * 1.8f, true); // Small arc (2 pos)
+        addAndMakeVisible(range16); range16.setRadioGroupId(101);
+        addAndMakeVisible(range8); range8.setRadioGroupId(101);
+        addAndMakeVisible(range4); range4.setRadioGroupId(101);
+        // PWM MODE Switch (Button)
+        addAndMakeVisible(pwmModeBtn);
+        pwmModeBtn.setClickingTogglesState(true);
+        pwmModeBtn.setButtonText("MAN"); // Default text, updated by listener?
+        // Actually, let's use colors to indicate mode LFO/MAN
+        pwmModeBtn.setColour(juce::TextButton::buttonOnColourId, JunoUI::kStripBlue); // LFO
+        pwmModeBtn.setColour(juce::TextButton::buttonColourId, JunoUI::kPanelDarkGrey); // MAN
         
-        pwmModeSwitch.setRange(0.0, 1.0, 1.0);
-        pwmModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "pwmMode", pwmModeSwitch);
+        // Attachment - If 'pwmMode' is 0/1 param
+        pwmModeButtonAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "pwmMode", pwmModeBtn);
+        
+        // Since button text might confuse if it just says "MAN" or "LFO" statically, 
+        // we can update text in parameterChanged or onClick? 
+        // "pwmMode" 0=LFO, 1=Manual (or vice versa in DSP? usually 0=LFO, 1=MAN)
+        // Let's assume toggle ON = 1 = MAN.
+        pwmModeBtn.onClick = [this] {
+            pwmModeBtn.setButtonText(pwmModeBtn.getToggleState() ? "MAN" : "LFO");
+        };
+        // Initial text set
+        // (Async update will handle it properly if we sync params)
 
         pulseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "pulseOn", pulseButton);
         sawAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "sawOn", sawButton);
@@ -66,6 +77,7 @@ public:
         apvts.addParameterListener("dcoRange", this);
         apvts.addParameterListener("pulseOn", this); 
         apvts.addParameterListener("sawOn", this);   
+        apvts.addParameterListener("pwmMode", this); // Listen for text update
         updateRangeUI(); 
     }
 
@@ -73,8 +85,16 @@ public:
         apvts.removeParameterListener("dcoRange", this);
         apvts.removeParameterListener("pulseOn", this);
         apvts.removeParameterListener("sawOn", this);
+        apvts.removeParameterListener("pwmMode", this);
     }
-    void parameterChanged(const juce::String&, float) override { triggerAsyncUpdate(); }
+    void parameterChanged(const juce::String& p, float v) override { 
+        if (p == "pwmMode") {
+             juce::MessageManager::callAsync([this, v]{
+                 pwmModeBtn.setButtonText(v > 0.5f ? "MAN" : "LFO");
+             });
+        }
+        triggerAsyncUpdate(); 
+    }
     void handleAsyncUpdate() override { 
         updateRangeUI(); 
         repaint(); 
@@ -100,42 +120,43 @@ public:
         g.fillRect(headerRect);
         g.setColour(JunoUI::kTextWhite);
         g.setFont(juce::FontOptions("Arial", 14.0f, juce::Font::bold));
-        
-        // Header Text
         g.drawText("DCO", 0, 0, getWidth(), 28, juce::Justification::centred);
 
-        // Sub-headers inside section
-        g.setFont(10.0f);
+        // Sub-headers (Control Labels)
+        g.setFont(juce::FontOptions("Arial", 12.0f, juce::Font::bold)); 
+        g.setColour(JunoUI::kTextWhite);
+
+        auto drawLabel = [&](juce::Component& c, const juce::String& txt) {
+            // Draw slightly above the component
+            g.drawText(txt, c.getX() - 15, c.getY() - 18, c.getWidth() + 30, 15, juce::Justification::centred);
+        };
         
-        // Manual placement matching resized()
-        int x1 = 15;
-        g.drawText("RANGE", x1 - 10, 28, 60, 20, juce::Justification::centred);
+        // Buttons: Range - Label fixed at top (aligned with Sliders)
+        int labelY = lfoSlider.getY() - 18; // Use Slider Y as reference for Top alignment
+        g.drawText("RANGE", range8.getX() - 30, labelY, 100, 15, juce::Justification::centred);
         
-        int xCursor = x1 + 40 + 20;
-        int spacing = 65;
-        g.drawText("LFO", xCursor - 15, 28, 60, 20, juce::Justification::centred);
-        xCursor += spacing;
-        g.drawText("PWM", xCursor - 15, 28, 60, 20, juce::Justification::centred);
-        xCursor += spacing;
+        drawLabel(lfoSlider, "LFO");
+        drawLabel(pwmSlider, "PWM");
         
-        g.drawText("MODE", xCursor - 10, 28, 60, 20, juce::Justification::centred);
-        xCursor += 55;
-        g.drawText("WAVE", xCursor - 10, 28, 70, 20, juce::Justification::centred);
-        xCursor += 55 + 25;
+        // Mode Label - Fixed Top
+        g.drawText("MODE", pwmModeBtn.getX() - 15, labelY, pwmModeBtn.getWidth() + 30, 15, juce::Justification::centred);
         
-        g.drawText("SUB", xCursor - 15, 28, 60, 20, juce::Justification::centred);
-        xCursor += spacing;
-        g.drawText("NOISE", xCursor - 15, 28, 60, 20, juce::Justification::centred);
+        // Wave Group - Fixed Top
+        g.drawText("WAVE", pulseButton.getX(), labelY, pulseButton.getWidth(), 15, juce::Justification::centred);
+        
+        drawLabel(subSlider, "SUB");
+        drawLabel(noiseSlider, "NOISE");
 
         g.setColour(juce::Colours::black);
         g.drawVerticalLine(getWidth() - 1, 0, (float)getHeight());
         
+        // LEDs ... (keep existing)
         auto drawLED = [&](juce::Component& comp) { 
              if (comp.isVisible()) {
                  auto b = comp.getBounds();
                  float ledSize = 6.0f;
                  float x = b.getCentreX() - ledSize/2;
-                 float y = (float)b.getY() - 10.0f;
+                 float y = (float)b.getY() - 6.0f; // Tighter
                  
                  g.setColour(juce::Colours::black);
                  g.fillEllipse(x, y, ledSize, ledSize);
@@ -153,64 +174,56 @@ public:
                  }
              }
         };
-        
         drawLED(range16); drawLED(range8); drawLED(range4);
         drawLED(pulseButton); drawLED(sawButton);
-        
-        if (pwmModeSwitch.isVisible()) {
-             auto b = pwmModeSwitch.getBounds();
-             g.setColour(JunoUI::kTextWhite.withAlpha(0.8f));
-             g.setFont(10.0f);
-             g.drawText("LFO", b.getX(), b.getY() - 12, b.getWidth(), 12, juce::Justification::centred);
-             g.drawText("MAN", b.getX(), b.getBottom() + 2, b.getWidth(), 12, juce::Justification::centred);
-        }
     }
 
     void resized() override
     {
-        auto r = getLocalBounds().reduced(0, 48); // Header(28) + SubHeaders(20)
+        auto r = getLocalBounds();
+        r.removeFromTop(28); // Header
+        r.removeFromTop(20); // Label Space
         
-        int sliderW = 30;
-        int sliderH = r.getHeight() - 30;  // Standard
-        int yControls = r.getY() + 25;     // Standard
+        int yControls = r.getY(); 
+        int sliderH = r.getHeight() - 5; // Use remaining space
+        int sliderW = 40; 
         
-        // COL 1: RANGE (Stacked Vertically)
-        int btnW = 40; 
+        // Center Buttons Vertically relative to Sliders
+        // Slider H approx 100-150px. Buttons top aligned in previous code.
+        // Let's center them.
+        int btnW = 35;
         int btnH = 25;
-        int gap = 5;
+        int gap = 3;
+        int x1 = 15;
         
-        int x1 = 15; // Left margin
-        int btnY = yControls; // Start at same Y as sliders top
+        int yOffset = (sliderH - btnH)/2; // Center single row (Range)
         
-        // Stack them
-        range16.setBounds(x1, btnY, btnW, btnH);
-        range8.setBounds(x1, btnY + btnH + gap, btnW, btnH);
-        range4.setBounds(x1, btnY + (btnH + gap)*2, btnW, btnH);
-
-        // Shift everything else left
-        int xCursor = x1 + btnW + 20;
+        range16.setBounds(x1, yControls + yOffset, btnW, btnH);
+        range8.setBounds(x1 + btnW + gap, yControls + yOffset, btnW, btnH);
+        range4.setBounds(x1 + (btnW + gap)*2, yControls + yOffset, btnW, btnH);
         
-        // LFO & PWM
-        int spacing = 65;
+        int xCursor = x1 + (btnW + gap)*3 + 25;
+        int spacing = 60;
+        
         lfoSlider.setBounds(xCursor, yControls, sliderW, sliderH);
         xCursor += spacing;
         
         pwmSlider.setBounds(xCursor, yControls, sliderW, sliderH);
         xCursor += spacing;
         
-        // PWM MODE & SWITCHES
-        // Center switches vertically relative to sliders
-        int switchY = yControls + (sliderH - 40) / 2;
-        pwmModeSwitch.setBounds(xCursor, switchY - 15, 40, 40); // Shifted up slightly
-        xCursor += 55;
+        // MODE (Switch) - Center
+        pwmModeBtn.setBounds(xCursor, yControls + yOffset, 40, 25);
+        xCursor += 55; 
         
-        int waveBtnW = 55;
-        int waveY = switchY - 15;
+        // WAVE - 2 rows. Center group.
+        int waveGroupH = 25 + 10 + 25; // btn + gap + btn
+        int waveY = yControls + (sliderH - waveGroupH)/2;
+        
+        int waveBtnW = 50;
         pulseButton.setBounds(xCursor, waveY, waveBtnW, 25);
         sawButton.setBounds(xCursor, waveY + 35, waveBtnW, 25);
-        xCursor += waveBtnW + 25;
+        xCursor += waveBtnW + 20;
         
-        // SUB & NOISE
         subSlider.setBounds(xCursor, yControls, sliderW, sliderH);
         xCursor += spacing;
         noiseSlider.setBounds(xCursor, yControls, sliderW, sliderH);
@@ -219,9 +232,11 @@ private:
     juce::AudioProcessorValueTreeState& apvts;
     juce::TextButton range16, range8, range4;
     juce::TextButton pulseButton, sawButton;
-    juce::Slider lfoSlider, pwmSlider, subSlider, noiseSlider, pwmModeSwitch;
+    juce::TextButton pwmModeBtn; // Replaced Switch
+    
+    juce::Slider lfoSlider, pwmSlider, subSlider, noiseSlider;
 
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoAttachment, pwmAttachment, subAttachment, noiseAttachment, pwmModeAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> pulseAttachment, sawAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoAttachment, pwmAttachment, subAttachment, noiseAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> pulseAttachment, sawAttachment, pwmModeButtonAtt; // New att type
     juce::OwnedArray<JunoUI::MidiLearnMouseListener, juce::DummyCriticalSection> midiLearnListeners;
 };

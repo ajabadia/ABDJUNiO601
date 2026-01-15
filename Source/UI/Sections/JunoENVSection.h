@@ -21,10 +21,10 @@ public:
         sAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "sustain", sSlider);
         rAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "release", rSlider);
 
-        JunoUI::setupMidiLearn(aSlider, mlh, "attack", midiLearnListeners);
-        JunoUI::setupMidiLearn(dSlider, mlh, "decay", midiLearnListeners);
-        JunoUI::setupMidiLearn(sSlider, mlh, "sustain", midiLearnListeners);
-        JunoUI::setupMidiLearn(rSlider, mlh, "release", midiLearnListeners);
+        JunoUI::setupMidiLearn(aSlider, mlh, "attack");
+        JunoUI::setupMidiLearn(dSlider, mlh, "decay");
+        JunoUI::setupMidiLearn(sSlider, mlh, "sustain");
+        JunoUI::setupMidiLearn(rSlider, mlh, "release");
     }
 
     void paint(juce::Graphics& g) override {

@@ -1,3 +1,4 @@
+
 #include "PresetManager.h"
 #include "FactoryPresets.h"
 #include "JunoTapeDecoder.h"
@@ -39,6 +40,60 @@ juce::Result PresetManager::loadTape(const juce::File& wavFile) {
     return juce::Result::ok();
 }
 
+// Overload for the authentic struct
+PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& p) {
+    juce::ValueTree state("Parameters");
+    auto toNorm = [](uint8_t b) { return static_cast<float>(b) / 127.0f; };
+    state.setProperty("lfoRate", toNorm(p.lfoRate), nullptr);
+    state.setProperty("lfoDelay", toNorm(p.lfoDelay), nullptr);
+    state.setProperty("lfoToDCO", toNorm(p.lfoToDCO), nullptr);
+    state.setProperty("pwm", toNorm(p.pwm), nullptr);
+    state.setProperty("noise", toNorm(p.noise), nullptr);
+    state.setProperty("vcfFreq", toNorm(p.vcfFreq), nullptr);
+    state.setProperty("resonance", toNorm(p.resonance), nullptr);
+    state.setProperty("envAmount", toNorm(p.envAmount), nullptr);
+    state.setProperty("lfoToVCF", toNorm(p.lfoToVCF), nullptr);
+    state.setProperty("kybdTracking", toNorm(p.kybdTracking), nullptr);
+    state.setProperty("vcaLevel", toNorm(p.vcaLevel), nullptr);
+    state.setProperty("attack", toNorm(p.attack), nullptr);
+    state.setProperty("decay", toNorm(p.decay), nullptr);
+    state.setProperty("sustain", toNorm(p.sustain), nullptr);
+    state.setProperty("release", toNorm(p.release), nullptr);
+    state.setProperty("subOsc", toNorm(p.subOsc), nullptr);
+    
+    // SW1
+    // bits: Range16/8/4 (0-2), Pulse (3), Saw (4), ChorusON (5), ChorusI (6)
+    int range = (p.sw1 & (1 << 0)) ? 0 : (p.sw1 & (1 << 1) ? 1 : 2);
+    state.setProperty("dcoRange", range, nullptr);
+    state.setProperty("pulseOn", (p.sw1 & (1 << 3)) != 0, nullptr);
+    state.setProperty("sawOn", (p.sw1 & (1 << 4)) != 0, nullptr);
+    
+    // Authentic Chorus Logic from manual/firmware:
+    // Bit 5: 0=ON, 1=OFF (Inverted)
+    // Bit 6: 0=ChorusII, 1=ChorusI
+    bool chorusActive = (p.sw1 & (1 << 5)) == 0; 
+    bool chorusI = (p.sw1 & (1 << 6)) != 0;
+    
+    state.setProperty("chorus1", chorusActive && chorusI, nullptr);
+    state.setProperty("chorus2", chorusActive && !chorusI, nullptr);
+
+    // SW2
+    // bits: PWM-LFO (0), VCA-GATE (1), VCF-Inv (2), HPF-bits (3-4)
+    state.setProperty("pwmMode", (p.sw2 & (1 << 0)) != 0, nullptr);     
+    state.setProperty("vcaMode", (p.sw2 & (1 << 1)) != 0, nullptr);     
+    state.setProperty("vcfPolarity", (p.sw2 & (1 << 2)) != 0, nullptr); 
+    // HPF: Hardware uses 3 (Bass) to 0 (Thin) descending logic? 
+    // Manual/Audit: Map HW bits (3-4 of SW2) to Engine bits (0-3).
+    // User requested "lógica descendente". 
+    const int hwHpf = (p.sw2 >> 3) & 0x03;
+    state.setProperty("hpfFreq", 3 - hwHpf, nullptr); 
+    
+    // Poly Mode Defaults to 1 (Poly 1) for factory patches
+    state.setProperty("polyMode", 1, nullptr); 
+
+    return Preset(p.name, "Factory", state);
+}
+
 PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::String& name, const unsigned char* bytes) {
     juce::ValueTree state("Parameters");
     auto toNorm = [](unsigned char b) { return static_cast<float>(b) / 127.0f; };
@@ -71,15 +126,18 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);     
     state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);     
     state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    state.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr); 
+    const int hwHpf2 = (sw2 >> 3) & 0x03;
+    state.setProperty("hpfFreq", 3 - hwHpf2, nullptr); 
     return Preset(name, "User", state);
 }
 
 void PresetManager::loadFactoryPresets() {
     if (libraries.empty()) return;
     libraries[0].patches.clear();
-    for (const auto& data : junoFactoryPresets) 
-        libraries[0].patches.push_back(createPresetFromJunoBytes(data.name, data.bytes));
+    // Authentic Factory Presets
+    for (const auto& patch : junoFactoryPatches) {
+        libraries[0].patches.push_back(createPresetFromJunoPatch(patch));
+    }
 }
 
 void PresetManager::loadUserPresets() {
@@ -115,15 +173,26 @@ void PresetManager::saveUserPreset(const juce::String& name, const juce::ValueTr
     obj->setProperty("name", name);
     obj->setProperty("state", state.toXmlString());
     
-    if (file.replaceWithText(juce::JSON::toString(juce::var(obj.get())))) {
-        loadUserPresets();
-        for(int i=0; i<(int)libraries.size(); ++i) {
-            if(libraries[i].name == "User") {
-                currentLibraryIndex = i;
-                for(int k=0; k<(int)libraries[i].patches.size(); ++k) {
-                    if(libraries[i].patches[k].name == name) { currentPresetIndex = k; break; }
+    // [Fidelidad] Atomic Save using TemporaryFile to prevent data loss
+    juce::TemporaryFile tempFile (file);
+    {
+        std::unique_ptr<juce::FileOutputStream> out (tempFile.getFile().createOutputStream());
+        if (out != nullptr) {
+            out->writeText (juce::JSON::toString(juce::var(obj.get())), false, false, nullptr);
+            out->flush();
+            out = nullptr; // Close before rename
+            
+            if (tempFile.overwriteTargetFileWithTemporary()) {
+                loadUserPresets();
+                for(int i=0; i<(int)libraries.size(); ++i) {
+                    if(libraries[i].name == "User") {
+                        currentLibraryIndex = i;
+                        for(int k=0; k<(int)libraries[i].patches.size(); ++k) {
+                            if(libraries[i].patches[k].name == name) { currentPresetIndex = k; break; }
+                        }
+                        break;
+                    }
                 }
-                break;
             }
         }
     }
@@ -155,6 +224,14 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
         selectLibrary(libIdx);
     } else {
         saveUserPreset(file.getFileNameWithoutExtension(), createPresetFromJunoBytes(file.getFileNameWithoutExtension(), found[0].b.data()).state);
+        loadUserPresets(); 
+        // Ensure we switch to User library to see the new patch
+        for(int i=0; i<getNumLibraries(); ++i) {
+            if (libraries[i].name == "User") {
+                selectLibrary(i);
+                break;
+            }
+        }
     }
     return juce::Result::ok();
 }
@@ -162,13 +239,13 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
 void PresetManager::exportLibraryToJson(const juce::File& file) {
     if (currentLibraryIndex >= getNumLibraries()) return;
     setLastPath(file.getParentDirectory().getFullPathName());
-    juce::Array<juce::var> arr;
+    juce::Array<juce::var> jsonPresets;
     for (const auto& p : libraries[currentLibraryIndex].patches) {
         juce::DynamicObject::Ptr o = new juce::DynamicObject();
-        o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); arr.add(juce::var(o.get()));
+        o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); jsonPresets.add(juce::var(o.get()));
     }
     juce::DynamicObject::Ptr root = new juce::DynamicObject();
-    root->setProperty("libraryName", libraries[currentLibraryIndex].name); root->setProperty("presets", arr);
+    root->setProperty("libraryName", libraries[currentLibraryIndex].name); root->setProperty("presets", jsonPresets);
     file.replaceWithText(juce::JSON::toString(juce::var(root.get())));
 }
 
@@ -176,13 +253,13 @@ void PresetManager::exportAllLibrariesToJson(const juce::File& file) {
     setLastPath(file.getParentDirectory().getFullPathName());
     juce::Array<juce::var> libs;
     for (const auto& lib : libraries) {
-        juce::Array<juce::var> arr;
+        juce::Array<juce::var> jsonPresets;
         for (const auto& p : lib.patches) {
             juce::DynamicObject::Ptr o = new juce::DynamicObject();
-            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); arr.add(juce::var(o.get()));
+            o->setProperty("name", p.name); o->setProperty("state", p.state.toXmlString()); jsonPresets.add(juce::var(o.get()));
         }
         juce::DynamicObject::Ptr lObj = new juce::DynamicObject();
-        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", arr); libs.add(juce::var(lObj.get()));
+        lObj->setProperty("libraryName", lib.name); lObj->setProperty("presets", jsonPresets); libs.add(juce::var(lObj.get()));
     }
     juce::DynamicObject::Ptr root = new juce::DynamicObject();
     root->setProperty("allLibraries", libs);
@@ -224,4 +301,40 @@ void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeStat
     setP("attack", r.nextFloat() * 0.5f); setP("decay", 0.1f + r.nextFloat() * 0.9f); setP("sustain", 0.2f + r.nextFloat() * 0.8f);
     setP("release", 0.1f + r.nextFloat() * 0.7f); setP("lfoRate", r.nextFloat()); setP("lfoDelay", r.nextFloat() * 0.5f);
     bool cOn = r.nextFloat() < 0.7f; if (cOn) { int m = r.nextInt(3); setB("chorus1", m == 0 || m == 2); setB("chorus2", m == 1 || m == 2); } else { setB("chorus1", false); setB("chorus2", false); }
+    setI("dcoRange", r.nextInt(3));
+    setI("pwmMode", r.nextInt(2));
+    setI("vcfPolarity", r.nextInt(2));
+    setI("vcaMode", r.nextInt(2));
+    setI("hpfFreq", r.nextInt(4));
+}
+
+void PresetManager::triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts) {
+    auto& r = juce::Random::getSystemRandom();
+    juce::StringArray sliders = {
+        "lfoRate", "lfoDelay", "lfoToDCO", "pwm", "noise", "vcfFreq", "resonance",
+        "envAmount", "lfoToVCF", "kybdTracking", "vcaLevel", "attack", "decay", "sustain", "release", "subOsc"
+    };
+
+    for (const auto& id : sliders) {
+        if (r.nextFloat() < 0.2f) { // 20% chance to corrupt
+            if (auto* p = apvts.getParameter(id)) {
+                float v = p->getValue();
+                uint8_t byte = static_cast<uint8_t>(v * 127.0f);
+                if (r.nextBool()) byte ^= (1 << r.nextInt(7)); 
+                else byte = (r.nextBool() ? 0x00 : 0x7F);
+                p->setValueNotifyingHost(static_cast<float>(byte) / 127.0f);
+            }
+        }
+    }
+    
+    // Corrupt switches too
+    juce::StringArray switches = { "dcoRange", "pwmMode", "vcfPolarity", "vcaMode", "hpfFreq" };
+    for (const auto& id : switches) {
+        if (r.nextFloat() < 0.1f) {
+            if (auto* p = apvts.getParameter(id)) {
+                int maxVal = (int)p->getNormalisableRange().end;
+                p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)r.nextInt(maxVal + 1)));
+            }
+        }
+    }
 }

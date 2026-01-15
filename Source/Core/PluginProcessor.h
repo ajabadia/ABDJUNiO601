@@ -1,18 +1,21 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <atomic>
+#include <cmath>
+#include <algorithm>
 #include "../Synth/Voice.h"
 #include "JunoVoiceManager.h"
 #include "JunoSysEx.h"
 #include "MidiLearnHandler.h"
 #include "JunoSysExEngine.h"
 #include "PerformanceState.h"
+#include "JunoBBD.h" // [Correct Placement]
 
 class PresetManager;
 
 class SimpleJuno106AudioProcessor : public juce::AudioProcessor,
-                                     public juce::MidiKeyboardState::Listener,
-                                     public juce::AudioProcessorValueTreeState::Listener {
+                                     public juce::MidiKeyboardState::Listener {
 public:
     SimpleJuno106AudioProcessor();
     ~SimpleJuno106AudioProcessor() override;
@@ -21,10 +24,8 @@ public:
     void releaseResources() override;
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    
-    void parameterChanged(const juce::String& parameterID, float newValue) override;
 
-    bool midiOutEnabled = false;
+    // midiOutEnabled removed, using SynthParams
     int midiChannel = 1; 
     juce::MidiBuffer midiOutBuffer;
     MidiLearnHandler midiLearnHandler;
@@ -79,15 +80,19 @@ public:
     void handleNoteOn(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
     void handleNoteOff(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
 
-    // [New] For Parameter Display
-    juce::String lastChangedParamName;
-    juce::String lastChangedParamValue;
     juce::AudioProcessorEditor* editor = nullptr;
 
     juce::MidiMessage getCurrentSysExData();
-    std::atomic<int> lastParamsChangeCounter {0};
+
+    void undo() { undoManager.undo(); }
+    void redo() { undoManager.redo(); }
+    void toggleMidiOut() { 
+        if (auto* p = apvts.getParameter("midiOut")) 
+            p->setValueNotifyingHost(p->getValue() > 0.5f ? 0.0f : 1.0f);
+    }
 
 private:
+    juce::UndoManager undoManager;
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
@@ -100,11 +105,22 @@ private:
     JunoSysExEngine sysExEngine;
     PerformanceState performanceState;
     bool sustainInverted = false;
+    
+    // [Fidelidad] Store last SysEx for Display
+    juce::MidiMessage lastSysExMessage;
+    // Helper to send and store
+    void sendSysEx(const juce::MidiMessage& msg) {
+        if (currentParams.midiOut) midiOutBuffer.addEvent(msg, 0);
+        lastSysExMessage = msg;
+    }
 
-    juce::dsp::Chorus<float> chorus; 
+    // [Fidelidad] Authentic MN3009 BBD Emulation
+    JunoDSP::JunoBBD chorus; 
+    JunoDSP::JunoBBD chorus2; // Mode II / Dual line
     juce::Random chorusNoiseGen; 
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker;
-
+    
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker; 
+    
     // [VCA/Chorus Audit] Filters for authentic chorus emulation
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusPreEmphasisFilter;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusDeEmphasisFilter;
@@ -166,6 +182,8 @@ private:
     std::atomic<float>* fmtBenderVCF = nullptr;
     std::atomic<float>* fmtBenderLFO = nullptr;
     std::atomic<float>* fmtTune = nullptr;
+    std::atomic<float>* fmtMasterVol = nullptr;
+    std::atomic<float>* fmtMidiOut = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };

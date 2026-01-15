@@ -1,6 +1,6 @@
 import os, sys, re
 
-path = r'd:\\desarrollos\\ABDJUNiO601\\JUNO106\\patches\\factory_patches\\factory patches.106'
+path = r'd:\\desarrollos\\ABDJUNiO601\\JUNO106\\patches\\factory_patches\\factory patches (with position).106'
 with open(path, 'rb') as f:
     data = f.read()
 header = data[:6]
@@ -25,5 +25,9 @@ while offset < len(data):
     entries.append((name, patch))
     offset += 18
 print('Total entries:', len(entries))
-for i, (name, patch) in enumerate(entries[:10]):
-    print(i, name, patch.hex(' '))
+# Dump names to file
+with open('names.txt', 'w', encoding='utf-8') as f:
+    for i, (name, patch) in enumerate(entries):
+        hex_p = patch.hex(' ')
+        f.write(f"{i}: {name} [{hex_p}]\n")
+print('Names written to names.txt')

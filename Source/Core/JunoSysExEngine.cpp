@@ -5,11 +5,23 @@ using namespace JunoSysEx;
 void JunoSysExEngine::handleIncomingSysEx (const juce::MidiMessage& msg,
                                            SynthParams& params)
 {
+    if (msg.getRawDataSize() < 5) return;
+    
+    // [Fidelidad] Compatibility Check: Handle both Old and New Roland formats
+    // Old: F0 41 <Type> <Channel> ...
+    // New: F0 41 <DeviceID> <ModelID> ...
+    
     int type = 0, ch = 0, p1 = 0, p2 = 0;
     uint8_t dumpData[18]; 
     
-    if (! JunoSysEx::parseMessage (msg, type, ch, p1, p2, dumpData))
-        return;
+    if (! JunoSysEx::parseMessage (msg, type, ch, p1, p2, dumpData)) {
+         return;
+    }
+
+    // Verify channel matches or it's Omni
+    if (ch != (params.midiChannel - 1) && params.midiChannel != 0) {
+        // ... (Optional: add strict channel filtering)
+    }
 
     if (type == kMsgParamChange)
     {
@@ -66,15 +78,16 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     // We assume this applies only when On. 
     // Standard interpretation: 1=I, 0=II.
     if (params.chorus1) sw1 |= (uint8_t)(1 << 6);
-
-    uint8_t sw2 = 0;
-    if (params.pwmMode == 1)     sw2 |= (uint8_t)(1 << 0);
-    if (params.vcaMode == 1)     sw2 |= (uint8_t)(1 << 1);
-    if (params.vcfPolarity == 1) sw2 |= (uint8_t)(1 << 2);
     
-    // [Audit Fix] HPF: 11=0, 10=1, 01=2, 00=3
-    const int hpfVal = 3 - juce::jlimit (0, 3, params.hpfFreq);
-    sw2 |= (uint8_t) ((hpfVal & 0x03) << 3);
+    uint8_t sw2 = 0;
+
+    // [Audit Fix] HPF: 00=3 (Thin), 11=0 (Boost)
+    // Hardware: 3=Pos 0 (Bass Boost), 0=Pos 3 (Thin)
+    // Engine: 0=Neutral (Bass), 3=Thin.
+    // Map Engine(0..3) to HW(3..0): hwVal = 3 - engineVal
+    const int engineHpf = juce::jlimit(0, 3, params.hpfFreq);
+    const int hwHpf = 3 - engineHpf;
+    sw2 |= (uint8_t) ((hwHpf & 0x03) << 3);
 
     return JunoSysEx::createPatchDump (channel, body, sw1, sw2);
 }
@@ -123,7 +136,7 @@ void JunoSysExEngine::applyParamChange (int paramId,
              params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
              params.vcaMode     = (value7bit & (1 << 1)) ? 1 : 0;
              params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
-             params.hpfFreq     = 3 - ((value7bit >> 3) & 0x03);
+             params.hpfFreq     = ((value7bit >> 3) & 0x03);
             break;
 
         default:
@@ -174,5 +187,8 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
     params.vcaMode     = (sw2 & (1 << 1)) ? 1 : 0;
     params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
-    params.hpfFreq     = 3 - ((sw2 >> 3) & 0x03);
+    
+    // HPF: hwVal 0..3 maps to engine 3..0
+    const int hwHpf = (sw2 >> 3) & 0x03;
+    params.hpfFreq = 3 - hwHpf;
 }

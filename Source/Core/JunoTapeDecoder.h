@@ -145,16 +145,19 @@ public:
 
         for (size_t i = 0; i < decodedBytes.size(); ++i) {
             if (decodedBytes[i] == blockHeader) {
-                if (i + 20 < decodedBytes.size() && decodedBytes[i + 20] == blockEnd) {
-                    uint8_t checksum = 0;
-                    for (int j = 0; j < 18; ++j) {
-                        checksum += decodedBytes[i + 1 + j];
-                    }
-                    checksum &= 0x7F;
+                // Ensure we can read up to decodedBytes[i + 20]
+                if (i + 20 < decodedBytes.size()) {
+                    if (decodedBytes[i + 20] == blockEnd) {
+                        uint8_t checksum = 0;
+                        for (int j = 0; j < 18; ++j) {
+                            checksum += decodedBytes[i + 1 + j];
+                        }
+                        checksum &= 0x7F;
 
-                    if (checksum == decodedBytes[i + 19]) {
-                        validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i + 1, decodedBytes.begin() + i + 19);
-                        i += 20;
+                        if (checksum == decodedBytes[i + 19]) {
+                            validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i + 1, decodedBytes.begin() + i + 19);
+                            i += 20;
+                        }
                     }
                 }
             }
