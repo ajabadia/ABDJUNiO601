@@ -48,14 +48,15 @@ void JunoADSR::setRelease(float seconds)
     calculateRates();
 }
 
-void JunoADSR::setGateMode(bool enabled)
+void JunoADSR::setGateMode(bool /*enabled*/)
 {
-    gateMode = enabled;
+    // Deprecated for internal use. VCA mode is handled in Voice::renderNextBlock.
 }
 
 void JunoADSR::noteOn()
 {
     stage = Stage::Attack;
+    mcuUpdateCounter = 0; // Trigger immediate update
 }
 
 void JunoADSR::noteOff()
@@ -67,10 +68,6 @@ void JunoADSR::noteOff()
 
 float JunoADSR::getNextSample()
 {
-    if (gateMode) {
-         currentValue = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
-         return currentValue;
-    }
 
     // [Fidelidad] MCU Update Cycle (3ms ~ 132 samples @ 44.1k)
     if (--mcuUpdateCounter <= 0) {
@@ -112,7 +109,7 @@ float JunoADSR::getNextSample()
             case Stage::Release:
             {
                 currentValue *= releaseRate;
-                if (currentValue < 0.005f) {
+                if (currentValue < 0.001f) {
                     currentValue = 0.0f;
                     stage = Stage::Idle;
                 }
@@ -135,46 +132,14 @@ float JunoADSR::getNextSample()
 void JunoADSR::calculateRates()
 {
     if (sampleRate <= 0.0) return;
-    
-    // Recalculate MCU samples
-    mcuUpdateRateSamples = (int)(0.003 * sampleRate); // 3ms
+    mcuUpdateRateSamples = (int)(0.0025 * sampleRate); // 2.5ms (Authentic 8031 loop)
     if (mcuUpdateRateSamples < 1) mcuUpdateRateSamples = 1;
 
-    // [Senior Audit] FIXED ADSR TABLES (Seconds)
-    // Compatible with Service Manual / MCU lookup
-    static const float kFixedRates[16] = {
-        0.001f, 0.004f, 0.009f, 0.018f, 0.035f, 0.065f, 0.12f, 0.25f,
-        0.5f,   0.9f,   1.5f,   2.5f,   4.0f,   6.0f,   9.0f,   12.0f
-    };
+    float dt = (float)mcuUpdateRateSamples / (float)sampleRate;
 
-    auto getAuthenticRate = [&](float seconds, bool isAttack) -> float {
-        // Find closest match in table to snap input "seconds" to authentic steps
-        int bestIdx = 0;
-        float minDiff = 1000.0f;
-        for (int i=0; i<16; ++i) {
-            float diff = std::abs(seconds - kFixedRates[i]);
-            if (diff < minDiff) { minDiff = diff; bestIdx = i; }
-        }
-        
-        float tau = kFixedRates[bestIdx];
-        float updateInterval = (float)mcuUpdateRateSamples;
-        float sr = (float)sampleRate;
-        
-        if (isAttack) {
-             // Attack: Linear-ish/Logarithmic approach to >1.0
-             // Rate is fraction of distance covered per tick.
-             // Time to reach 1.0 approx 5*Tau? 
-             // Simplified: Rate = 1.0 / (TimeInSamples / Interval)
-             // or standard Exp approach:
-             return 1.0f - std::exp(-updateInterval / (tau * sr * 0.4f)); 
-        } else {
-             // Decay/Release: Exponential to 0
-             return std::exp(-updateInterval / (tau * sr * 0.4f));
-        }
-    };
-
-    // Use mapped lookups
-    attackRate = getAuthenticRate(attackTime, true); 
-    decayRate = getAuthenticRate(decayTime, false);
-    releaseRate = getAuthenticRate(releaseTime, false);
+    // Correct exponential rates: V = V * exp(-dt/tau)
+    // For Attack, we use a slightly faster tau to reach 1.0 peak
+    attackRate = 1.0f - std::exp(-dt / juce::jmax(0.002f, attackTime * 0.5f)); 
+    decayRate = std::exp(-dt / juce::jmax(0.005f, decayTime));
+    releaseRate = std::exp(-dt / juce::jmax(0.005f, releaseTime));
 }

@@ -140,25 +140,25 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setLFODepth(p.lfoToDCO);
     dco.setDrift(p.thermalDrift);
     
-    // [Fidelidad] STRICT VCA MODE CONVENTION: 
-    // vcaMode = 0 -> ENV (Controlled by ADSR)
-    // vcaMode = 1 -> GATE (On/Off)
+    // [Fidelidad] Musical LFO Curve (0.1Hz to 20Hz)
+    // Quadratic mapping gives more resolution at low speeds than pure exponential.
+    float lfoVal = (float)p.lfoRate;
+    float lfoRateHz = 0.1f + (19.9f * lfoVal * lfoVal); // 0.1 in min, ~20 in max
     
-    // We pass the raw mode to the logic later.
-    // BUT we also need to tell ADSR how to behave if it handles gate internally.
-    // 'setGateMode(true)' forces ADSR to output square gate.
+    // Assuming lfo is managed externally and its frequency is set there.
+    // If Voice had its own LFO object, it would be lfo.setFrequency(lfoRateHz);
+    // For now, this line is commented out as `performanceState` is not a member of Voice.
+    // performanceState.lfoFrequency = lfoRateHz; 
+
+    // [Fidelidad] Musical ADSR Curve Mapping (Non-linear sliders)
+    // Most analog synths have more resolution in the short time range.
+    auto solveAttack  = [](float x) { return JunoTimeCurves::kAttackMin  + (JunoTimeCurves::kAttackMax  - JunoTimeCurves::kAttackMin)  * (x * x * x); };
+    auto solveRelease = [](float x) { return JunoTimeCurves::kReleaseMin + (JunoTimeCurves::kReleaseMax - JunoTimeCurves::kReleaseMin) * (x * x); };
     
-    if (p.vcaMode == 1) { // GATE MODE
-        adsr.setGateMode(true);
-        // We don't need to override timings because setGateMode(true) ignores them in ADSR::getNextSample
-    } else { // ENV MODE
-        adsr.setGateMode(false);
-        // Set authentic times
-        adsr.setAttack(juce::jmap(p.attack, 0.0f, 1.0f, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
-        adsr.setDecay(juce::jmap(p.decay, 0.0f, 1.0f, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
-        adsr.setSustain(p.sustain);
-        adsr.setRelease(juce::jmap(p.release, 0.0f, 1.0f, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
-    }
+    adsr.setAttack(solveAttack(p.attack));
+    adsr.setDecay(solveRelease(p.decay));
+    adsr.setSustain(p.sustain);
+    adsr.setRelease(solveRelease(p.release));
     
     updateHPF();
 }
@@ -245,12 +245,15 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
         uint8_t env8bit = (uint8_t)(envVal * 255.0f);
         float steppedEnv = env8bit / 255.0f;
 
-        if (steppedEnv > 0.7f) {
-            float drive = 1.0f + (steppedEnv - 0.7f) * 0.15f;
-            steppedEnv = std::tanh(steppedEnv * drive) / std::tanh(drive);
+        if (steppedEnv > 0.8f) {
+            float drive = 1.0f + (steppedEnv - 0.8f) * 0.1f;
+            steppedEnv = std::tanh(steppedEnv * drive); 
         }
 
+        float velocityGain = 0.5f + velocity * 0.5f; // Map velocity to 50% - 100% range
         float finalGain = (params.vcaMode == 1) ? (vcaLev * (isGateOn ? 1.0f : 0.0f)) : (steppedEnv * vcaLev);
+        finalGain *= velocityGain; // Apply velocity
+        finalGain *= 1.4f; // Global +3dB boost for factory preset presence
 
         float dcoSample = dco.getNextSample(voiceLfo);
         float rippleNoise = (noiseGen.nextFloat() - 0.5f) * 0.0005f * steppedEnv;
@@ -267,36 +270,41 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
             processed = hpfShelfFilter.processSample(processed);
         }
         
-        voiceData[i] = processed;
+        // Capture last modulation values for VCF 
+        float vcfParam = smoothedCutoff.getNextValue();
+        // [Fidelidad] Authentic Juno-106 VCF Mapping
+        // Range: 8Hz - 18kHz
+        float baseCutoff = 8.0f * std::pow(2000.0f, vcfParam);
         
-        // Capture last modulation values for block-rate VCF update
-        if (i == numSamples - 1) {
-            float vcfParam = smoothedCutoff.getNextValue();
-            float baseCutoff = 5.0f * std::pow(20000.0f / 5.0f, vcfParam);
-            if (params.kybdTracking > 0.001f) {
-                 float semitones = static_cast<float>(currentNote) - 60.0f;
-                 baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
-            }
-            float baseEnvMod = envVal * params.envAmount * 4.0f;
-            float envMod = (params.vcfPolarity == 1) ? baseEnvMod : -baseEnvMod;
-            float lfoMod = voiceLfo * params.lfoToVCF * 2.0f;
-            float benderMod = params.benderValue * params.benderToVCF * 3.0f;
-            float masterTuneOct = (params.tune - 0.5f) * 100.0f / 1200.0f; 
-            targetModOctaves = envMod + lfoMod + benderMod + masterTuneOct;
-            lastModOctaves += (targetModOctaves - lastModOctaves) * 0.15f; 
-            targetModCutoff = baseCutoff * std::pow(2.0f, lastModOctaves + (params.thermalDrift / 1200.0f));
-        } else {
-            smoothedCutoff.skip(1);
+        if (params.kybdTracking > 0.001f) {
+             float semitones = static_cast<float>(currentNote) - 60.0f;
+             baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
         }
+        
+        // [Fidelidad] ENV MOD Intensity increased to ~6 octaves
+        float baseEnvMod = envVal * params.envAmount * 6.0f;
+        float envMod = (params.vcfPolarity == 1) ? baseEnvMod : -baseEnvMod;
+        float lfoMod = voiceLfo * params.lfoToVCF * 2.0f;
+        float benderMod = params.benderValue * params.benderToVCF * 3.0f;
+        float masterTuneOct = (params.tune - 0.5f) * 100.0f / 1200.0f; 
+        
+        targetModOctaves = envMod + lfoMod + benderMod + masterTuneOct;
+        lastModOctaves += (targetModOctaves - lastModOctaves) * (0.1f + 0.4f * envVal); // Variable smoothing
+        
+        float finalCutoff = baseCutoff * std::pow(2.0f, lastModOctaves + (params.thermalDrift / 1200.0f));
+        finalCutoff = juce::jlimit(8.0f, static_cast<float>(sampleRate * 0.45), finalCutoff);
+        
+        // Update filter per-sample or small sub-blocks for attack "punch"
+        if ((i & 7) == 0) filter.setCutoffFrequencyHz(finalCutoff);
+        
+        voiceData[i] = processed;
     }
 
-    // --- STAGE 2: VCF (Block Processing - HUGE SPEEDUP) ---
+    // --- STAGE 2: VCF (Block Processing) ---
     float resParam = smoothedResonance.getNextValue();
-    float finalCutoff = juce::jlimit(5.0f, static_cast<float>(sampleRate * 0.45), targetModCutoff);
-    filter.setCutoffFrequencyHz(finalCutoff);
-    float res = juce::jlimit(0.0f, 1.0f, resParam);
-    filter.setResonance(res * 0.99f + (res > 0.98f ? 0.02f : 0.0f)); 
-    filter.setDrive(1.0f + res * 0.5f); 
+    float res = juce::jlimit(0.0f, 0.98f, resParam); // Safety cap to avoid explosion
+    filter.setResonance(res); 
+    filter.setDrive(1.0f + res * 1.1f); 
 
     juce::dsp::AudioBlock<float> voiceBlock = block.getSubBlock(0, (size_t)numSamples);
     juce::dsp::ProcessContextReplacing<float> vcfContext(voiceBlock);
@@ -307,7 +315,6 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     for (int i = 0; i < numSamples; ++i) {
         float sample = voiceData[i];
         if (std::isnan(sample) || std::isinf(sample)) sample = 0.0f;
-        sample = std::tanh(sample * 1.0f);
         
         float absSample = std::abs(sample);
         if (absSample > currentBlockMax) currentBlockMax = absSample;
@@ -318,10 +325,12 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     
     lastOutputLevel = currentBlockMax;
     
-    // [Fidelidad] Umbral de "Voice Kill" del Juno-106 (~0.4%)
-    if (!adsr.isActive() && lastOutputLevel < 0.004f) {
+    // [Fidelidad] Umbral de "Voice Kill" del Juno-106
+    // Use lower threshold but ensure it kills if ADSR is idle
+    if ((!adsr.isActive() && lastOutputLevel < 0.001f) || (lastOutputLevel < 0.0001f && !isGateOn)) {
          currentNote = -1;
          isGateOn = false;
+         adsr.reset();
     }
 }
 

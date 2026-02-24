@@ -294,8 +294,9 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     voiceManager.setBenderAmount(currentParams.benderValue + globalDriftAudible);
 
     // 4. LFO Generation (Master)
-    float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
-    float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, (float)currentParams.lfoRate);
+    // [Fidelidad] Musical LFO Curve (0.1Hz to 20Hz)
+    float lfoVal = (float)currentParams.lfoRate;
+    float lfoRateHz = 0.1f + (19.9f * lfoVal * lfoVal); 
     float lfoDelaySeconds = currentParams.lfoDelay * 5.0f;
     float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)sr)) : 1.0f;
     
@@ -379,6 +380,10 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             
             wetBuffer.setSample(0, i, wetMix + hissL);
             wetBuffer.setSample(1, i, -wetMix + hissR);
+            
+            // To be added to main buffer: 
+            // Left gets wetMix, Right gets -wetMix
+            // Result: L=Dry+Wet, R=Dry-Wet (Classic Juno Wide Chorus)
         }
         
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
@@ -386,22 +391,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             
         chorusDeEmphasisFilter.process(context);
 
-        // Compander & Crosstalk
+        // [Fidelidad] Master Soft Saturation (MN3101 PSU style)
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
             float* d = buffer.getWritePointer(ch);
             for (int i = 0; i < numSamples; ++i) {
                 float s = d[i];
-                if (std::abs(s) > 0.1f) 
-                    d[i] = ((s >= 0.0f) ? 1.0f : -1.0f) * (0.1f + (std::abs(s) - 0.1f) * 2.0f);
-            }
-        }
-        if (buffer.getNumChannels() > 1) {
-            float* l = buffer.getWritePointer(0);
-            float* r = buffer.getWritePointer(1);
-            for (int i = 0; i < numSamples; ++i) {
-                float vL = l[i], vR = r[i];
-                l[i] = vL + vR * 0.03f;
-                r[i] = vR + vL * 0.03f;
+                if (std::abs(s) > 0.6f) 
+                    d[i] = std::tanh(s);
             }
         }
     }

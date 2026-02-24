@@ -109,16 +109,16 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case DCO_SUB:    params.subOscLevel = norm; break;
 
         case SWITCHES_1:
-             params.vcaMode = (value7bit & (1 << 0)) ? 1 : 0;
-             params.pulseOn = (value7bit & (1 << 1)) != 0;
-             params.sawOn   = (value7bit & (1 << 2)) != 0;
+             params.sawOn    = (value7bit & (1 << 0)) != 0;
+             params.pulseOn  = (value7bit & (1 << 1)) != 0;
+             params.pwmMode  = (value7bit & (1 << 2)) ? 1 : 0;
+             params.vcaMode  = (value7bit & (1 << 3)) ? 1 : 0;
              params.dcoRange = (value7bit >> 4) & 0x03;
+             params.vcfPolarity = (value7bit & (1 << 6)) ? 1 : 0;
             break;
 
         case SWITCHES_2:
              params.hpfFreq     = (value7bit & 0x03);
-             params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
-             params.pwmMode     = (value7bit & (1 << 3)) ? 1 : 0;
              {
                  bool cOff = (value7bit & (1 << 4)) != 0;
                  bool cI   = (value7bit & (1 << 5)) != 0;
@@ -161,14 +161,14 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     const uint8_t sw1 = dumpData[16];
     const uint8_t sw2 = dumpData[17];
 
-    params.vcaMode  = (sw1 & (1 << 0)) ? 1 : 0;
-    params.pulseOn  = (sw1 & (1 << 1)) != 0;
-    params.sawOn    = (sw1 & (1 << 2)) != 0;
-    params.dcoRange = (sw1 >> 4) & 0x03;
+    params.sawOn       = (sw1 & (1 << 0)) != 0;
+    params.pulseOn     = (sw1 & (1 << 1)) != 0;
+    params.pwmMode     = (sw1 & (1 << 2)) ? 1 : 0;
+    params.vcaMode     = (sw1 & (1 << 3)) ? 1 : 0;
+    params.dcoRange    = (sw1 >> 4) & 0x03;
+    params.vcfPolarity = (sw1 & (1 << 6)) ? 1 : 0;
 
     params.hpfFreq     = (sw2 & 0x03);
-    params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
-    params.pwmMode     = (sw2 & (1 << 3)) ? 1 : 0;
     
     const bool chorusOff = (sw2 & (1 << 4)) != 0;
     const bool chorusI   = (sw2 & (1 << 5)) != 0;

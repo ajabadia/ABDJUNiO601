@@ -127,20 +127,27 @@ namespace JunoDSP
     private:
         float interpolate(float delaySamples)
         {
-            // Read Pos = Write Pos - Delay
             float rPos = (float)writePos - delaySamples;
             while (rPos < 0.0f) rPos += (float)bufferSize;
             while (rPos >= (float)bufferSize) rPos -= (float)bufferSize;
             
-            int i0 = (int)rPos;
-            int i1 = (i0 + 1) % bufferSize;
-            float frac = rPos - (float)i0;
+            int i1 = (int)rPos;
+            int i0 = (i1 - 1 + bufferSize) % bufferSize;
+            int i2 = (i1 + 1) % bufferSize;
+            int i3 = (i1 + 2) % bufferSize;
             
-            // Linear for now (authentic grit). Cubic if too clean?
-            // BBDs are "gritty" but mainly due to noise/bandwidth, not interpolation.
-            // Linear adds HF attenuation which mimics BBD loss.
+            float f = rPos - (float)i1;
+            
             const float* b = buffer.getReadPointer(0);
-            return b[i0] + frac * (b[i1] - b[i0]);
+            
+            // [Fidelidad] Cubic Hermite Interpolation (Better than Linear for Chorus)
+            float a = b[i0], m = b[i1], n = b[i2], o = b[i3];
+            float c0 = m;
+            float c1 = 0.5f * (n - a);
+            float c2 = a - 2.5f * m + 2.0f * n - 0.5f * o;
+            float c3 = 0.5f * (o - a) + 1.5f * (m - n);
+            
+            return ((c3 * f + c2) * f + c1) * f + c0;
         }
 
         juce::AudioBuffer<float> buffer;
