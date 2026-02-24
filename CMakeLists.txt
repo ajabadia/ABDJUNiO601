@@ -5,7 +5,21 @@ project(ABDSimpleJuno106 VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(JUCE_PATH "C:/JUCE" CACHE PATH "Path to JUCE")
+if(NOT DEFINED JUCE_PATH)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
+        set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
+    elseif(DEFINED ENV{JUCE_PATH})
+        set(JUCE_PATH "$ENV{JUCE_PATH}")
+    else()
+        set(JUCE_PATH "C:/JUCE" CACHE PATH "Path to JUCE")
+    endif()
+endif()
+
+message(STATUS "Using JUCE from: ${JUCE_PATH}")
+if(NOT EXISTS "${JUCE_PATH}/CMakeLists.txt")
+    message(FATAL_ERROR "JUCE not found at ${JUCE_PATH}. Please set JUCE_PATH to the JUCE directory.")
+endif()
+
 add_subdirectory(${JUCE_PATH} _juce)
 
 option(BUILD_HEADLESS "Build headless version (no GUI)" OFF)

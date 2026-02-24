@@ -61,32 +61,23 @@ PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& 
     state.setProperty("release", toNorm(p.release), nullptr);
     state.setProperty("subOsc", toNorm(p.subOsc), nullptr);
     
-    // SW1
-    // bits: Range16/8/4 (0-2), Pulse (3), Saw (4), ChorusON (5), ChorusI (6)
-    int range = (p.sw1 & (1 << 0)) ? 0 : (p.sw1 & (1 << 1) ? 1 : 2);
-    state.setProperty("dcoRange", range, nullptr);
-    state.setProperty("pulseOn", (p.sw1 & (1 << 3)) != 0, nullptr);
-    state.setProperty("sawOn", (p.sw1 & (1 << 4)) != 0, nullptr);
+    // SW1: VCA Mode, Pulse, Saw, Range
+    state.setProperty("vcaMode", (p.sw1 & (1 << 0)) != 0, nullptr);
+    state.setProperty("pulseOn", (p.sw1 & (1 << 1)) != 0, nullptr);
+    state.setProperty("sawOn", (p.sw1 & (1 << 2)) != 0, nullptr);
+    state.setProperty("dcoRange", (p.sw1 >> 4) & 0x03, nullptr);
     
-    // Authentic Chorus Logic from manual/firmware:
-    // Bit 5: 0=ON, 1=OFF (Inverted)
-    // Bit 6: 0=ChorusII, 1=ChorusI
-    bool chorusActive = (p.sw1 & (1 << 5)) == 0; 
-    bool chorusI = (p.sw1 & (1 << 6)) != 0;
-    
-    state.setProperty("chorus1", chorusActive && chorusI, nullptr);
-    state.setProperty("chorus2", chorusActive && !chorusI, nullptr);
-
-    // SW2
-    // bits: PWM-LFO (0), VCA-GATE (1), VCF-Inv (2), HPF-bits (3-4)
-    state.setProperty("pwmMode", (p.sw2 & (1 << 0)) != 0, nullptr);     
-    state.setProperty("vcaMode", (p.sw2 & (1 << 1)) != 0, nullptr);     
+    // SW2: HPF, Polarity, PWM Mode, Chorus
+    state.setProperty("hpfFreq", p.sw2 & 0x03, nullptr);
     state.setProperty("vcfPolarity", (p.sw2 & (1 << 2)) != 0, nullptr); 
-    // HPF: Hardware uses 3 (Bass) to 0 (Thin) descending logic? 
-    // Manual/Audit: Map HW bits (3-4 of SW2) to Engine bits (0-3).
-    // User requested "lógica descendente". 
-    const int hwHpf = (p.sw2 >> 3) & 0x03;
-    state.setProperty("hpfFreq", 3 - hwHpf, nullptr); 
+    state.setProperty("pwmMode", (p.sw2 & (1 << 3)) != 0, nullptr);
+
+    bool chorusOff = (p.sw2 & (1 << 4)) != 0;
+    bool chorusI = (p.sw2 & (1 << 5)) != 0;
+    bool chorusII = (p.sw2 & (1 << 6)) != 0;
+
+    state.setProperty("chorus1", !chorusOff && chorusI, nullptr);
+    state.setProperty("chorus2", !chorusOff && chorusII, nullptr);
     
     // Poly Mode Defaults to 1 (Poly 1) for factory patches
     state.setProperty("polyMode", 1, nullptr); 
@@ -114,20 +105,21 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("release", toNorm(bytes[14]), nullptr);
     state.setProperty("subOsc", toNorm(bytes[15]), nullptr);
     unsigned char sw1 = bytes[16];
-    int range = (sw1 & (1 << 0)) ? 0 : (sw1 & (1 << 1) ? 1 : 2);
-    state.setProperty("dcoRange", range, nullptr);
-    state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
-    state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
-    bool chorusOn = (sw1 & (1 << 5)) == 0; // 0=ON (Spec)
-    bool chorusI = (sw1 & (1 << 6)) != 0;
-    state.setProperty("chorus1", chorusOn && chorusI, nullptr);
-    state.setProperty("chorus2", chorusOn && !chorusI, nullptr);
+    state.setProperty("vcaMode", (sw1 & (1 << 0)) != 0, nullptr);
+    state.setProperty("pulseOn", (sw1 & (1 << 1)) != 0, nullptr);
+    state.setProperty("sawOn", (sw1 & (1 << 2)) != 0, nullptr);
+    state.setProperty("dcoRange", (sw1 >> 4) & 0x03, nullptr);
+
     unsigned char sw2 = bytes[17];
-    state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);     
-    state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);     
+    state.setProperty("hpfFreq", sw2 & 0x03, nullptr);
     state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    const int hwHpf2 = (sw2 >> 3) & 0x03;
-    state.setProperty("hpfFreq", 3 - hwHpf2, nullptr); 
+    state.setProperty("pwmMode", (sw2 & (1 << 3)) != 0, nullptr);
+
+    bool chorusOff2 = (sw2 & (1 << 4)) != 0;
+    bool chorusI2 = (sw2 & (1 << 5)) != 0;
+    bool chorusII2 = (sw2 & (1 << 6)) != 0;
+    state.setProperty("chorus1", !chorusOff2 && chorusI2, nullptr);
+    state.setProperty("chorus2", !chorusOff2 && chorusII2, nullptr);
     return Preset(name, "User", state);
 }
 
@@ -209,8 +201,9 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
     
     for (int i=0; i < s - 22; ++i) {
         if (d[i] == 0xF0 && d[i+1] == 0x41 && d[i+2] == 0x30) {
-            RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[i+5+k]);
-            found.push_back(p); i += 23;
+            // Juno-106: F0 41 30 ch [18 bytes] F7
+            RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[i+4+k]);
+            found.push_back(p); i += 22; // Skip to F7
         }
     }
     if (found.empty() && s >= 18) { RawP p; for(int k=0; k<18; ++k) p.b.push_back(d[k]); found.push_back(p); }

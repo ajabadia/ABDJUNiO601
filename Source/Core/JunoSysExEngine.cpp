@@ -62,32 +62,23 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[14] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.release * 127.0f));
     body[15] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.subOscLevel * 127.0f));
 
+    // [Hardware Authenticity] SW1: VCA Mode, Pulse, Saw, Range
     uint8_t sw1 = 0;
-    if (params.dcoRange == 0) sw1 |= (uint8_t)(1 << 0);
-    if (params.dcoRange == 1) sw1 |= (uint8_t)(1 << 1);
-    if (params.dcoRange == 2) sw1 |= (uint8_t)(1 << 2);
-    if (params.pulseOn)       sw1 |= (uint8_t)(1 << 3);
-    if (params.sawOn)         sw1 |= (uint8_t)(1 << 4);
+    if (params.vcaMode == 1) sw1 |= (1 << 0);
+    if (params.pulseOn)      sw1 |= (1 << 1);
+    if (params.sawOn)        sw1 |= (1 << 2);
+    sw1 |= (uint8_t)((params.dcoRange & 0x03) << 4);
     
-    // [Spec Verification] 
-    // Manual says: Bit 5: 0 => Chorus ON (Active Low)
-    const bool chorusOn = params.chorus1 || params.chorus2;
-    if (!chorusOn) sw1 |= (uint8_t)(1 << 5); 
-    
-    // Manual says: Bit 6: 0 => Level 2, 1 => Level 1
-    // We assume this applies only when On. 
-    // Standard interpretation: 1=I, 0=II.
-    if (params.chorus1) sw1 |= (uint8_t)(1 << 6);
-    
+    // [Hardware Authenticity] SW2: HPF, Polarity, PWM Mode, Chorus
     uint8_t sw2 = 0;
+    sw2 |= (uint8_t)(params.hpfFreq & 0x03);
+    if (params.vcfPolarity == 1) sw2 |= (1 << 2);
+    if (params.pwmMode == 1)     sw2 |= (1 << 3);
 
-    // [Audit Fix] HPF: 00=3 (Thin), 11=0 (Boost)
-    // Hardware: 3=Pos 0 (Bass Boost), 0=Pos 3 (Thin)
-    // Engine: 0=Neutral (Bass), 3=Thin.
-    // Map Engine(0..3) to HW(3..0): hwVal = 3 - engineVal
-    const int engineHpf = juce::jlimit(0, 3, params.hpfFreq);
-    const int hwHpf = 3 - engineHpf;
-    sw2 |= (uint8_t) ((hwHpf & 0x03) << 3);
+    const bool chorusOn = params.chorus1 || params.chorus2;
+    if (!chorusOn)  sw2 |= (1 << 4); // 1 = OFF
+    if (params.chorus1) sw2 |= (1 << 5);
+    if (params.chorus2) sw2 |= (1 << 6);
 
     return JunoSysEx::createPatchDump (channel, body, sw1, sw2);
 }
@@ -118,25 +109,23 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case DCO_SUB:    params.subOscLevel = norm; break;
 
         case SWITCHES_1:
-             if      (value7bit & (1 << 0)) params.dcoRange = 0;
-             else if (value7bit & (1 << 1)) params.dcoRange = 1;
-             else if (value7bit & (1 << 2)) params.dcoRange = 2;
-             
-             params.pulseOn = (value7bit & (1 << 3)) != 0;
-             params.sawOn   = (value7bit & (1 << 4)) != 0;
-             
-             {
-                 bool cOn = (value7bit & (1 << 5)) == 0; // 0=ON (Spec)
-                 bool cI = (value7bit & (1 << 6)) != 0;  // 1=I
-                 params.chorus1 = cOn && cI;
-                 params.chorus2 = cOn && !cI;
-             }
+             params.vcaMode = (value7bit & (1 << 0)) ? 1 : 0;
+             params.pulseOn = (value7bit & (1 << 1)) != 0;
+             params.sawOn   = (value7bit & (1 << 2)) != 0;
+             params.dcoRange = (value7bit >> 4) & 0x03;
             break;
+
         case SWITCHES_2:
-             params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
-             params.vcaMode     = (value7bit & (1 << 1)) ? 1 : 0;
+             params.hpfFreq     = (value7bit & 0x03);
              params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
-             params.hpfFreq     = ((value7bit >> 3) & 0x03);
+             params.pwmMode     = (value7bit & (1 << 3)) ? 1 : 0;
+             {
+                 bool cOff = (value7bit & (1 << 4)) != 0;
+                 bool cI   = (value7bit & (1 << 5)) != 0;
+                 bool cII  = (value7bit & (1 << 6)) != 0;
+                 params.chorus1 = !cOff && cI;
+                 params.chorus2 = !cOff && cII;
+             }
             break;
 
         default:
@@ -172,23 +161,18 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     const uint8_t sw1 = dumpData[16];
     const uint8_t sw2 = dumpData[17];
 
-    if      (sw1 & (1 << 0)) params.dcoRange = 0;
-    else if (sw1 & (1 << 1)) params.dcoRange = 1;
-    else if (sw1 & (1 << 2)) params.dcoRange = 2;
+    params.vcaMode  = (sw1 & (1 << 0)) ? 1 : 0;
+    params.pulseOn  = (sw1 & (1 << 1)) != 0;
+    params.sawOn    = (sw1 & (1 << 2)) != 0;
+    params.dcoRange = (sw1 >> 4) & 0x03;
 
-    params.pulseOn = (sw1 & (1 << 3)) != 0;
-    params.sawOn   = (sw1 & (1 << 4)) != 0;
-
-    const bool chorusOn   = (sw1 & (1 << 5)) == 0; // 0=ON (Spec)
-    const bool chorusI = (sw1 & (1 << 6)) != 0;
-    params.chorus1 = chorusOn && chorusI;
-    params.chorus2 = chorusOn && !chorusI;
-
-    params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
-    params.vcaMode     = (sw2 & (1 << 1)) ? 1 : 0;
+    params.hpfFreq     = (sw2 & 0x03);
     params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
+    params.pwmMode     = (sw2 & (1 << 3)) ? 1 : 0;
     
-    // HPF: hwVal 0..3 maps to engine 3..0
-    const int hwHpf = (sw2 >> 3) & 0x03;
-    params.hpfFreq = 3 - hwHpf;
+    const bool chorusOff = (sw2 & (1 << 4)) != 0;
+    const bool chorusI   = (sw2 & (1 << 5)) != 0;
+    const bool chorusII  = (sw2 & (1 << 6)) != 0;
+    params.chorus1 = !chorusOff && chorusI;
+    params.chorus2 = !chorusOff && chorusII;
 }

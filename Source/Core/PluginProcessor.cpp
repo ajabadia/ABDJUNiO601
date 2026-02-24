@@ -235,14 +235,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         checkSend(currentParams.release, lastParams.release, JunoSysEx::ENV_R);
         checkSend(currentParams.subOscLevel, lastParams.subOscLevel, JunoSysEx::DCO_SUB);
 
-        // Pack Switches 1/2 logic
+        // [Hardware Authenticity] Pack Switches 1/2 logic
         auto packSw1 = [](const SynthParams& p) -> int {
             int val = 0;
-            if (p.dcoRange == 0) val |= 1<<0; else if (p.dcoRange == 1) val |= 1<<1; else if (p.dcoRange == 2) val |= 1<<2;
-            if (p.pulseOn) val |= 1<<3;
-            if (p.sawOn) val |= 1<<4;
-            if (!(p.chorus1 || p.chorus2)) val |= (1<<5);
-            if (p.chorus1) val |= (1<<6);
+            if (p.vcaMode == 1) val |= (1 << 0);
+            if (p.pulseOn)      val |= (1 << 1);
+            if (p.sawOn)        val |= (1 << 2);
+            val |= (p.dcoRange & 0x03) << 4;
             return val;
         };
         int s1cur = packSw1(currentParams);
@@ -252,12 +251,12 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         }
 
         auto packSw2 = [](const SynthParams& p) -> int {
-            int val = 0;
-            if (p.pwmMode == 1) val |= 1<<0;
-            if (p.vcaMode == 1) val |= 1<<1;
-            if (p.vcfPolarity == 1) val |= 1<<2;
-            int hpf = 3 - p.hpfFreq;
-            val |= (hpf & 0x03) << 3;
+            int val = (p.hpfFreq & 0x03);
+            if (p.vcfPolarity == 1) val |= (1 << 2);
+            if (p.pwmMode == 1)     val |= (1 << 3);
+            if (!(p.chorus1 || p.chorus2)) val |= (1 << 4);
+            if (p.chorus1) val |= (1 << 5);
+            if (p.chorus2) val |= (1 << 6);
             return val;
         };
         int s2cur = packSw2(currentParams);
