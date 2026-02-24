@@ -79,25 +79,21 @@ namespace JunoSysEx
         type = data[1];
         channel = data[2] & 0x0F;
 
-        if (type == kMsgParamChange && size >= 7) { 
-             // F0 41 32 ch p v F7 (7 bytes)
-            p1 = data[4] & 0x7F;
-            p2 = data[5] & 0x7F;
+        if (type == kMsgParamChange && size >= 5) {
+             // F0 41 32 ch p v F7 (7 bytes) -> JUCE SysExData size = 5 (41 32 ch p v)
+            p1 = data[3] & 0x7F;
+            p2 = data[4] & 0x7F;
             return true;
         }
-        else if (type == kMsgPatchDump && size >= 23) { 
-            // F0 41 30 ch [16 params] [sw1] [sw2] F7 = 23 bytes
+        else if (type == kMsgPatchDump && size >= 21) {
+            // F0 41 30 ch [18 bytes] F7 (23 bytes) -> JUCE SysExData size = 21
             if (dumpBody18Bytes) {
-                memcpy(dumpBody18Bytes, data + 3, 18); // offset 4 if 23 bytes? No, data starts at data[3]? 
-                // Wait, MidiMessage::getSysExData() returns the body excluding F0/F7? 
-                // JUCE: getSysExData returns the bytes AFTER F0. 
-                // Standard: F0 41 30 ch ... F7. 
-                // data[0]=41, data[1]=30, data[2]=ch. Data starts at data[3].
                 memcpy(dumpBody18Bytes, data + 3, 18);
             }
             return true;
         }
-        else if (type == kMsgManualMode && size >= 6) {
+        else if (type == kMsgManualMode && size >= 4) {
+             // F0 41 31 ch 00 F7 (6 bytes) -> JUCE SysExData size = 4
              return true;
         }
         return false;
@@ -158,35 +154,26 @@ namespace JunoSysEx
         // Bit 5: Chorus 2
         // Bit 6: Chorus? (Usually Ch1 | Ch2<<1)
         
+        // Switch 1: VCA Mode, Pulse, Saw, Range
         auto makeSw1 = [](const SynthParams& p) -> uint8_t {
-            uint8_t b = (uint8_t)(p.hpfFreq & 0x03); 
-            if (p.chorus1) b |= (1 << 4);
-            if (p.chorus2) b |= (1 << 5); // Usually distinct bits
+            uint8_t b = 0;
+            if (p.vcaMode == 1) b |= (1 << 0);
+            if (p.pulseOn)      b |= (1 << 1);
+            if (p.sawOn)        b |= (1 << 2);
+            b |= (uint8_t)((p.dcoRange & 0x03) << 4);
             return b;
         };
 
-        // Switch 2: Pulse, Saw, Range, VCA Mode, Polarity
-        // 106 Service Manual:
-        // Bit 0: VCA Mode (0=Env, 1=Gate)
-        // Bit 1: Pulse 
-        // Bit 2: Saw
-        // Bit 3: Unused?
-        // Bit 4-5: Range (16'=1, 8'=2, 4'=3 ?) Or 0,1,2?
-        // Bit 6: VCF Polarity (0=Norm, 1=Inv)
-        
+        // Switch 2: HPF, Polarity, PWM Mode, Chorus
         auto makeSw2 = [](const SynthParams& p) -> uint8_t {
-             uint8_t b = 0;
-             if (p.vcaMode == 1) b |= 1; // 1=Gate
-             if (p.pulseOn) b |= (1 << 1);
-             if (p.sawOn) b |= (1 << 2);
+             uint8_t b = (uint8_t)(p.hpfFreq & 0x03);
+             if (p.vcfPolarity == 1) b |= (1 << 2);
+             if (p.pwmMode == 1)     b |= (1 << 3);
              
-             // Range: 0=16, 1=8, 2=4.
-             // Manual: Range is Bit 4,5. 
-             // 16' -> 1? 8' -> 2? 4' -> 3?
-             // Standard: 0=16, 1=8, 2=4.
-             b |= ((p.dcoRange & 3) << 4); 
-             
-             if (p.vcfPolarity == 1) b |= (1 << 6);
+             bool chorusOn = p.chorus1 || p.chorus2;
+             if (!chorusOn) b |= (1 << 4); // 1 = OFF
+             if (p.chorus1) b |= (1 << 5);
+             if (p.chorus2) b |= (1 << 6);
              return b;
         };
 
