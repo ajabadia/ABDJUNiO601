@@ -89,10 +89,14 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
     
     adsr.setSampleRate(sampleRate);
     // [ENV Audit] Set simplified, linear times. The ADSR class now handles the exponential curve.
-    adsr.setAttack(juce::jmap(params.attack, 0.0f, 1.0f, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
-    adsr.setDecay(juce::jmap(params.decay, 0.0f, 1.0f, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
+    // [Fidelidad] Exponential slider mapping for ADSR times
+    auto curveMap = [](float val, float minV, float maxV) {
+        return minV * std::pow(maxV / minV, val);
+    };
+    adsr.setAttack(curveMap(params.attack, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
+    adsr.setDecay(curveMap(params.decay, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
     adsr.setSustain(params.sustain);
-    adsr.setRelease(juce::jmap(params.release, 0.0f, 1.0f, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
+    adsr.setRelease(curveMap(params.release, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
     
     if (!isLegato) {
         // [Fidelidad] Fix "Ataques Sordos" (Dull Attacks)
@@ -148,16 +152,18 @@ void Voice::updateParams(const SynthParams& p) {
     // BUT we also need to tell ADSR how to behave if it handles gate internally.
     // 'setGateMode(true)' forces ADSR to output square gate.
     
+    auto curveMap = [](float val, float minV, float maxV) {
+        return minV * std::pow(maxV / minV, val);
+    };
+
     if (p.vcaMode == 1) { // GATE MODE
         adsr.setGateMode(true);
-        // We don't need to override timings because setGateMode(true) ignores them in ADSR::getNextSample
     } else { // ENV MODE
         adsr.setGateMode(false);
-        // Set authentic times
-        adsr.setAttack(juce::jmap(p.attack, 0.0f, 1.0f, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
-        adsr.setDecay(juce::jmap(p.decay, 0.0f, 1.0f, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
+        adsr.setAttack(curveMap(p.attack, JunoTimeCurves::kAttackMin, JunoTimeCurves::kAttackMax));
+        adsr.setDecay(curveMap(p.decay, JunoTimeCurves::kDecayMin, JunoTimeCurves::kDecayMax));
         adsr.setSustain(p.sustain);
-        adsr.setRelease(juce::jmap(p.release, 0.0f, 1.0f, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
+        adsr.setRelease(curveMap(p.release, JunoTimeCurves::kReleaseMin, JunoTimeCurves::kReleaseMax));
     }
     
     updateHPF();
@@ -165,17 +171,20 @@ void Voice::updateParams(const SynthParams& p) {
 
 void Voice::updateHPF() {
     switch (params.hpfFreq) {
-        case 0: // [Fidelidad] Position 0: Neutral (shelf applied in process)
+        case 0: // [Hardware] Position 0: Bass Boost (AllPass + Shelf in process)
             hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f);
             break;
-        case 1: // Approx 220Hz
+        case 1: // [Hardware] Position 1: Flat
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f);
+            break;
+        case 2: // [Hardware] Position 2: 225Hz
             hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 225.0f, 0.5f);
             break;
-        case 2: // Approx 400Hz
+        case 3: // [Hardware] Position 3: 450Hz
             hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 450.0f, 0.5f);
             break;
-        case 3: // Approx 650Hz
-            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 750.0f, 0.5f);
+        default:
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f);
             break;
     }
 }
@@ -277,10 +286,11 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
                  float semitones = static_cast<float>(currentNote) - 60.0f;
                  baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
             }
-            float baseEnvMod = envVal * params.envAmount * 4.0f;
-            float envMod = (params.vcfPolarity == 1) ? baseEnvMod : -baseEnvMod;
-            float lfoMod = voiceLfo * params.lfoToVCF * 2.0f;
-            float benderMod = params.benderValue * params.benderToVCF * 3.0f;
+            // [Fidelidad] Increased modulation depths for authentic VCF sweeps
+            float baseEnvMod = envVal * params.envAmount * 9.0f;
+            float envMod = (params.vcfPolarity == 1) ? -baseEnvMod : baseEnvMod;
+            float lfoMod = voiceLfo * params.lfoToVCF * 4.0f;
+            float benderMod = params.benderValue * params.benderToVCF * 2.0f;
             float masterTuneOct = (params.tune - 0.5f) * 100.0f / 1200.0f; 
             targetModOctaves = envMod + lfoMod + benderMod + masterTuneOct;
             lastModOctaves += (targetModOctaves - lastModOctaves) * 0.15f; 

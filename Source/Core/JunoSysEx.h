@@ -154,26 +154,25 @@ namespace JunoSysEx
         // Bit 5: Chorus 2
         // Bit 6: Chorus? (Usually Ch1 | Ch2<<1)
         
-        // Switch 1: VCA Mode, Pulse, Saw, Range
+        // Switch 1: Range, Pulse, Saw, Chorus
         auto makeSw1 = [](const SynthParams& p) -> uint8_t {
-            uint8_t b = 0;
-            if (p.vcaMode == 1) b |= (1 << 0);
-            if (p.pulseOn)      b |= (1 << 1);
-            if (p.sawOn)        b |= (1 << 2);
-            b |= (uint8_t)((p.dcoRange & 0x03) << 4);
+            uint8_t b = (uint8_t)(p.dcoRange & 0x07);
+            if (p.pulseOn) b |= (1 << 3);
+            if (p.sawOn)   b |= (1 << 4);
+            if (p.chorus1 || p.chorus2) {
+                b |= (1 << 5);
+                if (p.chorus2) b |= (1 << 6);
+            }
             return b;
         };
 
-        // Switch 2: HPF, Polarity, PWM Mode, Chorus
+        // Switch 2: PWM Mode, VCA Mode, Polarity, HPF
         auto makeSw2 = [](const SynthParams& p) -> uint8_t {
-             uint8_t b = (uint8_t)(p.hpfFreq & 0x03);
+             uint8_t b = 0;
+             if (p.pwmMode == 1)     b |= (1 << 0);
+             if (p.vcaMode == 1)     b |= (1 << 1);
              if (p.vcfPolarity == 1) b |= (1 << 2);
-             if (p.pwmMode == 1)     b |= (1 << 3);
-             
-             bool chorusOn = p.chorus1 || p.chorus2;
-             if (!chorusOn) b |= (1 << 4); // 1 = OFF
-             if (p.chorus1) b |= (1 << 5);
-             if (p.chorus2) b |= (1 << 6);
+             b |= (uint8_t)((p.hpfFreq & 0x03) << 3);
              return b;
         };
 

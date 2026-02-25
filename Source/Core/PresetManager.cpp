@@ -61,23 +61,22 @@ PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& 
     state.setProperty("release", toNorm(p.release), nullptr);
     state.setProperty("subOsc", toNorm(p.subOsc), nullptr);
     
-    // SW1: VCA Mode, Pulse, Saw, Range
-    state.setProperty("vcaMode", (p.sw1 & (1 << 0)) != 0, nullptr);
-    state.setProperty("pulseOn", (p.sw1 & (1 << 1)) != 0, nullptr);
-    state.setProperty("sawOn", (p.sw1 & (1 << 2)) != 0, nullptr);
-    state.setProperty("dcoRange", (p.sw1 >> 4) & 0x03, nullptr);
+    // SW1: Range, Pulse, Saw, Chorus
+    state.setProperty("dcoRange", (p.sw1 & 0x07), nullptr);
+    state.setProperty("pulseOn", (p.sw1 & (1 << 3)) != 0, nullptr);
+    state.setProperty("sawOn", (p.sw1 & (1 << 4)) != 0, nullptr);
     
-    // SW2: HPF, Polarity, PWM Mode, Chorus
-    state.setProperty("hpfFreq", p.sw2 & 0x03, nullptr);
+    bool chorusEnable = (p.sw1 & (1 << 5)) != 0;
+    bool chorusMode2 = (p.sw1 & (1 << 6)) != 0;
+    state.setProperty("chorus1", chorusEnable && !chorusMode2, nullptr);
+    state.setProperty("chorus2", chorusEnable && chorusMode2, nullptr);
+
+    // SW2: PWM Mode, VCA Mode, Polarity, HPF
+    state.setProperty("pwmMode", (p.sw2 & (1 << 0)) != 0, nullptr);
+    state.setProperty("vcaMode", (p.sw2 & (1 << 1)) != 0, nullptr);
     state.setProperty("vcfPolarity", (p.sw2 & (1 << 2)) != 0, nullptr); 
-    state.setProperty("pwmMode", (p.sw2 & (1 << 3)) != 0, nullptr);
-
-    bool chorusOff = (p.sw2 & (1 << 4)) != 0;
-    bool chorusI = (p.sw2 & (1 << 5)) != 0;
-    bool chorusII = (p.sw2 & (1 << 6)) != 0;
-
-    state.setProperty("chorus1", !chorusOff && chorusI, nullptr);
-    state.setProperty("chorus2", !chorusOff && chorusII, nullptr);
+    // HPF: EngineVal = 3 - SysExVal
+    state.setProperty("hpfFreq", 3 - ((p.sw2 >> 3) & 0x03), nullptr);
     
     // Poly Mode Defaults to 1 (Poly 1) for factory patches
     state.setProperty("polyMode", 1, nullptr); 
@@ -105,21 +104,20 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("release", toNorm(bytes[14]), nullptr);
     state.setProperty("subOsc", toNorm(bytes[15]), nullptr);
     unsigned char sw1 = bytes[16];
-    state.setProperty("vcaMode", (sw1 & (1 << 0)) != 0, nullptr);
-    state.setProperty("pulseOn", (sw1 & (1 << 1)) != 0, nullptr);
-    state.setProperty("sawOn", (sw1 & (1 << 2)) != 0, nullptr);
-    state.setProperty("dcoRange", (sw1 >> 4) & 0x03, nullptr);
+    state.setProperty("dcoRange", (sw1 & 0x07), nullptr);
+    state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
+    state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
+    bool cEnable = (sw1 & (1 << 5)) != 0;
+    bool cMode2 = (sw1 & (1 << 6)) != 0;
+    state.setProperty("chorus1", cEnable && !cMode2, nullptr);
+    state.setProperty("chorus2", cEnable && cMode2, nullptr);
 
     unsigned char sw2 = bytes[17];
-    state.setProperty("hpfFreq", sw2 & 0x03, nullptr);
+    state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);
+    state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);
     state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    state.setProperty("pwmMode", (sw2 & (1 << 3)) != 0, nullptr);
-
-    bool chorusOff2 = (sw2 & (1 << 4)) != 0;
-    bool chorusI2 = (sw2 & (1 << 5)) != 0;
-    bool chorusII2 = (sw2 & (1 << 6)) != 0;
-    state.setProperty("chorus1", !chorusOff2 && chorusI2, nullptr);
-    state.setProperty("chorus2", !chorusOff2 && chorusII2, nullptr);
+    // HPF: EngineVal = 3 - SysExVal
+    state.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr);
     return Preset(name, "User", state);
 }
 

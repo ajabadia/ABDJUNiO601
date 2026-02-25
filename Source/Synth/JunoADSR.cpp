@@ -140,40 +140,21 @@ void JunoADSR::calculateRates()
     mcuUpdateRateSamples = (int)(0.003 * sampleRate); // 3ms
     if (mcuUpdateRateSamples < 1) mcuUpdateRateSamples = 1;
 
-    // [Senior Audit] FIXED ADSR TABLES (Seconds)
-    // Compatible with Service Manual / MCU lookup
-    static const float kFixedRates[16] = {
-        0.001f, 0.004f, 0.009f, 0.018f, 0.035f, 0.065f, 0.12f, 0.25f,
-        0.5f,   0.9f,   1.5f,   2.5f,   4.0f,   6.0f,   9.0f,   12.0f
-    };
-
-    auto getAuthenticRate = [&](float seconds, bool isAttack) -> float {
-        // Find closest match in table to snap input "seconds" to authentic steps
-        int bestIdx = 0;
-        float minDiff = 1000.0f;
-        for (int i=0; i<16; ++i) {
-            float diff = std::abs(seconds - kFixedRates[i]);
-            if (diff < minDiff) { minDiff = diff; bestIdx = i; }
-        }
-        
-        float tau = kFixedRates[bestIdx];
+    auto getAuthenticRate = [&](float tau, bool isAttack) -> float {
         float updateInterval = (float)mcuUpdateRateSamples;
         float sr = (float)sampleRate;
         
         if (isAttack) {
-             // Attack: Linear-ish/Logarithmic approach to >1.0
-             // Rate is fraction of distance covered per tick.
-             // Time to reach 1.0 approx 5*Tau? 
-             // Simplified: Rate = 1.0 / (TimeInSamples / Interval)
-             // or standard Exp approach:
-             return 1.0f - std::exp(-updateInterval / (tau * sr * 0.4f)); 
+             // Attack: Logarithmic approach to target (Target > 1.0 for overshoot)
+             // Rate is adjusted so it reaches 1.0 in approx 'tau' seconds
+             return 1.0f - std::exp(-updateInterval / (tau * sr * 0.35f));
         } else {
-             // Decay/Release: Exponential to 0
-             return std::exp(-updateInterval / (tau * sr * 0.4f));
+             // Decay/Release: Exponential to target
+             // Rate is adjusted so it reaches 37% in approx 'tau' seconds
+             return std::exp(-updateInterval / (tau * sr));
         }
     };
 
-    // Use mapped lookups
     attackRate = getAuthenticRate(attackTime, true); 
     decayRate = getAuthenticRate(decayTime, false);
     releaseRate = getAuthenticRate(releaseTime, false);
