@@ -95,8 +95,8 @@ float JunoDCO::getNextSample(float lfoValue) {
     // === FREQUENCY with RANGE, LFO, and DRIFT ===
     float freq = baseFrequency * rangeMultiplier;
     
-    // Apply LFO to pitch (vibrato)
-    float lfoSemitones = (lfoValue * 0.5f + 0.5f) * lfoDepth * 0.5f; 
+    // Apply LFO to pitch (vibrato) - Authentic +/- 50 cents max
+    float lfoSemitones = lfoValue * 0.5f * lfoDepth;
     freq *= std::pow(2.0f, (lfoSemitones + driftSemitones) / 12.0f);
 
     // [Fidelidad] 8253 TIMER QUANTIZATION (STRICT IMPL)

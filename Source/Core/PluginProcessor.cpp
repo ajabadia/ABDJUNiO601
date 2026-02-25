@@ -320,8 +320,7 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         }
 
         float lfoTri = 2.0f * std::abs(2.0f * (masterLfoPhase - 0.5f)) - 1.0f;
-        float lfoTriStepped = std::floor(lfoTri * 15.99f) / 15.0f; 
-        lfoBuffer[i] = lfoTriStepped * masterLfoDelayEnvelope;
+        lfoBuffer[i] = lfoTri * masterLfoDelayEnvelope;
     }
 
     // 5. Voice Rendering

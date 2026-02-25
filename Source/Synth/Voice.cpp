@@ -200,11 +200,8 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     bool isActive = adsr.isActive() || lastOutputLevel > 0.0001f;
     if (!isActive) return;
     
-    if (numSamples > tempBuffer.getNumSamples()) numSamples = tempBuffer.getNumSamples();
-    
     if (params.portamentoOn && std::abs(currentFrequency - targetFrequency) > 0.1f) {
         float glideTime = params.portamentoTime * 5.0f;
-        // [Safety] Avoid division by zero
         float glideRate = 1.0f / (juce::jmax(0.001f, glideTime) * static_cast<float>(sampleRate));
         if (currentFrequency < targetFrequency) currentFrequency += (targetFrequency - currentFrequency) * glideRate;
         else currentFrequency -= (currentFrequency - targetFrequency) * glideRate;
@@ -212,124 +209,73 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
         currentFrequency = targetFrequency;
     }
     
-    float bendedFrequency = currentFrequency * std::pow(2.0f, params.tune / 1200.0f);
+    float bendedFrequency = currentFrequency;
     if (params.benderValue != 0.0f && params.benderToDCO > 0.0f) {
         bendedFrequency *= std::pow(2.0f, params.benderValue * (params.benderToDCO * 2.0f / 12.0f));
     }
-
-    // === THERMAL DRIFT SIMULATION ===
-    // [Senior Audit] Global Thermal Drift (Shared DAC)
-    // We now use the global drift value calculated in PluginProcessor, shared by all voices.
-    // This authenticates the single multiplexed DAC behavior.
     
-    float drift = params.thermalDrift; 
-    
-    // [Senior Audit] MASTER TUNE
-    // params.tune is 0..1 => +/- 50 cents (approx) = +/- 0.5 semitones
-    // 0.5 = 0 cents.
     float masterTune = (params.tune - 0.5f); // -0.5 to 0.5 semitones
-    
-    bendedFrequency *= std::pow(2.0f, (drift * 0.1f + masterTune) / 12.0f); // Subtle pitch drift + Master Tune
-
+    bendedFrequency *= std::pow(2.0f, (params.thermalDrift * 0.1f + masterTune) / 12.0f);
     dco.setFrequency(bendedFrequency);
     
-    // [Fidelidad] Unified Sample Loop
-    // Merging DCO, VCA, and VCF processing into a single loop ensures that 
-    // the Envelope (ADSR) state is consistent for both Amplitude and Filter modulation.
-    // Previously, split loops caused the Filter to read "stale" or end-of-block envelope values.
+    float resParam = smoothedResonance.getNextValue();
+    filter.setResonance(juce::jlimit(0.0f, 1.0f, resParam * 0.98f));
+    filter.setDrive(1.0f + resParam * 0.4f);
 
-    juce::dsp::AudioBlock<float> block(tempBuffer);
-    float* voiceData = tempBuffer.getWritePointer(0);
-    float targetModOctaves = 0.0f; 
-    float targetModCutoff = 0.0f; 
+    float vcaLevel = smoothedVCALevel.getNextValue();
+    float* outL = buffer.getWritePointer(0, startSample);
+    float* outR = buffer.getNumChannels() > 1 ? buffer.getWritePointer(1, startSample) : nullptr;
 
-    // --- STAGE 1: DCO, VCA, HPF (Per-Sample) ---
+    float currentBlockMax = 0.0f;
+
     for (int i = 0; i < numSamples; ++i) {
         float envVal = adsr.getNextSample();
         float voiceLfo = lfoBuffer[i];
-        float rawVcaLev = smoothedVCALevel.getNextValue();
         
-        uint8_t vcaByte = (uint8_t)(rawVcaLev * 127.0f);
-        float vcaLev = vcaByte / 127.0f;
-        uint8_t env8bit = (uint8_t)(envVal * 255.0f);
-        float steppedEnv = env8bit / 255.0f;
-
-        if (steppedEnv > 0.7f) {
-            float drive = 1.0f + (steppedEnv - 0.7f) * 0.15f;
-            steppedEnv = std::tanh(steppedEnv * drive) / std::tanh(drive);
-        }
-
-        float finalGain = (params.vcaMode == 1) ? (vcaLev * (isGateOn ? 1.0f : 0.0f)) : (steppedEnv * vcaLev);
-
+        // 1. DCO Generation
         float dcoSample = dco.getNextSample(voiceLfo);
-        float rippleNoise = (noiseGen.nextFloat() - 0.5f) * 0.0005f * steppedEnv;
-
-        if (std::abs(dcoSample) > 0.6f) {
-             float x = dcoSample * 1.2f;
-             dcoSample = x - (x * x * x) / 24.0f; 
+        
+        // 2. HPF Stage
+        float hpfOut = hpFilter.processSample(dcoSample + neighborCrosstalk * 0.005f);
+        if (params.hpfFreq == 0) hpfOut = hpfShelfFilter.processSample(hpfOut);
+        
+        // 3. VCF Stage (Per-sample modulation for analog fidelity)
+        float vcfParam = smoothedCutoff.getNextValue();
+        float baseCutoff = 10.0f * std::pow(20000.0f / 10.0f, vcfParam);
+        
+        if (params.kybdTracking > 0.001f) {
+             float semitones = static_cast<float>(currentNote) - 60.0f;
+             baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
         }
 
-        float rawSignal = (dcoSample + neighborCrosstalk * 0.007f + rippleNoise) * finalGain;
-        float processed = hpFilter.processSample(rawSignal);
-        
-        if (params.hpfFreq == 0) {
-            processed = hpfShelfFilter.processSample(processed);
-        }
-        
-        voiceData[i] = processed;
-        
-        // Capture last modulation values for block-rate VCF update
-        if (i == numSamples - 1) {
-            float vcfParam = smoothedCutoff.getNextValue();
-            float baseCutoff = 5.0f * std::pow(20000.0f / 5.0f, vcfParam);
-            if (params.kybdTracking > 0.001f) {
-                 float semitones = static_cast<float>(currentNote) - 60.0f;
-                 baseCutoff *= std::pow(2.0f, (semitones * params.kybdTracking) / 12.0f);
-            }
-            // [Fidelidad] Increased modulation depths for authentic VCF sweeps
-            float baseEnvMod = envVal * params.envAmount * 9.0f;
-            float envMod = (params.vcfPolarity == 1) ? -baseEnvMod : baseEnvMod;
-            float lfoMod = voiceLfo * params.lfoToVCF * 4.0f;
-            float benderMod = params.benderValue * params.benderToVCF * 2.0f;
-            float masterTuneOct = (params.tune - 0.5f) * 100.0f / 1200.0f; 
-            targetModOctaves = envMod + lfoMod + benderMod + masterTuneOct;
-            lastModOctaves += (targetModOctaves - lastModOctaves) * 0.15f; 
-            targetModCutoff = baseCutoff * std::pow(2.0f, lastModOctaves + (params.thermalDrift / 1200.0f));
-        } else {
-            smoothedCutoff.skip(1);
-        }
-    }
+        float envModScale = params.envAmount * 8.5f; // ~8.5 octaves max
+        float envMod = (params.vcfPolarity == 1) ? -envVal * envModScale : envVal * envModScale;
+        float lfoMod = voiceLfo * params.vcfLFOAmount * 2.5f;
+        float benderMod = params.benderValue * params.benderToVCF * 1.5f;
 
-    // --- STAGE 2: VCF (Block Processing - HUGE SPEEDUP) ---
-    float resParam = smoothedResonance.getNextValue();
-    float finalCutoff = juce::jlimit(5.0f, static_cast<float>(sampleRate * 0.45), targetModCutoff);
-    filter.setCutoffFrequencyHz(finalCutoff);
-    float res = juce::jlimit(0.0f, 1.0f, resParam);
-    filter.setResonance(res * 0.99f + (res > 0.98f ? 0.02f : 0.0f)); 
-    filter.setDrive(1.0f + res * 0.5f); 
+        float finalCutoff = baseCutoff * std::pow(2.0f, envMod + lfoMod + benderMod);
+        filter.setCutoffFrequencyHz(juce::jlimit(10.0f, static_cast<float>(sampleRate * 0.48), finalCutoff));
 
-    juce::dsp::AudioBlock<float> voiceBlock = block.getSubBlock(0, (size_t)numSamples);
-    juce::dsp::ProcessContextReplacing<float> vcfContext(voiceBlock);
-    filter.process(vcfContext);
+        float vcfOut = filter.processSample(0, hpfOut);
 
-    // --- STAGE 3: Final Output (Per-Sample) ---
-    float currentBlockMax = 0.0f;
-    for (int i = 0; i < numSamples; ++i) {
-        float sample = voiceData[i];
-        if (std::isnan(sample) || std::isinf(sample)) sample = 0.0f;
-        sample = std::tanh(sample * 1.0f);
-        
-        float absSample = std::abs(sample);
-        if (absSample > currentBlockMax) currentBlockMax = absSample;
+        // 4. VCA Stage (After VCF - Authentic Juno-106 Path)
+        float vcaGain = (params.vcaMode == 1) ? (isGateOn ? 1.0f : 0.0f) : envVal;
+        float output = vcfOut * vcaGain * vcaLevel * 1.8f;
 
-        buffer.addSample(0, startSample + i, sample * 0.95f);
-        if (buffer.getNumChannels() > 1) buffer.addSample(1, startSample + i, sample);
+        // 5. Soft Saturation
+        output = std::tanh(output * 0.9f);
+
+        if (std::abs(output) > currentBlockMax) currentBlockMax = std::abs(output);
+
+        outL[i] += output;
+        if (outR) outR[i] += output;
     }
     
     lastOutputLevel = currentBlockMax;
+    smoothedResonance.skip(numSamples);
+    smoothedVCALevel.skip(numSamples);
     
-    // [Fidelidad] Umbral de "Voice Kill" del Juno-106 (~0.4%)
-    if (!adsr.isActive() && lastOutputLevel < 0.004f) {
+    if (!adsr.isActive() && lastOutputLevel < 0.002f) {
          currentNote = -1;
          isGateOn = false;
     }
