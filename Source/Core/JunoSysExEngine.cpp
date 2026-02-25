@@ -62,9 +62,12 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[14] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.release * 127.0f));
     body[15] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.subOscLevel * 127.0f));
 
-    // [Hardware Authenticity] SW1: Range, Pulse, Saw, Chorus
+    // [Hardware Authenticity] SW1: Range (One-hot), Pulse, Saw, Chorus
     uint8_t sw1 = 0;
-    sw1 |= (uint8_t)(params.dcoRange & 0x07);
+    if      (params.dcoRange == 0) sw1 |= (1 << 0); // 16'
+    else if (params.dcoRange == 1) sw1 |= (1 << 1); // 8'
+    else if (params.dcoRange == 2) sw1 |= (1 << 2); // 4'
+
     if (params.pulseOn) sw1 |= (1 << 3);
     if (params.sawOn)   sw1 |= (1 << 4);
     
@@ -113,7 +116,10 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case DCO_SUB:    params.subOscLevel = norm; break;
 
         case SWITCHES_1:
-             params.dcoRange = (value7bit & 0x07);
+             if      (value7bit & (1 << 0)) params.dcoRange = 0;
+             else if (value7bit & (1 << 1)) params.dcoRange = 1;
+             else if (value7bit & (1 << 2)) params.dcoRange = 2;
+
              params.pulseOn  = (value7bit & (1 << 3)) != 0;
              params.sawOn    = (value7bit & (1 << 4)) != 0;
              {
@@ -165,7 +171,10 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     const uint8_t sw1 = dumpData[16];
     const uint8_t sw2 = dumpData[17];
 
-    params.dcoRange = (sw1 & 0x07);
+    if      (sw1 & (1 << 0)) params.dcoRange = 0;
+    else if (sw1 & (1 << 1)) params.dcoRange = 1;
+    else if (sw1 & (1 << 2)) params.dcoRange = 2;
+
     params.pulseOn  = (sw1 & (1 << 3)) != 0;
     params.sawOn    = (sw1 & (1 << 4)) != 0;
     {

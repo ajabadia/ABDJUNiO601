@@ -61,8 +61,9 @@ PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& 
     state.setProperty("release", toNorm(p.release), nullptr);
     state.setProperty("subOsc", toNorm(p.subOsc), nullptr);
     
-    // SW1: Range, Pulse, Saw, Chorus
-    state.setProperty("dcoRange", (p.sw1 & 0x07), nullptr);
+    // SW1: Range (One-hot), Pulse, Saw, Chorus
+    int range = (p.sw1 & (1 << 0)) ? 0 : ((p.sw1 & (1 << 1)) ? 1 : 2);
+    state.setProperty("dcoRange", range, nullptr);
     state.setProperty("pulseOn", (p.sw1 & (1 << 3)) != 0, nullptr);
     state.setProperty("sawOn", (p.sw1 & (1 << 4)) != 0, nullptr);
     
@@ -104,7 +105,8 @@ PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::Strin
     state.setProperty("release", toNorm(bytes[14]), nullptr);
     state.setProperty("subOsc", toNorm(bytes[15]), nullptr);
     unsigned char sw1 = bytes[16];
-    state.setProperty("dcoRange", (sw1 & 0x07), nullptr);
+    int range2 = (sw1 & (1 << 0)) ? 0 : ((sw1 & (1 << 1)) ? 1 : 2);
+    state.setProperty("dcoRange", range2, nullptr);
     state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
     state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
     bool cEnable = (sw1 & (1 << 5)) != 0;

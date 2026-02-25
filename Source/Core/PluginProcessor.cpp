@@ -47,8 +47,6 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     midiLearnHandler.bind(32, "vcaLevel");
     keyboardState.addListener(this);
 
-    keyboardState.addListener(this);
-
     // [Optimization] Initialize Cached Pointers
     auto getParam = [&](const juce::String& id) {
         auto* p = apvts.getRawParameterValue(id);
@@ -171,8 +169,7 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     const int numSamples = buffer.getNumSamples();
     const double sr = getSampleRate();
 
-    for (auto i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i) 
-        buffer.clear (i, 0, numSamples);
+    buffer.clear();
 
     keyboardState.processNextMidiBuffer (midiMessages, 0, numSamples, true);
 
@@ -237,7 +234,11 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
         // [Hardware Authenticity] Pack Switches 1/2 logic
         auto packSw1 = [](const SynthParams& p) -> int {
-            int val = (p.dcoRange & 0x07);
+            int val = 0;
+            if      (p.dcoRange == 0) val |= (1 << 0);
+            else if (p.dcoRange == 1) val |= (1 << 1);
+            else if (p.dcoRange == 2) val |= (1 << 2);
+
             if (p.pulseOn) val |= (1 << 3);
             if (p.sawOn)   val |= (1 << 4);
             if (p.chorus1 || p.chorus2) {
