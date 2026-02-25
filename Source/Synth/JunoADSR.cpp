@@ -48,15 +48,14 @@ void JunoADSR::setRelease(float seconds)
     calculateRates();
 }
 
-void JunoADSR::setGateMode(bool /*enabled*/)
+void JunoADSR::setGateMode(bool enabled)
 {
-    // Deprecated for internal use. VCA mode is handled in Voice::renderNextBlock.
+    gateMode = enabled;
 }
 
 void JunoADSR::noteOn()
 {
     stage = Stage::Attack;
-    mcuUpdateCounter = 0; // Trigger immediate update
 }
 
 void JunoADSR::noteOff()
@@ -68,6 +67,10 @@ void JunoADSR::noteOff()
 
 float JunoADSR::getNextSample()
 {
+    if (gateMode) {
+         currentValue = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
+         return currentValue;
+    }
 
     // [Fidelidad] MCU Update Cycle (3ms ~ 132 samples @ 44.1k)
     if (--mcuUpdateCounter <= 0) {
@@ -109,7 +112,7 @@ float JunoADSR::getNextSample()
             case Stage::Release:
             {
                 currentValue *= releaseRate;
-                if (currentValue < 0.001f) {
+                if (currentValue < 0.005f) {
                     currentValue = 0.0f;
                     stage = Stage::Idle;
                 }
@@ -132,14 +135,27 @@ float JunoADSR::getNextSample()
 void JunoADSR::calculateRates()
 {
     if (sampleRate <= 0.0) return;
-    mcuUpdateRateSamples = (int)(0.0025 * sampleRate); // 2.5ms (Authentic 8031 loop)
+    
+    // Recalculate MCU samples
+    mcuUpdateRateSamples = (int)(0.003 * sampleRate); // 3ms
     if (mcuUpdateRateSamples < 1) mcuUpdateRateSamples = 1;
 
-    float dt = (float)mcuUpdateRateSamples / (float)sampleRate;
+    auto getAuthenticRate = [&](float tau, bool isAttack) -> float {
+        float updateInterval = (float)mcuUpdateRateSamples;
+        float sr = (float)sampleRate;
+        
+        if (isAttack) {
+             // Attack: Logarithmic approach to target (Target > 1.0 for overshoot)
+             // Rate is adjusted so it reaches 1.0 in approx 'tau' seconds
+             return 1.0f - std::exp(-updateInterval / (tau * sr * 0.35f));
+        } else {
+             // Decay/Release: Exponential to target
+             // Rate is adjusted so it reaches 37% in approx 'tau' seconds
+             return std::exp(-updateInterval / (tau * sr));
+        }
+    };
 
-    // Correct exponential rates: V = V * exp(-dt/tau)
-    // For Attack, we use a slightly faster tau to reach 1.0 peak
-    attackRate = 1.0f - std::exp(-dt / juce::jmax(0.002f, attackTime * 0.5f)); 
-    decayRate = std::exp(-dt / juce::jmax(0.005f, decayTime));
-    releaseRate = std::exp(-dt / juce::jmax(0.005f, releaseTime));
+    attackRate = getAuthenticRate(attackTime, true); 
+    decayRate = getAuthenticRate(decayTime, false);
+    releaseRate = getAuthenticRate(releaseTime, false);
 }

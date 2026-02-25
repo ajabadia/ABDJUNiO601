@@ -136,18 +136,17 @@ namespace JunoDSP
             int i2 = (i1 + 1) % bufferSize;
             int i3 = (i1 + 2) % bufferSize;
             
-            float f = rPos - (float)i1;
-            
+            float frac = rPos - (float)i1;
             const float* b = buffer.getReadPointer(0);
             
-            // [Fidelidad] Cubic Hermite Interpolation (Better than Linear for Chorus)
-            float a = b[i0], m = b[i1], n = b[i2], o = b[i3];
-            float c0 = m;
-            float c1 = 0.5f * (n - a);
-            float c2 = a - 2.5f * m + 2.0f * n - 0.5f * o;
-            float c3 = 0.5f * (o - a) + 1.5f * (m - n);
+            // Cubic Hermite Interpolation
+            float y0 = b[i0], y1 = b[i1], y2 = b[i2], y3 = b[i3];
+            float a0 = -0.5f * y0 + 1.5f * y1 - 1.5f * y2 + 0.5f * y3;
+            float a1 = y0 - 2.5f * y1 + 2.0f * y2 - 0.5f * y3;
+            float a2 = -0.5f * y0 + 0.5f * y2;
+            float a3 = y1;
             
-            return ((c3 * f + c2) * f + c1) * f + c0;
+            return ((a0 * frac + a1) * frac + a2) * frac + a3;
         }
 
         juce::AudioBuffer<float> buffer;

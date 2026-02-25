@@ -237,11 +237,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
         // [Hardware Authenticity] Pack Switches 1/2 logic
         auto packSw1 = [](const SynthParams& p) -> int {
-            int val = 0;
-            if (p.vcaMode == 1) val |= (1 << 0);
-            if (p.pulseOn)      val |= (1 << 1);
-            if (p.sawOn)        val |= (1 << 2);
-            val |= (p.dcoRange & 0x03) << 4;
+            int val = (p.dcoRange & 0x07);
+            if (p.pulseOn) val |= (1 << 3);
+            if (p.sawOn)   val |= (1 << 4);
+            if (p.chorus1 || p.chorus2) {
+                val |= (1 << 5);
+                if (p.chorus2) val |= (1 << 6);
+            }
             return val;
         };
         int s1cur = packSw1(currentParams);
@@ -251,12 +253,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         }
 
         auto packSw2 = [](const SynthParams& p) -> int {
-            int val = (p.hpfFreq & 0x03);
+            int val = 0;
+            if (p.pwmMode == 1)     val |= (1 << 0);
+            if (p.vcaMode == 1)     val |= (1 << 1);
             if (p.vcfPolarity == 1) val |= (1 << 2);
-            if (p.pwmMode == 1)     val |= (1 << 3);
-            if (!(p.chorus1 || p.chorus2)) val |= (1 << 4);
-            if (p.chorus1) val |= (1 << 5);
-            if (p.chorus2) val |= (1 << 6);
+            // HPF: SysExVal = 3 - EngineVal
+            int hwHpf = 3 - juce::jlimit(0, 3, p.hpfFreq);
+            val |= (hwHpf & 0x03) << 3;
             return val;
         };
         int s2cur = packSw2(currentParams);
@@ -294,9 +297,8 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     voiceManager.setBenderAmount(currentParams.benderValue + globalDriftAudible);
 
     // 4. LFO Generation (Master)
-    // [Fidelidad] Musical LFO Curve (0.1Hz to 20Hz)
-    float lfoVal = (float)currentParams.lfoRate;
-    float lfoRateHz = 0.1f + (19.9f * lfoVal * lfoVal); 
+    float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
+    float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, (float)currentParams.lfoRate);
     float lfoDelaySeconds = currentParams.lfoDelay * 5.0f;
     float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)sr)) : 1.0f;
     
@@ -380,10 +382,6 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             
             wetBuffer.setSample(0, i, wetMix + hissL);
             wetBuffer.setSample(1, i, -wetMix + hissR);
-            
-            // To be added to main buffer: 
-            // Left gets wetMix, Right gets -wetMix
-            // Result: L=Dry+Wet, R=Dry-Wet (Classic Juno Wide Chorus)
         }
         
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
@@ -391,13 +389,22 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             
         chorusDeEmphasisFilter.process(context);
 
-        // [Fidelidad] Master Soft Saturation (MN3101 PSU style)
+        // Simple Soft Saturation (Master Stage)
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
             float* d = buffer.getWritePointer(ch);
             for (int i = 0; i < numSamples; ++i) {
-                float s = d[i];
-                if (std::abs(s) > 0.6f) 
-                    d[i] = std::tanh(s);
+                d[i] = std::tanh(d[i] * 1.1f); // Subtle drive + safety clip
+            }
+        }
+
+        // Stereo Crosstalk (Analog leakage)
+        if (buffer.getNumChannels() > 1) {
+            float* l = buffer.getWritePointer(0);
+            float* r = buffer.getWritePointer(1);
+            for (int i = 0; i < numSamples; ++i) {
+                float vL = l[i], vR = r[i];
+                l[i] = vL + vR * 0.03f;
+                r[i] = vR + vL * 0.03f;
             }
         }
     }
