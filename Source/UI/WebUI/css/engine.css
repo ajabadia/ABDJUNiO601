@@ -35,7 +35,6 @@
 /* Specific Proportions (Mockup calibrated) */
 #lfo {
     flex: 2;
-    border-left: 2px solid var(--white);
 }
 
 #dco {
