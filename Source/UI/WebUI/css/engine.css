@@ -1,0 +1,139 @@
+/* --- ENGINE LAYOUT & MODULES --- */
+
+#main-working-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#engine-layout {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+}
+
+.engine-row {
+    display: flex;
+    gap: 0;
+    flex: 1;
+    border: 1px solid #111;
+}
+
+.module {
+    flex: 1;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid var(--white);
+    backdrop-filter: var(--glass-blur);
+    border-left: none;
+}
+
+/* Specific Proportions (Mockup calibrated) */
+#lfo {
+    flex: 2;
+    border-left: 2px solid var(--white);
+}
+
+#dco {
+    flex: 10;
+}
+
+#hpf {
+    flex: 1.2;
+    border-right: none;
+    border-left: none;
+}
+
+#vcf {
+    flex: 6;
+}
+
+#vca {
+    flex: 2;
+}
+
+#env {
+    flex: 4.5;
+}
+
+#chorus {
+    flex: 2.5;
+    border-right: none;
+    border-left: none;
+}
+
+.module-bar {
+    height: 28px;
+    background: var(--juno-red) !important;
+    font-weight: 900;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 2px;
+    border-bottom: 2px solid var(--black);
+    border-left: 2px solid transparent;
+    border-right: 2px solid transparent;
+    color: var(--white);
+    text-transform: uppercase;
+}
+
+.module.blue .module-bar {
+    background: var(--juno-blue) !important;
+}
+
+.controls {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding: 20px 6px;
+    gap: 5px;
+}
+
+.ctrl-group {
+    display: flex;
+    gap: 12px;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0 8px;
+}
+
+.ctrl-group.center {
+    justify-content: center;
+    align-items: center;
+}
+
+#dco-range,
+#dco-wave {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 100px;
+}
+
+.separator {
+    width: 2px;
+    background: rgba(255, 255, 255, 0.05);
+    height: 80%;
+    align-self: center;
+    border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.section-top {
+    background: var(--juno-red);
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 900;
+    font-size: 11px;
+}
+
+.section-top.blue {
+    background: var(--juno-blue);
+}
