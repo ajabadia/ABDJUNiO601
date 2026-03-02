@@ -111,12 +111,7 @@
 
 /* Octave row refined below */
 
-.oct-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-}
+/* Octave unit styles removed for grid layout */
 
 .lfo-trig-col {
     display: flex;
@@ -132,46 +127,17 @@
     height: 32px;
 }
 
-.oct-unit span {
-    font-size: 8px;
-    font-weight: 900;
-    color: var(--white);
-}
+/* Octave unit span styles removed */
 
 .perf-octave-zone {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    /* Matching utility grid */
+    /* Matching utility grid 4x2 */
     align-items: center;
-    padding: 20px 0;
-    /* Increased height */
+    padding: 15px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 5px;
     width: 100%;
-}
-
-.oct-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Positioning OCT+ in Column 2 and OCT- in Column 3 */
-.oct-unit.up-pod {
-    grid-column: 2;
-}
-
-.oct-unit.down-pod {
-    grid-column: 3;
-}
-
-.oct-btn {
-    width: 44px;
-    height: 32px;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
+    margin-top: 5px;
 }
 
 .oct-lbl {
@@ -180,6 +146,38 @@
     font-weight: 900;
     color: var(--white);
     text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+    justify-self: center;
+    /* Guarantee centering in grid cell */
+}
+
+.oct-btn {
+    width: 44px;
+    height: 32px;
+    margin: 0 auto;
+    justify-self: center;
+    /* Center horizontally in grid cell */
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Explicit column placement */
+.oct-lbl.col-1 {
+    grid-column: 1;
+}
+
+.oct-btn.col-2 {
+    grid-column: 2;
+}
+
+.oct-btn.col-3 {
+    grid-column: 3;
+}
+
+.oct-lbl.col-4 {
+    grid-column: 4;
 }
 
 .perf-knobs {

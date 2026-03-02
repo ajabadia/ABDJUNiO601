@@ -9,33 +9,7 @@
     border-left: 2px solid var(--black);
 }
 
-/* OCTAVE BUTTONS */
-.oct-btn {
-    position: absolute;
-    bottom: 10px;
-    width: 60px;
-    height: 30px;
-    background: #2a2b30;
-    border: 1px solid var(--black);
-    color: var(--juno-grey);
-    font-size: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 10;
-}
-
-.oct-btn.down {
-    left: 10px;
-}
-
-.oct-btn.up {
-    left: 80px;
-}
-
-.oct-btn:active {
-    background: var(--juno-red);
-    color: var(--white);
-}
+/* Obsolete Octave buttons removed - now in performance.css grid */
 
 #ivory-keys-bed {
     display: flex;

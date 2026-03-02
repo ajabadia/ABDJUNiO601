@@ -227,26 +227,21 @@ function setupSliders() {
 }
 
 function setupOctaveButtons() {
-    const container = document.getElementById('keyboard-container');
-    if (!container) return;
-    const octDown = document.createElement('button');
-    octDown.className = 'oct-btn down';
-    octDown.innerText = 'OCT -';
-    const octUp = document.createElement('button');
-    octUp.className = 'oct-btn up';
-    octUp.innerText = 'OCT +';
+    const upBtn = document.querySelector('.perf-octave-zone .oct-btn.up');
+    const downBtn = document.querySelector('.perf-octave-zone .oct-btn.down');
 
-    octDown.addEventListener('pointerdown', () => {
-        octaveShift = Math.max(-2, octaveShift - 1);
-        updateLCD("OCTAVE: " + octaveShift, true);
-    });
-    octUp.addEventListener('pointerdown', () => {
-        octaveShift = Math.min(2, octaveShift + 1);
-        updateLCD("OCTAVE: " + octaveShift, true);
-    });
-
-    container.appendChild(octDown);
-    container.appendChild(octUp);
+    if (upBtn) {
+        upBtn.addEventListener('pointerdown', () => {
+            octaveShift = Math.min(2, octaveShift + 1);
+            updateLCD("OCTAVE: " + octaveShift, true);
+        });
+    }
+    if (downBtn) {
+        downBtn.addEventListener('pointerdown', () => {
+            octaveShift = Math.max(-2, octaveShift - 1);
+            updateLCD("OCTAVE: " + octaveShift, true);
+        });
+    }
 }
 
 // =============================
@@ -400,7 +395,7 @@ function setupKeyboard() {
     if (!bed) return;
     bed.innerHTML = '';
     const whiteNotes = [];
-    for (let i = 0; i < 61; i++) {
+    for (let i = 0; i < 49; i++) {
         const note = 36 + i;
         const pc = note % 12;
         if (![1, 3, 6, 8, 10].includes(pc)) whiteNotes.push({ note, i });
