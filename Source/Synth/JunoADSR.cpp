@@ -1,5 +1,8 @@
 #include "JunoADSR.h"
+#include "../Core/JunoConstants.h"
 #include <cmath>
+
+using namespace JunoConstants;
 
 // ============================================================================
 // JunoADSR Implementation
@@ -27,13 +30,13 @@ void JunoADSR::reset()
 
 void JunoADSR::setAttack(float seconds)
 {
-    attackTime = juce::jlimit(0.001f, 10.0f, seconds);
+    attackTime = juce::jlimit(Curves::kAttackMin, Curves::kAttackMax, seconds);
     calculateRates();
 }
 
 void JunoADSR::setDecay(float seconds)
 {
-    decayTime = juce::jlimit(0.001f, 10.0f, seconds);
+    decayTime = juce::jlimit(Curves::kDecayMin, Curves::kDecayMax, seconds);
     calculateRates();
 }
 
@@ -44,7 +47,7 @@ void JunoADSR::setSustain(float level)
 
 void JunoADSR::setRelease(float seconds)
 {
-    releaseTime = juce::jlimit(0.001f, 10.0f, seconds);
+    releaseTime = juce::jlimit(Curves::kReleaseMin, Curves::kReleaseMax, seconds);
     calculateRates();
 }
 
@@ -56,6 +59,7 @@ void JunoADSR::setGateMode(bool enabled)
 void JunoADSR::noteOn()
 {
     stage = Stage::Attack;
+    mcuUpdateCounter = 0; // [Fix] Start MCU update cycle immediately on Note On
 }
 
 void JunoADSR::noteOff()
@@ -68,12 +72,18 @@ void JunoADSR::noteOff()
 float JunoADSR::getNextSample()
 {
     if (gateMode) {
-         currentValue = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
-         return currentValue;
-    }
+         float target = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
+         // [Fidelity] Fast analog-style slew (~2ms) to prevent digital clicks
+         currentValue += (target - currentValue) * 0.03f;
 
-    // [Fidelidad] MCU Update Cycle (3ms ~ 132 samples @ 44.1k)
-    if (--mcuUpdateCounter <= 0) {
+         // [Fix] Gate mode must also terminate to Stage::Idle to allow voice reuse
+         if (stage == Stage::Release && currentValue < 0.001f) {
+             currentValue = 0.0f;
+             stage = Stage::Idle;
+         }
+    } else {
+        // [Fidelidad] MCU Update Cycle (3ms ~ 132 samples @ 44.1k)
+        if (--mcuUpdateCounter <= 0) {
         mcuUpdateCounter = mcuUpdateRateSamples;
 
         switch (stage)
@@ -92,8 +102,13 @@ float JunoADSR::getNextSample()
             
             case Stage::Decay:
             {
-                currentValue = sustainLevel + (currentValue - sustainLevel) * decayRate;
-                if (currentValue <= sustainLevel + 0.001f) {
+                // [Fidelity] Juno-106 "Shifted Space" logic:
+                // Decay happens towards 0.0 in a space shifted by sustainLevel.
+                float x = currentValue - sustainLevel;
+                x *= decayRate; 
+                currentValue = x + sustainLevel;
+
+                if (std::abs(currentValue - sustainLevel) <= 0.001f) {
                     currentValue = sustainLevel;
                     stage = Stage::Sustain;
                 }
@@ -101,18 +116,21 @@ float JunoADSR::getNextSample()
             }
             
             case Stage::Sustain:
-                // Re-check Sustain level if it changed in realtime? 
-                // Normally Sustain is static unless param changes.
-                // Smooth update towards new sustain target if changed:
-                if (std::abs(currentValue - sustainLevel) > 0.001f) {
-                     currentValue += (sustainLevel - currentValue) * 0.1f;
-                }
+                // [Fidelity] In the Juno-106, Sustain changes are instantaneous 
+                // but since we are digital, we ensure currentValue follows sustainLevel.
+                currentValue = sustainLevel; 
                 break;
             
             case Stage::Release:
             {
-                currentValue *= releaseRate;
-                if (currentValue < 0.005f) {
+                // [Fidelity] Juno-106 "Shifted Space" logic:
+                // Release happens towards 0.0 in a space shifted by 0.0.
+                // This is effectively a decay towards 0.0.
+                float x = currentValue; // No shift needed for target 0.0
+                x *= releaseRate; 
+                currentValue = x;
+
+                if (currentValue < 0.0001f) { // [Fix] Lower threshold for high-precision release
                     currentValue = 0.0f;
                     stage = Stage::Idle;
                 }
@@ -123,6 +141,7 @@ float JunoADSR::getNextSample()
             default:
                 break;
         }
+    }
     }
     
     // [Fidelidad] 8-BIT DAC QUANTIZATION (256 steps)

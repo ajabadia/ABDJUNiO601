@@ -1,6 +1,9 @@
 // Source/Synth/JunoDCO.cpp
 #include "JunoDCO.h"
+#include "../Core/JunoConstants.h"
 #include <cmath>
+
+using namespace JunoConstants;
 
 JunoDCO::JunoDCO() {
     updateRangeMultiplier();
@@ -13,17 +16,22 @@ void JunoDCO::prepare(double sr, int maxBlockSize) {
     juce::dsp::ProcessSpec spec { sr, (juce::uint32)maxBlockSize, 1 };
     noiseFilter.prepare(spec);
     noiseFilter.reset(); 
-    noiseFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sr, 4000.0f, 0.707f, 0.707f); // -3dB peak at 4kHz
+    // [Audit Fix] Using BandPass instead of Peak to better emulate Juno noise color
+    noiseFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sr, 4000.0f, 0.5f); 
     reset();
 }
 
 void JunoDCO::reset() {
     pulsePhase = 0.0;
-    driftMigrator = 0.0f;
-    driftTarget = 0.0f;
-    driftCounter = 0;
+    staticSpreadCents = (noiseGen.nextFloat() * 2.0f - 1.0f) * kDcoDriftMaxSpreadCents;
+    voicePhase = noiseGen.nextFloat() * juce::MathConstants<float>::twoPi;
+    voiceRate = 0.01f + noiseGen.nextFloat() * 0.04f;
+    
+    // [Audit Fix] Randomize global drift frequency per voice (range 0.01Hz to 0.02Hz)
+    globalDriftHz = 0.01f + noiseGen.nextFloat() * 0.01f;
+    
     currentPWM = pwmValue;
-    // [Fidelidad] Fase aleatoria para el Sub-Osc (Flip-flop del 8253 arranca en estado desconocido)
+    // [Fidelity] Random phase for Sub-Osc (8253 Flip-flop starts in unknown state)
     subFlipFlop = noiseGen.nextBool(); 
 }
 
@@ -77,49 +85,50 @@ void JunoDCO::setDrift(float amount) {
 }
 
 float JunoDCO::getNextSample(float lfoValue) {
-    // === ANALOG DRIFT (Random Walk) ===
-    // [Fidelidad] Drift lento y sutil (Authentic: Temperature varies slowly, not 6ms jitter)
-    // Update every ~0.1s (4410 samples @ 44.1k)
-    if (++driftCounter > 4096) {
-        driftCounter = 0;
-        driftTarget = (noiseGen.nextFloat() * 2.0f - 1.0f); 
-    }
+    // === ANALOG DRIFT (Multi-level authenticity) ===
+    // [Fidelity] Independent levels: Fixed spread, Global slow drift, Per-voice slow drift
     
-    // Smoothly migrate towards target (Thermal Inertia)
-    driftMigrator += (driftTarget - driftMigrator) * 0.001f;
+    // 2. Slow voice drift
+    voicePhase += juce::MathConstants<float>::twoPi * voiceRate / (float)sampleRate;
+    if (voicePhase > juce::MathConstants<float>::twoPi) voicePhase -= juce::MathConstants<float>::twoPi;
     
-    // Scale by user drift amount (Max 2 cents = 0.02 semitones)
-    // Authentic Juno DCOs are very stable, minimal jitter.
-    float driftSemitones = driftMigrator * driftAmount * 0.02f; 
+    voiceDriftCents = std::sin(voicePhase) * kDcoDriftMaxVoiceCents * driftAmount;
+    
+    // 3. (Global drift for this voice would be set externally or simulated here)
+    // [Audit Fix] Use voice-specific globalDriftHz instead of fixed 0.015Hz
+    globalDriftPhase += juce::MathConstants<float>::twoPi * globalDriftHz / (float)sampleRate;
+    if (globalDriftPhase > juce::MathConstants<float>::twoPi) globalDriftPhase -= juce::MathConstants<float>::twoPi;
+    globalDriftCents = std::sin(globalDriftPhase) * kDcoDriftMaxGlobalCents * driftAmount;
+
+    float totalDriftCents = staticSpreadCents * driftAmount + globalDriftCents + voiceDriftCents;
     
     // === FREQUENCY with RANGE, LFO, and DRIFT ===
     float freq = baseFrequency * rangeMultiplier;
     
     // Apply LFO to pitch (vibrato)
-    float lfoSemitones = (lfoValue * 0.5f + 0.5f) * lfoDepth * 0.5f; 
-    freq *= std::pow(2.0f, (lfoSemitones + driftSemitones) / 12.0f);
+    // [Audit Fix] Remove 0.5f offset to perform pure vibrato (no DC pitch shift)
+    float lfoSemitones = lfoValue * lfoDepth * 0.5f; 
+    freq *= std::pow(2.0f, (lfoSemitones + (totalDriftCents / 100.0f)) / 12.0f);
 
-    // [Fidelidad] 8253 TIMER QUANTIZATION (STRICT IMPL)
+    // [Fidelity] 8253 TIMER QUANTIZATION (STRICT IMPL)
     // The Juno-106 DCO is driven by an Intel 8253 Programmable Interval Timer.
     // Master Clock = 8MHz. Divider = Freq * 256 (Prescaler/Integrator steps).
     // The counter is a 16-bit integer. This causes frequency stepping.
     
-    static constexpr float kMasterClock = 8000000.0f; 
-
     if (freq > 0.0f) {
         // Calculate required ticks (Float)
-        float rawTicks = kMasterClock / (freq * 256.0f);
+        float rawTicks = kMasterClockHz / (freq * 256.0f);
         
         // Quantize to Integer (The Counter Register)
         // [Audit Fix] Strict integer casting/rounding
         uint32_t quantizedTicks = (uint32_t)(rawTicks + 0.5f);
         
         if (quantizedTicks < 1) quantizedTicks = 1;
-        // 16-bit Timer Limit (though freq would be super low)
+        // 16-bit Timer Limit
         if (quantizedTicks > 65535) quantizedTicks = 65535;
         
         // Recalculate EXACT Frequency driven by the Timer
-        freq = kMasterClock / (quantizedTicks * 256.0f);
+        freq = kMasterClockHz / (quantizedTicks * 256.0f);
     }
     
     // updateRangeMultiplier() handles the range. baseFrequency is bended.
@@ -137,7 +146,7 @@ float JunoDCO::getNextSample(float lfoValue) {
     }
     
     float output = 0.0f;
-    // V9 Fix: Consolidate PolyBLEP for all waves (Kill metallic aliasing)
+    // PolyBLEP for all waves (Kill metallic aliasing)
     auto polyBlep = [](float t, float dt_param) -> float {
         if (t < dt_param) { // Near start 0
             float x = t / dt_param;
@@ -160,17 +169,21 @@ float JunoDCO::getNextSample(float lfoValue) {
     
     // === 2. PULSE with PWM (PolyBLEP) ===
     if (pulseLevel > 0.0f) {
-        float targetPWM = 0.5f;
+        float targetPWM = kPwmCenterDuty;
         if (pwmMode == PWMMode::Manual) {
-            // [Fidelidad] Offset de fábrica +7% para evitar ancho muerto en 50%
-            targetPWM = 0.07f + pwmValue * 0.86f; 
+            // [Fidelity] Juno-106: 50% at center, 95% at max
+            targetPWM = kPwmCenterDuty + (pwmValue - 0.5f) * 2.0f * (kPwmMaxDuty - kPwmCenterDuty);
         } else {
-            targetPWM = juce::jlimit(0.05f, 0.95f, 0.5f + lfoValue * pwmValue * 0.45f);
+            // LFO depth applies to the 50% center
+            targetPWM = juce::jlimit(kPwmMinDuty, kPwmMaxDuty, kPwmCenterDuty + lfoValue * pwmValue * 0.45f);
         }
         
-        // [Fidelidad] PWM Slew Calibrated
-        // Manual: 220ms (0.0009f), LFO: 470ms (0.00047f)
-        float slewRate = (pwmMode == PWMMode::Manual) ? 0.0009f : 0.00047f;
+        // PWM "Off" mode: force waveform level if too narrow
+        if (targetPWM > kPwmOffThreshold) targetPWM = 1.0f;
+        if (targetPWM < (1.0f - kPwmOffThreshold)) targetPWM = 0.0f;
+        
+        // [Fidelity] PWM Slew Calibrated
+        float slewRate = (pwmMode == PWMMode::Manual) ? kPwmSlewRateManual : kPwmSlewRateLFO;
         currentPWM += (targetPWM - currentPWM) * slewRate;
         
         float pulse = (pulsePhase < currentPWM) ? 1.0f : -1.0f;
@@ -188,7 +201,7 @@ float JunoDCO::getNextSample(float lfoValue) {
     
     // === 3. SUB-OSCILLATOR (PolyBLEP) ===
     if (subLevel > 0.0f) {
-        // [Fidelidad] Sub-Osc is a square wave from 8253 divider.
+        // [Fidelity] Sub-Osc is a square wave from 8253 divider.
         // It toggles at pulsePhase == 0.5 and remains continuous at pulsePhase == 0.0.
         // Thus, we only need PolyBLEP at the 0.5 threshold.
         float subThreshold = 0.5f; 
@@ -199,22 +212,21 @@ float JunoDCO::getNextSample(float lfoValue) {
         if (relativePhase < 0.0f) relativePhase += 1.0f;
         
         // The jump magnitude is 2.0 (1 to -1 or -1 to 1) 
-        // If subFlipFlop is T: jumps 1->-1 at 0.5. If F: jumps -1->1 at 0.5.
         float blep = polyBlep(relativePhase, (float)dt);
         if (subFlipFlop) sub -= 2.0f * blep;
         else sub += 2.0f * blep;
         
-        output += sub * subLevel;
+        output += sub * subLevel * kSubAmpScale;
     }
     
     // === 4. NOISE ===
     if (noiseLevel > 0.0f) {
         float noise = (noiseGen.nextFloat() * 2.0f - 1.0f);
-        // [Fidelidad] Noise color (Peaking filter a 4kHz)
+        // [Fidelity] Noise color (Peaking filter at 4kHz)
         noise = noiseFilter.processSample(noise);
         output += noise * noiseLevel;
     }
     
-    // [Fidelidad] Output Gain restored (removed 0.5f factor)
+    // [Fidelity] Output Gain restored
     return output;  
 }

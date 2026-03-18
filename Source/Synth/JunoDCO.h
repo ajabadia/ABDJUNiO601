@@ -65,6 +65,9 @@ public:
     float getNextSample(float lfoValue);
     
 private:
+        float globalDriftPhase = 0.0f; // [Fix] Thread-safe per-instance drift phase
+    float globalDriftHz = 0.015f;    // [Audit Fix] Per-voice global drift freq
+
     // JUCE Components
     juce::Random noiseGen;
     
@@ -91,11 +94,14 @@ private:
     float lfoDepth = 0.0f;
     float currentPWM = 0.5f;      // Slewed
     
-    // Drift (Random Walk)
+    // Drift (Multi-level authenticity)
     float driftAmount = 0.0f;
-    float driftMigrator = 0.0f;   // Current erratic tuning offset
-    float driftTarget = 0.0f;     // Target for random walk
-    int driftCounter = 0;         // Decimator for drift updates
+    float staticSpreadCents = 0.0f;
+    float globalDriftCents = 0.0f;
+    float voiceDriftCents = 0.0f;
+    float voicePhase = 0.0f;
+    float voiceRate = 0.02f;
+    
     // Sub-osc flip-flop (authentic)
     bool subFlipFlop = false;
     // JUCE DSP
