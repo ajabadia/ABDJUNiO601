@@ -41,23 +41,24 @@ public:
 
     float getTotalEnvelopeLevel() const {
         float sum = 0.0f;
-        for (const auto& v : voices) if (v.isActive()) sum += v.lastActiveOutputLevel();
+        for (int i = 0; i < currentActiveVoices; ++i) if (voices[i].isActive()) sum += voices[i].lastActiveOutputLevel();
         return sum;
     }
 
     int getActiveVoiceCount() const {
         int count = 0;
-        for (const auto& v : voices) if (v.isActive()) count++;
+        for (int i = 0; i < currentActiveVoices; ++i) if (voices[i].isActive()) count++;
         return count;
     }
 
     bool isAnyNoteHeld() const {
-        for (const auto& v : voices) if (v.isGateOnActive()) return true;
+        for (int i = 0; i < currentActiveVoices; ++i) if (voices[i].isGateOnActive()) return true;
         return false;
     }
 
 private:
-    static constexpr int MAX_VOICES = 6;
+    static constexpr int MAX_VOICES = 16;
+    int currentActiveVoices = 8;
     std::array<Voice, MAX_VOICES> voices;
     
     std::array<std::atomic<uint64_t>, MAX_VOICES> voiceTimestamps;
