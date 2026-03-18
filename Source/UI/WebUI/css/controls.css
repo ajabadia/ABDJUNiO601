@@ -1,0 +1,258 @@
+/* --- COMPONENT STYLES: SLIDERS, KNOBS, SWITCHES, BUTTONS, LEDS --- */
+
+/* labels */
+.lbl {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--juno-grey);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.btn-lbl {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+.ctrl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+/* SLIDERS */
+.v-slider {
+    width: 32px;
+    height: var(--slider-height);
+    background: url('../slider_slot.png') no-repeat center center;
+    background-size: contain;
+    position: relative;
+    cursor: ns-resize;
+}
+
+.track {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    left: 14px;
+    background: transparent;
+}
+
+.handle {
+    position: absolute;
+    width: 32px;
+    height: 16px;
+    left: 0;
+    background: url('../slider_cap.png') no-repeat center center;
+    background-size: contain;
+    pointer-events: none;
+}
+
+/* KNOBS generic */
+.knob-ring {
+    width: var(--knob-size);
+    height: var(--knob-size);
+    background: url('../knob.png') no-repeat center;
+    background-size: contain;
+    position: relative;
+    cursor: ns-resize;
+}
+
+.knob {
+    position: absolute;
+    width: 2px;
+    height: 6px;
+    background: var(--white);
+    left: 50%;
+    top: 17px;
+    transform: translateX(-50%);
+    transform-origin: center 13px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    border-radius: 1px;
+}
+
+/* SWITCHES */
+.sw-unit {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    height: var(--slider-height);
+    width: 50px;
+}
+
+.sw-unit.small {
+    justify-content: center;
+}
+
+.sw-lbl {
+    font-size: 8px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+}
+
+.sw-lbl.top {
+    margin-bottom: 2px;
+}
+
+.sw-lbl.bot {
+    margin-top: 2px;
+}
+
+.sw-path {
+    width: 30px;
+    height: 54px;
+    position: relative;
+    background: transparent;
+}
+
+.sw-peg {
+    position: absolute;
+    width: 30px;
+    height: 54px;
+    left: 0;
+    top: 0;
+    background: url('../switch_down.png') no-repeat center;
+    background-size: contain;
+    pointer-events: none;
+    transition: none;
+}
+
+[data-state="1"] .sw-peg {
+    background-image: url('../switch_up.png');
+}
+
+/* LEDS */
+.led {
+    width: 14px;
+    height: 14px;
+    background: url('../led_off.png') no-repeat center center;
+    background-size: contain;
+    border-radius: 50%;
+}
+
+.led.active {
+    background: url('../led_on.png') no-repeat center center;
+    background-size: contain;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
+
+/* BUTTONS */
+.sq {
+    width: 44px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.05s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sq:active {
+    transform: translateY(1px);
+}
+
+.sq.orange {
+    background: url('../button_orange_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.orange[data-active="true"],
+.sq.orange.pushed {
+    background-image: url('../button_orange_on.png');
+}
+
+.sq.beige {
+    background: url('../button_white_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.beige[data-active="true"],
+.sq.beige.pushed {
+    background-image: url('../button_white_on.png');
+}
+
+.sq.patch-blue {
+    background: url('../button_blue_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.patch-blue[data-active="true"],
+.sq.patch-blue.pushed {
+    background-image: url('../button_blue_on.png');
+}
+
+.sq.grey {
+    background: url('../button_grey_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.grey[data-active="true"],
+.sq.grey.pushed {
+    background-image: url('../button_grey_on.png');
+}
+
+.sq.red {
+    background: url('../button_red_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.red[data-active="true"],
+.sq.red.pushed {
+    background-image: url('../button_red_on.png');
+}
+
+.juno-btn.pushed,
+.tiny-btn.pushed,
+.num-btn.pushed,
+.nav-arrow.pushed,
+.juno-btn:active {
+    transform: translateY(2px);
+    filter: brightness(0.85);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.juno-btn[data-active="true"],
+.tiny-btn[data-active="true"] {
+    background: var(--juno-red);
+    color: var(--white);
+    box-shadow: 0 0 10px var(--led-red);
+}
+
+.unit {
+    width: 50px;
+    height: var(--slider-height);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-stack.horizontal {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+}

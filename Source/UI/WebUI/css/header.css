@@ -1,0 +1,225 @@
+/* --- HEADER PANEL with LCD, MENU, and SYSEX --- */
+
+#top-bar {
+    height: 26px;
+    background: #222;
+    border-bottom: 2px solid var(--black);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 11px;
+}
+
+.menu-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.menu-item {
+    position: relative;
+    cursor: pointer;
+    color: #bbb;
+    padding: 4px 0;
+}
+
+.menu-item:hover {
+    color: var(--white);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #222;
+    border: 1px solid #444;
+    width: 180px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown li {
+    padding: 8px 12px;
+    list-style: none;
+}
+
+.dropdown li:hover {
+    background: var(--juno-blue);
+    color: var(--white);
+}
+
+.divider {
+    height: 1px;
+    background: #444;
+    margin: 4px 0;
+    pointer-events: none;
+}
+
+#app-title-mini {
+    font-weight: 900;
+    font-style: italic;
+    color: #555;
+}
+
+#header-panel {
+    height: var(--header-height);
+    background: rgba(0, 0, 0, 0.4);
+    display: grid;
+    grid-template-columns: 200px 1fr 400px;
+    align-items: center;
+    padding: 0 15px;
+    gap: 15px;
+    border-bottom: 2px solid var(--black);
+    box-shadow: var(--panel-shadow);
+}
+
+#sysex-zone {
+    height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sysex-copy-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.sysex-display-col {
+    flex: 1;
+    height: 100%;
+    border: 1px solid #333;
+    background: var(--black);
+    border-radius: 4px;
+    padding: 3px 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.zone-label-mini {
+    font-size: 9px;
+    font-weight: 900;
+    color: #555;
+    text-transform: uppercase;
+    font-family: var(--main-font);
+}
+
+#copy-syx-btn {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+#copy-syx-btn.beige {
+    background: var(--beige-btn);
+    border: 2px solid #888;
+    box-shadow: 0 2px 0 #444;
+}
+
+#copy-syx-btn.beige:active, #copy-syx-btn.beige.pushed {
+    background: #fff;
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(2px);
+}
+
+#copy-syx-btn:active {
+    background: var(--juno-blue);
+    color: var(--white);
+    transform: translateY(1px);
+}
+
+.zone-label {
+    font-size: 9px;
+    font-weight: 900;
+    color: #555;
+    margin-bottom: 1px;
+    text-transform: uppercase;
+}
+
+#sysex-log {
+    font-family: 'Fragment Mono', monospace;
+    font-size: 11px;
+    color: #2ecc71;
+    opacity: 0.9;
+    line-height: 1.2;
+    height: 2.4em;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+#sysex-log .changed {
+    color: var(--black);
+    background-color: #2ecc71;
+    font-weight: bold;
+}
+
+#lcd-bezel {
+    width: 450px;
+    height: 55px;
+    background: var(--black);
+    border: 4px solid #333;
+    border-radius: 6px;
+    padding: 6px;
+    justify-self: center;
+    box-shadow: inset 0 0 20px var(--black), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+#lcd-screen {
+    height: 100%;
+    background: #200;
+    border: 1px solid #400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#lcd-text {
+    font-family: 'SevenSegment', 'Fragment Mono', monospace;
+    font-size: 24px;
+    color: var(--lcd-red);
+    text-shadow: 0 0 10px var(--lcd-red);
+    letter-spacing: 2px;
+}
+
+#top-left-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+#top-left-display .zone-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--juno-blue);
+    text-transform: uppercase;
+}
+
+#seven-segment-display {
+    display: flex;
+    gap: 3px;
+    background: var(--black);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 2px solid #555;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+.digit {
+    font-family: 'SevenSegment', 'Courier New', monospace;
+    font-size: 28px;
+    color: var(--lcd-red);
+    text-shadow: 0 0 15px rgba(255, 30, 30, 0.9);
+    width: 20px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background: var(--black);
+    display: inline-block;
+}

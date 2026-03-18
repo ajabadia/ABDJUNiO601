@@ -1,0 +1,109 @@
+/* 
+    ABD JUNiO 601 - About Modal Styling
+    Premium Boutique Look (Dark/Gold/Red)
+*/
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: none; /* Controlled via showAbout/hideAbout */
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+#about-modal {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    width: 480px;
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
+    position: relative;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+}
+
+.about-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.about-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ff3c3c; /* Juno Red */
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+.about-content {
+    text-align: center;
+    line-height: 1.6;
+}
+
+.about-version {
+    font-size: 14px;
+    color: #ff8800; /* Amber/Gold */
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.about-credits {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #222;
+}
+
+.credit-line {
+    font-size: 16px;
+    color: #999;
+}
+
+.brand {
+    color: #ff3c3c;
+    font-weight: 800;
+}
+
+.credit-desc {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #555;
+    margin-top: 5px;
+}
+
+.about-footer {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+#about-modal button.sq.beige {
+    width: 120px;
+    height:35px;
+    font-size: 14px;
+    font-weight: bold;
+}

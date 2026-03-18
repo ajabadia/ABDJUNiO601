@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ABD JUNiO 601 - Gold Standard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="synth-app">
+        <!-- 1. TOP BAR: FULL MENU -->
+        <header id="top-bar">
+            <nav class="menu-nav">
+                <div class="menu-item">
+                    File
+                    <ul class="dropdown">
+                        <li onclick="juce.menuAction('handleLoad')">Load Patch...</li>
+                        <li onclick="juce.menuAction('handleSave')">Save Current Patch...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('handleExportBank')">Export Bank as JSON...</li>
+                        <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / JNO...</li>
+                        <li onclick="juce.menuAction('handleLoadTape')">Load Tape (.wav)...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('exit')">Exit</li>
+                    </ul>
+                </div>
+                <div class="menu-item">
+                    Edit
+                    <ul class="dropdown">
+                        <li onclick="juce.undo()">Undo</li>
+                        <li onclick="juce.redo()">Redo</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.copySysEx()">Copy SysEx Data</li>
+                        <li onclick="juce.menuAction('handleRandomize')">Randomize Sound</li>
+                        <li onclick="juce.menuAction('panic')">Panic (All Notes Off)</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.toggleMidiOut()">MIDI TX</li>
+                    </ul>
+                </div>
+                <div class="menu-item">
+                    View
+                    <ul class="dropdown">
+                        <li>Show/Hide Sidebar</li>
+                    </ul>
+                </div>
+                <div class="menu-item">
+                    Help
+                    <ul class="dropdown">
+                        <li onclick="juce.menuAction('handleAbout')">About ABD JUNiO 601...</li>
+                    </ul>
+                </div>
+            </nav>
+            <div id="app-title-mini">ABD JUNiO 601 v1.1.0</div>
+        </header>
+
+        <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
+        <div id="header-panel">
+            <div id="top-left-display">
+                <div class="zone-label">BANK / PATCH</div>
+                <div id="seven-segment-display">
+                    <div class="digit" id="bank-digit">8</div>
+                    <div class="digit" id="patch-digit">8</div>
+                </div>
+            </div>
+
+            <div id="lcd-bezel">
+                <div id="lcd-screen">
+                    <span id="lcd-text">INITIAL PATCH</span>
+                </div>
+            </div>
+
+            <div id="sysex-zone">
+                <div class="sysex-copy-column">
+                    <div class="zone-label-mini">COPY SYX</div>
+                    <button class="sq beige tiny-util" id="copy-syx-btn"></button>
+                </div>
+                <div class="sysex-display-col">
+                    <div class="zone-label">SYSEX STREAM</div>
+                    <div id="sysex-log" class="styled-scroll"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CONTENT AREA: SIDEBAR + (ENGINE + KBD) -->
+        <div id="content-row">
+            <!-- SIDEBAR: BANK & PERFORMANCE -->
+            <aside id="sidebar-panel">
+                <section class="sidebar-top-section">
+
+                    <div class="nav-row">
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">BK-</div>
+                            <button class="sq beige nav-arrow" id="bank-dec"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">BK+</div>
+                            <button class="sq beige nav-arrow" id="bank-inc"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">PT-</div>
+                            <button class="sq beige nav-arrow" id="patch-dec"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">PT+</div>
+                            <button class="sq beige nav-arrow" id="patch-inc"></button>
+                        </div>
+                    </div>
+
+                    <div class="patch-grid-container">
+                        <div class="num-grid-8 patch-grid shadow-grid">
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">1</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="0"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">2</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="1"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">3</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="2"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">4</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="3"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="4"></button>
+                                <div class="patch-lbl-mini bot">5</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="5"></button>
+                                <div class="patch-lbl-mini bot">6</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="6"></button>
+                                <div class="patch-lbl-mini bot">7</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="7"></button>
+                                <div class="patch-lbl-mini bot">8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Utility Buttons 4x2 Grid -->
+                    <div class="util-grid-4x2">
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">MANUAL</div>
+                            <button class="sq orange" id="manual-btn" data-action="handleManual"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">WRITE</div>
+                            <button class="sq orange" id="write-btn" data-action="handleSave"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">SAVE</div>
+                            <button class="sq grey" id="save-patch-btn" data-action="handleSave"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">VERIFY</div>
+                            <button class="sq grey" id="verify-patch-btn" data-action="handleExportBank"></button>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="load-patch-btn" data-action="handleLoad"></button>
+                            <div class="util-lbl-mini bot">LOAD</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="random-btn" data-action="handleRandomize"></button>
+                            <div class="util-lbl-mini bot">RANDOM</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq red" id="panic-btn" data-action="panic"></button>
+                            <div class="util-lbl-mini bot">PANIC</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="test-btn" data-action="handleTest"></button>
+                            <div class="util-lbl-mini bot">TEST</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="performance-module">
+                    <!-- ROW 1: KNOBS -->
+                    <div class="perf-knobs">
+                        <div class="knob-pod" data-param="portamentoTime">
+                            <div class="knob-ring">
+                                <div class="knob"></div>
+                            </div>
+                            <div class="knob-lbl">PORT</div>
+                        </div>
+                        <div class="knob-pod" data-param="masterTune">
+                            <div class="knob-ring">
+                                <div class="knob"></div>
+                            </div>
+                            <div class="knob-lbl">TUNE</div>
+                        </div>
+                        <div class="knob-pod" data-param="masterVolume">
+                            <div class="knob-ring">
+                                <div class="knob"></div>
+                            </div>
+                            <div class="knob-lbl">VOLUME</div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 2: SWITCHES & POLY -->
+                    <div class="perf-row">
+                        <div class="port-col">
+                            <div class="sw-lbl">ON/OFF</div>
+                            <div class="sw-unit" data-param="portamentoOn">
+                                <div class="sw-path">
+                                    <div class="sw-peg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="poly-col">
+                            <div class="sw-lbl">POLY</div>
+                            <div class="poly-buttons">
+                                <div class="poly-unit">
+                                    <button class="sq beige poly-mode-btn" data-poly-val="0.5"></button>
+                                    <div class="poly-lit">I</div>
+                                </div>
+                                <div class="poly-unit">
+                                    <button class="sq beige poly-mode-btn" data-poly-val="1.0"></button>
+                                    <div class="poly-lit">II</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 3: DEDICATED OCTAVE ZONE -->
+                    <div class="perf-octave-zone">
+                        <span class="oct-lbl col-1">OCT +</span>
+                        <button class="sq grey oct-btn up col-2" data-action="octaveUp"></button>
+                        <button class="sq grey oct-btn down col-3" data-action="octaveDown"></button>
+                        <span class="oct-lbl col-4">OCT -</span>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- MAIN WORKING AREA -->
+            <div id="main-working-area">
+                <!-- ENGINE TOP ROW -->
+                <main id="engine-layout">
+                    <div class="engine-row">
+                        <section class="module" id="lfo">
+                            <div class="module-bar">LFO</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="lfoRate">
+                                    <div class="lbl">RATE</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="lfoDelay">
+                                    <div class="lbl">DELAY</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="dco">
+                            <div class="module-bar">DCO</div>
+                            <div class="controls">
+                                <div class="ctrl-group" id="dco-range">
+                                    <div class="lbl">RANGE</div>
+                                    <div class="btn-stack horizontal">
+                                        <div class="unit">
+                                            <div class="btn-lbl">16'</div>
+                                            <div class="led" id="led-dcoRange-0"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="0"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">8'</div>
+                                            <div class="led" id="led-dcoRange-1"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="0.5"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">4'</div>
+                                            <div class="led" id="led-dcoRange-2"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="1"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-lfo-pwm">
+                                    <div class="ctrl" data-param="lfoToDCO">
+                                        <div class="lbl">LFO</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="pwm">
+                                        <div class="lbl">PWM</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl">
+                                        <div class="lbl">MODE</div>
+                                        <div class="sw-unit small" data-param="pwmMode">
+                                            <div class="sw-lbl top">LFO</div>
+                                            <div class="sw-path">
+                                                <div class="sw-peg"></div>
+                                            </div>
+                                            <div class="sw-lbl bot">MAN</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-wave">
+                                    <div class="lbl">WAVE</div>
+                                    <div class="btn-stack horizontal">
+                                        <div class="unit">
+                                            <div class="btn-lbl">PULSE</div>
+                                            <div class="led" id="led-pulseOn"></div>
+                                            <button class="sq beige" data-param="pulseOn"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">SAW</div>
+                                            <div class="led" id="led-sawOn"></div>
+                                            <button class="sq beige" data-param="sawOn"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-mix">
+                                    <div class="ctrl" data-param="subOsc">
+                                        <div class="lbl">SUB</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="noise">
+                                        <div class="lbl">NOISE</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module blue" id="hpf">
+                            <div class="module-bar">HPF</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="hpfFreq">
+                                    <div class="lbl">FREQ</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="engine-row">
+                        <section class="module" id="vcf">
+                            <div class="module-bar">VCF</div>
+                            <div class="controls">
+                                <div class="ctrl-group" id="vcf-core">
+                                    <div class="ctrl" data-param="vcfFreq">
+                                        <div class="lbl">FREQ</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="resonance">
+                                        <div class="lbl">RES</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ctrl-group center">
+                                    <div class="ctrl">
+                                        <div class="lbl">POL</div>
+                                        <div class="sw-unit small" data-param="vcfPolarity">
+                                            <div class="sw-lbl top">POS</div>
+                                            <div class="sw-path">
+                                                <div class="sw-peg"></div>
+                                            </div>
+                                            <div class="sw-lbl bot">NEG</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ctrl-group" id="vcf-mod">
+                                    <div class="ctrl" data-param="envAmount">
+                                        <div class="lbl">ENV</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="lfoToVCF">
+                                        <div class="lbl">LFO</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="kybdTracking">
+                                        <div class="lbl">KYBD</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="vca">
+                            <div class="module-bar">VCA</div>
+                            <div class="controls">
+                                <div class="ctrl">
+                                    <div class="lbl">MODE</div>
+                                    <div class="sw-unit" data-param="vcaMode">
+                                        <div class="sw-lbl top">ENV</div>
+                                        <div class="sw-path">
+                                            <div class="sw-peg"></div>
+                                        </div>
+                                        <div class="sw-lbl bot">GATE</div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="vcaLevel">
+                                    <div class="lbl">LEVEL</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="env">
+                            <div class="module-bar">ENVELOPE</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="attack">
+                                    <div class="lbl">A</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="decay">
+                                    <div class="lbl">D</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="sustain">
+                                    <div class="lbl">S</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="release">
+                                    <div class="lbl">R</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module blue" id="chorus">
+                            <div class="module-bar">CHORUS</div>
+                            <div class="controls center">
+                                <div class="unit">
+                                    <div class="btn-lbl">I</div>
+                                    <div class="led" id="led-chorus1"></div>
+                                    <button class="sq orange" data-param="chorus1"></button>
+                                </div>
+                                <div class="unit">
+                                    <div class="btn-lbl">II</div>
+                                    <div class="led" id="led-chorus2"></div>
+                                    <button class="sq orange" data-param="chorus2"></button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </main>
+
+                <!-- BOTTOM BAR: BENDER + KEYBOARD -->
+                <footer id="bottom-row">
+                    <section id="bender-section">
+                        <div class="bender-top-row">
+                            <div class="bender-sliders">
+                                <div class="b-pod" data-param="benderToDCO">
+                                    <span class="b-lbl-top">DCO</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                                <div class="b-pod" data-param="benderToVCF">
+                                    <span class="b-lbl-top">VCF</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                                <div class="b-pod" data-param="benderToLFO">
+                                    <span class="b-lbl-top">LFO</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lfo-trig-col">
+                                <div class="b-lbl-top">LFO TRIG</div>
+                                <button id="lfo-trig-btn" class="sq grey" data-action="handleLfoTrig"></button>
+                            </div>
+                        </div>
+
+                        <div class="bender-controls">
+                            <div id="stick-housing">
+                                <div id="bender-stick"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div id="keyboard-container">
+                        <div id="ivory-keys-bed"></div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODALS -->
+    <div id="about-overlay" class="modal-overlay">
+        <div id="about-modal">
+            <div class="about-header">
+                <span class="about-title">ABD JUNiO 601</span>
+                <button class="close-btn" onclick="hideAbout()">&times;</button>
+            </div>
+            <div class="about-content">
+                <div class="about-version">Version 1.1.0</div>
+                <p>A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth.</p>
+                <p>Precision-engineered for harmonic richness, thermal variance, and authentic BBD chorus character.</p>
+                <div class="about-credits">
+                    <div class="credit-line">Built by <span class="brand">ABD-IA</span></div>
+                    <div class="credit-desc">Gold Standard Recreation</div>
+                </div>
+            </div>
+            <div class="about-footer">
+                <button class="sq beige" onclick="hideAbout()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

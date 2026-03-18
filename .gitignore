@@ -1,0 +1,34 @@
+# Build & Artifacts
+build/
+Builds/
+bin/
+obj/
+*.exe
+build_no.txt
+build_final.txt
+build_output_*.txt
+build_output.txt
+
+# JUCE & Library files
+JUCE/
+JuceLibraryCode/
+.vs/
+*.user
+*.pdb
+*.obj
+*.lib
+*.exp
+*.suo
+*.ilk
+*.aps
+
+# Documentation & Others
+Documentation/
+docs/
+*.md (except important ones like README)
+!README.md
+!Source/**/*.md
+
+# Root level excludes
+/JUNiO_601.exe
+/WebUI/

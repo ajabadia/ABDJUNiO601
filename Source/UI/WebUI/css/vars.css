@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Inter:wght@400;700;900&family=Orbitron:wght@700&display=swap');
+
+@font-face {
+    font-family: 'SevenSegment';
+    src: url('../SevenSegment.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Microgramma';
+    src: url('../microgrammanormal.ttf') format('truetype');
+}
+
+:root {
+    /* Brand Colors */
+    --juno-red: #ea212d;
+    --juno-blue: #2a6bcc;
+    --juno-grey: #b8b8b8;
+    --juno-orange: #ff8c00;
+    --juno-beige: #f0eee6;
+
+    /* Functional Colors */
+    --bg-synth: #0d0e11;
+    --metal-dark: #1e1f24;
+    --metal-highlight: #2a2c32;
+    --led-red: #ff1122;
+    --lcd-green: #00ff22;
+    --lcd-red: #ff3c3c;
+    --text-label: #9aa0a6;
+    --panel-border: #111;
+    --ivory: #fcfaf2;
+    --ebony: #1a1a1a;
+    --black: #000000;
+    --white: #ffffff;
+
+    /* Layout constants */
+    --header-height: 90px;
+    --sidebar-width: 250px;
+    --slider-height: 125px;
+    --knob-size: 60px;
+
+    /* Effects */
+    --led-glow: 0 0 12px #ff4444, 0 0 4px #fff;
+    --glass-blur: blur(2px);
+    --soft-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --panel-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
