@@ -4,18 +4,17 @@
 #include "../Synth/Voice.h"
 #include "SynthParams.h"
 #include <array>
+#include <atomic>
 
 /**
  * JunoVoiceManager
- * 
- * Handles the allocation and lifecycle of 6 fixed voices.
+ * Handles the allocation and lifecycle of voices.
  */
 class JunoVoiceManager {
 public:
     JunoVoiceManager();
     
     void prepare(double sampleRate, int maxBlockSize);
-    
     void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer);
     
     void noteOn(int midiChannel, int midiNote, float velocity);
@@ -23,7 +22,7 @@ public:
     void outputActiveVoiceInfo(); 
     
     void updateParams(const SynthParams& params);
-    void forceUpdate(); // [Fix] Instant parameter update for patch load
+    void forceUpdate(); 
     
     void setPolyMode(int mode); 
     int getLastTriggeredVoiceIndex() const { return lastAllocatedVoiceIndex; }
@@ -58,7 +57,7 @@ public:
 
 private:
     static constexpr int MAX_VOICES = 16;
-    int currentActiveVoices = 8;
+    std::atomic<int> currentActiveVoices;
     std::array<Voice, MAX_VOICES> voices;
     
     std::array<std::atomic<uint64_t>, MAX_VOICES> voiceTimestamps;
@@ -72,5 +71,5 @@ private:
     int findVoiceToSteal();
 
     juce::CriticalSection lock;
-    int nextPoly1Index = 0; // [Fidelidad] Authentic Cyclic allocation state
+    int nextPoly1Index = 0; 
 };

@@ -1,6 +1,7 @@
 #include "JunoVoiceManager.h"
 
 JunoVoiceManager::JunoVoiceManager() {
+    currentActiveVoices.store(8);
     for (auto& ts : voiceTimestamps) ts.store(0);
 }
 
@@ -12,6 +13,7 @@ void JunoVoiceManager::prepare(double sampleRate, int maxBlockSize) {
 }
 
 void JunoVoiceManager::updateParams(const SynthParams& params) {
+    currentActiveVoices.store(juce::jlimit(1, (int)MAX_VOICES, params.numVoices));
     for (auto& voice : voices) {
         voice.updateParams(params);
     }
@@ -106,7 +108,7 @@ void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*veloci
 int JunoVoiceManager::findFreeVoiceIndex() {
     // Poly 1: Round Robin (Cyclic Fixed Pattern)
     // [Fidelidad] Hardware 8253 Pattern: {0, 2, 4, 1, 3, 5}
-    static const int voiceOrder[MAX_VOICES] = {0, 2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    static const int voiceOrder[MAX_VOICES] = {0, 2, 4, 1, 3, 5};
 
     if (polyMode == 1) {
         // [Audit Fix] Cyclic search pattern independent of last allocation
@@ -127,28 +129,19 @@ int JunoVoiceManager::findFreeVoiceIndex() {
             if (!voices[i].isActive()) return i;
         }
     }
-    // Fallback or Mono modes (handled by Poly 2 logic effectively for allocation)
     return -1;
 }
 
 int JunoVoiceManager::findVoiceToSteal() {
     // Poly 2: Low Note Priority (Steal Highest Note to preserve Bass)
-    // Actually "Last Note Priority" usually means steal the oldest? 
-    // But Audit Req: "Low-Note Priority (Steal Highest)". 
     if (polyMode == 2) {
         int highestNote = -1;
         int stealIdx = -1;
         
-        // Find highest note to kill (preserve bass)
         for (int i=0; i < currentActiveVoices; ++i) {
-             // Only considering active voices
              if (voices[i].isActive()) {
                  int note = voices[i].getCurrentNote();
-                 // If notes are equal, fallback to age?
-                 if (note > highestNote) {
-                     highestNote = note;
-                     stealIdx = i;
-                 }
+                 if (note > highestNote) { highestNote = note; stealIdx = i; }
              }
         }
         if (stealIdx != -1) return stealIdx;
@@ -161,10 +154,7 @@ int JunoVoiceManager::findVoiceToSteal() {
     // Priority 1: Steal Release phase first
     for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive() && !voices[i].isGateOnActive()) { 
-             if (voiceTimestamps[i] < minTimestamp) {
-                minTimestamp = voiceTimestamps[i];
-                oldestIndex = i;
-            }
+             if (voiceTimestamps[i] < minTimestamp) { minTimestamp = voiceTimestamps[i]; oldestIndex = i; }
         }
     }
     
@@ -172,46 +162,28 @@ int JunoVoiceManager::findVoiceToSteal() {
     if (oldestIndex == -1) {
          for (int i = 0; i < currentActiveVoices; ++i) {
             if (voices[i].isActive()) { 
-                 if (voiceTimestamps[i] < minTimestamp) {
-                    minTimestamp = voiceTimestamps[i];
-                    oldestIndex = i;
-                }
+                 if (voiceTimestamps[i] < minTimestamp) { minTimestamp = voiceTimestamps[i]; oldestIndex = i; }
             }
         }
     }
-    
-    // [Fidelidad] If we steal for Poly 1, should we update nextPoly1Index?
-    // The cycle logic is for *finding free*. Stealing is separate.
     return oldestIndex;
 }
 
 
 void JunoVoiceManager::outputActiveVoiceInfo() {
     juce::String state;
-    for (int i = 0; i < currentActiveVoices; ++i) {
-        state += "[" + juce::String(i) + ":" + (voices[i].isActive() ? juce::String(voices[i].getCurrentNote()) : ".") + "] ";
-    }
+    for (int i = 0; i < currentActiveVoices; ++i) state += "[" + juce::String(i) + ":" + (voices[i].isActive() ? juce::String(voices[i].getCurrentNote()) : ".") + "] ";
     DBG("Voices: " << state);
 }
 
-void JunoVoiceManager::setAllNotesOff() {
-    for (auto& voice : voices) voice.noteOff();
-}
+void JunoVoiceManager::setAllNotesOff() { for (auto& voice : voices) voice.noteOff(); }
 
 bool JunoVoiceManager::anyVoiceActive() const {
     for (const auto& v : voices) if (v.isActive()) return true;
     return false;
 }
 
-void JunoVoiceManager::setBenderAmount(float v) {
-    for (auto& voice : voices) voice.setBender(v);
-}
-void JunoVoiceManager::setPortamentoEnabled(bool b) {
-    for (auto& voice : voices) voice.setPortamentoEnabled(b);
-}
-void JunoVoiceManager::setPortamentoTime(float v) {
-    for (auto& voice : voices) voice.setPortamentoTime(v);
-}
-void JunoVoiceManager::setPortamentoLegato(bool b) {
-    for (auto& voice : voices) voice.setPortamentoLegato(b);
-}
+void JunoVoiceManager::setBenderAmount(float v) { for (auto& voice : voices) voice.setBender(v); }
+void JunoVoiceManager::setPortamentoEnabled(bool b) { for (auto& voice : voices) voice.setPortamentoEnabled(b); }
+void JunoVoiceManager::setPortamentoTime(float v) { for (auto& voice : voices) voice.setPortamentoTime(v); }
+void JunoVoiceManager::setPortamentoLegato(bool b) { for (auto& voice : voices) voice.setPortamentoLegato(b); }
