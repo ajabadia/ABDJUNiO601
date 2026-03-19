@@ -28,9 +28,9 @@ void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int sta
     if (firstRender) { DBG("JunoVoiceManager::renderNextBlock FIRST CALL"); firstRender = false; }
     
     const juce::ScopedLock sl(lock);
-    for (int i = 0; i < MAX_VOICES; ++i) {
+    for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive()) {
-            float neighborOut = voices[(i + 1) % MAX_VOICES].lastActiveOutputLevel(); 
+            float neighborOut = voices[(i + 1) % currentActiveVoices].lastActiveOutputLevel(); 
             voices[i].renderNextBlock(buffer, startSample, numSamples, lfoBuffer, neighborOut);
         }
     }
@@ -47,10 +47,10 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
     const juce::ScopedLock sl(lock);
     currentTimestamp++;
     
-    // UNISON (Mode 3): Trigger all 6 voices
+    // UNISON (Mode 3): Trigger all voices within the limit
     if (polyMode == 3) {
         bool isLegatoTransition = isAnyNoteHeld();
-        for (int i = 0; i < MAX_VOICES; ++i) {
+        for (int i = 0; i < currentActiveVoices; ++i) {
             voices[i].noteOn(midiNote, velocity, isLegatoTransition);
             voiceTimestamps[i].store(currentTimestamp.load());
         }
@@ -60,7 +60,7 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
 
     // POLY (Mode 1 & 2): Allocation logic for single voice
     // 1. Buscar si la nota ya está sonando para hacer Retrigger
-    for (int i = 0; i < MAX_VOICES; ++i) {
+    for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive() && voices[i].getCurrentNote() == midiNote) {
             voices[i].noteOn(midiNote, velocity, false); 
             voiceTimestamps[i].store(currentTimestamp.load());
@@ -87,13 +87,13 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
 void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*velocity*/) {
     const juce::ScopedLock sl(lock);
     if (polyMode == 3) { // UNISON
-        for (int i = 0; i < MAX_VOICES; ++i) {
+        for (int i = 0; i < currentActiveVoices; ++i) {
              if (voices[i].getCurrentNote() == midiNote) voices[i].noteOff();
         }
         return;
     }
 
-    for (int i = 0; i < MAX_VOICES; ++i) {
+    for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive() && voices[i].getCurrentNote() == midiNote) {
             voices[i].noteOff();
             return;
@@ -106,31 +106,24 @@ void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*veloci
 int JunoVoiceManager::findFreeVoiceIndex() {
     // Poly 1: Round Robin (Cyclic Fixed Pattern)
     // [Fidelidad] Hardware 8253 Pattern: {0, 2, 4, 1, 3, 5}
-    static const int voiceOrder[MAX_VOICES] = {0, 2, 4, 1, 3, 5};
+    static const int voiceOrder[MAX_VOICES] = {0, 2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     if (polyMode == 1) {
         // [Audit Fix] Cyclic search pattern independent of last allocation
-        // We start searching from the next pattern index.
         int startIndex = nextPoly1Index;
-        for (int i = 0; i < MAX_VOICES; ++i) {
-            int currentPatternIdx = (startIndex + i) % MAX_VOICES;
+        for (int i = 0; i < currentActiveVoices; ++i) {
+            int currentPatternIdx = (startIndex + i) % currentActiveVoices;
             int voiceIdx = voiceOrder[currentPatternIdx];
             
             if (!voices[voiceIdx].isActive()) {
-                // If found, we advance the cycle for the NEXT allocation
-                nextPoly1Index = (currentPatternIdx + 1) % MAX_VOICES; 
+                nextPoly1Index = (currentPatternIdx + 1) % currentActiveVoices; 
                 return voiceIdx;
             }
         }
-        // If all full, nextPoly1Index stays or advances? 
-        // Hardware maintains the cycle. Optimization: Don't advance on fail? 
-        // Actually, if we fail here, we go to stealing. 
-        // Stealing might pick ANY voice. The cycle should probably continue from where it left off.
-        // We leave nextPoly1Index as is.
     }
     // Poly 2: Static Allocation (Lowest Available Index)
     else if (polyMode == 2 || polyMode == 3) {
-         for (int i = 0; i < MAX_VOICES; ++i) {
+         for (int i = 0; i < currentActiveVoices; ++i) {
             if (!voices[i].isActive()) return i;
         }
     }
@@ -147,7 +140,7 @@ int JunoVoiceManager::findVoiceToSteal() {
         int stealIdx = -1;
         
         // Find highest note to kill (preserve bass)
-        for (int i=0; i<MAX_VOICES; ++i) {
+        for (int i=0; i < currentActiveVoices; ++i) {
              // Only considering active voices
              if (voices[i].isActive()) {
                  int note = voices[i].getCurrentNote();
@@ -166,7 +159,7 @@ int JunoVoiceManager::findVoiceToSteal() {
     uint64_t minTimestamp = UINT64_MAX;
     
     // Priority 1: Steal Release phase first
-    for (int i = 0; i < MAX_VOICES; ++i) {
+    for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive() && !voices[i].isGateOnActive()) { 
              if (voiceTimestamps[i] < minTimestamp) {
                 minTimestamp = voiceTimestamps[i];
@@ -177,7 +170,7 @@ int JunoVoiceManager::findVoiceToSteal() {
     
     // Priority 2: Steal Oldest Active
     if (oldestIndex == -1) {
-         for (int i = 0; i < MAX_VOICES; ++i) {
+         for (int i = 0; i < currentActiveVoices; ++i) {
             if (voices[i].isActive()) { 
                  if (voiceTimestamps[i] < minTimestamp) {
                     minTimestamp = voiceTimestamps[i];
@@ -195,7 +188,7 @@ int JunoVoiceManager::findVoiceToSteal() {
 
 void JunoVoiceManager::outputActiveVoiceInfo() {
     juce::String state;
-    for (int i = 0; i < MAX_VOICES; ++i) {
+    for (int i = 0; i < currentActiveVoices; ++i) {
         state += "[" + juce::String(i) + ":" + (voices[i].isActive() ? juce::String(voices[i].getCurrentNote()) : ".") + "] ";
     }
     DBG("Voices: " << state);
