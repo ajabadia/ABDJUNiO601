@@ -37,10 +37,12 @@ juce_add_plugin(ABDSimpleJuno106
     NEEDS_MIDI_OUTPUT TRUE
     IS_MIDI_EFFECT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    NEEDS_DIRECT2D TRUE
     PLUGIN_MANUFACTURER_CODE Abda
     PLUGIN_CODE J106
     FORMATS ${PLUGIN_FORMATS}
     PRODUCT_NAME "ABDSimpleJuno106"
+    NEEDS_WEBVIEW2 TRUE
 )
 
 target_sources(ABDSimpleJuno106 PRIVATE
@@ -58,6 +60,9 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/JunoSysExEngine.cpp
     Source/Core/PerformanceState.h
     Source/Core/PerformanceState.cpp
+
+    Source/UI/WebView/WebViewEditor.h
+    Source/UI/WebView/WebViewEditor.cpp
 
     Source/Synth/JunoADSR.h
     Source/Synth/JunoADSR.cpp
@@ -96,6 +101,52 @@ if(NOT BUILD_HEADLESS)
     )
 endif()
 
+# [RESTORE] WebUI Binary Data
+juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
+    Source/UI/WebUI/index.html
+    Source/UI/WebUI/script.js
+    Source/UI/WebUI/style.css
+    Source/UI/WebUI/fondo.png
+    Source/UI/WebUI/fondo_sy.png
+    Source/UI/WebUI/knob.png
+    Source/UI/WebUI/slider_cap.png
+    Source/UI/WebUI/slider_slot.png
+    Source/UI/WebUI/led_off.png
+    Source/UI/WebUI/led_on.png
+    Source/UI/WebUI/switch_up.png
+    Source/UI/WebUI/switch_down.png
+    Source/UI/WebUI/SevenSegment.ttf
+    Source/UI/WebUI/microgrammanormal.ttf
+    Source/UI/WebUI/button_blue.png
+    Source/UI/WebUI/button_blue_off.png
+    Source/UI/WebUI/button_blue_on.png
+    Source/UI/WebUI/button_grey_off.png
+    Source/UI/WebUI/button_grey_on.png
+    Source/UI/WebUI/button_orange.png
+    Source/UI/WebUI/button_orange_off.png
+    Source/UI/WebUI/button_orange_on.png
+    Source/UI/WebUI/button_red_off.png
+    Source/UI/WebUI/button_red_on.png
+    Source/UI/WebUI/button_white.png
+    Source/UI/WebUI/button_white_off.png
+    Source/UI/WebUI/button_white_on.png
+    "Source/UI/WebUI/button - red - off.png"
+    "Source/UI/WebUI/button - red - on.png"
+    
+    Source/UI/WebUI/css/about.css
+    Source/UI/WebUI/css/base.css
+    Source/UI/WebUI/css/controls.css
+    Source/UI/WebUI/css/engine.css
+    Source/UI/WebUI/css/header.css
+    Source/UI/WebUI/css/keyboard.css
+    Source/UI/WebUI/css/performance.css
+    Source/UI/WebUI/css/sidebar.css
+    Source/UI/WebUI/css/settings.css
+    Source/UI/WebUI/css/vars.css
+)
+message(STATUS "Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/")
+
+
 target_include_directories(ABDSimpleJuno106 PRIVATE Source)
 
 juce_generate_juce_header(ABDSimpleJuno106)
@@ -104,6 +155,10 @@ target_compile_definitions(ABDSimpleJuno106
     PUBLIC
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_WEB_BROWSER=1
+        JUCE_USE_WIN_WEBVIEW2=1
+        JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1
+        JUCE_DIRECT2D=1
 )
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -115,6 +170,7 @@ endif()
 
 target_link_libraries(ABDSimpleJuno106
     PRIVATE
+        ABDSimpleJuno106_WebUI
         juce::juce_audio_utils
         juce::juce_audio_processors
         juce::juce_audio_formats

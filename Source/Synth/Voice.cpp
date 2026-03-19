@@ -58,15 +58,17 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
     isGateOn = true;
     lastOutputLevel = 1.0f;
     
-        // [Audit Fix] Note-based (Exponential Frequency) Portamento
-        targetNote = static_cast<float>(midiNote);
-        targetFrequency = 440.0f * std::pow(2.0f, (targetNote - 69.0f) / 12.0f);
-        
-        if (params.polyMode == 3) {
-            float spread = 0.024f; 
-            targetNote += (voiceIndex - 2.5f) * spread; // Apply spread to note value for consistent glide
-            targetFrequency = 440.0f * std::pow(2.0f, (targetNote - 69.0f) / 12.0f);
-        }
+    targetFrequency = 440.0f * std::pow(2.0f, (midiNote - 69) / 12.0f);
+    
+    // [Fidelidad] UNISON DETUNE
+    // Adds ±6 cents spread across voices for authentic stacking thickness
+    if (params.polyMode == 3) {
+        // Range 12 cents total (+/- 6 cents).
+        // Spread constant per index deviation (range -2.5 to 2.5).
+        // 0.024f * 2.5 = 0.06 semitones (6 cents).
+        float spread = 0.024f; 
+        targetFrequency *= std::pow(2.0f, ((voiceIndex - 2.5f) * spread) / 12.0f);
+    }
 
     // [Fidelidad] Correct Portamento Logic
     // If Portamento is ON:
@@ -109,10 +111,7 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
         }
     }
     
-    if (!shouldGlide) {
-        currentNoteSlew = targetNote;
-        currentFrequency = targetFrequency;
-    }
+    if (!shouldGlide) currentFrequency = targetFrequency;
     dco.setFrequency(currentFrequency);
 }
 
@@ -146,10 +145,7 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setPWM(p.pwmAmount);
     dco.setPWMMode(static_cast<JunoDCO::PWMMode>(p.pwmMode));
     dco.setLFODepth(p.lfoToDCO);
-    
-    // [Audit Fix] Apply power curve to drift for better resolution in low values
-    float curvedDrift = std::pow(p.thermalDrift, 1.5f);
-    dco.setDrift(curvedDrift);
+    dco.setDrift(p.thermalDrift);
     
     // [Fidelidad] STRICT VCA MODE CONVENTION: 
     // vcaMode = 0 -> ENV (Controlled by ADSR)
@@ -223,23 +219,19 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
 }
 
 float Voice::updatePitch(int numSamples) {
-    if (params.portamentoOn && std::abs(currentNoteSlew - targetNote) > 0.001f) {
-        // [Audit Fix] Exponential mapping for Portamento Knob (better sensitivity)
-        float glideTime = std::pow(params.portamentoTime, 2.0f) * 5.0f; 
-        
+    if (params.portamentoOn && std::abs(currentFrequency - targetFrequency) > 0.1f) {
+        float glideTime = params.portamentoTime * 5.0f;
         float glideCoeff = 1.0f - std::exp(-static_cast<float>(numSamples) /
                                (juce::jmax(0.001f, glideTime) * static_cast<float>(sampleRate)));
-        
-        currentNoteSlew += (targetNote - currentNoteSlew) * glideCoeff;
-        currentFrequency = 440.0f * std::pow(2.0f, (currentNoteSlew - 69.0f) / 12.0f);
+        currentFrequency += (targetFrequency - currentFrequency) * glideCoeff;
     } else {
-        currentNoteSlew = targetNote;
         currentFrequency = targetFrequency;
     }
     
     float bendedFrequency = currentFrequency * std::pow(2.0f, params.tune / 1200.0f);
     if (params.benderValue != 0.0f && params.benderToDCO > 0.0f) {
-        bendedFrequency *= std::pow(2.0f, params.benderValue * (params.benderToDCO * 2.0f / 12.0f));
+        // [Fidelity] Bender Range optimization: scale by the user-selected range (e.g. 2, 7, 12 semitones)
+        bendedFrequency *= std::pow(2.0f, params.benderValue * (params.benderToDCO * (float)params.benderRange / 12.0f));
     }
 
     // [Senior Audit] Global Thermal Drift (Shared DAC)
@@ -268,7 +260,11 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         float signal = dcoSample + neighborCrosstalk * kVoiceCrosstalkAmount + rippleNoise;
         
-        // 2. VCF (Per-Sample Modulation for High Fidelity)
+        // 2. HPF
+        signal = hpFilter.processSample(signal);
+        if (params.hpfFreq == 0) signal = hpfShelfFilter.processSample(signal);
+        
+        // 3. VCF (Per-Sample Modulation for High Fidelity)
         float vcfParam = smoothedCutoff.getNextValue();
         // [Fidelity] Refined VCF Curve: Target 20kHz at max, but more "open" in mid-range (exponent 0.65)
         float baseCutoff = 10.0f * std::pow(2000.0f, std::pow(vcfParam, 0.65f));
@@ -298,17 +294,18 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         juce::dsp::ProcessContextReplacing<float> vcfContext (sampleBlock);
         filter.process (vcfContext);
         
-        // 3. HPF [Audit Fix] Applied AFTER LPF for authentic Juno-106 routing
-        signal = hpFilter.processSample(signal);
-        if (params.hpfFreq == 0) signal = hpfShelfFilter.processSample(signal);
-        
         // 4. VCA
         float rawVcaLev = smoothedVCALevel.getNextValue();
         
         // [Fidelity] Resonance-compensated VCA Gain
         // Moog-style/Juno ladders thin out at high resonance. We compensate slightly.
         float resComp = 1.0f + (resParam * resParam * 0.5f);
+        
+        // [Improvement] Velocity Sensitivity
+        float velScale = 1.0f - params.velocitySens + (params.velocitySens * velocity);
+        
         float vcaGain = (params.vcaMode == 1) ? (rawVcaLev * (isGateOn ? 1.0f : 0.0f)) : (envVal * rawVcaLev);
+        vcaGain *= velScale;
         
         // Final Output
         voiceData[i] = signal * vcaGain * resComp * kVoiceOutputGain;

@@ -61,4 +61,5 @@ python generate_factory_presets.py
 The script extracts only entries whose name starts with `A` (factory patches) and writes them to `Source/Core/FactoryPresets.h`. Other `.106` files (e.g., user libraries) may contain a different number of patches and are not processed by this script.
 
 ---
-*Developed by ABD - Advanced Agentic Coding Project*
+*Developed by **ABD-IA** - Advanced Agentic Coding Project*
+**Version: 1.1.0**
