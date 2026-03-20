@@ -7,6 +7,21 @@ let lcdTimer = null;
 let promiseId = 0;
 let octaveShift = 0;
 let lastSysExHex = "";
+let currentBankGlobal = 1;
+let currentPatchGlobal = 1;
+
+// [Audit] Persistent SysEx Mirror for stable UI display
+let sysexMirror = new Array(23).fill(0);
+sysexMirror[0] = 0xF0; sysexMirror[1] = 0x41; sysexMirror[2] = 0x30; // Default Header
+sysexMirror[22] = 0xF7; // Default Tail
+
+const eventListenersInternal = {};
+window.onJuceEvent = (name, data) => {
+    console.log(`[JS Bridge] Received Event: ${name}`, data);
+    if (eventListenersInternal[name]) {
+        eventListenersInternal[name].forEach(cb => cb(data));
+    }
+};
 
 // Define juce object for inline onclick handlers from index.html
 window.juce = {
@@ -15,23 +30,34 @@ window.juce = {
     loadPreset: (idx) => callNative("loadPreset", idx),
     undo: () => callNative("menuAction", "undo"),
     redo: () => callNative("menuAction", "redo"),
-    toggleMidiOut: () => callNative("menuAction", "toggleMidiOut")
+    toggleMidiOut: () => callNative("menuAction", "toggleMidiOut"),
+    copySysEx: () => copySysExToClipboard()
 };
 
+function getBackend() {
+    return window.__JUCE__?.backend || window.juceBackend; 
+}
+
 function callNative(name, ...args) {
-    if (typeof window.__JUCE__ === "undefined" || typeof window.__JUCE__.backend === "undefined") {
+    console.log(`[JS Bridge] Calling ${name} with:`, args);
+    const backend = getBackend();
+    if (!backend) {
+        console.error("No JUCE bridge available for", name);
         return Promise.reject("No bridge");
     }
+
     const id = promiseId++;
     const p = new Promise((resolve) => {
-        const handler = window.__JUCE__.backend.addEventListener("__juce__complete", (data) => {
-            if (data.promiseId === id) {
-                window.__JUCE__.backend.removeEventListener(handler);
+        const handler = backend.addEventListener("__juce__complete", (data) => {
+            if (data && data.promiseId === id) {
+                backend.removeEventListener(handler);
                 resolve(data.result);
             }
         });
+        setTimeout(() => { backend.removeEventListener(handler); resolve(null); }, 5000);
     });
-    window.__JUCE__.backend.emitEvent("__juce__invoke", {
+
+    backend.emitEvent("__juce__invoke", {
         name: name,
         params: args,
         resultId: id
@@ -40,27 +66,39 @@ function callNative(name, ...args) {
 }
 
 function listenEvent(eventName, callback) {
-    if (typeof window.__JUCE__ !== "undefined" && window.__JUCE__.backend) {
-        window.__JUCE__.backend.addEventListener(eventName, callback);
+    if (!eventListenersInternal[eventName]) eventListenersInternal[eventName] = [];
+    if (!eventListenersInternal[eventName].includes(callback)) {
+        eventListenersInternal[eventName].push(callback);
+    }
+    
+    const backend = getBackend();
+    if (backend) {
+        backend.addEventListener(eventName, callback);
     }
 }
 
 // =============================
 // DOM READY
 // =============================
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof window.__JUCE__ === "undefined") return;
-
+function initApp() {
     listenEvent("onParameterChanged", (data) => syncUI(data.id, data.value));
     listenEvent("onLCDUpdate", (text) => updateLCD(text, false));
+    listenEvent("showModal", (data) => {
+        if (data === "preferences") showSettings();
+        else if (data === "about") showAbout();
+    });
+    listenEvent("onShowAbout", () => showAbout());
+    listenEvent("onShowSettings", () => showSettings());
+    listenEvent("onTuningUpdate", (name) => {
+        const info = document.getElementById('tuning-info');
+        if (info) info.innerText = name.toUpperCase();
+    });
 
     listenEvent("onBankPatchUpdate", (data) => {
-        const b = document.getElementById('bank-digit');
-        const p = document.getElementById('patch-digit');
-        if (b) b.innerText = data.bank;
-        if (p) p.innerText = data.patch;
-        currentBankGlobal = parseInt(data.bank);
-        currentPatchGlobal = parseInt(data.patch);
+        if (!data) return;
+        currentBankGlobal = data.bank || 1;
+        currentPatchGlobal = data.patch || 1;
+        updateSevenSegment();
     });
 
     listenEvent("onVisualUpdate", (data) => {
@@ -78,22 +116,48 @@ document.addEventListener('DOMContentLoaded', () => {
     listenEvent("onSysExUpdate", (hex) => {
         const log = document.getElementById('sysex-log');
         if (!log) return;
-        const currentBytes = hex.split(' ');
-        const lastBytes = lastSysExHex.split(' ');
-        let html = '';
-        currentBytes.forEach((byte, i) => {
-            const isChanged = lastBytes[i] && lastBytes[i] !== byte;
-            html += `<span class="hex-byte ${isChanged ? 'changed' : 'normal'}">${byte}</span> `;
-        });
-        log.innerHTML = html;
-        log.scrollTop = log.scrollHeight;
+        
+        const bytes = hex.split(' ').map(h => parseInt(h, 16));
+        const changedIndices = [];
+        
+        // [Audit Fix] Handle Patch Dump (23 bytes) vs Param Change (7 bytes)
+        if (bytes.length === 23) {
+            // Compare with mirror to find differences for highlighting
+            bytes.forEach((byte, i) => {
+                if (sysexMirror[i] !== byte) changedIndices.push(i);
+            });
+            sysexMirror = [...bytes];
+        } else if (bytes.length === 7 && bytes[2] === 0x32) {
+            // Param Change: ID at bytes[4], VAL at bytes[5]
+            const paramId = bytes[4];
+            const paramVal = bytes[5];
+            const bodyIndex = 4 + paramId; 
+            if (bodyIndex < sysexMirror.length - 1) { // -1 to avoid F7
+                if (sysexMirror[bodyIndex] !== paramVal) {
+                    sysexMirror[bodyIndex] = paramVal;
+                    changedIndices.push(bodyIndex);
+                }
+            }
+        }
 
-        // Remove changed class after 2 seconds
+        // Render mirror as hex grid
+        let html = '';
+        sysexMirror.forEach((byte, i) => {
+            const h = byte.toString(16).toUpperCase().padStart(2, '0');
+            const label = i === 20 ? 'SW1' : (i === 21 ? 'SW2' : '');
+            const highlight = changedIndices.includes(i) ? 'changed' : 'normal';
+            
+            html += `<span class="hex-byte ${highlight}" title="Index ${i} ${label}">${h}</span> `;
+            if (i === 11) html += '<br>';
+        });
+        
+        log.innerHTML = html;
+        lastSysExHex = hex;
+        
+        // Remove highlights after a while
         setTimeout(() => {
             log.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-        }, 2000);
-
-        lastSysExHex = hex;
+        }, 1000);
     });
 
     setupSliders();
@@ -105,12 +169,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     callNative("uiReady");
 
-    // Smooth fade-in once we are synchronized
+    // Splash screen timeout
     setTimeout(() => {
-        document.getElementById('synth-app').style.opacity = '1';
-        document.body.style.color = '#fff'; // Restore color
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 1000);
+        }
+    }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Retry bridge detection if not immediately available
+    let retries = 0;
+    const checkBridge = setInterval(() => {
+        if (getBackend() || retries > 20) {
+            clearInterval(checkBridge);
+            initApp();
+        }
+        retries++;
     }, 100);
 });
+
+function copySysExToClipboard() {
+    if (lastSysExHex) {
+        navigator.clipboard.writeText(lastSysExHex).then(() => {
+            updateLCD("SYSEX COPIED", true);
+        }).catch(err => {
+            console.error('Clipboard error:', err);
+            updateLCD("COPY ERROR", true);
+        });
+    } else {
+        updateLCD("NO SYSEX DATA", true);
+    }
+}
 
 // =============================
 // LCD
@@ -143,7 +235,6 @@ function updateLCD(text, isTemporary) {
 // SLIDERS & KNOBS (INTERACTION)
 // =============================
 function setupSliders() {
-    // Vertical Sliders (Absolute position)
     document.querySelectorAll('.v-slider, .v-slider-mini, .b-track').forEach(container => {
         const pod = container.closest('[data-param]');
         if (!pod) return;
@@ -154,19 +245,15 @@ function setupSliders() {
             let val = 1.0 - (e.clientY - rect.top) / rect.height;
             val = Math.max(0, Math.min(1, val));
 
-            if (paramID === 'hpfFreq') {
-                val = Math.round(val * 3) / 3;
-            }
-            if (paramID === 'dcoRange') {
-                val = Math.round(val * 2) / 2;
-            }
+            if (paramID === 'hpfFreq') val = Math.round(val * 3) / 3;
+            if (paramID === 'dcoRange') val = Math.round(val * 2) / 2;
 
+            // Immediate local feedback
+            syncUI(paramID, val);
             callNative("setParameter", paramID, val);
 
             let displayVal = val.toFixed(2);
-            if (paramID === 'hpfFreq') {
-                displayVal = Math.round(val * 3);
-            }
+            if (paramID === 'hpfFreq') displayVal = Math.round(val * 3);
             updateLCD(paramID.toUpperCase() + ": " + displayVal, true);
         };
 
@@ -184,7 +271,6 @@ function setupSliders() {
         });
     });
 
-    // Knobs (Relative Drag for fine-tuning)
     document.querySelectorAll('.knob-ring').forEach(ring => {
         const pod = ring.closest('[data-param]');
         if (!pod) return;
@@ -197,7 +283,6 @@ function setupSliders() {
             ring.setPointerCapture(e.pointerId);
             startY = e.clientY;
 
-            // Get current value from UI if possible (approximate)
             const knob = ring.querySelector('.knob');
             let currentRotation = 0;
             if (knob && knob.style.transform) {
@@ -208,17 +293,15 @@ function setupSliders() {
 
             const onMove = (ev) => {
                 const deltaY = startY - ev.clientY;
-                // Calibrated sensitivity
                 const divisor = (paramID === 'tune') ? 3000 : 500;
                 let val = startVal + (deltaY / divisor);
                 val = Math.max(0, Math.min(1, val));
+                
+                syncUI(paramID, val);
                 callNative("setParameter", paramID, val);
 
                 let displayVal = val.toFixed(2);
-                if (paramID === 'tune') {
-                    // Normalize 0..1 to -50..50
-                    displayVal = ((val * 100) - 50).toFixed(1);
-                }
+                if (paramID === 'tune') displayVal = ((val * 100) - 50).toFixed(1);
                 updateLCD(paramID.toUpperCase() + ": " + displayVal, true);
             };
 
@@ -237,13 +320,17 @@ function setupOctaveButtons() {
     const downBtn = document.querySelector('.perf-octave-zone .oct-btn.down');
 
     if (upBtn) {
-        upBtn.addEventListener('pointerdown', () => {
+        upBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             octaveShift = Math.min(2, octaveShift + 1);
             updateLCD("OCTAVE: " + octaveShift, true);
         });
     }
     if (downBtn) {
-        downBtn.addEventListener('pointerdown', () => {
+        downBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             octaveShift = Math.max(-2, octaveShift - 1);
             updateLCD("OCTAVE: " + octaveShift, true);
         });
@@ -254,7 +341,6 @@ function setupOctaveButtons() {
 // BUTTONS (MOMENTARY & TOGGLE)
 // =============================
 function setupButtons() {
-    // 1. Toggle Buttons & Multi-state Params
     document.querySelectorAll('.sq[data-param], .tiny-btn[data-param], .juno-btn[data-param], .poly-btn[data-param]').forEach(btn => {
         const paramID = btn.getAttribute('data-param');
 
@@ -262,17 +348,15 @@ function setupButtons() {
             e.preventDefault();
             btn.classList.add('pushed');
 
-            // Toggle Logic
-            if (btn.classList.contains('poly-btn')) {
-                // Legacy cyclic button - keep if index.html still has old one, 
-                // but new index.html uses .poly-mode-btn
-            } else if (btn.classList.contains('range-btn')) {
+            if (btn.classList.contains('range-btn')) {
                 const val = parseFloat(btn.getAttribute('data-val'));
+                syncUI("dcoRange", val);
                 callNative("setParameter", "dcoRange", val);
-                // Ensure other LEDs in stack turn off is handled by onParameterChanged
             } else {
-                const curr = btn.getAttribute('data-active') === 'true' ? 1 : 0;
-                callNative("setParameter", paramID, curr > 0.5 ? 0 : 1);
+                const isActive = btn.getAttribute('data-active') === 'true';
+                const nextVal = isActive ? 0 : 1;
+                syncUI(paramID, nextVal);
+                callNative("setParameter", paramID, nextVal);
             }
         });
 
@@ -280,7 +364,6 @@ function setupButtons() {
         btn.addEventListener('pointerleave', () => btn.classList.remove('pushed'));
     });
 
-    // 2. Momentary Buttons (BK+/-, PT+/-, Num Grid, Random, Panic, Actions)
     document.querySelectorAll('.nav-arrow, .num-btn, #random-btn, #panic-btn, [data-action]').forEach(btn => {
         btn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
@@ -289,15 +372,14 @@ function setupButtons() {
             const actionID = btn.getAttribute('data-action');
             if (actionID) {
                 if (actionID === 'handleManual' || actionID === 'handleTest') {
-                    // Simulate toggle
                     const isActive = btn.getAttribute('data-active') === 'true';
                     document.querySelectorAll('[data-action="handleManual"], [data-action="handleTest"]').forEach(b => {
                         b.setAttribute('data-active', 'false');
-                        b.classList.remove('pushed');
+                        b.classList.remove('active-mode');
                     });
                     if (!isActive) {
                         btn.setAttribute('data-active', 'true');
-                        btn.classList.add('pushed'); // keep it depressed
+                        btn.classList.add('active-mode');
                     }
                 }
                 callNative("menuAction", actionID);
@@ -319,54 +401,40 @@ function setupButtons() {
             } else if (btn.id === 'panic-btn') {
                 callNative("menuAction", "panic");
             } else {
-                // Nav arrows
                 const actionMap = { 'bank-dec': 'handleBankDec', 'bank-inc': 'handleBankInc', 'patch-dec': 'handlePatchDec', 'patch-inc': 'handlePatchInc' };
                 if (actionMap[btn.id]) callNative("menuAction", actionMap[btn.id]);
             }
         });
 
-        btn.addEventListener('pointerup', () => {
-            if (btn.getAttribute('data-action') !== 'handleManual' && btn.getAttribute('data-action') !== 'handleTest') {
-                btn.classList.remove('pushed');
-            }
-        });
-        btn.addEventListener('pointerleave', () => {
-            if (btn.getAttribute('data-action') !== 'handleManual' && btn.getAttribute('data-action') !== 'handleTest') {
-                btn.classList.remove('pushed');
-            }
-        });
+        btn.addEventListener('pointerup', () => btn.classList.remove('pushed'));
+        btn.addEventListener('pointerleave', () => btn.classList.remove('pushed'));
     });
 
-    // 3. Poly Mode Buttons (I, II) -> 0.0=Mono, 0.5=Poly1, 1.0=Poly2
     document.querySelectorAll('.poly-mode-btn').forEach(btn => {
         btn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             const val = parseFloat(btn.getAttribute('data-poly-val'));
             const isActive = btn.getAttribute('data-active') === 'true';
-
-            // If clicking active button -> turn OFF (MONO)
-            // If clicking inactive -> switch to it
-            callNative("setParameter", "polyMode", isActive ? 0.0 : val);
+            const nextVal = isActive ? 0.0 : val;
+            syncUI("polyMode", nextVal);
+            callNative("setParameter", "polyMode", nextVal);
         });
     });
 
-    // 4. Switches
     document.querySelectorAll('.sw-unit[data-param], .sw-col[data-param]').forEach(sw => {
         const paramID = sw.getAttribute('data-param');
         sw.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             const current = parseFloat(sw.getAttribute('data-state') || "0");
             const next = current > 0.5 ? 0.0 : 1.0;
+            syncUI(paramID, next);
             callNative("setParameter", paramID, next);
         });
     });
 }
 
-// =============================
-// BENDER
-// =============================
 function setupBender() {
-    const stick = document.getElementById('stick-handle');
+    const stick = document.getElementById('bender-stick');
     const housing = document.getElementById('stick-housing');
     if (!stick || !housing) return;
 
@@ -378,7 +446,7 @@ function setupBender() {
             let x = (ev.clientX - rect.left) / rect.width;
             x = Math.max(0, Math.min(1, x));
             stick.style.left = (x * 100) + '%';
-            callNative("setParameter", "bender", (x * 2) - 1);
+            callNative("setParameter", "bender", x);
         };
         move(e);
         const onMove = (ev) => move(ev);
@@ -386,16 +454,13 @@ function setupBender() {
             housing.removeEventListener('pointermove', onMove);
             housing.removeEventListener('pointerup', onUp);
             stick.style.left = '50%';
-            callNative("setParameter", "bender", 0);
+            callNative("setParameter", "bender", 0.5);
         };
         housing.addEventListener('pointermove', onMove);
         housing.addEventListener('pointerup', onUp);
     });
 }
 
-// =============================
-// KEYBOARD
-// =============================
 function setupKeyboard() {
     const bed = document.getElementById('ivory-keys-bed');
     if (!bed) return;
@@ -442,9 +507,6 @@ function setupKeyboard() {
     });
 }
 
-// =============================
-// MENUS
-// =============================
 function setupMenus() {
     document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('pointerdown', (e) => {
@@ -466,16 +528,16 @@ function setupMenus() {
 // =============================
 function syncUI(id, val) {
     document.querySelectorAll('[data-param="' + id + '"]').forEach(pod => {
-        // Slider handles
         const handle = pod.querySelector('.handle, .b-handle');
         if (handle) {
-            // Fix: Clamp handle positioning to internal track bounds
             const track = pod.querySelector('.track, .b-track') || pod;
             const containerH = track.getBoundingClientRect().height;
             const handleH = handle.getBoundingClientRect().height;
             const availableSpace = containerH - handleH;
-            const top = (1.0 - val) * availableSpace;
-            handle.style.top = Math.max(0, Math.min(availableSpace, top)) + 'px';
+            if (availableSpace > 0) {
+                const top = (1.0 - val) * availableSpace;
+                handle.style.top = top + 'px';
+            }
         }
 
         const knob = pod.querySelector('.knob');
@@ -489,37 +551,120 @@ function syncUI(id, val) {
 
         const btn = pod.tagName === 'BUTTON' ? pod : pod.querySelector('button');
         if (btn) {
-            const active = val > 0.5;
-            btn.setAttribute('data-active', active);
-            // Persistent pushed state for toggle buttons
+            const isActive = val > 0.5;
+            btn.setAttribute('data-active', isActive ? 'true' : 'false');
             if (btn.classList.contains('sq') || btn.classList.contains('juno-btn')) {
-                btn.classList.toggle('pushed', active);
+                btn.classList.toggle('active-mode', isActive);
             }
-            if (id === 'power') btn.innerText = active ? "ON" : "OFF";
+            if (id === 'power') btn.innerText = isActive ? "ON" : "OFF";
+        }
+
+        if (pod.tagName === 'SELECT') {
+            let denormalized = val;
+            if (id === 'midiChannel') denormalized = Math.round(val * 15 + 1);
+            if (id === 'benderRange') denormalized = Math.round(val * 11 + 1);
+            if (id === 'numVoices') denormalized = Math.round(val * 15 + 1);
+            if (id === 'sustainInverted') denormalized = val > 0.5 ? 1 : 0;
+            pod.value = denormalized;
+        }
+        if (pod.tagName === 'INPUT' && pod.type === 'range') {
+            pod.value = val;
+            const lbl = document.getElementById('val-' + id);
+            if (lbl) {
+                if (id === 'velocitySens' || id === 'lcdBrightness' || id === 'unisonWidth' || id === 'chorusMix' || id === 'aftertouchToVCF') {
+                    lbl.innerText = Math.round(val * 100) + '%';
+                } else if (id === 'chorusHiss') {
+                    lbl.innerText = Math.round(val * 50) + '%';
+                } else if (id === 'unisonDetune') {
+                    lbl.innerText = Math.round(val * 50) + 'c';
+                } else {
+                    lbl.innerText = val.toFixed(2);
+                }
+            }
         }
     });
 
     if (id === 'polyMode') {
         document.querySelectorAll('.poly-mode-btn').forEach(btn => {
             const btnVal = parseFloat(btn.getAttribute('data-poly-val'));
-            // Match tolerance
             const match = Math.abs(val - btnVal) < 0.2;
-            btn.setAttribute('data-active', match);
-            btn.classList.toggle('pushed', match);
+            btn.setAttribute('data-active', match ? 'true' : 'false');
+            btn.classList.toggle('active-mode', match);
         });
     }
 
     const led = document.getElementById('led-' + id);
     if (led) led.classList.toggle('active', val > 0.5);
 
+    if (id === "midiOut") {
+        const item = document.getElementById("menu-midi-tx");
+        if (item) item.classList.toggle("checked", val > 0.5);
+    }
     if (id === 'dcoRange') {
         document.querySelectorAll('.range-btn').forEach(b => {
             const btnVal = parseFloat(b.getAttribute('data-val'));
             const match = Math.abs(val - btnVal) < 0.15;
-            b.setAttribute('data-active', match);
-            b.classList.toggle('pushed', match);
+            b.setAttribute('data-active', match ? 'true' : 'false');
             const rLed = document.getElementById('led-dcoRange-' + Math.round(btnVal * 2));
             if (rLed) rLed.classList.toggle('active', match);
         });
+    }
+}
+
+function updateSevenSegment() {
+    const b = document.getElementById('bank-digit');
+    const p = document.getElementById('patch-digit');
+    if (b) b.innerText = currentBankGlobal;
+    if (p) p.innerText = currentPatchGlobal;
+}
+
+function showSettings() {
+    const el = document.getElementById('settings-overlay');
+    if (el) el.style.display = 'flex';
+}
+
+function hideSettings() {
+    const el = document.getElementById('settings-overlay');
+    if (el) el.style.display = 'none';
+}
+
+function showAbout() {
+    const el = document.getElementById('about-overlay');
+    if (el) el.style.display = 'flex';
+}
+
+function hideAbout() {
+    const el = document.getElementById('about-overlay');
+    if (el) el.style.display = 'none';
+}
+
+function updatePref(el) {
+    const id = el.getAttribute('data-param');
+    let val = el.value;
+    let normalized = val;
+    if (id === 'midiChannel') normalized = (val - 1) / 15;
+    if (id === 'benderRange') normalized = (val - 1) / 11;
+    if (id === 'numVoices') normalized = (val - 1) / 15;
+    if (id === 'sustainInverted') normalized = val; 
+    if (id === 'chorusHiss') normalized = val / 2.0;
+    if (id === 'midiFunction') normalized = val / 2.0;
+    if (id === 'unisonWidth') normalized = val;
+    if (id === 'unisonDetune') normalized = val;
+    if (id === 'chorusMix') normalized = val;
+    if (id === 'aftertouchToVCF') normalized = val;
+    
+    callNative("setParameter", id, parseFloat(normalized));
+    syncUI(id, parseFloat(normalized));
+}
+
+function handleTuningClick(type) {
+    console.log("handleTuningClick:", type);
+    const info = document.getElementById('tuning-info');
+    if (type === 'load') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.menuAction('handleLoadTuning');
+    } else {
+        juce.menuAction('handleResetTuning');
+        if (info) info.innerText = "RESETTING...";
     }
 }
