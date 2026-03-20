@@ -10,7 +10,8 @@
 #include "MidiLearnHandler.h"
 #include "JunoSysExEngine.h"
 #include "PerformanceState.h"
-#include "JunoBBD.h" // [Correct Placement]
+#include "JunoBBD.h" 
+#include "TuningManager.h"
 
 class PresetManager;
 
@@ -25,8 +26,6 @@ public:
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    // midiOutEnabled removed, using SynthParams
-    int midiChannel = 1; 
     juce::MidiBuffer midiOutBuffer;
     MidiLearnHandler midiLearnHandler;
     juce::AudioProcessorEditor* createEditor() override;
@@ -40,7 +39,6 @@ public:
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
-    // double getTailLengthSeconds() const override; // [Removed duplicate]
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -66,6 +64,10 @@ public:
     void sendManualMode(); 
     void triggerPanic();
     void setSustainPolarity(bool inverted) { sustainInverted = inverted; }
+    void triggerLFO();
+    void loadTuningFile();
+    void resetTuning();
+    juce::String getCurrentTuningName() const { return currentTuningName; }
 
     SynthParams getMirrorParameters(); // [Fidelidad] Block-consistent mirror
 
@@ -77,12 +79,15 @@ public:
     void triggerTestProgram(int bankIndex);
     void enterTestMode(bool enter);
 
-    void handleNoteOn(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
-    void handleNoteOff(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
+    void handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) override;
+    void handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) override;
 
     juce::AudioProcessorEditor* editor = nullptr;
 
     juce::MidiMessage getCurrentSysExData();
+    
+    std::atomic<bool> paramsAreDirty { true };
+    std::atomic<bool> patchDumpRequested { false };
 
     void undo() { undoManager.undo(); }
     void redo() { undoManager.redo(); }
@@ -99,8 +104,13 @@ private:
     JunoVoiceManager voiceManager;
     SynthParams currentParams;
     SynthParams lastParams;
+    std::atomic<bool> needsVoiceReset { false };
+
 
     std::unique_ptr<class PresetManager> presetManager;
+    TuningManager tuningManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::String currentTuningName { "Standard Tuning" };
     
     JunoSysExEngine sysExEngine;
     PerformanceState performanceState;
@@ -125,6 +135,7 @@ private:
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusPreEmphasisFilter;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusDeEmphasisFilter;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusNoiseFilter;
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusNoiseHPF;
     juce::AudioBuffer<float> chorusNoiseBuffer;
 
     float masterLfoPhase = 0.0f;
@@ -134,8 +145,20 @@ private:
     float chorusLfoPhaseI = 0.0f;
     float chorusLfoPhaseII = 0.0f;
     
+    std::atomic<bool> panicRequested { false };
+    juce::LinearSmoothedValue<float> smoothedSagGain;
+    
     float currentPowerSag = 0.0f;
+    std::atomic<float> currentAftertouch { 0.0f };
     float chorusFade = 0.0f;
+    float chorusHiss = 1.0f; // [New] User control over BBD Hiss level
+    int midiFunction = 2; // [New] 0=I, 1=II, 2=III
+    float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading
+\n    void handleMidiEvents(juce::MidiBuffer& midiMessages);
+    void updateParamsAndModulations();
+    void renderAudio(juce::AudioBuffer<float>& buffer, int numSamples);
+    void applyChorus(juce::AudioBuffer<float>& buffer, int numSamples);
+    void processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples);
 
     int powerOnDelaySamples = 0;
     bool wasAnyNoteHeld = false;
@@ -159,7 +182,10 @@ private:
     std::atomic<float>* fmtHpfFreq = nullptr;
     std::atomic<float>* fmtVcfFreq = nullptr;
     std::atomic<float>* fmtResonance = nullptr;
-    std::atomic<float>* fmtEnvAmount = nullptr;
+    std::atomic<float>* fmtThermalDrift = nullptr;
+    std::atomic<float>* fmtUnisonWidth = nullptr;
+    std::atomic<float>* fmtUnisonDetune = nullptr;
+    std::atomic<float>* fmtChorusMix = nullptr;
     std::atomic<float>* fmtVcfPolarity = nullptr;
     std::atomic<float>* fmtKybdTracking = nullptr;
     std::atomic<float>* fmtLfoToVCF = nullptr;
@@ -182,8 +208,21 @@ private:
     std::atomic<float>* fmtBenderVCF = nullptr;
     std::atomic<float>* fmtBenderLFO = nullptr;
     std::atomic<float>* fmtTune = nullptr;
-    std::atomic<float>* fmtMasterVol = nullptr;
+    std::atomic<float>* fmtMasterVolume = nullptr;
     std::atomic<float>* fmtMidiOut = nullptr;
+    std::atomic<float>* fmtLfoTrig = nullptr;
+    std::atomic<float>* fmtAftertouchToVCF = nullptr;
+    std::atomic<float>* fmtEnvAmount = nullptr;
+
+    // [Fidelidad] Preference Pointers
+    std::atomic<float>* fmtMidiChannel = nullptr;
+    std::atomic<float>* fmtBenderRange = nullptr;
+    std::atomic<float>* fmtVelocitySens = nullptr;
+    std::atomic<float>* fmtLcdBrightness = nullptr;
+    std::atomic<float>* fmtNumVoices = nullptr;
+    std::atomic<float>* fmtSustainInverted = nullptr;
+    std::atomic<float>* fmtChorusHiss = nullptr;
+    std::atomic<float>* fmtMidiFunction = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };
