@@ -5,12 +5,14 @@
 
 using namespace JunoConstants;
 
-Voice::Voice() {
+Voice::Voice() : ABD::VoiceBase() {
     filter.setMode(juce::dsp::LadderFilterMode::LPF24);
     lastOutputLevel = 0.0f; // [Safety] Ensure initialized
 }
 
-void Voice::prepare(double sr, int maxBlockSize) {
+void Voice::onPrepare() {
+    double sr = this->sr; // from VoiceBase
+    int maxBlockSize = this->blockSz;
     sampleRate = sr;
     dco.prepare(sr, maxBlockSize);
     
@@ -40,10 +42,10 @@ void Voice::prepare(double sr, int maxBlockSize) {
 
 
     smoothedCutoff.reset(sr, 0.02);
-    smoothedCutoff.setCurrentAndTargetValue(params.vcfFreq); // Avoid zero start
+    smoothedCutoff.setCurrentAndTargetValue(0.5f); // Safe default
     smoothedResonance.reset(sr, 0.02);
     smoothedVCALevel.reset(sr, 0.02);
-    smoothedVCALevel.setCurrentAndTargetValue(params.vcaLevel);
+    smoothedVCALevel.setCurrentAndTargetValue(0.5f);
     
     thermalDrift = 0.0f;
     thermalTarget = 0.0f;
@@ -52,22 +54,31 @@ void Voice::prepare(double sr, int maxBlockSize) {
     tempBuffer.setSize(1, maxBlockSize);
 }
 
-void Voice::noteOn(int midiNote, float vel, bool isLegato) {
+void Voice::onNoteOn(int midiNote, float vel) {
+    // Current D601 specific logic for Unison/Legato might need a wrapper
+    // For now, redirecting to the specific implementation
+    noteOn(midiNote, vel, false, currentUnisonCount);
+}
+
+void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison) {
     currentNote = midiNote;
     velocity = vel;
     isGateOn = true;
     lastOutputLevel = 1.0f;
     
-    targetFrequency = 440.0f * std::pow(2.0f, (midiNote - 69) / 12.0f);
+    if (tuningTable) {
+        targetFrequency = tuningTable[juce::jlimit(0, 127, midiNote)];
+    } else {
+        targetFrequency = 440.0f * std::pow(2.0f, (midiNote - 69) / 12.0f);
+    }
     
-    // [Fidelidad] UNISON DETUNE
-    // Adds ±6 cents spread across voices for authentic stacking thickness
-    if (params.polyMode == 3) {
-        // Range 12 cents total (+/- 6 cents).
-        // Spread constant per index deviation (range -2.5 to 2.5).
-        // 0.024f * 2.5 = 0.06 semitones (6 cents).
-        float spread = 0.024f; 
-        targetFrequency *= std::pow(2.0f, ((voiceIndex - 2.5f) * spread) / 12.0f);
+    // [Modern] Dynamic Unison Detune
+    // Centers the spread regardless of the number of active voices.
+    if (params.polyMode == 3 && numVoicesInUnison > 1) {
+        float spreadAmt = params.unisonDetune * 0.1f; 
+        float center = (numVoicesInUnison - 1) * 0.5f;
+        float detuneSemitones = (voiceIndex - center) * spreadAmt;
+        targetFrequency *= std::pow(2.0f, detuneSemitones / 12.0f);
     }
 
     // [Fidelidad] Correct Portamento Logic
@@ -80,15 +91,13 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
     bool shouldGlide = runGlide;
     
     adsr.setSampleRate(sampleRate);
-    // [ENV Audit] Set simplified, linear times. The ADSR class now handles the exponential curve.
-    // [Fidelidad] Exponential slider mapping for ADSR times
-    auto curveMap = [](float val, float minV, float maxV) {
-        return minV * std::pow(maxV / minV, val);
-    };
-    adsr.setAttack(curveMap(params.attack, Curves::kAttackMin, Curves::kAttackMax));
-    adsr.setDecay(curveMap(params.decay, Curves::kDecayMin, Curves::kDecayMax));
+    // [Fidelidad] Exponential slider mapping for ADSR times via centralized helper
+    adsr.setAttack(JunoConstants::curveMap(params.attack, Curves::kAttackMin, Curves::kAttackMax));
+    adsr.setDecay(JunoConstants::curveMap(params.decay, Curves::kDecayMin, Curves::kDecayMax));
     adsr.setSustain(params.sustain);
-    adsr.setRelease(curveMap(params.release, Curves::kReleaseMin, Curves::kReleaseMax));
+    adsr.setRelease(JunoConstants::curveMap(params.release, Curves::kReleaseMin, Curves::kReleaseMax));
+    
+    stealPending = false; // Reset steal flag on new note
     
     if (!isLegato) {
         // [Fidelidad] Fix "Ataques Sordos" (Dull Attacks)
@@ -115,10 +124,19 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato) {
     dco.setFrequency(currentFrequency);
 }
 
+void Voice::onNoteOff(float /*vel*/) {
+    noteOff();
+}
+
 // [Audit Fix] Portamento Reset on Patch Change/Stop
+void Voice::onReset() {
+    forceStop();
+}
+
 void Voice::forceStop() { 
     adsr.reset(); 
     currentNote = -1; 
+    isActive_ = false;
     lastOutputLevel = 0.0f; 
     currentFrequency = targetFrequency; // Reset portamento history
 }
@@ -127,6 +145,15 @@ void Voice::forceStop() {
 void Voice::noteOff() {
     isGateOn = false;
     adsr.noteOff();
+    stealPending = false;
+    // Note: isActive_ will be set to false in renderNextBlock when ADSR is idle
+}
+
+void Voice::prepareForStealing() {
+    // Force a very fast release (3ms) to avoid clicks before re-triggering
+    adsr.setRelease(0.003f);
+    adsr.noteOff();
+    stealPending = true;
 }
 
 void Voice::updateParams(const SynthParams& p) {
@@ -155,19 +182,22 @@ void Voice::updateParams(const SynthParams& p) {
     // BUT we also need to tell ADSR how to behave if it handles gate internally.
     // 'setGateMode(true)' forces ADSR to output square gate.
     
-    auto curveMap = [](float val, float minV, float maxV) {
-        return minV * std::pow(maxV / minV, val);
-    };
+    ABD::ADSRGeneric::Params adsrParams;
+    adsrParams.curveExp = 0.7f; // Juno characteristic
 
     if (p.vcaMode == 1) { // GATE MODE
-        adsr.setGateMode(true);
+         // ADSRGeneric doesn't have a specific gate mode, but we can simulate it with sustain 1.0 and 0 attack
+         adsrParams.attackSecs = 0.001f;
+         adsrParams.decaySecs = 0.001f;
+         adsrParams.sustainLevel = 1.0f;
+         adsrParams.releaseSecs = 0.001f;
     } else { // ENV MODE
-        adsr.setGateMode(false);
-        adsr.setAttack(curveMap(p.attack, Curves::kAttackMin, Curves::kAttackMax));
-        adsr.setDecay(curveMap(p.decay, Curves::kDecayMin, Curves::kDecayMax));
-        adsr.setSustain(p.sustain);
-        adsr.setRelease(curveMap(p.release, Curves::kReleaseMin, Curves::kReleaseMax));
+         adsrParams.attackSecs = JunoConstants::curveMap(p.attack, Curves::kAttackMin, Curves::kAttackMax);
+         adsrParams.decaySecs = JunoConstants::curveMap(p.decay, Curves::kDecayMin, Curves::kDecayMax);
+         adsrParams.sustainLevel = p.sustain;
+         adsrParams.releaseSecs = JunoConstants::curveMap(p.release, Curves::kReleaseMin, Curves::kReleaseMax);
     }
+    adsr.setParams(adsrParams);
     
     updateHPF();
 }
@@ -205,8 +235,17 @@ void Voice::forceUpdate() {
     hpfShelfFilter.reset();
 }
 
-void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk) {
-    if (!(adsr.isActive() || lastOutputLevel > 0.0001f)) return;
+void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples) {
+    if (!lfoBufferPtr) return;
+    renderNextBlock(buffer, startSample, numSamples, *lfoBufferPtr, currentNeighborCrosstalk, currentUnisonCount);
+}
+
+void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk, int numVoicesInUnison) {
+    if (!(adsr.isActive() || lastOutputLevel > 0.0001f)) {
+        isActive_ = false;
+        return;
+    }
+    isActive_ = true;
     
     if (numSamples > tempBuffer.getNumSamples()) numSamples = tempBuffer.getNumSamples();
     
@@ -215,12 +254,13 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     
     float* voiceData = tempBuffer.getWritePointer(0);
     renderVoiceCycles(voiceData, numSamples, lfoBuffer, neighborCrosstalk);
-    processFinalOutput(buffer, startSample, numSamples, voiceData);
+    processFinalOutput(buffer, startSample, numSamples, voiceData, numVoicesInUnison);
 }
 
 float Voice::updatePitch(int numSamples) {
     if (params.portamentoOn && std::abs(currentFrequency - targetFrequency) > 0.1f) {
-        float glideTime = params.portamentoTime * 5.0f;
+        // [Fidelity] Exponential mapping for better sensitivity in short ranges
+        float glideTime = 0.005f * std::pow(400.0f, params.portamentoTime);
         float glideCoeff = 1.0f - std::exp(-static_cast<float>(numSamples) /
                                (juce::jmax(0.001f, glideTime) * static_cast<float>(sampleRate)));
         currentFrequency += (targetFrequency - currentFrequency) * glideCoeff;
@@ -230,7 +270,8 @@ float Voice::updatePitch(int numSamples) {
     
     float bendedFrequency = currentFrequency * std::pow(2.0f, params.tune / 1200.0f);
     if (params.benderValue != 0.0f && params.benderToDCO > 0.0f) {
-        bendedFrequency *= std::pow(2.0f, params.benderValue * (params.benderToDCO * 2.0f / 12.0f));
+        // [Fidelity] Bender Range optimization: scale by the user-selected range (e.g. 2, 7, 12 semitones)
+        bendedFrequency *= std::pow(2.0f, params.benderValue * (params.benderToDCO * (float)params.benderRange / 12.0f));
     }
 
     // [Senior Audit] Global Thermal Drift (Shared DAC)
@@ -244,7 +285,7 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
     filter.setDrive(1.0f + resParam * 1.2f); 
 
     for (int i = 0; i < numSamples; ++i) {
-        float envVal = adsr.getNextSample();
+        float envVal = adsr.process(); // ABD ADSR
         float voiceLfo = lfoBuffer[i];
         
         // 1. DCO
@@ -275,9 +316,11 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         // VCF Modulation Mapping (Approx 5 octaves)
         float envMod = (params.vcfPolarity == 1) ? -envVal : envVal;
-        float finalModOct = (envMod * params.envAmount * 5.0f) + 
-                            (voiceLfo * params.lfoToVCF * 4.0f) + 
-                            (params.benderValue * params.benderToVCF * 2.0f);
+        float lfoVCF = params.lfoToVCF * voiceLfo * 4.0f; // LFO modulation scaled to 4 octaves
+        float benderVCF = params.benderToVCF * params.benderValue * 2.0f; // Bender modulation scaled to 2 octaves
+        float aftertouchMod = params.aftertouchToVCF * params.currentAftertouch * 2.0f; // Aftertouch modulation scaled to 2 octaves
+        
+        float finalModOct = (envMod * params.envAmount * 5.0f) + lfoVCF + benderVCF + aftertouchMod;
                             
         // [Fidelity] Apply thermal drift to cutoff (approx +/- 20 cents)
         float targetCutoff = baseCutoff * std::pow(2.0f, finalModOct + (thermalDrift / 1200.0f));
@@ -293,20 +336,41 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         juce::dsp::ProcessContextReplacing<float> vcfContext (sampleBlock);
         filter.process (vcfContext);
         
+        // 3. HPF [Fidelity: Post-VCF routing]
+        signal = hpFilter.processSample(signal);
+        if (params.hpfFreq == 0) signal = hpfShelfFilter.processSample(signal);
+        
+        // [Fidelity] Denormal protection: Flush tiny signals to zero
+        juce::dsp::util::snapToZero(signal);
         // 4. VCA
         float rawVcaLev = smoothedVCALevel.getNextValue();
         
         // [Fidelity] Resonance-compensated VCA Gain
         // Moog-style/Juno ladders thin out at high resonance. We compensate slightly.
         float resComp = 1.0f + (resParam * resParam * 0.5f);
+        
+        // [Improvement] Velocity Sensitivity
+        float velScale = 1.0f - params.velocitySens + (params.velocitySens * velocity);
+        
         float vcaGain = (params.vcaMode == 1) ? (rawVcaLev * (isGateOn ? 1.0f : 0.0f)) : (envVal * rawVcaLev);
+        vcaGain *= velScale;
         
         // Final Output
         voiceData[i] = signal * vcaGain * resComp * kVoiceOutputGain;
     }
 }
 
-void Voice::processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData) {
+void Voice::processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData, int numVoicesInUnison) {
+    float pan = 0.0f;
+    if (numVoicesInUnison > 1) {
+        // [Modern] Distribute voices across stereo field in Unison
+        pan = (voiceIndex / (float)(numVoicesInUnison - 1)) * 2.0f - 1.0f;
+    }
+    
+    float unisonWidth = params.unisonStereoWidth;
+    float gainL = std::sqrt(0.5f * (1.0f - pan * unisonWidth));
+    float gainR = std::sqrt(0.5f * (1.0f + pan * unisonWidth));
+
     float currentBlockMax = 0.0f;
     for (int i = 0; i < numSamples; ++i) {
         float sample = voiceData[i];
@@ -316,8 +380,8 @@ void Voice::processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample
         float absSample = std::abs(sample);
         if (absSample > currentBlockMax) currentBlockMax = absSample;
 
-        buffer.addSample(0, startSample + i, sample);
-        if (buffer.getNumChannels() > 1) buffer.addSample(1, startSample + i, sample);
+        buffer.addSample(0, startSample + i, sample * gainL);
+        if (buffer.getNumChannels() > 1) buffer.addSample(1, startSample + i, sample * gainR);
     }
     
     lastOutputLevel = currentBlockMax;

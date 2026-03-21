@@ -2,8 +2,10 @@
 
 #include <JuceHeader.h>
 #include "../Synth/Voice.h"
+#include "../ABD-SynthEngine/Core/Voices/VoiceAllocator.h"
 #include "SynthParams.h"
 #include <array>
+#include <atomic>
 
 /**
  * JunoVoiceManager
@@ -33,33 +35,43 @@ public:
     void setPortamentoEnabled(bool b);
     void setPortamentoTime(float v);
     void setPortamentoLegato(bool b);
+    void setTuningTable(const float* table) {
+        for (auto& v : voices) v.setTuningTable(table);
+    }
     
     void resetAllVoices() {
-        for (auto& v : voices) v.forceStop();
+        allocator.reset();
         setAllNotesOff();
     }
 
     float getTotalEnvelopeLevel() const {
         float sum = 0.0f;
+        auto& voices = allocator.getVoices();
         for (const auto& v : voices) if (v.isActive()) sum += v.lastActiveOutputLevel();
         return sum;
     }
 
     int getActiveVoiceCount() const {
-        int count = 0;
-        for (const auto& v : voices) if (v.isActive()) count++;
-        return count;
+        return allocator.getNumActiveVoices();
     }
 
-    bool isAnyNoteHeld() const {
+    bool hideIsAnyNoteHeld() const { // internal helper
+        auto& voices = allocator.getVoices();
         for (const auto& v : voices) if (v.isGateOnActive()) return true;
         return false;
     }
 
+    bool isAnyNoteHeld() const {
+        return hideIsAnyNoteHeld();
+    }
+
 private:
-    static constexpr int MAX_VOICES = 6;
-    std::array<Voice, MAX_VOICES> voices;
+    static constexpr int MAX_VOICES = 16;
+    std::atomic<int> currentActiveVoices;
     
+    ABD::VoiceAllocator<Voice, MAX_VOICES> allocator;
+    
+    // For legacy tracking until full migration to VoiceAllocator internals
     std::array<std::atomic<uint64_t>, MAX_VOICES> voiceTimestamps;
     std::atomic<uint64_t> currentTimestamp {0};
     

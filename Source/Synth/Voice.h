@@ -4,26 +4,40 @@
 #include <cmath>
 #include <algorithm>
 #include "JunoDCO.h"
-#include "JunoADSR.h"
+#include "../ABD-SynthEngine/Core/Voices/VoiceBase.h"
+#include "../ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h"
+#include "../ABD-SynthEngine/Core/LFO/LFOGeneric.h"
 #include "../Core/SynthParams.h"
 
 /**
  * Voice
  * 
  * Represents one of the 6 voices of the JUNiO 601.
+ * Now inherits from ABD::VoiceBase for modular architecture.
  */
-class Voice {
+class Voice : public ABD::VoiceBase {
 public:
     Voice();
     
-    void prepare(double sampleRate, int maxBlockSize);
+    // ABD::VoiceBase Overrides
+    void onPrepare() override;
+    void onReset() override;
+    void onNoteOn(int midiNote, float velocity) override;
+    void onNoteOff(float velocity) override;
     
-    // The voice now processes a buffer containing the GLOBAL LFO signal
-    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk);
+    // The voice now processes using internal state for LFO/Crosstalk
+    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples) override;
     
-    void noteOn(int midiNote, float velocity, bool isLegato);
+    // Setters for dynamic render state (called by VoiceAllocator or Manager)
+    void setLfoBuffer(const std::vector<float>* buffer) { lfoBufferPtr = buffer; }
+    void setCrosstalk(float crosstalk) { currentNeighborCrosstalk = crosstalk; }
+    void setUnisonCount(int count) { currentUnisonCount = count; }
+
+    // Legacy noteOn wrapper for compatibility if needed (but we should move to VoiceAllocator)
+    void noteOn(int midiNote, float velocity, bool isLegato, int numVoicesInUnison);
     void noteOff();
     void forceStop();
+    void prepareForStealing(); 
     
     bool isActive() const { return currentNote != -1; }
     int getCurrentNote() const { return currentNote; }
@@ -39,11 +53,12 @@ public:
     void setPortamentoTime(float v);
     void setPortamentoLegato(bool b);
     void setVoiceIndex(int i) { voiceIndex = i; }
+    void setTuningTable(const float* table) { tuningTable = table; }
 
 private:
     float updatePitch(int numSamples);
     void renderVoiceCycles(float* voiceData, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk);
-    void processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData);
+    void processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData, int numVoicesInUnison);
     // Components
     JunoDCO dco;
     JunoADSR adsr;
@@ -78,14 +93,17 @@ private:
     int thermalCounter = 0;
     
     // [Fidelidad] Unison Detune requires index knowledge
+    // State from Manager set every block
+    const std::vector<float>* lfoBufferPtr = nullptr;
+    float currentNeighborCrosstalk = 0.0f;
+    int currentUnisonCount = 1;
+
     int voiceIndex = 0;
+    const float* tuningTable = nullptr;
 
     SynthParams params;
     juce::AudioBuffer<float> tempBuffer;
-    
-    // [Fix] Removed releaseCounter/timeout - Allow natural envelope decay
-    // int releaseCounter = 0;
-    // static constexpr int kReleaseTimeoutMs = 30000;
+    bool stealPending = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Voice)
 };

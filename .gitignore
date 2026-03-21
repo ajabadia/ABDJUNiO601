@@ -1,4 +1,6 @@
 # Build & Artifacts
+logs/
+WebUI/
 build/
 Builds/
 bin/
@@ -28,6 +30,8 @@ docs/
 *.md (except important ones like README)
 !README.md
 !Source/**/*.md
+!roadmap.md
+!rules.md
 
 # Root level excludes
 /JUNiO_601.exe
