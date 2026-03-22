@@ -4,10 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <title>ABD JUNiO 601 - Gold Standard</title>
+    <!-- Immediate black background to prevent white flash during bridge initialization -->
+    <style>html, body { background-color: #111 !important; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }</style>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="service.css">
 </head>
 
-<body>
+<body class="smooth-fade">
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>ABD JUNiO 601</h1>
+            <div class="splash-version">Version 1.2.0</div>
+            <div class="splash-credit">Built by ABD-IA</div>
+        </div>
+    </div>
+
     <div id="synth-app">
         <!-- 1. TOP BAR: FULL MENU -->
         <header id="top-bar">
@@ -21,6 +32,7 @@
                         <li onclick="juce.menuAction('handleExportBank')">Export Bank as JSON...</li>
                         <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / JNO...</li>
                         <li onclick="juce.menuAction('handleLoadTape')">Load Tape (.wav)...</li>
+                        <li onclick="juce.menuAction('handleSaveTape')">Save Tape (.wav)...</li>
                         <li class="divider"></li>
                         <li onclick="juce.menuAction('exit')">Exit</li>
                     </ul>
@@ -31,11 +43,15 @@
                         <li onclick="juce.undo()">Undo</li>
                         <li onclick="juce.redo()">Redo</li>
                         <li class="divider"></li>
-                        <li onclick="juce.copySysEx()">Copy SysEx Data</li>
+                        <li onclick="copySysExToClipboard()">Copy SysEx Data</li>
                         <li onclick="juce.menuAction('handleRandomize')">Randomize Sound</li>
                         <li onclick="juce.menuAction('panic')">Panic (All Notes Off)</li>
                         <li class="divider"></li>
-                        <li onclick="juce.toggleMidiOut()">MIDI TX</li>
+                        <li id="menu-midi-tx" onclick="juce.toggleMidiOut()">
+                            MIDI TX <span class="check-mark">✔</span>
+                        </li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('handleSettings')">Preferences...</li>
                     </ul>
                 </div>
                 <div class="menu-item">
@@ -47,11 +63,13 @@
                 <div class="menu-item">
                     Help
                     <ul class="dropdown">
+                        <li onclick="juce.menuAction('handleServiceMode')">Service Mode / Calibration...</li>
+                        <li class="divider"></li>
                         <li onclick="juce.menuAction('handleAbout')">About ABD JUNiO 601...</li>
                     </ul>
                 </div>
             </nav>
-            <div id="app-title-mini">ABD JUNiO 601 v1.1.0</div>
+            <div id="app-title-mini">ABD JUNiO 601 v1.2.0</div>
         </header>
 
         <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
@@ -556,7 +574,7 @@
                 <button class="close-btn" onclick="hideAbout()">&times;</button>
             </div>
             <div class="about-content">
-                <div class="about-version">Version 1.1.0</div>
+                <div class="about-version">Version 1.2.0</div>
                 <p>A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth.</p>
                 <p>Precision-engineered for harmonic richness, thermal variance, and authentic BBD chorus character.</p>
                 <div class="about-credits">
@@ -569,8 +587,138 @@
             </div>
         </div>
     </div>
+    <!-- PREFERENCES MODAL -->
+    <div id="settings-overlay" class="modal-overlay">
+        <div id="settings-modal" class="settings-container">
+            <div class="settings-header">
+                <span class="settings-title">PREFERENCES</span>
+                <button class="close-btn" onclick="hideSettings()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-row">
+                    <label>MIDI CHANNEL</label>
+                    <select id="pref-midiChannel" data-param="midiChannel" onchange="updatePref(this)">
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                        <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                        <option value="16">16</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>BENDER RANGE</label>
+                    <select id="pref-benderRange" data-param="benderRange" onchange="updatePref(this)">
+                        <option value="1">1 SEMI</option><option value="2">2 SEMIS</option>
+                        <option value="3">3 SEMIS</option><option value="4">4 SEMIS</option>
+                        <option value="7">7 SEMIS</option><option value="12">1 OCT</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>VELOCITY SENS</label>
+                    <input type="range" id="pref-velocitySens" data-param="velocitySens" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-velocitySens">50%</span>
+                </div>
+                <div class="setting-row">
+                    <label>LCD BRIGHTNESS</label>
+                    <input type="range" id="pref-lcdBrightness" data-param="lcdBrightness" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-lcdBrightness">80%</span>
+                </div>
+                <div class="setting-row">
+                    <label>VOICE LIMIT</label>
+                    <select id="pref-numVoices" data-param="numVoices" onchange="updatePref(this)">
+                        <option value="1">1 (MONO)</option><option value="2">2</option><option value="4">4</option>
+                        <option value="6">6 (CLASSIC)</option><option value="8">8</option><option value="12">12</option>
+                        <option value="16">16 (MAX)</option>
+                    </select>
+                </div>
+                <div class="setting-row" id="row-unisonWidth">
+                    <label>UNISON STEREO</label>
+                    <input type="range" id="pref-unisonWidth" data-param="unisonWidth" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-unisonWidth">0%</span>
+                </div>
+                <div class="setting-row">
+                    <label>UNISON DETUNE</label>
+                    <input type="range" id="pref-unisonDetune" data-param="unisonDetune" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-unisonDetune">50%</span>
+                </div>
+                <div class="setting-row">
+                    <label>CHORUS MIX</label>
+                    <input type="range" id="pref-chorusMix" data-param="chorusMix" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-chorusMix">100%</span>
+                </div>
+                <div class="setting-row">
+                    <label>SUSTAIN PEDAL</label>
+                    <select id="pref-sustainInverted" data-param="sustainInverted" onchange="updatePref(this)">
+                        <option value="0">NORMAL</option>
+                        <option value="1">INVERTED</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>CHORUS HISS</label>
+                    <input type="range" id="pref-chorusHiss" data-param="chorusHiss" min="0" max="2" step="0.01" value="1.0" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-chorusHiss">100%</span>
+                </div>
+                <div class="setting-row">
+                    <label>MIDI FUNCTION</label>
+                    <select id="pref-midiFunction" data-param="midiFunction" onchange="updatePref(this)">
+                        <option value="0">I (NOTE)</option>
+                        <option value="1">II (+ PATCH)</option>
+                        <option value="2">III (+ SYSEX)</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>AFTERTOUCH SENS</label>
+                    <input type="range" id="pref-aftertouchToVCF" data-param="aftertouchToVCF" min="0" max="1" step="0.01" oninput="updatePref(this)">
+                    <span class="val-lbl" id="val-aftertouchToVCF">50%</span>
+                </div>
+                <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px; display: block;">
+                    <label style="margin-bottom: 10px; display: block;">MICROTUNING (SCL)</label>
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button class="tuning-btn" onclick="handleTuningClick('load')">LOAD .SCL</button>
+                        <button class="tuning-btn" onclick="handleTuningClick('reset')">RESET</button>
+                    </div>
+                    <div id="tuning-info" style="font-size: 9px; color: #888; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Standard Tuning</div>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <button class="tuning-btn" style="width: 120px; height: 36px; font-size: 14px; background: #333;" onclick="hideSettings()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVICE MODE MODAL -->
+    <div id="modal-serviceMode" class="modal-overlay">
+        <div class="settings-container modal-content" style="max-width: 900px;">
+            <div class="settings-header">
+                <span class="settings-title">SERVICE MODE & CALIBRATION</span>
+                <button class="close-btn" onclick="hideModal('serviceMode')">&times;</button>
+            </div>
+            
+            <div class="settings-content" style="display: block;">
+                <div class="service-section">
+                    <div class="service-section-title">Voice Diagnostics</div>
+                    <div id="voice-test-grid" class="voice-test-grid"></div>
+                </div>
+
+                <div class="service-section" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+                    <div class="service-section-title">Synthesis Calibration</div>
+                    <div id="service-params-list" class="styled-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 15px;"></div>
+                </div>
+            </div>
+
+            <div class="settings-footer" style="gap: 10px;">
+                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.exportCalibration()">EXPORT JSON</button>
+                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.importCalibration()">IMPORT JSON</button>
+                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
+                <button class="tuning-btn" style="min-width: 120px; background: #600;" onclick="ServiceMode.resetCalibration()">RESET</button>
+                <button class="tuning-btn" style="min-width: 120px; background: #333;" onclick="hideModal('serviceMode')">CLOSE</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
+    <script src="service.js"></script>
 </body>
 
 </html>

@@ -1,53 +1,71 @@
 #include "WebViewEditor.h"
 #include "../../Core/PresetManager.h"
+#include "../../Core/BuildVersion.h"
+#include "BinaryData.h"
+#include <memory>
+#include <optional>
+#include <string>
+#include <cstddef>
+#include <cstring>
+
+
 
 WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Resolve WebUI directory: next to plugin binary (production), or sibling of app file
-    auto resolveWebUIDir = []() -> juce::File {
-        auto appFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
-        auto sibling = appFile.getParentDirectory().getChildFile("WebUI");
-        if (sibling.isDirectory()) return sibling;
-        // Fallback: common app data
-        return juce::File::getSpecialLocation(juce::File::commonApplicationDataDirectory)
-                   .getChildFile("JUNiO601").getChildFile("WebUI");
-    };
-    const auto webUIDir = resolveWebUIDir();
-
-    auto resolveLogDir = []() -> juce::File {
-        return juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-                   .getChildFile("JUNiO601").getChildFile("logs").getChildFile("webview_data");
+    // Setup visual debug: No more persistence in Documents folder at user's request.
+    auto resolveUserDataDir = []() -> juce::File {
+        auto f = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                   .getChildFile("JUNiO601_WebView_Cache");
+        f.createDirectory();
+        return f;
     };
 
-    // Setup WebView with Options
+    // Setup WebView with ResourceProvider to serve BinaryData
     auto options = juce::WebBrowserComponent::Options()
         .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
         .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2()
-                                  .withUserDataFolder (resolveLogDir())
+                                  .withUserDataFolder (resolveUserDataDir())
                                   .withBackgroundColour (juce::Colours::black))
         .withNativeIntegrationEnabled()
-        .withResourceProvider ([webUIDir] (const juce::String& url) -> std::optional<juce::WebBrowserComponent::Resource> 
+        .withResourceProvider ([this] (const juce::String& url) -> std::optional<juce::WebBrowserComponent::Resource>
         {
-            auto path = url == "/" ? "index.html" : url.substring (1);
-            auto file = webUIDir.getChildFile (path);
+            auto path = url.fromFirstOccurrenceOf ("/", false, false);
+            if (path == "/" || path.isEmpty()) path = "/index.html";
             
-            if (file.existsAsFile())
-            {
-                juce::MemoryBlock mb;
-                file.loadFileAsData (mb);
-                
-                std::vector<std::byte> data (mb.getSize());
-                std::memcpy (data.data(), mb.getData(), mb.getSize());
-                
-                juce::String mime = "text/html";
-                if (file.getFileExtension() == ".css") mime = "text/css";
-                else if (file.getFileExtension() == ".js") mime = "text/javascript";
-                else if (file.getFileExtension() == ".png") mime = "image/png";
+            // Map path to BinaryData name (e.g. /css/vars.css -> vars_css)
+            juce::String filename = path.substring(path.lastIndexOf("/") + 1);
+            juce::String resourceName = filename.replace(".", "_")
+                                                .replace("-", "_")
+                                                .replace(" ", "_");
+            
+            juce::Logger::writeToLog ("[WebView] URL: " + url + " -> Path: " + path + " -> Resource: " + resourceName);
 
-                return juce::WebBrowserComponent::Resource { std::move (data), mime };
+            int size = 0;
+            if (auto* data = BinaryData::getNamedResource (resourceName.toRawUTF8(), size))
+            {
+                juce::Logger::writeToLog ("[WebView] Resource FOUND: " + resourceName + " (" + juce::String(size) + " bytes)");
+                auto getMimeType = [] (const juce::String& p)
+                {
+                    if (p.endsWithIgnoreCase (".html")) return "text/html";
+                    if (p.endsWithIgnoreCase (".css"))  return "text/css";
+                    if (p.endsWithIgnoreCase (".js"))   return "application/javascript";
+                    if (p.endsWithIgnoreCase (".png"))  return "image/png";
+                    if (p.endsWithIgnoreCase (".ttf"))  return "font/ttf";
+                    if (p.endsWithIgnoreCase (".woff")) return "font/woff";
+                    if (p.endsWithIgnoreCase (".woff2")) return "font/woff2";
+                    return "application/octet-stream";
+                };
+
+                std::vector<std::byte> dataVec (size);
+                std::memcpy (dataVec.data(), data, (size_t)size);
+
+                return juce::WebBrowserComponent::Resource {
+                    std::move (dataVec),
+                    getMimeType (path)
+                };
             }
-            juce::Logger::writeToLog ("WebView resource NOT FOUND: " + url);
+            juce::Logger::writeToLog ("[WebView] Resource NOT FOUND: " + resourceName);
             return std::nullopt;
         });
 
@@ -58,19 +76,10 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
         {
             auto paramID = args[0].toString();
             float value = static_cast<float>(args[1]);
-            
-            juce::Logger::writeToLog ("JS -> setParameter: " + paramID + " = " + juce::String(value));
-
-            if (auto* p = audioProcessor.getAPVTS().getParameter (paramID))
+            juce::Logger::writeToLog ("[JS Bridge] setParameter: " + paramID + " = " + juce::String(value));
+            if (auto* p = audioProcessor.getAPVTS().getParameter (paramID)) {
                 p->setValueNotifyingHost (value);
-            else
-                juce::Logger::writeToLog ("WARNING: Parameter NOT FOUND: " + paramID);
-            
-            // Special LCD feedback for Manual interaction
-            if (auto* p = audioProcessor.getAPVTS().getParameter (paramID))
-            {
-                auto label = p->getName(32) + ": " + juce::String(value, 2);
-                updateLCDInJS(label);
+                audioProcessor.paramsAreDirty.store(true);
             }
         }
         completion (juce::var());
@@ -110,15 +119,74 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
             juce::String action = args[0].toString();
             if (action == "panic") audioProcessor.triggerPanic();
             else if (action == "handleRandomize") {
-                if (auto* pm = audioProcessor.getPresetManager())
+                if (auto* pm = audioProcessor.getPresetManager()) {
                     pm->randomizeCurrentParameters(audioProcessor.getAPVTS());
+                    audioProcessor.paramsAreDirty.store(true);
+                    audioProcessor.patchDumpRequested.store(true);
+                }
             }
             else if (action == "handleManual") audioProcessor.sendManualMode();
             else if (action == "handleTest") audioProcessor.enterTestMode(true);
-            else if (action == "handleTestProgram") {
-                if (args.size() > 0) audioProcessor.triggerTestProgram(static_cast<int>(args[0]));
+            else if (action == "handleLoad") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Load Patch (.jno, .syx)...", juce::File(), "*.jno;*.syx");
+                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager()) {
+                            if (pm->importPresetsFromFile (fc.getResult()).wasOk()) {
+                                audioProcessor.paramsAreDirty.store(true);
+                                audioProcessor.patchDumpRequested.store(true);
+                            }
+                        }
+                    });
             }
-            else if (action == "handleLfoTrig") audioProcessor.triggerLFO();
+            else if (action == "handleSave") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Save Patch (.jno)...", juce::File(), "*.jno");
+                fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager())
+                            pm->exportCurrentPresetToJson (fc.getResult());
+                    });
+            }
+            else if (action == "handleExportBank") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Export Bank (.json)...", juce::File(), "*.json");
+                fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager())
+                            pm->exportLibraryToJson (fc.getResult());
+                    });
+            }
+            else if (action == "handleImportSysex") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Import SysEx (.syx, .jno)...", juce::File(), "*.syx;*.jno");
+                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager()) {
+                            if (pm->importPresetsFromFile (fc.getResult()).wasOk()) {
+                                audioProcessor.paramsAreDirty.store(true);
+                                audioProcessor.patchDumpRequested.store(true);
+                            }
+                        }
+                    });
+            }
+            else if (action == "handleLoadTape") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Load Tape (.wav)...", juce::File(), "*.wav");
+                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager()) {
+                            if (pm->loadTape (fc.getResult()).wasOk()) {
+                                audioProcessor.paramsAreDirty.store(true);
+                                audioProcessor.patchDumpRequested.store(true);
+                            }
+                        }
+                    });
+            }
+            else if (action == "handleSaveTape") {
+                fileChooser = std::make_unique<juce::FileChooser> ("Save Tape (.wav)...", juce::File(), "*.wav");
+                fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
+                    [this] (const juce::FileChooser& fc) {
+                        if (auto* pm = audioProcessor.getPresetManager())
+                            pm->exportCurrentPresetToTape (fc.getResult());
+                    });
+            }
             else if (action == "handleBankInc") {
                 if (auto* pm = audioProcessor.getPresetManager())
                     audioProcessor.loadPreset(juce::jlimit(0, 127, pm->getCurrentPresetIndex() + 8));
@@ -138,53 +206,25 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
             else if (action == "undo") audioProcessor.undo();
             else if (action == "redo") audioProcessor.redo();
             else if (action == "toggleMidiOut") audioProcessor.toggleMidiOut();
-            else if (action == "panic") audioProcessor.triggerPanic();
-            else if (action == "handleExportBank") {
-                fileChooser = std::make_unique<juce::FileChooser> ("Export Bank...", juce::File(), "*.json");
-                fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
-                    [this] (const juce::FileChooser& fc) {
-                        if (auto* pm = audioProcessor.getPresetManager())
-                            pm->exportAllLibrariesToJson (fc.getResult());
-                    });
-            }
-            else if (action == "handleImportSysex") {
-                fileChooser = std::make_unique<juce::FileChooser> ("Import SysEx / JNO...", juce::File(), "*.syx;*.jno");
-                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                    [this] (const juce::FileChooser& fc) {
-                        if (auto* pm = audioProcessor.getPresetManager())
-                            pm->importPresetsFromFile (fc.getResult());
-                    });
-            }
-            else if (action == "handleLoadTape") {
-                fileChooser = std::make_unique<juce::FileChooser> ("Load Tape (.wav)...", juce::File(), "*.wav");
-                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                    [this] (const juce::FileChooser& fc) {
-                        if (auto* pm = audioProcessor.getPresetManager())
-                            pm->loadTape (fc.getResult());
-                    });
-            }
+            else if (action == "handleLfoTrig") audioProcessor.triggerLFO();
             else if (action == "exit") {
                 if (auto* app = juce::JUCEApplication::getInstance())
                     app->systemRequestedQuit();
             }
+            else if (action == "handleSettings") {
+                dispatchToJS("showModal", "preferences");
+            }
+            else if (action == "handleServiceMode") {
+                dispatchToJS("showModal", "serviceMode");
+            }
             else if (action == "handleAbout") {
-                emitJS ("onShowAbout", {});
+                dispatchToJS("showModal", "about");
             }
-            else if (action == "handleLoad") {
-                fileChooser = std::make_unique<juce::FileChooser> ("Load Patch...", juce::File(), "*.json;*.syx;*.jno");
-                fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                    [this] (const juce::FileChooser& fc) {
-                        if (auto* pm = audioProcessor.getPresetManager())
-                            pm->importPresetsFromFile (fc.getResult());
-                    });
+            else if (action == "handleLoadTuning") {
+                audioProcessor.loadTuningFile();
             }
-            else if (action == "handleSave") {
-                fileChooser = std::make_unique<juce::FileChooser> ("Save Patch...", juce::File(), "*.json;*.syx;*.jno");
-                fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
-                    [this] (const juce::FileChooser& fc) {
-                        if (auto* pm = audioProcessor.getPresetManager())
-                            pm->exportCurrentPresetToJson (fc.getResult());
-                    });
+            else if (action == "handleResetTuning") {
+                audioProcessor.resetTuning();
             }
         }
         completion (juce::var());
@@ -204,43 +244,130 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
 
     options = options.withNativeFunction ("uiReady", [this] (const juce::Array<juce::var>& /*args*/, juce::WebBrowserComponent::NativeFunctionCompletion completion) 
     {
-        juce::Logger::writeToLog ("WebUI is READY - Syncing all parameters...");
-        
         for (auto& p : audioProcessor.getParameters())
         {
             if (auto* param = dynamic_cast<juce::AudioProcessorParameterWithID*>(p))
-            {
-                // Push all parameters to ensure JS state is correct
                 updateParameterInJS (param->paramID, param->getValue());
-            }
         }
         
-        // Send initial LCD and 7-segment
-        if (auto* pm = audioProcessor.getPresetManager())
-        {
-            updateLCDInJS ("P: " + juce::String (pm->getCurrentPresetIndex() + 1) + " " + pm->getCurrentPresetName());
-            
-            int bank = (pm->getCurrentPresetIndex() / 8) + 1;
-            int patch = (pm->getCurrentPresetIndex() % 8) + 1;
-            
-            juce::DynamicObject::Ptr bpObj = new juce::DynamicObject();
-            bpObj->setProperty ("bank", bank);
-            bpObj->setProperty ("patch", patch);
-            emitJS ("onBankPatchUpdate", juce::var (bpObj.get()));
-        }
-
+        // [Audit Fix] Send initial patch dump on UI ready so mirror is initialized
+        audioProcessor.sendPatchDump();
+        
+        // [Versioning] Send version and build number to UI
+        juce::String version = "1.2.0 Build: " + juce::String(JUNO_BUILD_VERSION);
+        dispatchToJS("onVersionUpdate", version);
+        
         completion (juce::var());
     });
 
-    webView = std::make_unique<juce::WebBrowserComponent> (options);
-    webView->setOpaque (true);
-    addAndMakeVisible (*webView);
-    webView->setVisible (true);
-    webView->toFront (false);
+    options = options.withNativeFunction ("getCalibrationParams", [this] (const juce::Array<juce::var>& /*args*/, juce::WebBrowserComponent::NativeFunctionCompletion completion) 
+    {
+        juce::Array<juce::var> list;
+        auto& cm = audioProcessor.getCalibrationManager();
+        for (const auto& p : cm.getAllParams())
+        {
+            juce::DynamicObject::Ptr obj = new juce::DynamicObject();
+            obj->setProperty("id", p.id);
+            obj->setProperty("label", p.label);
+            obj->setProperty("unit", p.unit);
+            obj->setProperty("tooltip", p.tooltip);
+            obj->setProperty("currentValue", p.currentValue);
+            obj->setProperty("defaultValue", p.defaultValue);
+            obj->setProperty("minValue", p.minValue);
+            obj->setProperty("maxValue", p.maxValue);
+            obj->setProperty("stepSize", p.stepSize);
+            list.add(juce::var(obj.get()));
+        }
+        completion (list);
+    });
+
+    options = options.withNativeFunction ("setCalibrationParam", [this] (const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) 
+    {
+        if (args.size() >= 2)
+        {
+            juce::String id = args[0].toString();
+            float val = (float)args[1];
+            audioProcessor.getCalibrationManager().setValue(id, val);
+        }
+        completion (juce::var());
+    });
+
+    options = options.withNativeFunction ("serviceAction", [this] (const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) 
+    {
+        if (args.size() >= 1)
+        {
+            auto payload = args[0];
+            juce::String action = payload.getProperty("action", juce::var()).toString();
+            auto& sm = audioProcessor.getServiceModeManager();
+
+            if (action == "testVoice")
+            {
+                int v = (int)payload.getProperty("voice", -1);
+                audioProcessor.getVoiceManager().setSoloVoice(v);
+            }
+            else if (action == "stopVoiceTest")
+            {
+                audioProcessor.getVoiceManager().setSoloVoice(-1);
+                sm.stopAllTests();
+            }
+            else if (action == "sweepVCF")
+            {
+                sm.startVCFSweep();
+            }
+            else if (action == "resetToFactory")
+            {
+                audioProcessor.getCalibrationManager().resetToDefaults();
+            }
+            else if (action == "requestPatchDump")
+            {
+                audioProcessor.patchDumpRequested.store(true);
+            }
+            else if (action == "exportCalibration")
+            {
+                fileChooser = std::make_unique<juce::FileChooser>("Export Calibration...", 
+                                                                    juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+                                                                    "*.json");
+                auto flags = juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles;
+                fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
+                    auto file = fc.getResult();
+                    if (file != juce::File())
+                        audioProcessor.getCalibrationManager().saveToFile(file);
+                });
+            }
+            else if (action == "importCalibration")
+            {
+                fileChooser = std::make_unique<juce::FileChooser>("Import Calibration...", 
+                                                                    juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+                                                                    "*.json");
+                auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+                fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
+                    auto file = fc.getResult();
+                    if (file != juce::File()) {
+                        audioProcessor.getCalibrationManager().loadFromFile(file);
+                        dispatchToJS("onCalibrationImported", juce::var());
+                    }
+                });
+            }
+        }
+        completion (juce::var());
+    });
+
+    options = options.withNativeFunction ("copySysExData", [this] (const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) 
+    {
+        if (args.size() >= 1) {
+            juce::SystemClipboard::copyTextToClipboard (args[0].toString());
+            juce::Logger::writeToLog ("[JS Bridge] copySysExData successful");
+        }
+        completion (juce::var());
+    });
+
+    webComponent = std::make_unique<juce::WebBrowserComponent> (options);
+    webComponent->setOpaque (true);
+    addAndMakeVisible (*webComponent);
     
-    // Initial Load
-    if (webView != nullptr)
-        webView->goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
+    if (webComponent != nullptr) {
+        webComponent->goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
+    }
 
     // Register listeners
     const char* paramIDs[] = {
@@ -248,17 +375,18 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
         "hpfFreq", "vcfFreq", "resonance", "envAmount", "vcfPolarity", "kybdTracking", "lfoToVCF",
         "vcaMode", "vcaLevel", "attack", "decay", "sustain", "release", "chorus1", "chorus2",
         "benderToDCO", "benderToVCF", "benderToLFO", "portamentoTime", "portamentoOn", "portamentoLegato",
-        "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut"
+        "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut",
+        "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
+        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF"
     };
     for (auto id : paramIDs)
     {
         if (audioProcessor.getAPVTS().getParameter(id) != nullptr)
             audioProcessor.getAPVTS().addParameterListener (id, this);
-        else
-            juce::Logger::writeToLog("CRITICAL: Failed to attach listener to " + juce::String(id));
     }
 
-    startTimerHz(30); // 30Hz for LEDs and SysEx Monitoring
+    startTimerHz(30); 
+    setColour (juce::ResizableWindow::backgroundColourId, juce::Colours::black);
     setSize (1200, 750);
 }
 
@@ -269,7 +397,9 @@ WebViewEditor::~WebViewEditor()
         "hpfFreq", "vcfFreq", "resonance", "envAmount", "vcfPolarity", "kybdTracking", "lfoToVCF",
         "vcaMode", "vcaLevel", "attack", "decay", "sustain", "release", "chorus1", "chorus2",
         "benderToDCO", "benderToVCF", "benderToLFO", "portamentoTime", "portamentoOn", "portamentoLegato",
-        "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut"
+        "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut",
+        "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
+        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF"
     };
     for (auto id : paramIDs)
         audioProcessor.getAPVTS().removeParameterListener (id, this);
@@ -277,20 +407,21 @@ WebViewEditor::~WebViewEditor()
 
 void WebViewEditor::parameterChanged (const juce::String& parameterID, float newValue)
 {
+    juce::ignoreUnused (newValue);
     if (auto* p = audioProcessor.getAPVTS().getParameter(parameterID)) {
-        // Use the normalized value directly from the parameter
         updateParameterInJS (parameterID, p->getValue());
     }
 }
 
 void WebViewEditor::updateParameterInJS (const juce::String& paramID, float value)
 {
-    if (webView != nullptr)
+    if (webComponent != nullptr)
     {
         juce::DynamicObject::Ptr obj = new juce::DynamicObject();
         obj->setProperty ("id", paramID);
+        obj->setProperty ("val", value);
         obj->setProperty ("value", value);
-        emitJS ("onParameterChanged", juce::var (obj.get()));
+        dispatchToJS ("onParameterChanged", juce::var (obj.get()));
     }
 }
 
@@ -299,27 +430,31 @@ void WebViewEditor::updateSysExInJS()
     auto msg = audioProcessor.getCurrentSysExData();
     if (msg.getRawDataSize() > 0)
     {
+        if (msg.getRawDataSize() == lastSysEx.getRawDataSize() && 
+            std::memcmp(msg.getRawData(), lastSysEx.getRawData(), msg.getRawDataSize()) == 0) 
+            return;
+        lastSysEx = msg;
+
         juce::String hex;
+        hex.preallocateBytes(msg.getRawDataSize() * 3);
         for (int i=0; i < msg.getRawDataSize(); ++i)
              hex += juce::String::toHexString(msg.getRawData()[i]).toUpperCase().paddedLeft('0', 2) + " ";
         
-        if (webView != nullptr)
-            emitJS ("onSysExUpdate", { hex.trim() });
+        if (webComponent != nullptr)
+            dispatchToJS ("onSysExUpdate", { hex.trim() });
     }
 }
 
 void WebViewEditor::updateLCDInJS(const juce::String& text)
 {
-    if (webView != nullptr)
-        emitJS ("onLCDUpdate", { text });
+    if (webComponent != nullptr)
+        dispatchToJS ("onLCDUpdate", { text });
 }
 
 void WebViewEditor::timerCallback()
 {
-    // Poll for SysEx changes
     updateSysExInJS();
     
-    // Poll for Preset Index changes to update LCD
     auto* pm = audioProcessor.getPresetManager();
     if (pm && pm->getCurrentPresetIndex() != lastPresetIndex)
     {
@@ -332,27 +467,39 @@ void WebViewEditor::timerCallback()
         juce::DynamicObject::Ptr bpObj = new juce::DynamicObject();
         bpObj->setProperty ("bank", bank);
         bpObj->setProperty ("patch", patch);
-        emitJS ("onBankPatchUpdate", juce::var (bpObj.get()));
+        dispatchToJS ("onBankPatchUpdate", juce::var (bpObj.get()));
     }
 
-    // Chorus LEDs pulsing (single emission per tick)
-    if (webView != nullptr)
+    if (audioProcessor.getCurrentTuningName() != lastTuningName)
+    {
+        lastTuningName = audioProcessor.getCurrentTuningName();
+        dispatchToJS ("onTuningUpdate", lastTuningName);
+    }
+
+    if (webComponent != nullptr)
     {
         juce::DynamicObject::Ptr visObj = new juce::DynamicObject();
         visObj->setProperty ("c1", audioProcessor.getChorusLfoPhase(1));
         visObj->setProperty ("c2", audioProcessor.getChorusLfoPhase(2));
-        emitJS ("onVisualUpdate", juce::var (visObj.get()));
+        dispatchToJS ("onVisualUpdate", juce::var (visObj.get()));
     }
 }
 
-void WebViewEditor::emitJS (const juce::Identifier& eventId, const juce::var& payload)
+void WebViewEditor::dispatchToJS (const juce::Identifier& eventId, const juce::var& payload)
 {
-    if (webView != nullptr)
+    if (webComponent != nullptr)
     {
         juce::String json = juce::JSON::toString (payload, true);
+        // Correctly escape for JS string literal
         juce::String escaped = json.replace ("\\", "\\\\").replace ("'", "\\'");
-        webView->evaluateJavascript ("window.__JUCE__.backend.emitByBackend(" + eventId.toString().quoted() + ", "
-                                    + escaped.quoted ('\'') + ");");
+        
+        // Use the legacy emitByBackend pattern that matches script.js listenEvent
+        juce::String js = "if(window.__JUCE__ && window.__JUCE__.backend) { "
+                         "window.__JUCE__.backend.emitByBackend('" + eventId.toString() + "', '" + escaped + "'); "
+                         "} else if(window.onJuceEvent) { "
+                         "window.onJuceEvent('" + eventId.toString() + "', " + json + "); }";
+        
+        webComponent->evaluateJavascript (js);
     }
 }
 
@@ -360,6 +507,11 @@ void WebViewEditor::paint (juce::Graphics& g) { g.fillAll (juce::Colours::black)
 
 void WebViewEditor::resized()
 {
-    if (webView != nullptr)
-        webView->setBounds (getLocalBounds());
+    if (webComponent != nullptr) {
+        webComponent->setBounds (getLocalBounds());
+        
+        // Ensure the shim is re-injected if necessary (though evaluateJavascript is better in constructor)
+        // [Fidelity] LCD diagnostic on resize/ready
+        updateLCDInJS("ABD JUNiO 601 v" + juce::String(JUNO_BUILD_VERSION));
+    }
 }
