@@ -1,0 +1,109 @@
+/* 
+    ABD JUNiO 601 - Service Mode & Calibration Styling
+    Integrated with established Preferences Modal look
+*/
+
+.service-section {
+    margin-bottom: 25px;
+}
+
+.service-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+    border-left: 3px solid #ff3c3c;
+    padding-left: 10px;
+}
+
+/* Voice Diagnostic Grid */
+.voice-test-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.voice-test-btn {
+    background: #111;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    text-align: center;
+    outline: none;
+}
+
+.voice-test-btn:hover {
+    background: #222;
+    border-color: #555;
+    color: #fff;
+}
+
+.voice-test-btn.active {
+    background: #ff3c3c;
+    border-color: #ff6666;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 60, 60, 0.4);
+}
+
+/* Calibration Parameter Rows */
+.service-param-row {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.service-param-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.service-param-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #eee;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.service-param-value {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #ff8800; /* Amber Gold */
+    font-weight: bold;
+}
+
+.service-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    background: #333;
+    height: 4px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.service-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #ff3c3c;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 60, 60, 0.4);
+}
+
+/* Footer & Buttons handled by unified modal classes in settings.css / index.html */

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <memory>
 #include <atomic>
 #include <cmath>
 #include <algorithm>
@@ -10,7 +11,10 @@
 #include "MidiLearnHandler.h"
 #include "JunoSysExEngine.h"
 #include "PerformanceState.h"
-#include "JunoBBD.h" // [Correct Placement]
+#include "TuningManager.h"
+#include "CalibrationManager.h"
+#include "ServiceModeManager.h"
+#include "../Synth/ChorusBBD.h"
 
 class PresetManager;
 
@@ -25,8 +29,6 @@ public:
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    // midiOutEnabled removed, using SynthParams
-    int midiChannel = 1; 
     juce::MidiBuffer midiOutBuffer;
     MidiLearnHandler midiLearnHandler;
     juce::AudioProcessorEditor* createEditor() override;
@@ -40,7 +42,6 @@ public:
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
-    // double getTailLengthSeconds() const override; // [Removed duplicate]
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -66,6 +67,10 @@ public:
     void sendManualMode(); 
     void triggerPanic();
     void setSustainPolarity(bool inverted) { sustainInverted = inverted; }
+    void triggerLFO();
+    void loadTuningFile();
+    void resetTuning();
+    juce::String getCurrentTuningName() const { return currentTuningName; }
 
     SynthParams getMirrorParameters(); // [Fidelidad] Block-consistent mirror
 
@@ -76,14 +81,16 @@ public:
     bool isTestMode = false;
     void triggerTestProgram(int bankIndex);
     void enterTestMode(bool enter);
-    void triggerLFO();
 
-    void handleNoteOn(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
-    void handleNoteOff(juce::MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
+    void handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) override;
+    void handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) override;
 
     juce::AudioProcessorEditor* editor = nullptr;
 
     juce::MidiMessage getCurrentSysExData();
+    
+    std::atomic<bool> paramsAreDirty { true };
+    std::atomic<bool> patchDumpRequested { false };
 
     void undo() { undoManager.undo(); }
     void redo() { undoManager.redo(); }
@@ -91,6 +98,13 @@ public:
         if (auto* p = apvts.getParameter("midiOut")) 
             p->setValueNotifyingHost(p->getValue() > 0.5f ? 0.0f : 1.0f);
     }
+
+    CalibrationManager& getCalibrationManager() { return calibrationManager; }
+    ServiceModeManager& getServiceModeManager() { return *serviceModeManager; }
+    // Getters for bridge and diagnostic access
+    // apvts and voiceManager are accessible via getters defined earlier:
+    // getAPVTS() at line 54
+    // getVoiceManager() at line 56
 
 private:
     juce::UndoManager undoManager;
@@ -104,31 +118,36 @@ private:
 
 
     std::unique_ptr<class PresetManager> presetManager;
+    TuningManager tuningManager;
+    CalibrationManager calibrationManager;
+    std::unique_ptr<ServiceModeManager> serviceModeManager;
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::String currentTuningName { "Standard Tuning" };
     
     JunoSysExEngine sysExEngine;
     PerformanceState performanceState;
     bool sustainInverted = false;
     
-    // [Fidelidad] Store last SysEx for Display
+    // Store last SysEx for Echo Protection and Display
     juce::MidiMessage lastSysExMessage;
+    juce::MidiMessage lastSentSysExMessage;
+    
     // Helper to send and store
     void sendSysEx(const juce::MidiMessage& msg) {
-        if (currentParams.midiOut) midiOutBuffer.addEvent(msg, 0);
-        lastSysExMessage = msg;
+        if (currentParams.midiOut) {
+            midiOutBuffer.addEvent(msg, 0);
+            lastSentSysExMessage = msg;
+        }
+        lastSysExMessage = msg; // Update for UI display
     }
 
     // [Fidelidad] Authentic MN3009 BBD Emulation
-    JunoDSP::JunoBBD chorus; 
-    JunoDSP::JunoBBD chorus2; // Mode II / Dual line
+    ChorusBBD chorus; 
     juce::Random chorusNoiseGen; 
     
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker; 
     
-    // [VCA/Chorus Audit] Filters for authentic chorus emulation
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusPreEmphasisFilter;
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusDeEmphasisFilter;
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusNoiseFilter;
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> chorusNoiseHPF;
+    // [VCA/Chorus Audit] Dynamic noise buffer
     juce::AudioBuffer<float> chorusNoiseBuffer;
 
     float masterLfoPhase = 0.0f;
@@ -138,8 +157,15 @@ private:
     float chorusLfoPhaseI = 0.0f;
     float chorusLfoPhaseII = 0.0f;
     
+    std::atomic<bool> panicRequested { false };
+    juce::LinearSmoothedValue<float> smoothedSagGain;
+    
     float currentPowerSag = 0.0f;
+    std::atomic<float> currentAftertouch { 0.0f };
     float chorusFade = 0.0f;
+    float chorusHiss = 1.0f; // [New] User control over BBD Hiss level
+    int midiFunction = 2; // [New] 0=I, 1=II, 2=III
+    float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading
 
     void handleMidiEvents(juce::MidiBuffer& midiMessages);
     void updateParamsAndModulations();
@@ -158,43 +184,59 @@ private:
     std::vector<float> lfoBuffer;
 
     // [Optimization] Cached Parameter Pointers (Audio Thread Safe)
-    std::atomic<float>* dcoRangeParam = nullptr;
-    std::atomic<float>* sawOnParam = nullptr;
-    std::atomic<float>* pulseOnParam = nullptr;
-    std::atomic<float>* pwmParam = nullptr;
-    std::atomic<float>* pwmModeParam = nullptr;
-    std::atomic<float>* subOscParam = nullptr;
-    std::atomic<float>* noiseParam = nullptr;
-    std::atomic<float>* lfoToDcoParam = nullptr;
-    std::atomic<float>* hpfFreqParam = nullptr;
-    std::atomic<float>* vcfFreqParam = nullptr;
-    std::atomic<float>* resonanceParam = nullptr;
-    std::atomic<float>* envAmountParam = nullptr;
-    std::atomic<float>* vcfPolarityParam = nullptr;
-    std::atomic<float>* kybdTrackingParam = nullptr;
-    std::atomic<float>* lfoToVcfParam = nullptr;
-    std::atomic<float>* vcaModeParam = nullptr;
-    std::atomic<float>* vcaLevelParam = nullptr;
-    std::atomic<float>* attackParam = nullptr;
-    std::atomic<float>* decayParam = nullptr;
-    std::atomic<float>* sustainParam = nullptr;
-    std::atomic<float>* releaseParam = nullptr;
-    std::atomic<float>* lfoRateParam = nullptr;
-    std::atomic<float>* lfoDelayParam = nullptr;
-    std::atomic<float>* chorus1Param = nullptr;
-    std::atomic<float>* chorus2Param = nullptr;
-    std::atomic<float>* polyModeParam = nullptr;
-    std::atomic<float>* portTimeParam = nullptr;
-    std::atomic<float>* portOnParam = nullptr;
-    std::atomic<float>* portLegatoParam = nullptr;
-    std::atomic<float>* benderParam = nullptr;
-    std::atomic<float>* benderDcoParam = nullptr;
-    std::atomic<float>* benderVcfParam = nullptr;
-    std::atomic<float>* benderLfoParam = nullptr;
-    std::atomic<float>* tuneParam = nullptr;
-    std::atomic<float>* masterVolParam = nullptr;
-    std::atomic<float>* midiOutParam = nullptr;
-    std::atomic<float>* lfoTrigParam = nullptr;
+    std::atomic<float>* fmtDcoRange = nullptr;
+    std::atomic<float>* fmtSawOn = nullptr;
+    std::atomic<float>* fmtPulseOn = nullptr;
+    std::atomic<float>* fmtPwm = nullptr;
+    std::atomic<float>* fmtPwmMode = nullptr;
+    std::atomic<float>* fmtSubOsc = nullptr;
+    std::atomic<float>* fmtNoise = nullptr;
+    std::atomic<float>* fmtLfoToDCO = nullptr;
+    std::atomic<float>* fmtHpfFreq = nullptr;
+    std::atomic<float>* fmtVcfFreq = nullptr;
+    std::atomic<float>* fmtResonance = nullptr;
+    std::atomic<float>* fmtThermalDrift = nullptr;
+    std::atomic<float>* fmtUnisonWidth = nullptr;
+    std::atomic<float>* fmtUnisonDetune = nullptr;
+    std::atomic<float>* fmtChorusMix = nullptr;
+    std::atomic<float>* fmtVcfPolarity = nullptr;
+    std::atomic<float>* fmtKybdTracking = nullptr;
+    std::atomic<float>* fmtLfoToVCF = nullptr;
+    std::atomic<float>* fmtVcaMode = nullptr;
+    std::atomic<float>* fmtVcaLevel = nullptr;
+    std::atomic<float>* fmtAttack = nullptr;
+    std::atomic<float>* fmtDecay = nullptr;
+    std::atomic<float>* fmtSustain = nullptr;
+    std::atomic<float>* fmtRelease = nullptr;
+    std::atomic<float>* fmtLfoRate = nullptr;
+    std::atomic<float>* fmtLfoDelay = nullptr;
+    std::atomic<float>* fmtChorus1 = nullptr;
+    std::atomic<float>* fmtChorus2 = nullptr;
+    std::atomic<float>* fmtPolyMode = nullptr;
+    std::atomic<float>* fmtPortTime = nullptr;
+    std::atomic<float>* fmtPortOn = nullptr;
+    std::atomic<float>* fmtPortLegato = nullptr;
+    std::atomic<float>* fmtBender = nullptr;
+    std::atomic<float>* fmtBenderDCO = nullptr;
+    std::atomic<float>* fmtBenderVCF = nullptr;
+    std::atomic<float>* fmtBenderLFO = nullptr;
+    std::atomic<float>* fmtTune = nullptr;
+    std::atomic<float>* fmtMasterVolume = nullptr;
+    std::atomic<float>* fmtMidiOut = nullptr;
+    std::atomic<float>* fmtLfoTrig = nullptr;
+    std::atomic<float>* fmtAftertouchToVCF = nullptr;
+    std::atomic<float>* fmtEnvAmount = nullptr;
+
+    // [Fidelidad] Preference Pointers
+    std::atomic<float>* fmtMidiChannel = nullptr;
+    std::atomic<float>* fmtBenderRange = nullptr;
+    std::atomic<float>* fmtVelocitySens = nullptr;
+    std::atomic<float>* fmtLcdBrightness = nullptr;
+    std::atomic<float>* fmtNumVoices = nullptr;
+    std::atomic<float>* fmtSustainInverted = nullptr;
+    std::atomic<float>* fmtChorusHiss = nullptr;
+    std::atomic<float>* fmtMidiFunction = nullptr;
+    std::atomic<float>* fmtLowCpuMode = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
 };

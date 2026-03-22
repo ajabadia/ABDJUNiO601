@@ -61,6 +61,10 @@ public:
     // Character
     void setDrift(float amount);        // 0-1 (analog drift)
     
+    // [Calibration]
+    void setMixerGain(float gain);      // Master DCO gain (default 0.7)
+    void setSubAmpScale(float scale);   // Sub weight (default 1.0)
+    
     // Processing (receives LFO value from external LFO)
     float getNextSample(float lfoValue);
     
@@ -85,6 +89,10 @@ private:
     float sawLevel = 0.5f;
     float subLevel = 0.0f;
     float noiseLevel = 0.0f;
+    
+    // [Calibration]
+    float mixerGain = 0.7f;
+    float subAmpScale = 1.0f;
     
     // PWM
     float pwmValue = 0.5f;

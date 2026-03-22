@@ -1,0 +1,143 @@
+/* 
+    ABD JUNiO 601 - Settings Modal Styling
+    Mirroring the professional "About" modal look with optimized layout
+*/
+
+.settings-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    width: 820px; /* Wider for two columns */
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: 35px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
+    position: relative;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.settings-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ff3c3c; /* Juno Red */
+    text-transform: uppercase;
+}
+
+.settings-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.setting-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 50px; /* Adjusted for narrower columns */
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 0px; /* Gap handled by grid */
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+.setting-row label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.setting-row select, .setting-row input {
+    background: #111;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    width: 100%;
+}
+
+.setting-row input[type="range"] {
+    -webkit-appearance: none;
+    background: #333;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.setting-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #ff3c3c;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(255, 60, 60, 0.4);
+}
+
+.val-lbl {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #ff8800; /* Amber Gold */
+    text-align: right;
+    font-weight: bold;
+}
+
+.settings-footer {
+    margin-top: 35px;
+    display: flex;
+    justify-content: center;
+}
+
+.settings-footer button.sq.beige {
+    width: 130px;
+    height: 40px;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Microtuning Buttons */
+.tuning-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #eee;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+}
+
+.tuning-btn:hover {
+    background: #333;
+    border-color: #ff3c3c;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 60, 60, 0.2);
+}
+
+.tuning-btn:active {
+    background: #ff3c3c;
+    color: #fff;
+    transform: translateY(1px);
+}

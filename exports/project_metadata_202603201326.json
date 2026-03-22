@@ -1,0 +1,24 @@
+﻿{
+    "projectName":  "ABDJUNiO601",
+    "rootDir":  "D:\\desarrollos\\ABDJUNiO601",
+    "generatedAt":  "2026-03-20T13:26:04.0343637+01:00",
+    "compactMode":  false,
+    "excludes":  [
+
+                 ],
+    "git":  {
+                "branch":  "fix/engine-enrichment-and-ui-tweaks",
+                "commit":  "d9bc4008f0dbff1952229f892a59b0aaffe29003",
+                "dirty":  true
+            },
+    "stats":  {
+                  "totalFiles":  158,
+                  "totalBytes":  46961824,
+                  "includedFiles":  96,
+                  "includedBytes":  552623,
+                  "skippedExcluded":  62,
+                  "skippedCompact":  0,
+                  "skippedEmpty":  0,
+                  "skippedErrors":  0
+              }
+}

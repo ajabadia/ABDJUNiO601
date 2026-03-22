@@ -38,8 +38,13 @@ void JunoVoiceManager::forceUpdate() {
 void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, const std::vector<float>& lfoBuffer) {
     const juce::ScopedLock sl(lock);
     auto& voices = allocator.getVoices();
+    int solo = soloVoice.load();
+
     for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive()) {
+            // [Service Mode] Skip voice if soloing a different one
+            if (solo >= 0 && solo != i) continue;
+
             float neighborOut = voices[(i + 1) % currentActiveVoices].lastActiveOutputLevel(); 
             
             // Set dynamic state for agnostic render
@@ -116,7 +121,6 @@ void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*veloci
     for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive() && voices[i].getCurrentNote() == midiNote) {
             voices[i].noteOff();
-            return;
         }
     }
 }

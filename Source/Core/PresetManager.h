@@ -34,6 +34,7 @@ public:
     void randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts);
     void triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts); 
     void exportCurrentPresetToTape(const juce::File& file);
+    void exportCurrentPresetToJson(const juce::File& file);
 
 private:
     Preset createPresetFromJunoPatch(const struct JunoPatch& p);

@@ -39,6 +39,8 @@ public:
     void setSustain(float level);      // 0-1
     void setRelease(float seconds);
     void setGateMode(bool enabled);    // ENV button
+    void setSlewMs(float ms);         // [Calibration] Dynamic smoothing
+    void setAttackFactor(float factor); 
     
     // Lifecycle
     void noteOn();
@@ -60,6 +62,8 @@ private:
     float sustainLevel = 0.7f;     // 0-1
     float releaseTime = 0.5f;      // seconds
     bool gateMode = false;         // ENV button state
+    float slewMs = 1.5f;           // [Calibration] Output smoothing time
+    float attackFactor = 0.35f;    // [Calibration] Attack curvature
     
     // Linear rates (per-sample increment/decrement)
     float attackRate = 0.0f;
@@ -72,8 +76,8 @@ private:
     
     // [Fidelidad] MCU Emulation
     int mcuUpdateCounter = 0;
-    float lastMcuValue = 0.0f;
     int mcuUpdateRateSamples = 0;
+    float smoothedValue = 0.0f; // [Fix] Add smoother to prevent 3ms stair-stepping clicks
     
     // Helper
     void calculateRates();

@@ -48,10 +48,9 @@ void JunoADSR::setRelease(float seconds)
     calculateRates();
 }
 
-void JunoADSR::setGateMode(bool enabled)
-{
-    gateMode = enabled;
-}
+void JunoADSR::setGateMode(bool enabled) { gateMode = enabled; }
+void JunoADSR::setSlewMs(float ms) { slewMs = juce::jlimit(0.1f, 10.0f, ms); }
+void JunoADSR::setAttackFactor(float factor) { attackFactor = juce::jlimit(0.1f, 1.0f, factor); calculateRates(); }
 
 void JunoADSR::noteOn()
 {
@@ -74,7 +73,7 @@ float JunoADSR::getNextSample()
          currentValue += (target - currentValue) * 0.03f;
 
          // [Fix] Gate mode must also terminate to Stage::Idle to allow voice reuse
-         if (stage == Stage::Release && currentValue < 0.001f) {
+         if (stage == Stage::Release && currentValue < 0.0001f) {
              currentValue = 0.0f;
              stage = Stage::Idle;
          }
@@ -141,11 +140,13 @@ float JunoADSR::getNextSample()
     }
     }
     
-    // [Fidelidad] 8-BIT DAC QUANTIZATION (256 steps)
-    // The original 8031 MCU used an 8-bit DAC for envelope control.
-    // 4-bit was too aggressive and killed low sustain levels.
-    float quantized = std::floor(currentValue * 255.99f) / 255.0f;
-    return quantized;
+    // [Fidelity Improvement] 10-BIT DAC EMULATION (1024 steps)
+    float quantized = std::floor(currentValue * 1023.99f) / 1023.0f;
+    
+    // [Fix] Analog-style Slew (dynamic via calibration) to kill 3ms digital stairs
+    float alpha = 1.0f - std::exp(-1.0f / (std::max(0.1f, slewMs) * 0.001f * (float)sampleRate));
+    smoothedValue += (quantized - smoothedValue) * alpha;
+    return smoothedValue;
 }
 
 void JunoADSR::calculateRates()
@@ -161,9 +162,9 @@ void JunoADSR::calculateRates()
         float sr = (float)sampleRate;
         
         if (isAttack) {
-             // Attack: Logarithmic approach to target (Target > 1.0 for overshoot)
-             // Rate is adjusted so it reaches 1.0 in approx 'tau' seconds
-             return 1.0f - std::exp(-updateInterval / (tau * sr * 0.35f));
+              // Attack: Logarithmic approach to target (Target > 1.0 for overshoot)
+              // Rate is adjusted so it reaches 1.0 in approx 'tau' seconds
+              return 1.0f - std::exp(-updateInterval / (tau * sr * attackFactor));
         } else {
              // Decay/Release: Exponential to target
              // Rate is adjusted so it reaches 37% in approx 'tau' seconds

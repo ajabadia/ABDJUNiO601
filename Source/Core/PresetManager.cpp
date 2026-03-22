@@ -2,6 +2,7 @@
 #include "FactoryPresets.h"
 #include "JunoTapeDecoder.h"
 #include "JunoTapeEncoder.h"
+#include "JunoConstants.h"
 #include <fstream>
 
 PresetManager::PresetManager() {
@@ -25,48 +26,48 @@ void PresetManager::loadFactoryPresets() {
 juce::ValueTree PresetManager::bytesToState(const uint8_t* data, int size) const {
     if (size < 18) return juce::ValueTree("Parameters");
     
-    juce::ValueTree state("Parameters");
+    juce::ValueTree vt("Parameters");
     auto toNorm = [](uint8_t b) { return static_cast<float>(b) / 127.0f; };
     
-    state.setProperty("lfoRate", toNorm(data[0]), nullptr);
-    state.setProperty("lfoDelay", toNorm(data[1]), nullptr);
-    state.setProperty("lfoToDCO", toNorm(data[2]), nullptr);
-    state.setProperty("pwm", toNorm(data[3]), nullptr);
-    state.setProperty("noise", toNorm(data[4]), nullptr);
-    state.setProperty("vcfFreq", toNorm(data[5]), nullptr);
-    state.setProperty("resonance", toNorm(data[6]), nullptr);
-    state.setProperty("envAmount", toNorm(data[7]), nullptr);
-    state.setProperty("lfoToVCF", toNorm(data[8]), nullptr);
-    state.setProperty("kybdTracking", toNorm(data[9]), nullptr);
-    state.setProperty("vcaLevel", toNorm(data[10]), nullptr);
-    state.setProperty("attack", toNorm(data[11]), nullptr);
-    state.setProperty("decay", toNorm(data[12]), nullptr);
-    state.setProperty("sustain", toNorm(data[13]), nullptr);
-    state.setProperty("release", toNorm(data[14]), nullptr);
-    state.setProperty("subOsc", toNorm(data[15]), nullptr);
+    vt.setProperty("lfoRate", toNorm(data[0]), nullptr);
+    vt.setProperty("lfoDelay", toNorm(data[1]), nullptr);
+    vt.setProperty("lfoToDCO", toNorm(data[2]), nullptr);
+    vt.setProperty("pwm", toNorm(data[3]), nullptr);
+    vt.setProperty("noise", toNorm(data[4]), nullptr);
+    vt.setProperty("vcfFreq", toNorm(data[5]), nullptr);
+    vt.setProperty("resonance", toNorm(data[6]), nullptr);
+    vt.setProperty("envAmount", toNorm(data[7]), nullptr);
+    vt.setProperty("lfoToVCF", toNorm(data[8]), nullptr);
+    vt.setProperty("kybdTracking", toNorm(data[9]), nullptr);
+    vt.setProperty("vcaLevel", toNorm(data[10]), nullptr);
+    vt.setProperty("attack", toNorm(data[11]), nullptr);
+    vt.setProperty("decay", toNorm(data[12]), nullptr);
+    vt.setProperty("sustain", toNorm(data[13]), nullptr);
+    vt.setProperty("release", toNorm(data[14]), nullptr);
+    vt.setProperty("subOsc", toNorm(data[15]), nullptr);
     
     uint8_t sw1 = data[16];
-    state.setProperty("dcoRange", (sw1 & 0x07), nullptr);
-    state.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
-    state.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
-    state.setProperty("chorus1", (sw1 & (1 << 5)) != 0, nullptr);
-    state.setProperty("chorus2", (sw1 & (1 << 6)) != 0, nullptr);
+    vt.setProperty("dcoRange", (sw1 & 0x07), nullptr);
+    vt.setProperty("pulseOn", (sw1 & (1 << 3)) != 0, nullptr);
+    vt.setProperty("sawOn", (sw1 & (1 << 4)) != 0, nullptr);
+    vt.setProperty("chorus1", (sw1 & (1 << 5)) != 0, nullptr);
+    vt.setProperty("chorus2", (sw1 & (1 << 6)) != 0, nullptr);
 
     uint8_t sw2 = data[17];
-    state.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);
-    state.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);
-    state.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    state.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr); // Reflect hardware inversion
+    vt.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);
+    vt.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);
+    vt.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
+    vt.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr); // Reflect hardware inversion
 
     // Performance Defaults
-    state.setProperty("benderToDCO", 2.0f, nullptr);
-    state.setProperty("benderToVCF", 0.0f, nullptr);
-    state.setProperty("benderToLFO", 0.0f, nullptr);
-    state.setProperty("portamentoTime", 0.0f, nullptr);
-    state.setProperty("portamentoOn", false, nullptr);
-    state.setProperty("portamentoLegato", false, nullptr);
+    vt.setProperty("benderToDCO", 2.0f, nullptr);
+    vt.setProperty("benderToVCF", 0.0f, nullptr);
+    vt.setProperty("benderToLFO", 0.0f, nullptr);
+    vt.setProperty("portamentoTime", 0.0f, nullptr);
+    vt.setProperty("portamentoOn", false, nullptr);
+    vt.setProperty("portamentoLegato", false, nullptr);
 
-    return state;
+    return vt;
 }
 
 std::vector<uint8_t> PresetManager::stateToBytes(const juce::ValueTree& state) const {
@@ -128,8 +129,36 @@ juce::Result PresetManager::loadTape(const juce::File& wavFile) {
 }
 
 PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& p) {
-    auto state = bytesToState(p.bytes, 18);
+    uint8_t b[18];
+    b[0] = p.lfoRate;
+    b[1] = p.lfoDelay;
+    b[2] = p.lfoToDCO;
+    b[3] = p.pwm;
+    b[4] = p.noise;
+    b[5] = p.vcfFreq;
+    b[6] = p.resonance;
+    b[7] = p.envAmount;
+    b[8] = p.lfoToVCF;
+    b[9] = p.kybdTracking;
+    b[10] = p.vcaLevel;
+    b[11] = p.attack;
+    b[12] = p.decay;
+    b[13] = p.sustain;
+    b[14] = p.release;
+    b[15] = p.subOsc;
+    b[16] = p.sw1;
+    b[17] = p.sw2;
+    auto state = bytesToState(b, 18);
     return Preset(p.name, "Factory", state);
+}
+
+void PresetManager::exportCurrentPresetToJson(const juce::File& file) {
+    if (auto* p = getPreset(currentPresetIdx_)) {
+        juce::DynamicObject::Ptr o = new juce::DynamicObject();
+        o->setProperty("name", p->name);
+        o->setProperty("state", p->state.toXmlString());
+        file.replaceWithText(juce::JSON::toString(juce::var(o.get())));
+    }
 }
 
 PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::String& name, const unsigned char* bytes) {

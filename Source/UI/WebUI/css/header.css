@@ -43,11 +43,29 @@
 .dropdown li {
     padding: 8px 12px;
     list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .dropdown li:hover {
     background: var(--juno-blue);
     color: var(--white);
+}
+
+.check-mark {
+    display: none;
+    color: var(--juno-blue);
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.dropdown li:hover .check-mark {
+    color: var(--white);
+}
+
+.checked .check-mark {
+    display: inline;
 }
 
 .divider {
@@ -150,6 +168,7 @@
     height: 2.4em;
     overflow: hidden;
     word-break: break-all;
+    white-space: pre-wrap;
 }
 
 #sysex-log .changed {

@@ -29,16 +29,18 @@ public:
 private:
     SimpleJuno106AudioProcessor& audioProcessor;
     
-    std::unique_ptr<juce::WebBrowserComponent> webView;
+    std::unique_ptr<juce::WebBrowserComponent> webComponent;
 
     // Bridge helpers
     void updateParameterInJS(const juce::String& paramID, float value);
     void updateSysExInJS();
     void updateLCDInJS(const juce::String& text);
-    void emitJS(const juce::Identifier& eventId, const juce::var& payload);
+    void dispatchToJS(const juce::Identifier& eventId, const juce::var& payload);
 
     juce::MidiMessage lastSysEx;
     int lastPresetIndex = -1;
+    int lastLibraryIndex = -1;
+    juce::String lastTuningName = "";
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WebViewEditor)

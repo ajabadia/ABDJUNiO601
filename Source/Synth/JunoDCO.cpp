@@ -16,7 +16,7 @@ void JunoDCO::prepare(double sr, int maxBlockSize) {
     juce::dsp::ProcessSpec spec { sr, (juce::uint32)maxBlockSize, 1 };
     noiseFilter.prepare(spec);
     noiseFilter.reset(); 
-    noiseFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sr, 4000.0f, 0.707f, 0.707f); // -3dB peak at 4kHz
+    noiseFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sr, 12000.0f); // Fast analog-style roll-off
     reset();
 }
 
@@ -75,9 +75,9 @@ void JunoDCO::setLFODepth(float depth) {
     lfoDepth = juce::jlimit(0.0f, 1.0f, depth);
 }
 
-void JunoDCO::setDrift(float amount) {
-    driftAmount = juce::jlimit(0.0f, 1.0f, amount);
-}
+void JunoDCO::setDrift(float amount) { driftAmount = amount; }
+void JunoDCO::setMixerGain(float gain) { mixerGain = gain; }
+void JunoDCO::setSubAmpScale(float scale) { subAmpScale = scale; }
 
 float JunoDCO::getNextSample(float lfoValue) {
     // === ANALOG DRIFT (Multi-level authenticity) ===
@@ -87,13 +87,13 @@ float JunoDCO::getNextSample(float lfoValue) {
     voicePhase += juce::MathConstants<float>::twoPi * voiceRate / (float)sampleRate;
     if (voicePhase > juce::MathConstants<float>::twoPi) voicePhase -= juce::MathConstants<float>::twoPi;
     
-    voiceDriftCents = std::sin(voicePhase) * kDcoDriftMaxVoiceCents * driftAmount;
+    voiceDriftCents = std::sin(voicePhase) * (kDcoDriftMaxVoiceCents * 0.5f) * driftAmount;
     
     // 3. (Global drift for this voice would be set externally or simulated here)
     // For simplicity, we'll simulate a 0.015Hz global drift here if driftAmount > 0
-    globalDriftPhase += juce::MathConstants<float>::twoPi * 0.015f / (float)sampleRate;
+    globalDriftPhase += juce::MathConstants<float>::twoPi * 0.008f / (float)sampleRate;
     if (globalDriftPhase > juce::MathConstants<float>::twoPi) globalDriftPhase -= juce::MathConstants<float>::twoPi;
-    globalDriftCents = std::sin(globalDriftPhase) * kDcoDriftMaxGlobalCents * driftAmount;
+    globalDriftCents = std::sin(globalDriftPhase) * (kDcoDriftMaxGlobalCents * 0.5f) * driftAmount;
 
     float totalDriftCents = staticSpreadCents * driftAmount + globalDriftCents + voiceDriftCents;
     
@@ -101,7 +101,7 @@ float JunoDCO::getNextSample(float lfoValue) {
     float freq = baseFrequency * rangeMultiplier;
     
     // Apply LFO to pitch (vibrato)
-    float lfoSemitones = (lfoValue * 0.5f + 0.5f) * lfoDepth * 0.4f; // Slightly scaled
+    float lfoSemitones = lfoValue * lfoDepth * 0.4f; // Fixed: Bipolar mapping
     freq *= std::pow(2.0f, (lfoSemitones + (totalDriftCents / 100.0f)) / 12.0f);
 
     // [Fidelity] 8253 TIMER QUANTIZATION (STRICT IMPL)
@@ -196,31 +196,25 @@ float JunoDCO::getNextSample(float lfoValue) {
     // === 3. SUB-OSCILLATOR (PolyBLEP) ===
     if (subLevel > 0.0f) {
         // [Fidelity] Sub-Osc is a square wave from 8253 divider.
-        // It toggles at pulsePhase == 0.5 and remains continuous at pulsePhase == 0.0.
-        // Thus, we only need PolyBLEP at the 0.5 threshold.
-        float subThreshold = 0.5f; 
-        float sub = (pulsePhase < subThreshold) == subFlipFlop ? 1.0f : -1.0f;
+        // It toggles only at the DCO reset point (pulsePhase >= 1.0).
+        // Since it only jumps at the start of the DCO cycle, we apply 
+        // PolyBLEP at the 0.0 transition.
+        float sub = subFlipFlop ? 1.0f : -1.0f;
         
-        // PolyBLEP at 0.5 transition
-        float relativePhase = (float)pulsePhase - subThreshold;
-        if (relativePhase < 0.0f) relativePhase += 1.0f;
+        // PolyBLEP at the 0.0 reset point (matches Sawtooth reset)
+        sub += 2.0f * (subFlipFlop ? -1.0f : 1.0f) * polyBlep((float)pulsePhase, (float)dt);
         
-        // The jump magnitude is 2.0 (1 to -1 or -1 to 1) 
-        float blep = polyBlep(relativePhase, (float)dt);
-        if (subFlipFlop) sub -= 2.0f * blep;
-        else sub += 2.0f * blep;
-        
-        output += sub * subLevel * kSubAmpScale;
+        output += sub * subLevel * subAmpScale;
     }
     
     // === 4. NOISE ===
     if (noiseLevel > 0.0f) {
         float noise = (noiseGen.nextFloat() * 2.0f - 1.0f);
-        // [Fidelity] Noise color (Peaking filter at 4kHz)
+        // [Fidelity] Noise color (LowPass roll-off at 12kHz)
         noise = noiseFilter.processSample(noise);
-        output += noise * noiseLevel;
+        output += noise * noiseLevel * kNoiseAmpScale;
     }
     
-    // [Fidelity] Output Gain restored
-    return output;  
+    // [Fidelity] Output Gain scaled to prevent VCF saturation
+    return output * mixerGain;
 }

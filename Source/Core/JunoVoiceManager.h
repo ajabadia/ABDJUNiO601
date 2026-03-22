@@ -36,13 +36,15 @@ public:
     void setPortamentoTime(float v);
     void setPortamentoLegato(bool b);
     void setTuningTable(const float* table) {
-        for (auto& v : voices) v.setTuningTable(table);
+        for (auto& v : allocator.getVoices()) v.setTuningTable(table);
     }
     
     void resetAllVoices() {
         allocator.reset();
         setAllNotesOff();
     }
+
+    void setSoloVoice(int voiceIndex) const { soloVoice.store(voiceIndex); }
 
     float getTotalEnvelopeLevel() const {
         float sum = 0.0f;
@@ -82,6 +84,9 @@ private:
     int findFreeVoiceIndex();
     int findVoiceToSteal();
 
+    mutable std::atomic<int> soloVoice{ -1 }; // [Fidelidad] -1 = all voices, 0-5 = solo specific voice
+
     juce::CriticalSection lock;
     int nextPoly1Index = 0; // [Fidelidad] Authentic Cyclic allocation state
 };
+

@@ -5,9 +5,10 @@
 #include <algorithm>
 #include "JunoDCO.h"
 #include "../ABD-SynthEngine/Core/Voices/VoiceBase.h"
-#include "../ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h"
+#include "JunoADSR.h"
 #include "../ABD-SynthEngine/Core/LFO/LFOGeneric.h"
 #include "../Core/SynthParams.h"
+#include "JunoVCF.h"
 
 /**
  * Voice
@@ -20,6 +21,8 @@ public:
     Voice();
     
     // ABD::VoiceBase Overrides
+    using VoiceBase::noteOn;
+    using VoiceBase::noteOff;
     void onPrepare() override;
     void onReset() override;
     void onNoteOn(int midiNote, float velocity) override;
@@ -59,11 +62,16 @@ private:
     float updatePitch(int numSamples);
     void renderVoiceCycles(float* voiceData, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk);
     void processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData, int numVoicesInUnison);
+    
+    // New helper for modular rendering
+    void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, 
+                         const std::vector<float>& lfoBuffer, float neighborCrosstalk, int numVoicesInUnison);
+
     // Components
     JunoDCO dco;
     JunoADSR adsr;
     
-    juce::dsp::LadderFilter<float> filter;
+    JunoVCF filter;
     juce::dsp::IIR::Filter<float> hpFilter;
     juce::dsp::IIR::Filter<float> resCompFilter;
     juce::dsp::IIR::Filter<float> hpfShelfFilter;
@@ -87,6 +95,7 @@ private:
     float lastOutputLevel = 0.0f;
     uint8_t lastEnvByte = 0;
     juce::Random noiseGen;
+    float lastNoise = 0.0f;
     
     float thermalDrift = 0.0f;   // [Fidelidad] Independent voice heat
     float thermalTarget = 0.0f;

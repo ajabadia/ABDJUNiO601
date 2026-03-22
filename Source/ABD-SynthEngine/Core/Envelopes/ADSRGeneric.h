@@ -29,6 +29,7 @@ public:
     }
 
     void setParams(const Params& p) noexcept { params_ = p; }
+    Params getParams() const noexcept { return params_; }
 
     void noteOn()  noexcept { stage_ = Stage::Attack; }
     void noteOff() noexcept { if (stage_ != Stage::Idle) stage_ = Stage::Release; }

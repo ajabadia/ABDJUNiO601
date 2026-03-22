@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "JunoConstants.h"
 
 /**
  * SynthParams - Parameter definitions for JUNiO 601
@@ -41,20 +42,107 @@ struct SynthParams {
     float benderToVCF = 0.0f;   
     float benderToLFO = 0.0f;   
     
-    float thermalDrift = 0.0f; // [Senior Audit] Global drift
-    float tune = 0.5f;          
-    int midiChannel = 1;        // [Added for SysEx]
+    // [Fidelidad] Master & Performance
+    float tune = 0.0f;
+    bool portamentoOn = false;
+    float portamentoTime = 0.2f;
+    bool portamentoLegato = false;
     
+    float thermalDrift = 0.0f; // [Senior Audit] Global drift
     float vcfLFOAmount = 0.0f;     
     float lfoToVCF = 0.0f;         
     float kybdTracking = 0.0f;     
     int vcfPolarity = 0;           
-    
     int hpfFreq = 0;               
     
-    bool portamentoOn = false;     
-    bool portamentoLegato = false; 
-    float portamentoTime = 0.0f;   
-    bool midiOut = false;          // [Added] Sync for SysEx
+    // [Fidelidad] Global Preferences
+    int midiChannel = 1;
+    int benderRange = 2;        
+    
+    // [Modern] Modernization Features
+    float unisonDetune = 0.5f;  // 0.0 to 1.0 (mapped to cents)
+    float chorusMix = 1.0f;     // 0.0 to 1.0 (Mix factor)
+    float velocitySens = 0.5f;  
+    float lcdBrightness = 0.8f; 
+    int numVoices = 16;         
+    bool sustainInverted = false;
+    bool midiOut = false;       
+    float chorusHiss = 1.0f; // [New] User control over BBD Hiss level
+    int midiFunction = 2; // [New] 0=I, 1=II, 2=III
+    float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading
+    float aftertouchToVCF = 0.5f; // [New] Aftertouch -> VCF intensity
+    float currentAftertouch = 0.0f; // [New] Current global aftertouch value
+    bool lowCpuMode = false;        // [New] Reduce Hiss and use cheaper saturation
+    
+    // [Calibration] Dynamic values from CalibrationManager
+    float vcfSelfOscThreshold = 0.92f;
+    float adsrSlewMs = 1.5f;
+    float dcoMixerGain = 0.7f;
+    float subAmpScale = 1.0f;
+    float vcfSaturation = 1.0f;
+    float adsrAttackFactor = 0.35f;
+    float chorusHissLvl = -52.0f;
+
+    bool isSamePatch(const SynthParams& other) const {
+        const float tol = 0.008f; // [Fix] Increased tolerance for 7-bit SysEx quantization (1/127 approx 0.0078)
+        return dcoRange == other.dcoRange &&
+               sawOn == other.sawOn &&
+               pulseOn == other.pulseOn &&
+               std::abs(pwmAmount - other.pwmAmount) < tol &&
+               pwmMode == other.pwmMode &&
+               std::abs(subOscLevel - other.subOscLevel) < tol &&
+               std::abs(noiseLevel - other.noiseLevel) < tol &&
+               std::abs(lfoToDCO - other.lfoToDCO) < tol &&
+               std::abs(vcfFreq - other.vcfFreq) < tol &&
+               std::abs(resonance - other.resonance) < tol &&
+               std::abs(envAmount - other.envAmount) < tol &&
+               std::abs(attack - other.attack) < tol &&
+               std::abs(decay - other.decay) < tol &&
+               std::abs(sustain - other.sustain) < tol &&
+               std::abs(release - other.release) < tol &&
+               std::abs(lfoRate - other.lfoRate) < tol &&
+               std::abs(lfoDelay - other.lfoDelay) < tol &&
+               chorus1 == other.chorus1 &&
+               chorus2 == other.chorus2 &&
+               vcaMode == other.vcaMode &&
+               std::abs(vcaLevel - other.vcaLevel) < tol &&
+               std::abs(lfoToVCF - other.lfoToVCF) < tol &&
+               std::abs(kybdTracking - other.kybdTracking) < tol &&
+               vcfPolarity == other.vcfPolarity &&
+               hpfFreq == other.hpfFreq;
+    }
 };
 
+/**
+ * [VCA/Chorus Audit] Authentic Juno-106 Chorus Constants (Service Manual Aligned)
+ */
+struct JunoChorusConstants {
+    // [Fidelidad] Medidas de servicio (BDD capacitor 2.2 uF): 0.47Hz y 0.78Hz
+    static constexpr float kRateI = 0.47f;
+    static constexpr float kDepthI = 0.15f; 
+    static constexpr float kDelayI = 14.5f;   
+
+    static constexpr float kRateII = 0.78f;
+    static constexpr float kDepthII = 0.35f;  
+    static constexpr float kDelayII = 14.5f;  
+
+    static constexpr float kRateIII = 0.9f;
+    static constexpr float kDepthIII = 0.25f;
+    static constexpr float kDelayIII = 12.0f;
+    
+    // [Fidelidad] El nivel de ruido de los BBD es constante e independiente del modo
+    static constexpr float kNoiseLevel = 0.0006f; 
+};
+
+struct JunoTimeCurves {
+    static constexpr float kAttackMin  = 0.0015f; // [Fidelity] 1.5ms
+    static constexpr float kAttackMax  = 3.0f;   
+    static constexpr float kDecayMin   = 0.0015f; 
+    static constexpr float kDecayMax   = 12.0f;  
+    static constexpr float kReleaseMin = 0.0015f; 
+    static constexpr float kReleaseMax = 12.0f;  
+
+    static constexpr float kLfoMinHz = 0.1f;
+    static constexpr float kLfoMaxHz = JunoConstants::Curves::kLfoMaxHz;
+    static constexpr float kLfoDelayMax = JunoConstants::Curves::kLfoDelayMax;
+};

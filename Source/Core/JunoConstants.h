@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 
 /**
  * JunoConstants.h
@@ -6,6 +7,11 @@
  */
 namespace JunoConstants
 {
+    // --- Numerical Helpers ---
+    static inline float curveMap(float val, float minV, float maxV) {
+        if (minV <= 0.0f) return minV + val * (maxV - minV);
+        return minV * std::pow(maxV / minV, val);
+    }
     // --- Global DSP Constants ---
     constexpr float kVoiceCrosstalkAmount = 0.007f;
     constexpr float kVoiceOutputGain = 1.5f;
@@ -28,8 +34,11 @@ namespace JunoConstants
     constexpr float kPwmSlewRateManual = 0.0009f;
     constexpr float kPwmSlewRateLFO = 0.00047f;
 
-    // --- Suboscillator ---
-    constexpr float kSubAmpScale = 0.707f; // -3dB
+    // --- Suboscillator & Noise ---
+    constexpr float kSubAmpScale = 0.75f;    // Balanced weight
+    constexpr float kDcoMixerGain = 0.70f;   // Prevent VCF input clip
+    constexpr float kNoiseAmpScale = 0.600f; // Authentic Juno-106 mixing ratio
+    constexpr float kUnisonDetuneMaxSemitones = 0.5f; // Characteristic 106 spread
 
     // --- HPF Constants ---
     namespace HPF
@@ -48,6 +57,7 @@ namespace JunoConstants
     {
         static constexpr float kLfoMinHz = 0.1f;
         static constexpr float kLfoMaxHz = 30.0f;
+        static constexpr float kLfoDelayMax = 3.0f; // [Manual] 0-3s
         
         static constexpr float kAttackMin = 0.0015f;
         static constexpr float kAttackMax = 3.0f;

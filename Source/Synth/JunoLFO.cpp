@@ -1,5 +1,6 @@
 // Source/Synth/JunoLFO.cpp
 #include "JunoLFO.h"
+#include "../Core/JunoConstants.h"
 
 JunoLFO::JunoLFO() {
     reset();
@@ -22,7 +23,7 @@ void JunoLFO::setDepth(float amount) {
 }
 
 void JunoLFO::setDelay(float seconds) {
-    delay = juce::jlimit(0.0f, 5.0f, seconds);
+    delay = juce::jlimit(0.0f, JunoConstants::Curves::kLfoDelayMax, seconds);
 }
 
 void JunoLFO::noteOn() {

@@ -7,15 +7,21 @@ echo.
 
 :: 1. Intentar localizar CMake automáticamente usando vswhere
 set "CMAKE_PATH=cmake"
-set "VSWHER_EXE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+set "LOCAL_CMAKE=%~dp0CMake\CMake\bin\cmake.exe"
 
-if exist "%VSWHER_EXE%" (
-    for /f "usebackq tokens=*" %%i in (`"%VSWHER_EXE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.CMake.Project -property installationPath`) do (
-        set "VS_PATH=%%i"
-        set "POTENTIAL_CMAKE=!VS_PATH!\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-        if exist "!POTENTIAL_CMAKE!" (
-            set "CMAKE_PATH=!POTENTIAL_CMAKE!"
-            echo [INFO] CMake localizado en: !CMAKE_PATH!
+if exist "%LOCAL_CMAKE%" (
+    set "CMAKE_PATH=%LOCAL_CMAKE%"
+    echo [INFO] CMake LOCAL localizado en: !CMAKE_PATH!
+) else (
+    set "VSWHER_EXE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+    if exist "%VSWHER_EXE%" (
+        for /f "usebackq tokens=*" %%i in (`"%VSWHER_EXE%" -latest -products * -property installationPath`) do (
+            set "VS_PATH=%%i"
+            set "POTENTIAL_CMAKE=!VS_PATH!\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
+            if exist "!POTENTIAL_CMAKE!" (
+                set "CMAKE_PATH=!POTENTIAL_CMAKE!"
+                echo [INFO] CMake VS localizado en: !CMAKE_PATH!
+            )
         )
     )
 )
@@ -43,7 +49,7 @@ if not exist %BUILD_DIR% mkdir %BUILD_DIR%
 
 echo.
 echo 1. Configurando proyecto...
-"%CMAKE_PATH%" -B %BUILD_DIR% -A x64 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_SHARED_LIBS=OFF
+"%CMAKE_PATH%" -B %BUILD_DIR% -A x64 -T v143 -DBUILD_SHARED_LIBS=OFF
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Error en la configuracion de CMake.
     exit /b %ERRORLEVEL%

@@ -3,89 +3,82 @@
 #include <vector>
 #include <cmath>
 
-/**
- * JunoTapeEncoder
- * Converts Juno-106 patch data into 1200 baud FSK audio samples.
- * Format: 0 = 1200Hz, 1 = 2400Hz.
- */
 class JunoTapeEncoder {
 public:
-    static juce::AudioBuffer<float> encodePatch(const uint8_t* data18, double sampleRate = 44100.0)
+    static inline juce::AudioBuffer<float> encodePatches(const std::vector<std::vector<uint8_t>>& patches, double sampleRate)
     {
-        // 1. Prepare Byte Stream
-        // [Fidelidad] Pilot Tone (1 sec 2400Hz) + Header + Data + Checksum + Trailer
-        std::vector<uint8_t> bytes;
+        const double bitsPerSecond = 1200.0;
+        const double freqLow = 1200.0;  // Space (0)
+        const double freqHigh = 2400.0; // Mark (1)
         
-        // Block structure: A5 [Data 18] [Checksum] AC
-        bytes.push_back(0xA5);
-        uint8_t checksum = 0;
-        for (int i = 0; i < 18; ++i) {
-            bytes.push_back(data18[i]);
-            checksum += data18[i];
-        }
-        bytes.push_back(checksum & 0x7F);
-        bytes.push_back(0xAC);
-
-        // 2. Convert to Bit Stream (Asynchronous Serial: Start(0), 8-bits LSB-first, Stop(1))
-        std::vector<bool> bits;
+        std::vector<bool> bitStream;
         
-        // Pre-roll (Pilot tone - logic high / 2400Hz)
-        for (int i = 0; i < 600; ++i) bits.push_back(true);
-
-        for (uint8_t b : bytes) {
-            bits.push_back(false); // Start bit (Logic 0 / 1200Hz)
-            for (int i = 0; i < 8; ++i) {
-                bits.push_back((b & (1 << i)) != 0);
+        // 1. Leader (Pilot tone): 2 seconds of Marks
+        for (int i = 0; i < (int)(bitsPerSecond * 2.0); ++i) bitStream.push_back(true);
+        
+        for (const auto& data : patches) {
+            if (data.size() != 18) continue;
+            
+            // Block Header
+            appendByte(bitStream, 0xA5);
+            
+            // Data
+            uint8_t checksum = 0;
+            for (uint8_t b : data) {
+                appendByte(bitStream, b);
+                checksum += b;
             }
-            bits.push_back(true); // Stop bit (Logic 1 / 2400Hz)
-            bits.push_back(true); // Extra stop bit for reliability
+            checksum &= 0x7F;
+            
+            // Checksum
+            appendByte(bitStream, checksum);
+            
+            // Block End
+            appendByte(bitStream, 0xAC);
+            
+            // Inter-block gap (0.1s of Marks)
+            for (int i = 0; i < (int)(bitsPerSecond * 0.1); ++i) bitStream.push_back(true);
         }
         
-        // Post-roll
-        for (int i = 0; i < 100; ++i) bits.push_back(true);
-
-        // 3. Generate Audio Samples
-        double bitsPerSecond = 1200.0;
-        double samplesPerBit = sampleRate / bitsPerSecond;
-        int totalSamples = (int)(bits.size() * samplesPerBit);
+        // Trailer: 0.5 seconds of Marks
+        for (int i = 0; i < (int)(bitsPerSecond * 0.5); ++i) bitStream.push_back(true);
         
-        juce::AudioBuffer<float> buffer(1, totalSamples);
+        // Render bitstream to audio
+        int numSamples = (int)(bitStream.size() * (sampleRate / bitsPerSecond));
+        juce::AudioBuffer<float> buffer(1, numSamples);
         float* samples = buffer.getWritePointer(0);
         
         double phase = 0.0;
-        for (size_t bitIdx = 0; bitIdx < bits.size(); ++bitIdx) {
-            bool logicLevel = bits[bitIdx];
-            double freq = logicLevel ? 2400.0 : 1200.0;
-            double phaseIncrement = (juce::MathConstants<double>::twoPi * freq) / sampleRate;
+        double currentBitStartSample = 0.0;
+        double samplesPerBit = sampleRate / bitsPerSecond;
+        
+        for (size_t b = 0; b < bitStream.size(); ++b) {
+            bool bit = bitStream[b];
+            double freq = bit ? freqHigh : freqLow;
+            double phaseDelta = (juce::MathConstants<double>::twoPi * freq) / sampleRate;
             
-            int startSample = (int)(bitIdx * samplesPerBit);
-            int endSample = (int)((bitIdx + 1) * samplesPerBit);
+            int startS = (int)currentBitStartSample;
+            int endS = (int)(currentBitStartSample + samplesPerBit);
             
-            for (int i = startSample; i < endSample; ++i) {
-                samples[i] = (float)std::sin(phase);
-                phase += phaseIncrement;
+            for (int s = startS; s < endS && s < numSamples; ++s) {
+                samples[s] = (float)std::sin(phase);
+                phase += phaseDelta;
             }
+            currentBitStartSample += samplesPerBit;
         }
         
         return buffer;
     }
 
-    static juce::Result saveToWav(const juce::File& file, const uint8_t* data18)
-    {
-        double sr = 44100.0;
-        auto buffer = encodePatch(data18, sr);
-        
-        juce::WavAudioFormat wavFormat;
-#pragma warning(push)
-#pragma warning(disable: 4996)
-        std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(new juce::FileOutputStream(file),
-                                                                                  sr, 1, 16, {}, 0));
-#pragma warning(pop)
-        if (writer != nullptr) {
-            writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
-            return juce::Result::ok();
+private:
+    static void appendByte(std::vector<bool>& stream, uint8_t byte) {
+        // Start bit (0)
+        stream.push_back(false);
+        // 8 Data bits (LSB first)
+        for (int i = 0; i < 8; ++i) {
+            stream.push_back((byte & (1 << i)) != 0);
         }
-        
-        return juce::Result::fail("Could not create WAV writer.");
+        // Stop bit (1)
+        stream.push_back(true);
     }
 };

@@ -5,6 +5,9 @@ build/
 Builds/
 bin/
 obj/
+logs/
+bundle_code/
+.idea/
 *.exe
 build_no.txt
 build_final.txt
@@ -13,6 +16,7 @@ build_output.txt
 
 # JUCE & Library files
 JUCE/
+Resources/
 JuceLibraryCode/
 .vs/
 *.user
@@ -27,6 +31,8 @@ JuceLibraryCode/
 # Documentation & Others
 Documentation/
 docs/
+exports/
+JUNO106/
 *.md (except important ones like README)
 !README.md
 !Source/**/*.md

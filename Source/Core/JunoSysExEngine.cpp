@@ -62,19 +62,23 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[14] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.release * 127.0f));
     body[15] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.subOscLevel * 127.0f));
 
-    // [Hardware Authenticity] SW1: Range, Pulse, Saw, Chorus
+    // [Hardware Authenticity] SW1 (Byte 20): Chorus, Range, Pulse, Saw
     uint8_t sw1 = 0;
-    sw1 |= (uint8_t)(params.dcoRange & 0x07);
-    if (params.pulseOn) sw1 |= (1 << 3);
-    if (params.sawOn)   sw1 |= (1 << 4);
+    // Bit 0: Chorus Enable
+    if (params.chorus1 || params.chorus2) sw1 |= (1 << 0);
+    // Bit 1: Chorus Type (1=II, 0=I)
+    if (params.chorus2) sw1 |= (1 << 1);
     
-    const bool chorusOn = params.chorus1 || params.chorus2;
-    if (chorusOn) {
-        sw1 |= (1 << 5); // Enable
-        if (params.chorus2) sw1 |= (1 << 6); // 1 = II, 0 = I
-    }
+    // Bits 3-4: Range (0: 16', 1: 8', 2: 4')
+    int hwRange = juce::jlimit(0, 2, params.dcoRange);
+    sw1 |= (uint8_t)((hwRange & 0x03) << 3);
+    
+    // Bit 5: Pulse
+    if (params.pulseOn) sw1 |= (1 << 5);
+    // Bit 6: Saw
+    if (params.sawOn)   sw1 |= (1 << 6);
 
-    // [Hardware Authenticity] SW2: PWM Mode, VCA Mode, Polarity, HPF
+    // [Hardware Authenticity] SW2 (Byte 21): PWM Mode, VCA Mode, Polarity, HPF
     uint8_t sw2 = 0;
     if (params.pwmMode == 1)     sw2 |= (1 << 0);
     if (params.vcaMode == 1)     sw2 |= (1 << 1);
@@ -113,16 +117,17 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case DCO_SUB:    params.subOscLevel = norm; break;
 
         case SWITCHES_1:
-             params.dcoRange = (value7bit & 0x07);
-             params.pulseOn  = (value7bit & (1 << 3)) != 0;
-             params.sawOn    = (value7bit & (1 << 4)) != 0;
              {
-                 bool cEnable = (value7bit & (1 << 5)) != 0;
-                 bool cMode2  = (value7bit & (1 << 6)) != 0;
+                 bool cEnable = (value7bit & (1 << 0)) != 0;
+                 bool cMode2  = (value7bit & (1 << 1)) != 0;
                  params.chorus1 = cEnable && !cMode2;
                  params.chorus2 = cEnable && cMode2;
+                 
+                 params.dcoRange = (value7bit >> 3) & 0x03;
+                 params.pulseOn  = (value7bit & (1 << 5)) != 0;
+                 params.sawOn    = (value7bit & (1 << 6)) != 0;
              }
-            break;
+             break;
 
         case SWITCHES_2:
              params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
@@ -165,16 +170,19 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     const uint8_t sw1 = dumpData[16];
     const uint8_t sw2 = dumpData[17];
 
-    params.dcoRange = (sw1 & 0x07);
-    params.pulseOn  = (sw1 & (1 << 3)) != 0;
-    params.sawOn    = (sw1 & (1 << 4)) != 0;
+    // SW1 Parsing
     {
-        bool cEnable = (sw1 & (1 << 5)) != 0;
-        bool cMode2  = (sw1 & (1 << 6)) != 0;
+        bool cEnable = (sw1 & (1 << 0)) != 0;
+        bool cMode2  = (sw1 & (1 << 1)) != 0;
         params.chorus1 = cEnable && !cMode2;
         params.chorus2 = cEnable && cMode2;
+        
+        params.dcoRange = (sw1 >> 3) & 0x03;
+        params.pulseOn  = (sw1 & (1 << 5)) != 0;
+        params.sawOn    = (sw1 & (1 << 6)) != 0;
     }
 
+    // SW2 Parsing
     params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
     params.vcaMode     = (sw2 & (1 << 1)) ? 1 : 0;
     params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
