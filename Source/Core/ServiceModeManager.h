@@ -20,12 +20,14 @@ public:
     
     void triggerDCOReference(int midiNote, int rangeIndex);
     void startVCFSweep();
+    void startTestScale();
     void stopAllTests();
 
     // State Access
     int getSoloVoice() const { return soloVoice; }
-    bool isVcfSweepActive() const { return vcfSweepActive; }
-    float getVcfSweepCutoff() const { return vcfSweepValue; }
+    bool isVcfSweepActive() const { return vcfSweepActive.load(); }
+    float getVcfSweepCutoff() const { return vcfSweepValue.load(); }
+    bool isTestScaleActive() const { return testScaleActive.load(); }
 
     // Processing (called from PluginProcessor::processBlock)
     void update(double sampleRate, int numSamples);
@@ -33,16 +35,21 @@ public:
 private:
     SimpleJuno106AudioProcessor& processor;
     
-    std::atomic<int> soloVoice{ -1 };
+    std::atomic<int> soloVoice;
     
     // VCF Sweep State
-    bool vcfSweepActive = false;
-    float vcfSweepValue = 0.0f;
+    std::atomic<bool> vcfSweepActive;
+    std::atomic<float> vcfSweepValue;
     double vcfSweepPhase = 0.0;
     
     // DCO Reference State
-    bool dcoRefActive = false;
+    std::atomic<bool> dcoRefActive;
     int dcoRefNote = 69;
+
+    // Test Scale State
+    std::atomic<bool> testScaleActive;
+    std::atomic<float> scaleTimer;
+    std::atomic<int> currentScaleNoteIdx;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServiceModeManager)
 };

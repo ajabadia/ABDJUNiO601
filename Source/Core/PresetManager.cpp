@@ -57,7 +57,7 @@ juce::ValueTree PresetManager::bytesToState(const uint8_t* data, int size) const
     vt.setProperty("pwmMode", (sw2 & (1 << 0)) != 0, nullptr);
     vt.setProperty("vcaMode", (sw2 & (1 << 1)) != 0, nullptr);
     vt.setProperty("vcfPolarity", (sw2 & (1 << 2)) != 0, nullptr); 
-    vt.setProperty("hpfFreq", 3 - ((sw2 >> 3) & 0x03), nullptr); // Reflect hardware inversion
+    vt.setProperty("hpfFreq", (int)((sw2 >> 3) & 0x03), nullptr);
 
     // Performance Defaults
     vt.setProperty("benderToDCO", 2.0f, nullptr);
@@ -102,7 +102,7 @@ std::vector<uint8_t> PresetManager::stateToBytes(const juce::ValueTree& state) c
     if ((bool)state["pwmMode"])     sw2 |= (1 << 0);
     if ((bool)state["vcaMode"])     sw2 |= (1 << 1);
     if ((bool)state["vcfPolarity"]) sw2 |= (1 << 2);
-    int hwHpf = 3 - juce::jlimit(0, 3, (int)state["hpfFreq"]);
+    int hwHpf = juce::jlimit(0, 3, (int)state["hpfFreq"]);
     sw2 |= (uint8_t)((hwHpf & 0x03) << 3);
     bytes[17] = sw2;
     
@@ -226,42 +226,57 @@ void PresetManager::setB(juce::AudioProcessorValueTreeState& apvts, juce::String
 
 void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts) {
     auto& r = juce::Random::getSystemRandom();
-    setI(apvts, "dcoRange", r.nextInt(3));
-    setI(apvts, "pwmMode", r.nextInt(2));
-    setI(apvts, "vcfPolarity", r.nextInt(2));
-    setI(apvts, "vcaMode", r.nextInt(2));
-    setI(apvts, "hpfFreq", r.nextInt(4));
+    
+    // 1. DCO Core (Classic Juno ranges)
+    setI(apvts, "dcoRange", r.nextFloat() < 0.7f ? 1 : (r.nextBool() ? 0 : 2)); // Favor 8' (1)
+    
+    bool saw = r.nextFloat() < 0.8f;
+    setB(apvts, "sawOn", saw); 
+    setB(apvts, "pulseOn", !saw || r.nextFloat() < 0.6f);
+    
+    setP(apvts, "subOsc", r.nextFloat() * 0.7f + 0.1f);  // Always some sub for "weight"
+    setP(apvts, "noise", r.nextFloat() < 0.2f ? r.nextFloat() * 0.3f : 0.0f); // Noise is rare
     
     setP(apvts, "pwm", r.nextFloat()); 
-    setP(apvts, "subOsc", r.nextFloat() * 0.8f); 
-    setP(apvts, "noise", r.nextFloat() * 0.3f);
-    setP(apvts, "lfoToDCO", r.nextFloat() * 0.2f); 
-    setP(apvts, "vcfFreq", 0.2f + (r.nextFloat() * 0.8f)); 
-    setP(apvts, "resonance", r.nextFloat() * 0.7f);
-    setP(apvts, "envAmount", r.nextFloat()); 
-    setP(apvts, "lfoToVCF", r.nextFloat() * 0.4f); 
-    setP(apvts, "kybdTracking", r.nextFloat());
-    setP(apvts, "vcaLevel", 0.6f + (r.nextFloat() * 0.4f));
-    setP(apvts, "attack", r.nextFloat() * 0.5f); 
-    setP(apvts, "decay", 0.1f + r.nextFloat() * 0.9f); 
-    setP(apvts, "sustain", 0.2f + r.nextFloat() * 0.8f);
-    setP(apvts, "release", 0.1f + r.nextFloat() * 0.7f); 
-    setP(apvts, "lfoRate", r.nextFloat()); 
-    setP(apvts, "lfoDelay", r.nextFloat() * 0.5f);
-
-    bool cOn = r.nextFloat() < 0.7f; 
-    if (cOn) { 
-        int m = r.nextInt(3); 
-        setB(apvts, "chorus1", m == 0 || m == 2); 
-        setB(apvts, "chorus2", m == 1 || m == 2); 
-    } else { 
-        setB(apvts, "chorus1", false); 
-        setB(apvts, "chorus2", false); 
-    }
+    setI(apvts, "pwmMode", r.nextFloat() < 0.3f ? 1 : 0); // Mostly manual PWM
     
-    bool s = r.nextBool(); 
-    setB(apvts, "sawOn", s); 
-    setB(apvts, "pulseOn", !s || r.nextBool());
+    // 2. VCF (Keep it sounding good)
+    setP(apvts, "vcfFreq", 0.35f + (r.nextFloat() * 0.55f)); // Don't close too much
+    setP(apvts, "resonance", r.nextFloat() < 0.8f ? r.nextFloat() * 0.6f : r.nextFloat() * 0.9f); // Rare scream
+    setP(apvts, "envAmount", 0.3f + r.nextFloat() * 0.6f);
+    setI(apvts, "vcfPolarity", 0); // Mostly positive env
+    setP(apvts, "kybdTracking", r.nextFloat() < 0.5f ? 0.5f : r.nextFloat());
+    
+    // 3. HPF (Position 0 and 1 are the most musical)
+    float hpfProb = r.nextFloat();
+    if (hpfProb < 0.5f)      setI(apvts, "hpfFreq", 0); // Boost
+    else if (hpfProb < 0.85f) setI(apvts, "hpfFreq", 1); // Bypass
+    else if (hpfProb < 0.95f) setI(apvts, "hpfFreq", 2); 
+    else                     setI(apvts, "hpfFreq", 3);
+
+    // 4. ENV (Useful shapes)
+    setP(apvts, "attack", r.nextFloat() < 0.6f ? 0.0f : r.nextFloat() * 0.3f); // Mostly fast
+    setP(apvts, "decay", 0.2f + r.nextFloat() * 0.6f);
+    setP(apvts, "sustain", 0.2f + r.nextFloat() * 0.8f);
+    setP(apvts, "release", 0.15f + r.nextFloat() * 0.5f);
+    setI(apvts, "vcaMode", 0); // Mostly ENV mode
+    setP(apvts, "vcaLevel", 0.8f + r.nextFloat() * 0.2f);
+    
+    // 5. LFO & Chorus (The Soul)
+    setP(apvts, "lfoRate", 0.2f + r.nextFloat() * 0.4f);
+    setP(apvts, "lfoDelay", r.nextFloat() * 0.3f);
+    setP(apvts, "lfoToDCO", r.nextFloat() < 0.2f ? r.nextFloat() * 0.1f : 0.0f);
+    setP(apvts, "lfoToVCF", r.nextFloat() < 0.3f ? r.nextFloat() * 0.2f : 0.0f);
+
+    // CHORUS IS KING: 90% chance of being active
+    if (r.nextFloat() < 0.9f) {
+        int mode = r.nextInt(3); 
+        setB(apvts, "chorus1", mode == 0 || mode == 2);
+        setB(apvts, "chorus2", mode == 1 || mode == 2);
+    } else {
+        setB(apvts, "chorus1", false);
+        setB(apvts, "chorus2", false);
+    }
 }
 
 void PresetManager::triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts) {

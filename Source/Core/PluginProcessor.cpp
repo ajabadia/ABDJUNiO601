@@ -118,7 +118,17 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     midiLearnHandler.bind(32, "vcaLevel");
     
     keyboardState.addListener(this);
+
+    // 3. Register calibration change callback
+    calibrationManager.setOnChangeCallback([this](const juce::String&, float) {
+        paramsAreDirty.store(true);
+    });
+
     DBG("SimpleJuno106AudioProcessor::Constructor Body END");
+    
+    // [Build 13] Ensure initial parameters are reflected in DSP and UI
+    updateParamsFromAPVTS();
+    requestPatchDump();
 }
 
 SimpleJuno106AudioProcessor::~SimpleJuno106AudioProcessor() {
@@ -130,10 +140,17 @@ bool SimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
 bool SimpleJuno106AudioProcessor::producesMidi() const { return true; }
 bool SimpleJuno106AudioProcessor::isMidiEffect() const { return false; }
 
-int SimpleJuno106AudioProcessor::getNumPrograms() { return 1; }
-int SimpleJuno106AudioProcessor::getCurrentProgram() { return 0; }
-void SimpleJuno106AudioProcessor::setCurrentProgram (int index) { juce::ignoreUnused(index); }
-const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { juce::ignoreUnused(index); return {}; }
+int SimpleJuno106AudioProcessor::getNumPrograms() { return 128; } // Standard GM bank size for mapping
+int SimpleJuno106AudioProcessor::getCurrentProgram() { 
+    return presetManager ? presetManager->getCurrentPresetIndex() : 0; 
+}
+void SimpleJuno106AudioProcessor::setCurrentProgram (int index) { loadPreset(index); }
+const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { 
+    if (presetManager) {
+        if (auto* p = presetManager->getPreset(index)) return p->name;
+    }
+    return "Initial Patch";
+}
 void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
 
 void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
@@ -253,104 +270,104 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     }
     performanceState.flushSustain(voiceManager);
 
-    if (currentParams.midiOut) {
-        if (patchDumpRequested.exchange(false)) {
+    if (patchDumpRequested.exchange(false)) {
+        sendPatchDump();
+        // Sync lastParams immediately to prevent redundant individual messages
+        lastParams = currentParams; 
+    } else {
+        // SysEx Flood Protection: count changes
+        int changeCount = 0;
+        auto countChange = [&](float curr, float last) {
+            if (std::abs(curr - last) > 0.001f) changeCount++;
+        };
+
+        countChange(currentParams.lfoRate, lastParams.lfoRate);
+        countChange(currentParams.lfoDelay, lastParams.lfoDelay);
+        countChange(currentParams.lfoToDCO, lastParams.lfoToDCO);
+        countChange(currentParams.pwmAmount, lastParams.pwmAmount);
+        countChange(currentParams.noiseLevel, lastParams.noiseLevel);
+        countChange(currentParams.vcfFreq, lastParams.vcfFreq);
+        countChange(currentParams.resonance, lastParams.resonance);
+        countChange(currentParams.envAmount, lastParams.envAmount);
+        countChange(currentParams.lfoToVCF, lastParams.lfoToVCF);
+        countChange(currentParams.kybdTracking, lastParams.kybdTracking);
+        countChange(currentParams.vcaLevel, lastParams.vcaLevel);
+        countChange(currentParams.attack, lastParams.attack);
+        countChange(currentParams.decay, lastParams.decay);
+        countChange(currentParams.sustain, lastParams.sustain);
+        countChange(currentParams.release, lastParams.release);
+        countChange(currentParams.subOscLevel, lastParams.subOscLevel);
+
+        const int kParamChangeThreshold = 8; // If more than 8 params change, send a full dump
+        
+        if (changeCount >= kParamChangeThreshold) {
             sendPatchDump();
-            // Sync lastParams immediately to prevent redundant individual messages
-            lastParams = currentParams; 
+            lastParams = currentParams;
         } else {
-            // SysEx Flood Protection: count changes
-            int changeCount = 0;
-            auto countChange = [&](float curr, float last) {
-                if (std::abs(curr - last) > 0.001f) changeCount++;
+            // Send individual messages (existing logic)
+            int msgsSent = 0;
+            const int kMaxMsgsPerBlock = 10; 
+            auto checkSendLocal = [&](float curr, float& last, int id) {
+                if (msgsSent >= kMaxMsgsPerBlock) return;
+                if (std::abs(curr - last) > 0.001f) {
+                    sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, id, (int)(curr * 127.0f)));
+                    last = curr;
+                    msgsSent++;
+                }
             };
 
-            countChange(currentParams.lfoRate, lastParams.lfoRate);
-            countChange(currentParams.lfoDelay, lastParams.lfoDelay);
-            countChange(currentParams.lfoToDCO, lastParams.lfoToDCO);
-            countChange(currentParams.pwmAmount, lastParams.pwmAmount);
-            countChange(currentParams.noiseLevel, lastParams.noiseLevel);
-            countChange(currentParams.vcfFreq, lastParams.vcfFreq);
-            countChange(currentParams.resonance, lastParams.resonance);
-            countChange(currentParams.envAmount, lastParams.envAmount);
-            countChange(currentParams.lfoToVCF, lastParams.lfoToVCF);
-            countChange(currentParams.kybdTracking, lastParams.kybdTracking);
-            countChange(currentParams.vcaLevel, lastParams.vcaLevel);
-            countChange(currentParams.attack, lastParams.attack);
-            countChange(currentParams.decay, lastParams.decay);
-            countChange(currentParams.sustain, lastParams.sustain);
-            countChange(currentParams.release, lastParams.release);
-            countChange(currentParams.subOscLevel, lastParams.subOscLevel);
+            checkSendLocal(currentParams.lfoRate, lastParams.lfoRate, JunoSysEx::LFO_RATE);
+            checkSendLocal(currentParams.lfoDelay, lastParams.lfoDelay, JunoSysEx::LFO_DELAY);
+            checkSendLocal(currentParams.lfoToDCO, lastParams.lfoToDCO, JunoSysEx::DCO_LFO);
+            checkSendLocal(currentParams.pwmAmount, lastParams.pwmAmount, JunoSysEx::DCO_PWM);
+            checkSendLocal(currentParams.noiseLevel, lastParams.noiseLevel, JunoSysEx::DCO_NOISE);
+            checkSendLocal(currentParams.vcfFreq, lastParams.vcfFreq, JunoSysEx::VCF_FREQ);
+            checkSendLocal(currentParams.resonance, lastParams.resonance, JunoSysEx::VCF_RES);
+            checkSendLocal(currentParams.envAmount, lastParams.envAmount, JunoSysEx::VCF_ENV);
+            checkSendLocal(currentParams.lfoToVCF, lastParams.lfoToVCF, JunoSysEx::VCF_LFO);
+            checkSendLocal(currentParams.kybdTracking, lastParams.kybdTracking, JunoSysEx::VCF_KYBD);
+            checkSendLocal(currentParams.vcaLevel, lastParams.vcaLevel, JunoSysEx::VCA_LEVEL);
+            checkSendLocal(currentParams.attack, lastParams.attack, JunoSysEx::ENV_A);
+            checkSendLocal(currentParams.decay, lastParams.decay, JunoSysEx::ENV_D);
+            checkSendLocal(currentParams.sustain, lastParams.sustain, JunoSysEx::ENV_S);
+            checkSendLocal(currentParams.release, lastParams.release, JunoSysEx::ENV_R);
+            checkSendLocal(currentParams.subOscLevel, lastParams.subOscLevel, JunoSysEx::DCO_SUB);
 
-            const int kParamChangeThreshold = 8; // If more than 8 params change, send a full dump
-            
-            if (changeCount >= kParamChangeThreshold) {
-                sendPatchDump();
-                lastParams = currentParams;
-            } else {
-                // Send individual messages (existing logic)
-                int msgsSent = 0;
-                const int kMaxMsgsPerBlock = 10; 
-                auto checkSendLocal = [&](float curr, float& last, int id) {
-                    if (msgsSent >= kMaxMsgsPerBlock) return;
-                    if (std::abs(curr - last) > 0.001f) {
-                        sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, id, (int)(curr * 127.0f)));
-                        last = curr;
-                        msgsSent++;
-                    }
-                };
+            // Handle switches (Sw1/Sw2) as before...
+            auto packSw1 = [](const SynthParams& p) -> int {
+                int val = 0;
+                if (p.chorus1 || p.chorus2) val |= (1 << 0);
+                if (p.chorus2) val |= (1 << 1);
+                int hwRange = juce::jlimit(0, 2, (int)p.dcoRange);
+                val |= (hwRange & 0x03) << 3;
+                if (p.pulseOn) val |= (1 << 5);
+                if (p.sawOn)   val |= (1 << 6);
+                return val;
+            };
+            int s1cur = packSw1(currentParams);
+            int s1last = packSw1(lastParams);
+            if (s1cur != s1last) {
+                sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_1, s1cur));
+            }
 
-                checkSendLocal(currentParams.lfoRate, lastParams.lfoRate, JunoSysEx::LFO_RATE);
-                checkSendLocal(currentParams.lfoDelay, lastParams.lfoDelay, JunoSysEx::LFO_DELAY);
-                checkSendLocal(currentParams.lfoToDCO, lastParams.lfoToDCO, JunoSysEx::DCO_LFO);
-                checkSendLocal(currentParams.pwmAmount, lastParams.pwmAmount, JunoSysEx::DCO_PWM);
-                checkSendLocal(currentParams.noiseLevel, lastParams.noiseLevel, JunoSysEx::DCO_NOISE);
-                checkSendLocal(currentParams.vcfFreq, lastParams.vcfFreq, JunoSysEx::VCF_FREQ);
-                checkSendLocal(currentParams.resonance, lastParams.resonance, JunoSysEx::VCF_RES);
-                checkSendLocal(currentParams.envAmount, lastParams.envAmount, JunoSysEx::VCF_ENV);
-                checkSendLocal(currentParams.lfoToVCF, lastParams.lfoToVCF, JunoSysEx::VCF_LFO);
-                checkSendLocal(currentParams.kybdTracking, lastParams.kybdTracking, JunoSysEx::VCF_KYBD);
-                checkSendLocal(currentParams.vcaLevel, lastParams.vcaLevel, JunoSysEx::VCA_LEVEL);
-                checkSendLocal(currentParams.attack, lastParams.attack, JunoSysEx::ENV_A);
-                checkSendLocal(currentParams.decay, lastParams.decay, JunoSysEx::ENV_D);
-                checkSendLocal(currentParams.sustain, lastParams.sustain, JunoSysEx::ENV_S);
-                checkSendLocal(currentParams.release, lastParams.release, JunoSysEx::ENV_R);
-                checkSendLocal(currentParams.subOscLevel, lastParams.subOscLevel, JunoSysEx::DCO_SUB);
-
-                // Handle switches (Sw1/Sw2) as before...
-                auto packSw1 = [](const SynthParams& p) -> int {
-                    int val = 0;
-                    if (p.chorus1 || p.chorus2) val |= (1 << 0);
-                    if (p.chorus2) val |= (1 << 1);
-                    int hwRange = juce::jlimit(0, 2, (int)p.dcoRange);
-                    val |= (hwRange & 0x03) << 3;
-                    if (p.pulseOn) val |= (1 << 5);
-                    if (p.sawOn)   val |= (1 << 6);
-                    return val;
-                };
-                int s1cur = packSw1(currentParams);
-                int s1last = packSw1(lastParams);
-                if (s1cur != s1last) {
-                    sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_1, s1cur));
-                }
-
-                auto packSw2 = [](const SynthParams& p) -> int {
-                    int val = 0;
-                    if (p.pwmMode == 1)     val |= (1 << 0);
-                    if (p.vcaMode == 1)     val |= (1 << 1);
-                    if (p.vcfPolarity == 1) val |= (1 << 2);
-                    int hwHpf = 3 - juce::jlimit(0, 3, (int)p.hpfFreq);
-                    val |= (hwHpf & 0x03) << 3;
-                    return val;
-                };
-                int s2cur = packSw2(currentParams);
-                int s2last = packSw2(lastParams);
-                if (s2cur != s2last) {
-                    sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_2, s2cur));
-                }
+            auto packSw2 = [](const SynthParams& p) -> int {
+                int val = 0;
+                if (p.pwmMode == 1)     val |= (1 << 0);
+                if (p.vcaMode == 1)     val |= (1 << 1);
+                if (p.vcfPolarity == 1) val |= (1 << 2);
+                int hwHpf = juce::jlimit(0, 3, (int)p.hpfFreq);
+                val |= (hwHpf & 0x03) << 3;
+                return val;
+            };
+            int s2cur = packSw2(currentParams);
+            int s2last = packSw2(lastParams);
+            if (s2cur != s2last) {
+                sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_2, s2cur));
             }
         }
-        
+    }
+
+    if (currentParams.midiOut) {
         // Merge the generated SysEx into host buffer
         midiMessages.addEvents(midiOutBuffer, 0, numSamples, 0);
         midiOutBuffer.clear();
@@ -358,6 +375,11 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     lastParams = currentParams;
 
     applyPerformanceModulations(currentParams);
+    
+    // [Service Mode] Apply VCF Sweep if active
+    if (serviceModeManager && serviceModeManager->isVcfSweepActive()) {
+        currentParams.vcfFreq = serviceModeManager->getVcfSweepCutoff();
+    }
     
     if (++thermalCounter > kThermalInertia) {
         thermalCounter = 0;

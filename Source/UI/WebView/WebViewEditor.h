@@ -10,6 +10,7 @@
 #include <JuceHeader.h>
 #include "../../Core/PluginProcessor.h"
 
+// Minimal bridge declaration to avoid conflicts
 class WebViewEditor : public juce::AudioProcessorEditor,
                     public juce::AudioProcessorValueTreeState::Listener,
                     public juce::Timer
@@ -19,12 +20,14 @@ public:
     ~WebViewEditor() override;
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;
-
     void paint (juce::Graphics& g) override;
     void resized() override;
-    
-    // Timer for high-frequency updates (LEDs, SysEx monitoring)
     void timerCallback() override;
+
+    void showAboutCallback();
+    void showSettingsCallback();
+    void showServiceModeCallback();
+    void postMessage(const juce::String& json);
 
 private:
     SimpleJuno106AudioProcessor& audioProcessor;
@@ -34,7 +37,7 @@ private:
     // Bridge helpers
     void updateParameterInJS(const juce::String& paramID, float value);
     void updateSysExInJS();
-    void updateLCDInJS(const juce::String& text);
+    void updateLCDInJS (const juce::String& text);
     void dispatchToJS(const juce::Identifier& eventId, const juce::var& payload);
 
     juce::MidiMessage lastSysEx;

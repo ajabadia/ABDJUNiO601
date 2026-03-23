@@ -34,10 +34,14 @@ const ServiceMode = {
         this.params.forEach(p => {
             const row = document.createElement('div');
             row.className = 'service-param-row';
+            row.title = p.tooltip; // Native tooltip for now
             row.innerHTML = `
                 <div class="service-param-info">
                     <span class="service-param-label">${p.label}</span>
-                    <span class="service-param-value" id="val-${p.id}">${p.currentValue.toFixed(2)}${p.unit}</span>
+                    <div class="service-param-values">
+                        <span class="service-param-default" title="Factory Default">Def: ${p.defaultValue.toFixed(2)}${p.unit}</span>
+                        <span class="service-param-value" id="val-${p.id}">${p.currentValue.toFixed(2)}${p.unit}</span>
+                    </div>
                 </div>
                 <input type="range" class="service-slider" 
                     min="${p.minValue}" max="${p.maxValue}" step="${p.stepSize}" 
@@ -50,7 +54,11 @@ const ServiceMode = {
 
     updateParam(id, value) {
         const val = parseFloat(value);
-        document.getElementById(`val-${id}`).innerText = val.toFixed(2) + (this.params.find(p => p.id === id).unit || '');
+        const p = this.params.find(x => x.id === id);
+        const display = document.getElementById(`val-${id}`);
+        if (p && display) {
+            display.innerText = val.toFixed(2) + (p.unit || '');
+        }
         juce.setCalibrationParam(id, val);
     },
 
@@ -59,32 +67,46 @@ const ServiceMode = {
         if (!container) return;
 
         container.innerHTML = '';
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 16; i++) {
             const btn = document.createElement('button');
             btn.className = 'voice-test-btn';
-            btn.innerText = `VOICE ${i + 1}`;
+            btn.innerText = `V${i + 1}`;
             btn.id = `btn-voice-${i}`;
             btn.onclick = () => this.toggleVoiceTest(i);
+            if (this.activeVoice === i) btn.classList.add('active');
             container.appendChild(btn);
         }
     },
 
     activeVoice: -1,
     toggleVoiceTest(index) {
+        const btns = document.querySelectorAll('.voice-test-btn');
         if (this.activeVoice === index) {
             this.activeVoice = -1;
             juce.serviceAction({ action: 'stopVoiceTest' });
-            document.querySelectorAll('.voice-test-btn').forEach(b => b.classList.remove('active'));
+            btns.forEach(b => b.classList.remove('active'));
         } else {
             this.activeVoice = index;
             juce.serviceAction({ action: 'testVoice', voice: index });
-            document.querySelectorAll('.voice-test-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-voice-${index}`).classList.add('active');
+            btns.forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-voice-${index}`);
+            if (activeBtn) activeBtn.classList.add('active');
         }
     },
 
     startSweep() {
         juce.serviceAction({ action: 'sweepVCF' });
+    },
+
+    testScalePlaying: false,
+    playTestScale() {
+        this.testScalePlaying = !this.testScalePlaying;
+        const btn = document.getElementById('btn-test-scale');
+        if (btn) {
+            btn.innerText = this.testScalePlaying ? 'STOP TEST SCALE' : 'PLAY TEST SCALE';
+            btn.style.background = this.testScalePlaying ? '#060' : '';
+        }
+        juce.serviceAction({ action: 'playTestScale' });
     },
 
     exportCalibration() {
@@ -95,8 +117,9 @@ const ServiceMode = {
         juce.serviceAction({ action: 'importCalibration' });
     },
 
-    resetCalibration() {
-        juce.serviceAction({ action: 'resetToFactory' });
+    async resetCalibration() {
+        await juce.serviceAction({ action: 'resetToFactory' });
+        await this.refreshParams();
     },
 
     onHostEvent(msg) {

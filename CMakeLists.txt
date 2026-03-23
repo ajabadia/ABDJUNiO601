@@ -111,7 +111,9 @@ endif()
 juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/index.html
     Source/UI/WebUI/script.js
+    Source/UI/WebUI/service.js
     Source/UI/WebUI/style.css
+    Source/UI/WebUI/service.css
     Source/UI/WebUI/fondo.png
     Source/UI/WebUI/fondo_sy.png
     Source/UI/WebUI/knob.png
@@ -136,8 +138,6 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/button_white.png
     Source/UI/WebUI/button_white_off.png
     Source/UI/WebUI/button_white_on.png
-    "Source/UI/WebUI/button - red - off.png"
-    "Source/UI/WebUI/button - red - on.png"
     
     Source/UI/WebUI/css/about.css
     Source/UI/WebUI/css/base.css
@@ -153,7 +153,12 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
 message(STATUS "Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/")
 
 
-target_include_directories(ABDSimpleJuno106 PRIVATE Source)
+target_include_directories(ABDSimpleJuno106 PRIVATE 
+    Source
+    Source/Core
+    Source/UI
+    Source/UI/WebView
+)
 
 juce_generate_juce_header(ABDSimpleJuno106)
 

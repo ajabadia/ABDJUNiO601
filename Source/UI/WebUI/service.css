@@ -21,8 +21,9 @@
 /* Voice Diagnostic Grid */
 .voice-test-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    margin-top: 15px;
 }
 
 .voice-test-btn {
@@ -56,6 +57,13 @@
 }
 
 /* Calibration Parameter Rows */
+#service-params-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
 .service-param-row {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.05);
@@ -70,13 +78,27 @@
 .service-param-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
+    margin-bottom: 5px;
+}
+
+.service-param-values {
+    display: flex;
+    gap: 15px;
+    align-items: baseline;
+}
+
+.service-param-default {
+    font-size: 11px;
+    color: #666;
+    font-family: inherit;
+    letter-spacing: 0.5px;
 }
 
 .service-param-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #eee;
+    font-size: 13px;
+    font-weight: bold;
+    color: #ccc;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -90,20 +112,35 @@
 
 .service-slider {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    background: #333;
-    height: 4px;
-    border-radius: 2px;
+    background: #1a1a1a;
+    height: 6px;
+    border-radius: 3px;
     cursor: pointer;
+    border: 1px solid #000;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    margin: 10px 0;
 }
 
 .service-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px;
+    width: 24px;
     height: 14px;
-    background: #ff3c3c;
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(255, 60, 60, 0.4);
+    background: #ff3c3c; /* Juno Red */
+    border: 1px solid #800;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.3);
+    cursor: ew-resize;
+}
+
+.service-slider:hover::-webkit-slider-thumb {
+    background: #ff5555;
+    box-shadow: 0 0 10px rgba(255, 60, 60, 0.6);
+}
+
+.service-slider:active::-webkit-slider-thumb {
+    background: #dd2222;
 }
 
 /* Footer & Buttons handled by unified modal classes in settings.css / index.html */

@@ -30,6 +30,7 @@
     border-right: 2px solid var(--white);
     backdrop-filter: var(--glass-blur);
     border-left: none;
+    min-height: 180px; /* [Build 20] Prevent slider handle overflow */
 }
 
 /* Specific Proportions (Mockup calibrated) */

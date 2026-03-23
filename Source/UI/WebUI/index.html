@@ -14,7 +14,7 @@
     <div id="splash-screen">
         <div class="splash-content">
             <h1>ABD JUNiO 601</h1>
-            <div class="splash-version">Version 1.2.0</div>
+            <div id="splash-version-info" class="splash-version">Version 1.2.0 (Build Loading...)</div>
             <div class="splash-credit">Built by ABD-IA</div>
         </div>
     </div>
@@ -40,14 +40,14 @@
                 <div class="menu-item">
                     Edit
                     <ul class="dropdown">
-                        <li onclick="juce.undo()">Undo</li>
-                        <li onclick="juce.redo()">Redo</li>
+                        <li onclick="juce.menuAction('undo')">Undo</li>
+                        <li onclick="juce.menuAction('redo')">Redo</li>
                         <li class="divider"></li>
                         <li onclick="copySysExToClipboard()">Copy SysEx Data</li>
                         <li onclick="juce.menuAction('handleRandomize')">Randomize Sound</li>
                         <li onclick="juce.menuAction('panic')">Panic (All Notes Off)</li>
                         <li class="divider"></li>
-                        <li id="menu-midi-tx" onclick="juce.toggleMidiOut()">
+                        <li id="menu-midi-tx" onclick="juce.menuAction('toggleMidiOut')">
                             MIDI TX <span class="check-mark">✔</span>
                         </li>
                         <li class="divider"></li>
@@ -69,7 +69,7 @@
                     </ul>
                 </div>
             </nav>
-            <div id="app-title-mini">ABD JUNiO 601 v1.2.0</div>
+            <div id="app-title-mini">ABD JUNiO 601 (Build Loading...)</div>
         </header>
 
         <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
@@ -91,7 +91,7 @@
             <div id="sysex-zone">
                 <div class="sysex-copy-column">
                     <div class="zone-label-mini">COPY SYX</div>
-                    <button class="sq beige tiny-util" id="copy-syx-btn"></button>
+                    <button class="sq beige tiny-util" id="copy-syx-btn" onclick="copySysExToClipboard()"></button>
                 </div>
                 <div class="sysex-display-col">
                     <div class="zone-label">SYSEX STREAM</div>
@@ -567,7 +567,7 @@
     </div>
 
     <!-- 4. MODALS -->
-    <div id="about-overlay" class="modal-overlay">
+    <div id="modal-about" class="modal-overlay">
         <div id="about-modal">
             <div class="about-header">
                 <span class="about-title">ABD JUNiO 601</span>
@@ -588,7 +588,7 @@
         </div>
     </div>
     <!-- PREFERENCES MODAL -->
-    <div id="settings-overlay" class="modal-overlay">
+    <div id="modal-settings" class="modal-overlay">
         <div id="settings-modal" class="settings-container">
             <div class="settings-header">
                 <span class="settings-title">PREFERENCES</span>
@@ -689,10 +689,10 @@
 
     <!-- SERVICE MODE MODAL -->
     <div id="modal-serviceMode" class="modal-overlay">
-        <div class="settings-container modal-content" style="max-width: 900px;">
+        <div class="settings-container modal-content" style="max-width: 1024px;">
             <div class="settings-header">
                 <span class="settings-title">SERVICE MODE & CALIBRATION</span>
-                <button class="close-btn" onclick="hideModal('serviceMode')">&times;</button>
+                <button class="close-btn" onclick="hideServiceMode()">&times;</button>
             </div>
             
             <div class="settings-content" style="display: block;">
@@ -703,16 +703,17 @@
 
                 <div class="service-section" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
                     <div class="service-section-title">Synthesis Calibration</div>
-                    <div id="service-params-list" class="styled-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 15px;"></div>
+                    <div id="service-params-list" class="styled-scroll" style="max-height: 320px; overflow-y: auto; padding-right: 15px;"></div>
                 </div>
             </div>
 
             <div class="settings-footer" style="gap: 10px;">
                 <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.exportCalibration()">EXPORT JSON</button>
                 <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.importCalibration()">IMPORT JSON</button>
-                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
+                <button class="tuning-btn" style="min-width: 120px;" id="btn-vcf-sweep" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
+                <button class="tuning-btn" style="min-width: 140px; border: 1px solid #0a0;" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
                 <button class="tuning-btn" style="min-width: 120px; background: #600;" onclick="ServiceMode.resetCalibration()">RESET</button>
-                <button class="tuning-btn" style="min-width: 120px; background: #333;" onclick="hideModal('serviceMode')">CLOSE</button>
+                <button class="tuning-btn" style="min-width: 120px; background: #333;" onclick="hideServiceMode()">CLOSE</button>
             </div>
         </div>
     </div>

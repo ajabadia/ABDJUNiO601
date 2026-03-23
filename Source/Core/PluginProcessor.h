@@ -91,6 +91,7 @@ public:
     
     std::atomic<bool> paramsAreDirty { true };
     std::atomic<bool> patchDumpRequested { false };
+    void requestPatchDump() { patchDumpRequested.store(true); }
 
     void undo() { undoManager.undo(); }
     void redo() { undoManager.redo(); }

@@ -13,6 +13,11 @@
     transition: opacity 1s ease-out;
 }
 
+#splash-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .splash-content {
     text-align: center;
     color: var(--white);

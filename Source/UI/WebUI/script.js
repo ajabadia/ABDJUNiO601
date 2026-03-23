@@ -10,21 +10,6 @@ let lastSysExHex = "";
 let currentBankGlobal = 1;
 let currentPatchGlobal = 1;
 
-// [Audit] Ensure juce object exists for inline HTML onclick handlers
-window.juce = window.juce || {};
-const nativeShim = (name) => {
-    const fn = (...args) => callNative(name, ...args);
-    fn.__isShim = true;
-    return fn;
-};
-if (!window.juce.menuAction) window.juce.menuAction = nativeShim("menuAction");
-if (!window.juce.setParameter) window.juce.setParameter = nativeShim("setParameter");
-if (!window.juce.copySysExData) window.juce.copySysExData = nativeShim("copySysExData");
-if (!window.juce.loadPreset) window.juce.loadPreset = nativeShim("loadPreset");
-if (!window.juce.getCalibrationParams) window.juce.getCalibrationParams = nativeShim("getCalibrationParams");
-if (!window.juce.setCalibrationParam) window.juce.setCalibrationParam = nativeShim("setCalibrationParam");
-if (!window.juce.serviceAction) window.juce.serviceAction = nativeShim("serviceAction");
-
 // [Audit] Persistent SysEx Mirror for stable UI display
 let sysexMirror = new Array(23).fill(0);
 sysexMirror[0] = 0xF0; sysexMirror[1] = 0x41; sysexMirror[2] = 0x30; // Default Header
@@ -38,48 +23,45 @@ window.onJuceEvent = (name, data) => {
     }
 };
 
+// Native Bridge Detection
 function getBackend() {
-    return window.__JUCE__?.backend || window.juceBackend; 
+    return (window.__JUCE__ && window.__JUCE__.backend) || window.juce || window.__juce__ || window.juceBackend; 
 }
+
 function callNative(name, ...args) {
-    console.log(`[JS Bridge] Attempting to call: ${name}`, args);
-    // Priority: Modern JUCE 8 Native Integration (skip if it's our own shim)
-    if (window.juce && typeof window.juce[name] === 'function' && !window.juce[name].__isShim) {
-        try {
-            const result = window.juce[name](...args);
-            console.log(`[JS Bridge] Native call ${name} success`, result);
-            return result;
-        } catch (e) {
-            console.error(`[JS Bridge] Native call ${name} failed:`, e);
-            throw e;
-        }
-    }
-
-    // Fallback: Legacy JUCE Bridge
     const backend = getBackend();
-    if (backend) {
-        console.log(`[JS Bridge] Fallback to legacy: ${name}`, args);
-        const id = promiseId++;
-        const p = new Promise((resolve) => {
-            const h = backend.addEventListener("__juce__complete", (d) => {
-                if (d && d.promiseId === id) { 
-                    backend.removeEventListener(h); 
-                    console.log(`[JS Bridge] Legacy call ${name} complete`, d.result);
-                    resolve(d.result); 
-                }
-            });
-            setTimeout(() => { 
-                backend.removeEventListener(h); 
-                console.warn(`[JS Bridge] Legacy call ${name} timeout`);
-                resolve(null); 
-            }, 5000);
-        });
-        backend.emitEvent("__juce__invoke", { name, params: args, resultId: id });
-        return p;
+    if (!backend) {
+        console.error("No JUCE bridge available for", name);
+        return Promise.reject("No bridge");
     }
 
-    console.warn(`[JS Bridge] No communication channel for ${name}`);
-    return Promise.reject("No bridge");
+    // [New] Forward direct calls to native functions if they exist on the bridge
+    if (typeof backend.callNativeFunction === 'function') {
+        return backend.callNativeFunction(name, args);
+    }
+    if (typeof backend[name] === 'function') {
+        return backend[name](...args);
+    }
+
+    // Fallback for emitEvent protocol if needed, though withNativeFunction should handle it
+    console.log(`[JS Bridge] Calling ${name} via emitEvent with:`, args);
+    const id = promiseId++;
+    const p = new Promise((resolve) => {
+        const handler = backend.addEventListener("__juce__complete", (data) => {
+            if (data && data.promiseId === id) {
+                backend.removeEventListener(handler);
+                resolve(data.result);
+            }
+        });
+        setTimeout(() => { backend.removeEventListener(handler); resolve(null); }, 5000);
+    });
+
+    backend.emitEvent("__juce__invoke", {
+        name: name,
+        params: args,
+        resultId: id
+    });
+    return p;
 }
 
 function listenEvent(eventName, callback) {
@@ -94,6 +76,13 @@ function listenEvent(eventName, callback) {
     }
 }
 
+// [Build 22] Global bridge convenience for index.html handlers
+window.juce = {
+    menuAction: (action, ...args) => callNative("menuAction", action, ...args),
+    setParameter: (id, val) => callNative("setParameter", id, val),
+    loadPreset: (idx) => callNative("loadPreset", idx)
+};
+
 // =============================
 // DOM READY
 // =============================
@@ -103,13 +92,7 @@ function initApp() {
     listenEvent("showModal", (data) => {
         if (data === "preferences") showSettings();
         else if (data === "about") showAbout();
-        else if (data === "serviceMode") {
-            showServiceMode();
-            // Give the browser sufficient time to finish CSS layout before initializing engine logic
-            setTimeout(() => {
-                if (window.ServiceMode) window.ServiceMode.init();
-            }, 150);
-        }
+        else if (data === "serviceMode") showServiceMode();
     });
     listenEvent("onShowAbout", () => showAbout());
     listenEvent("onShowSettings", () => showSettings());
@@ -118,12 +101,26 @@ function initApp() {
         if (info) info.innerText = name.toUpperCase();
     });
 
-    listenEvent("onBankPatchUpdate", (data) => {
+    const handleBankPatch = (data) => {
         if (!data) return;
         currentBankGlobal = data.bank || 1;
         currentPatchGlobal = data.patch || 1;
         updateSevenSegment();
-    });
+    };
+    listenEvent("onBankPatchUpdate", handleBankPatch);
+    listenEvent("onLCDIndexUpdate", handleBankPatch); // Fallback for old C++ versions
+
+    const backend = getBackend();
+    const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
+                    (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
+
+    if (initData && initData.buildVersion) {
+        const vStr = initData.buildVersion;
+        document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
+            if (el.id === 'app-title-mini') el.innerText = "ABD JUNiO 601 v" + vStr;
+            else el.innerText = "Version " + vStr;
+        });
+    }
 
     listenEvent("onVersionUpdate", (version) => {
         document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
@@ -148,7 +145,8 @@ function initApp() {
         const log = document.getElementById('sysex-log');
         if (!log) return;
         
-        const bytes = hex.split(' ').map(h => parseInt(h, 16));
+        const parts = hex.trim().split(' ');
+        const bytes = parts.filter(p => p.length > 0).map(h => parseInt(h, 16));
         
         // [Audit Fix] Handle Patch Dump (23 bytes) vs Param Change (7 bytes)
         if (bytes.length === 23) {
@@ -183,7 +181,6 @@ function initApp() {
         }, 1000);
     });
 
-    console.log("initApp: Setting up UI components...");
     setupSliders();
     setupButtons();
     setupBender();
@@ -191,7 +188,6 @@ function initApp() {
     setupMenus();
     setupOctaveButtons();
 
-    console.log("initApp: Calling native uiReady...");
     callNative("uiReady");
 
     // Splash screen timeout
@@ -205,50 +201,40 @@ function initApp() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("[JS Bridge] DOMContentLoaded. Searching for bridge...");
-    // Retry bridge detection if not immediately available
+    const splashVersion = document.getElementById('splash-version-info');
     let retries = 0;
     const checkBridge = setInterval(() => {
-        const hasJuce = window.juce && (typeof window.juce.setParameter === 'function' || typeof window.juce.menuAction === 'function');
         const backend = getBackend();
-        
-        if (hasJuce || backend || retries > 30) {
+        if (backend) {
             clearInterval(checkBridge);
-            console.log(`[JS Bridge] Bridge detected. hasJuce: ${hasJuce}, hasBackend: ${!!backend}`);
+            if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
             initApp();
+        } else {
+            retries++;
+            if (retries === 20 && splashVersion) {
+                splashVersion.innerText = "WAITING FOR JUCE BRIDGE (Retrying...)";
+            }
+            if (retries === 50 && splashVersion) {
+                splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
+            }
+            if (retries > 100) {
+                clearInterval(checkBridge);
+                initApp(); // Fallback anyway
+            }
         }
-        retries++;
     }, 100);
 });
 
 function copySysExToClipboard() {
-    if (!lastSysExHex) {
+    if (lastSysExHex) {
+        navigator.clipboard.writeText(lastSysExHex).then(() => {
+            updateLCD("SYSEX COPIED", true);
+        }).catch(err => {
+            console.error('Clipboard error:', err);
+            updateLCD("COPY ERROR", true);
+        });
+    } else {
         updateLCD("NO SYSEX DATA", true);
-        return;
-    }
-
-    // Move to C++ for robustness and to bypass browser clipboard permission issues
-    callNative("copySysExData", lastSysExHex);
-    updateLCD("SYSEX COPIED", true);
-}
-
-function fallbackCopyText(text) {
-    try {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        if (successful) updateLCD("SYSEX COPIED", true);
-        else updateLCD("COPY ERROR", true);
-    } catch (err) {
-        console.error('Fallback copy failed', err);
-        updateLCD("COPY ERROR", true);
     }
 }
 
@@ -412,7 +398,7 @@ function setupButtons() {
         btn.addEventListener('pointerleave', () => btn.classList.remove('pushed'));
     });
 
-    document.querySelectorAll('.nav-arrow, .num-btn, #random-btn, #panic-btn, #copy-syx-btn, [data-action]').forEach(btn => {
+    document.querySelectorAll('.nav-arrow, .num-btn, #random-btn, #panic-btn, [data-action]').forEach(btn => {
         btn.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             btn.classList.add('pushed');
@@ -448,8 +434,6 @@ function setupButtons() {
                 callNative("menuAction", "handleRandomize");
             } else if (btn.id === 'panic-btn') {
                 callNative("menuAction", "panic");
-            } else if (btn.id === 'copy-syx-btn') {
-                copySysExToClipboard();
             } else {
                 const actionMap = { 'bank-dec': 'handleBankDec', 'bank-inc': 'handleBankInc', 'patch-dec': 'handlePatchDec', 'patch-inc': 'handlePatchInc' };
                 if (actionMap[btn.id]) callNative("menuAction", actionMap[btn.id]);
@@ -558,33 +542,18 @@ function setupKeyboard() {
 }
 
 function setupMenus() {
-    console.log("setupMenus: Initializing...");
     document.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            // If we click inside the dropdown itself, don't toggle (let li onclick handle it)
+        item.addEventListener('pointerdown', (e) => {
             if (e.target.closest('.dropdown')) return;
-            
-            e.preventDefault();
             e.stopPropagation();
-            
             const dd = item.querySelector('.dropdown');
-            if (!dd) return;
-
-            const isVisible = getComputedStyle(dd).display === 'flex';
-            
-            // Close all others first
+            const wasOpen = dd.style.display === 'flex';
             document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-            
-            // Toggle current
-            dd.style.display = isVisible ? 'none' : 'flex';
-            console.log(`Menu toggle: ${item.innerText.trim()} -> ${!isVisible}`);
+            if (!wasOpen) dd.style.display = 'flex';
         });
     });
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.menu-item')) {
-            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-        }
+    document.addEventListener('pointerdown', (e) => {
+        if (!e.target.closest('.menu-item')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
     });
 }
 
@@ -598,8 +567,8 @@ function syncUI(id, val) {
             const track = pod.querySelector('.track, .b-track') || pod;
             const containerH = track.getBoundingClientRect().height;
             const handleH = handle.getBoundingClientRect().height;
-            const availableSpace = containerH - handleH;
-            if (availableSpace > 0) {
+            const availableSpace = Math.max(0, containerH - handleH);
+            if (availableSpace >= 0) {
                 const top = (1.0 - val) * availableSpace;
                 handle.style.top = top + 'px';
             }
@@ -684,32 +653,38 @@ function updateSevenSegment() {
 }
 
 function showSettings() {
-    const el = document.getElementById('settings-overlay');
+    const el = document.getElementById('modal-settings');
     if (el) el.style.display = 'flex';
 }
 
 function hideSettings() {
-    const el = document.getElementById('settings-overlay');
+    const el = document.getElementById('modal-settings');
     if (el) el.style.display = 'none';
 }
 
 function showAbout() {
-    const el = document.getElementById('about-overlay');
+    const el = document.getElementById('modal-about');
     if (el) el.style.display = 'flex';
 }
 
 function hideAbout() {
-    const el = document.getElementById('about-overlay');
+    const el = document.getElementById('modal-about');
     if (el) el.style.display = 'none';
 }
 
 function showServiceMode() {
-    document.getElementById('modal-serviceMode').style.display = 'flex';
-    if (window.ServiceMode) ServiceMode.init();
+    const el = document.getElementById('modal-serviceMode');
+    if (el) {
+        el.style.display = 'flex';
+        if (window.ServiceMode && typeof window.ServiceMode.init === 'function') {
+            window.ServiceMode.init();
+        }
+    }
 }
 
-function hideModal(id) {
-    document.getElementById('modal-' + id).style.display = 'none';
+function hideServiceMode() {
+    const el = document.getElementById('modal-serviceMode');
+    if (el) el.style.display = 'none';
 }
 
 function updatePref(el) {
@@ -727,7 +702,11 @@ function updatePref(el) {
     if (id === 'chorusMix') normalized = val;
     if (id === 'aftertouchToVCF') normalized = val;
     
-    callNative("setParameter", id, parseFloat(normalized));
+    if (window.juce && typeof window.juce.setParameter === 'function') {
+        window.juce.setParameter(id, parseFloat(normalized));
+    } else {
+        callNative("setParameter", id, parseFloat(normalized));
+    }
     syncUI(id, parseFloat(normalized));
 }
 
