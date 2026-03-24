@@ -1,7 +1,7 @@
 #include "ServiceModeManager.h"
-#include "PluginProcessor.h"
+#include "ABDSimpleJuno106AudioProcessor.h"
 
-ServiceModeManager::ServiceModeManager(SimpleJuno106AudioProcessor& p)
+ServiceModeManager::ServiceModeManager(ABDSimpleJuno106AudioProcessor& p)
     : processor(p)
 {
     soloVoice.store(-1);
@@ -29,7 +29,18 @@ void ServiceModeManager::startVCFSweep()
     vcfSweepActive.store(true);
     vcfSweepPhase = 0.0;
 }
-
+void ServiceModeManager::startHpfCycle()
+{
+    hpfCycleActive.store(!hpfCycleActive.load());
+    hpfCycleTimer = 0.0;
+    hpfCycleValue.store(0);
+}
+void ServiceModeManager::startChorusCycle()
+{
+    chorusCycleActive.store(!chorusCycleActive.load());
+    chorusCycleTimer = 0.0;
+    chorusCycleValue.store(0);
+}
 void ServiceModeManager::startTestScale()
 {
     bool next = !testScaleActive.load();
@@ -42,6 +53,8 @@ void ServiceModeManager::startTestScale()
 void ServiceModeManager::stopAllTests()
 {
     vcfSweepActive.store(false);
+    hpfCycleActive.store(false);
+    chorusCycleActive.store(false);
     dcoRefActive.store(false);
     testScaleActive.store(false);
     soloVoice.store(-1);
@@ -62,6 +75,28 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
         }
         
         vcfSweepValue.store((float)vcfSweepPhase);
+    }
+
+    if (hpfCycleActive.load())
+    {
+        double dt = (double)numSamples / sampleRate;
+        hpfCycleTimer += dt;
+        if (hpfCycleTimer >= 1.0) {
+            hpfCycleTimer = 0.0;
+            int next = (hpfCycleValue.load() + 1) % 4;
+            hpfCycleValue.store(next);
+        }
+    }
+
+    if (chorusCycleActive.load())
+    {
+        double dt = (double)numSamples / sampleRate;
+        chorusCycleTimer += dt;
+        if (chorusCycleTimer >= 1.0) {
+            chorusCycleTimer = 0.0;
+            int next = (chorusCycleValue.load() + 1) % 4; // 0=Off, 1=I, 2=II, 3=Both
+            chorusCycleValue.store(next);
+        }
     }
 
     if (testScaleActive.load())

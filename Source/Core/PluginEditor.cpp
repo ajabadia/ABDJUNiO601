@@ -3,7 +3,7 @@
 #include "BuildVersion.h"
 #include "../Core/JunoTapeEncoder.h" 
 
-SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno106AudioProcessor& p)
+ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDSimpleJuno106AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
       lookAndFeel(),
       menuBar(this),
@@ -20,14 +20,14 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
       performanceSection(p.getAPVTS(), p.getMidiLearnHandler()),
       midiKeyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
-    DBG("SimpleJuno106AudioProcessorEditor::Constructor START");
+    DBG("ABDSimpleJuno106AudioProcessorEditor::Constructor START");
     addAndMakeVisible(sysExDisplay);
 
     addAndMakeVisible(menuBar);
     setResizable(true, true);
     setResizeLimits(1000, 600, 2000, 1200);
     setSize (1200, 750); 
-    DBG("SimpleJuno106AudioProcessorEditor::setSize DONE");
+    DBG("ABDSimpleJuno106AudioProcessorEditor::setSize DONE");
 
     addAndMakeVisible(bankSection); DBG("Editor: bankSection added");
     addAndMakeVisible(lcd); DBG("Editor: lcd added");
@@ -40,7 +40,7 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
     addAndMakeVisible(chorusSection); DBG("Editor: chorusSection added");
     addAndMakeVisible(performanceSection); DBG("Editor: performanceSection added");
     addAndMakeVisible(midiKeyboard); DBG("Editor: midiKeyboard added");
-    DBG("SimpleJuno106AudioProcessorEditor::addAndMakeVisible DONE");
+    DBG("ABDSimpleJuno106AudioProcessorEditor::addAndMakeVisible DONE");
     midiKeyboard.setAvailableRange(36, 96); 
     
     setLookAndFeel(&lookAndFeel);
@@ -148,14 +148,14 @@ SimpleJuno106AudioProcessorEditor::SimpleJuno106AudioProcessorEditor (SimpleJuno
 
     stopTimer(); 
     startTimerHz(30); 
-    DBG("SimpleJuno106AudioProcessorEditor::Constructor END");
+    DBG("ABDSimpleJuno106AudioProcessorEditor::Constructor END");
     
     // Initial LCD state
     lastPresetName = bankSection.presetBrowser.getPresetManager().getCurrentPresetName();
     lcd.setText(lastPresetName);
 }
 
-SimpleJuno106AudioProcessorEditor::~SimpleJuno106AudioProcessorEditor()
+ABDSimpleJuno106AudioProcessorEditor::~ABDSimpleJuno106AudioProcessorEditor()
 {
     stopTimer();
     
@@ -171,7 +171,7 @@ SimpleJuno106AudioProcessorEditor::~SimpleJuno106AudioProcessorEditor()
     audioProcessor.editor = nullptr; 
 }
 
-void SimpleJuno106AudioProcessorEditor::timerCallback()
+void ABDSimpleJuno106AudioProcessorEditor::timerCallback()
 {
     auto& pm = bankSection.presetBrowser.getPresetManager();
     
@@ -212,7 +212,7 @@ void SimpleJuno106AudioProcessorEditor::timerCallback()
     bankSection.updateDisplay(bankNum, patchNum);
 }
 
-void SimpleJuno106AudioProcessorEditor::parameterChanged (const juce::String& parameterID, float newValue)
+void ABDSimpleJuno106AudioProcessorEditor::parameterChanged (const juce::String& parameterID, float newValue)
 {
     // Fix shadowing and unused parameter warnings while keeping async UI updates
     juce::MessageManager::callAsync([this, parameterID, newValue]() {
@@ -226,7 +226,7 @@ void SimpleJuno106AudioProcessorEditor::parameterChanged (const juce::String& pa
     });
 }
 
-void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
+void ABDSimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll(JunoUI::kPanelGrey);
     
@@ -251,7 +251,7 @@ void SimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
     g.drawText("JUNiO 601", bounds.getRight() - 220, 30, 200, 40, juce::Justification::centredRight);
 }
 
-void SimpleJuno106AudioProcessorEditor::resized()
+void ABDSimpleJuno106AudioProcessorEditor::resized()
 {
     auto b = getLocalBounds();
     
@@ -305,12 +305,12 @@ void SimpleJuno106AudioProcessorEditor::resized()
     mainRows.performLayout(mainArea);
 }
 
-juce::StringArray SimpleJuno106AudioProcessorEditor::getMenuBarNames()
+juce::StringArray ABDSimpleJuno106AudioProcessorEditor::getMenuBarNames()
 {
     return { "File", "Edit", "View", "Help" };
 }
 
-juce::PopupMenu SimpleJuno106AudioProcessorEditor::getMenuForIndex (int menuIndex, const juce::String& /*menuName*/)
+juce::PopupMenu ABDSimpleJuno106AudioProcessorEditor::getMenuForIndex (int menuIndex, const juce::String& /*menuName*/)
 {
     juce::PopupMenu menu;
     
@@ -349,7 +349,7 @@ juce::PopupMenu SimpleJuno106AudioProcessorEditor::getMenuForIndex (int menuInde
     return menu;
 }
 
-void SimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/)
+void ABDSimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/)
 {
     switch (menuItemID) {
         case 1:  handleLoad(); break;
@@ -371,7 +371,7 @@ void SimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int /*
     }
 }
 
-void SimpleJuno106AudioProcessorEditor::handleSave()
+void ABDSimpleJuno106AudioProcessorEditor::handleSave()
 {
     auto* aw = new juce::AlertWindow("Save Patch", "Enter name for current patch:", juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", bankSection.presetBrowser.getPresetManager().getCurrentPresetName());
@@ -391,7 +391,7 @@ void SimpleJuno106AudioProcessorEditor::handleSave()
     }));
 }
 
-void SimpleJuno106AudioProcessorEditor::handleLoad()
+void ABDSimpleJuno106AudioProcessorEditor::handleLoad()
 {
     fileChooser = std::make_unique<juce::FileChooser> ("Load Patch...", 
         bankSection.presetBrowser.getPresetManager().getLastPath(), "*.jno");
@@ -408,7 +408,7 @@ void SimpleJuno106AudioProcessorEditor::handleLoad()
         });
 }
 
-void SimpleJuno106AudioProcessorEditor::handleImportSysex()
+void ABDSimpleJuno106AudioProcessorEditor::handleImportSysex()
 {
     fileChooser = std::make_unique<juce::FileChooser> ("Import SysEx / JNO...", 
         bankSection.presetBrowser.getPresetManager().getLastPath(), "*.syx;*.jno");
@@ -429,7 +429,7 @@ void SimpleJuno106AudioProcessorEditor::handleImportSysex()
         });
 }
 
-void SimpleJuno106AudioProcessorEditor::handleLoadTape()
+void ABDSimpleJuno106AudioProcessorEditor::handleLoadTape()
 {
      fileChooser = std::make_unique<juce::FileChooser> ("Load Tape (.wav)...", 
         bankSection.presetBrowser.getPresetManager().getLastPath(), "*.wav");
@@ -450,7 +450,7 @@ void SimpleJuno106AudioProcessorEditor::handleLoadTape()
         });
 }
 
-void SimpleJuno106AudioProcessorEditor::handleExportBank()
+void ABDSimpleJuno106AudioProcessorEditor::handleExportBank()
 {
      fileChooser = std::make_unique<juce::FileChooser> ("Export Bank...", 
         bankSection.presetBrowser.getPresetManager().getLastPath(), "*.json");
@@ -466,19 +466,19 @@ void SimpleJuno106AudioProcessorEditor::handleExportBank()
         });
 }
 
-void SimpleJuno106AudioProcessorEditor::handleRandomize()
+void ABDSimpleJuno106AudioProcessorEditor::handleRandomize()
 {
     bankSection.presetBrowser.getPresetManager().randomizeCurrentParameters(audioProcessor.getAPVTS());
     lcd.setText("RANDOMIZED");
 }
 
-void SimpleJuno106AudioProcessorEditor::handlePanic()
+void ABDSimpleJuno106AudioProcessorEditor::handlePanic()
 {
     audioProcessor.triggerPanic();
     lcd.setText("PANIC");
 }
 
-void SimpleJuno106AudioProcessorEditor::handleAbout()
+void ABDSimpleJuno106AudioProcessorEditor::handleAbout()
 {
     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, 
         "About Juno-601", 

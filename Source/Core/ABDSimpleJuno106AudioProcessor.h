@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ABDSIMPLEJUNO106AUDIOPROCESSOR_H_INCLUDED
+#define ABDSIMPLEJUNO106AUDIOPROCESSOR_H_INCLUDED
 
 #include <JuceHeader.h>
 #include <memory>
@@ -12,17 +13,16 @@
 #include "JunoSysExEngine.h"
 #include "PerformanceState.h"
 #include "TuningManager.h"
-#include "CalibrationManager.h"
+#include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
 #include "../Synth/ChorusBBD.h"
-
 class PresetManager;
 
-class SimpleJuno106AudioProcessor : public juce::AudioProcessor,
+class ABDSimpleJuno106AudioProcessor : public juce::AudioProcessor,
                                      public juce::MidiKeyboardState::Listener {
 public:
-    SimpleJuno106AudioProcessor();
-    ~SimpleJuno106AudioProcessor() override;
+    ABDSimpleJuno106AudioProcessor();
+    ~ABDSimpleJuno106AudioProcessor() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -100,8 +100,8 @@ public:
             p->setValueNotifyingHost(p->getValue() > 0.5f ? 0.0f : 1.0f);
     }
 
-    CalibrationManager& getCalibrationManager() { return calibrationManager; }
-    ServiceModeManager& getServiceModeManager() { return *serviceModeManager; }
+    CalibrationSettings& getCalibrationSettings();
+    ServiceModeManager& getServiceModeManager();
     // Getters for bridge and diagnostic access
     // apvts and voiceManager are accessible via getters defined earlier:
     // getAPVTS() at line 54
@@ -120,7 +120,7 @@ private:
 
     std::unique_ptr<class PresetManager> presetManager;
     TuningManager tuningManager;
-    CalibrationManager calibrationManager;
+    std::unique_ptr<CalibrationSettings> calibrationSettings;
     std::unique_ptr<ServiceModeManager> serviceModeManager;
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::String currentTuningName { "Standard Tuning" };
@@ -145,6 +145,7 @@ private:
     // [Fidelidad] Authentic MN3009 BBD Emulation
     ChorusBBD chorus; 
     juce::Random chorusNoiseGen; 
+    juce::Random masterNoiseGen; 
     
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker; 
     
@@ -239,5 +240,6 @@ private:
     std::atomic<float>* fmtMidiFunction = nullptr;
     std::atomic<float>* fmtLowCpuMode = nullptr;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ABDSimpleJuno106AudioProcessor)
 };
+#endif

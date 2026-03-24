@@ -64,6 +64,9 @@ public:
     // [Calibration]
     void setMixerGain(float gain);      // Master DCO gain (default 0.7)
     void setSubAmpScale(float scale);   // Sub weight (default 1.0)
+    void setPWMOffset(float offset) { pwmOffset = offset; }
+    void setNoiseGain(float gain) { noiseGain = gain; }
+    void setVoiceVariance(float cents) { voiceVariance = cents; }
     
     // Processing (receives LFO value from external LFO)
     float getNextSample(float lfoValue);
@@ -93,6 +96,9 @@ private:
     // [Calibration]
     float mixerGain = 0.7f;
     float subAmpScale = 1.0f;
+    float pwmOffset = 0.0f;
+    float noiseGain = 1.0f;
+    float voiceVariance = 2.0f;
     
     // PWM
     float pwmValue = 0.5f;

@@ -15,12 +15,11 @@ void ChorusBBD::prepare(double sampleRate, int /*maxBlockSize*/)
     lineII_L.init(MAX_DELAY_SAMPLES);
     lineII_R.init(MAX_DELAY_SAMPLES);
 
-    // Filtros post-BBD (reconstrucción ~8kHz)
-    constexpr float POST_LP_HZ = 8000.0f;
-    filterI_L.prepare(sr, POST_LP_HZ);
-    filterI_R.prepare(sr, POST_LP_HZ);
-    filterII_L.prepare(sr, POST_LP_HZ);
-    filterII_R.prepare(sr, POST_LP_HZ);
+    // Filtros post-BBD (reconstrucción dinámica)
+    filterI_L.prepare(sr, calFilterCutoff);
+    filterI_R.prepare(sr, calFilterCutoff);
+    filterII_L.prepare(sr, calFilterCutoff);
+    filterII_R.prepare(sr, calFilterCutoff);
 
     reset();
 }
@@ -52,9 +51,9 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
 
     const double phaseInc = juce::MathConstants<double>::twoPi * lfoRate / sr;
     
-    const float baseI = (DELAY_I_MS * 0.001f) * (float)sr;
-    const float baseII = (DELAY_II_MS * 0.001f) * (float)sr;
-    const float modAmp = (MOD_DEPTH_MS * depth * 0.001f) * (float)sr;
+    const float baseI = (calDelayI * 0.001f) * (float)sr;
+    const float baseII = (calDelayII * 0.001f) * (float)sr;
+    const float modAmp = (calModDepth * m_depth * 0.001f) * (float)sr;
 
     const bool doI  = (mode == Mode::ChorusI  || mode == Mode::ChorusBoth);
     const bool doII = (mode == Mode::ChorusII || mode == Mode::ChorusBoth);
@@ -67,7 +66,7 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
         float outL = inL;
         float outR = inR;
 
-        //── Chorus I ─────────────────────────────────────────────────────────
+        //-- Chorus I ---------------------------------------------------------
         if (doI)
         {
             // LFO I: L=0°, R=180°
@@ -88,7 +87,7 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
             outR += wetMix * (wet_R - inR);
         }
 
-        //── Chorus II ────────────────────────────────────────────────────────
+        //-- Chorus II --------------------------------------------------------
         if (doII)
         {
             // LFO II: L=90°, R=270° (Cuadratura respecto a Chorus I)
@@ -107,6 +106,22 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
             // Mezcla wet/dry (acumulativa si ChorusBoth)
             outL += wetMix * (wet_L - inL);
             outR += wetMix * (wet_R - inR);
+        }
+
+        // 3. (Post-BBD Noise Hiss Floor)
+        // [Fidelity] BBD hiss is constant but slightly filtered by the reconstruction stage
+        // We add it to the final output to simulate the hardware's noise floor.
+        const float noiseBase = std::pow(10.0f, hissLvlDb / 20.0f) * hissMultiplier;
+        if (noiseBase > 1e-6f) {
+            float nL = (random.nextFloat() * 2.0f - 1.0f) * noiseBase;
+            float nR = (random.nextFloat() * 2.0f - 1.0f) * noiseBase;
+            
+            // Simple warm LP for noise (approx 4kHz)
+            noiseFilterL += 0.4f * (nL - noiseFilterL);
+            noiseFilterR += 0.4f * (nR - noiseFilterR);
+            
+            outL += noiseFilterL;
+            outR += noiseFilterR;
         }
 
         L[s] = outL;

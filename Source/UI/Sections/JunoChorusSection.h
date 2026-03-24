@@ -5,7 +5,7 @@
 class JunoChorusSection : public juce::Component, public juce::AudioProcessorValueTreeState::Listener, public juce::AsyncUpdater, public juce::Timer
 {
 public:
-    JunoChorusSection(class SimpleJuno106AudioProcessor& p, juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh) : processor(p), apvts(apvts)
+    JunoChorusSection(class ABDSimpleJuno106AudioProcessor& p, juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh) : processor(p), apvts(apvts)
     {
         startTimerHz(30);
         auto cfgBtn = [&](juce::TextButton& b, const char* txt) {
@@ -90,7 +90,7 @@ public:
     }
 
 private:
-    SimpleJuno106AudioProcessor& processor;
+    ABDSimpleJuno106AudioProcessor& processor;
     juce::TextButton b1, b2;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> att1, att2;
     // juce::OwnedArray<JunoUI::MidiLearnMouseListener, juce::DummyCriticalSection> midiLearnListeners; // Removed for safety

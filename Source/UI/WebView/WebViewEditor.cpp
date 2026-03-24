@@ -1,7 +1,7 @@
 #include <JuceHeader.h>
 #include "WebViewEditor.h"
-#include "../../Core/PluginProcessor.h"
-#include "../../Core/CalibrationManager.h"
+#include "../../Core/ABDSimpleJuno106AudioProcessor.h"
+#include "../../Core/CalibrationSettings.h"
 #include "../../Core/ServiceModeManager.h"
 #include "../../Core/PresetManager.h"
 #include "../../Core/BuildVersion.h"
@@ -9,7 +9,7 @@
 
 using namespace juce;
 
-WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
+WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
     : juce::AudioProcessorEditor (&p), audioProcessor (p)
 {
     auto options = juce::WebBrowserComponent::Options{}
@@ -96,13 +96,14 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
         })
         .withNativeFunction ("getCalibrationParams", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
             juce::Array<juce::var> result;
-            auto& manager = audioProcessor.getCalibrationManager();
-            for (const auto& p : manager.getAllParams()) {
+            auto& cal = audioProcessor.getCalibrationSettings();
+            for (const auto& p : cal.getAllParams()) {
                 juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-                obj->setProperty("id", p.id);
-                obj->setProperty("label", p.label);
-                obj->setProperty("unit", p.unit);
-                obj->setProperty("tooltip", p.tooltip);
+                obj->setProperty("id", juce::String(p.id));
+                obj->setProperty("label", juce::String(p.label));
+                obj->setProperty("category", juce::String(p.category));
+                obj->setProperty("unit", juce::String(p.unit));
+                obj->setProperty("tooltip", juce::String(p.tooltip));
                 obj->setProperty("defaultValue", (double)p.defaultValue);
                 obj->setProperty("currentValue", (double)p.currentValue);
                 obj->setProperty("minValue", (double)p.minValue);
@@ -116,7 +117,7 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
             if (args.size() >= 2) {
                 juce::String id = args[0].toString();
                 float val = (float)args[1];
-                audioProcessor.getCalibrationManager().setValue(id, val);
+                audioProcessor.getCalibrationSettings().setValue(id.toStdString(), val);
             }
             completion({});
         })
@@ -133,8 +134,43 @@ WebViewEditor::WebViewEditor (SimpleJuno106AudioProcessor& p)
                         if (smm.isTestScaleActive()) smm.stopAllTests();
                         else smm.startTestScale();
                     }
-                    else if (action == "resetToFactory") audioProcessor.getCalibrationManager().resetToDefaults();
-                    else if (action == "exportCalibration") audioProcessor.getCalibrationManager().save();
+                    else if (action == "resetToFactory") audioProcessor.getCalibrationSettings().resetToDefaults();
+                    else if (action == "exportCalibration") {
+                        fileChooser = std::make_unique<juce::FileChooser>("Export Calibration JSON", 
+                                                                          juce::File::getSpecialLocation(juce::File::userHomeDirectory), 
+                                                                          "*.json");
+                                                                          
+                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles, 
+                        [this](const juce::FileChooser& fc) {
+                            auto result = fc.getResult();
+                            if (result.existsAsFile() || !result.exists()) {
+                                audioProcessor.getCalibrationSettings().saveToPath(result.getFullPathName().toStdString());
+                                juce::Logger::writeToLog("[JUNiO] Calibration Exported successfully to: " + result.getFullPathName());
+                            }
+                        });
+                    }
+                    else if (action == "importCalibration") {
+                        fileChooser = std::make_unique<juce::FileChooser>("Import Calibration JSON", 
+                                                                          juce::File::getSpecialLocation(juce::File::userHomeDirectory), 
+                                                                          "*.json");
+                                                                          
+                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, 
+                        [this](const juce::FileChooser& fc) {
+                            auto result = fc.getResult();
+                            if (result.existsAsFile()) {
+                                audioProcessor.getCalibrationSettings().loadFromPath(result.getFullPathName().toStdString());
+                                juce::Logger::writeToLog("[JUNiO] Calibration Imported successfully from: " + result.getFullPathName());
+                                // Update UI by triggering a re-read of params if necessary, 
+                                // though the manager usually notifies listeners.
+                            }
+                        });
+                    }
+                    else if (action == "hpfCycle") {
+                        smm.startHpfCycle();
+                    }
+                    else if (action == "chorusCycle") {
+                        smm.startChorusCycle();
+                    }
                 }
             }
             completion({});

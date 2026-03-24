@@ -8,7 +8,7 @@
 #endif
 
 #include <JuceHeader.h>
-#include "../../Core/PluginProcessor.h"
+#include "../../Core/ABDSimpleJuno106AudioProcessor.h"
 
 // Minimal bridge declaration to avoid conflicts
 class WebViewEditor : public juce::AudioProcessorEditor,
@@ -16,7 +16,7 @@ class WebViewEditor : public juce::AudioProcessorEditor,
                     public juce::Timer
 {
 public:
-    WebViewEditor (SimpleJuno106AudioProcessor& p);
+    WebViewEditor (ABDSimpleJuno106AudioProcessor& p);
     ~WebViewEditor() override;
 
     void parameterChanged (const juce::String& parameterID, float newValue) override;
@@ -30,7 +30,7 @@ public:
     void postMessage(const juce::String& json);
 
 private:
-    SimpleJuno106AudioProcessor& audioProcessor;
+    ABDSimpleJuno106AudioProcessor& audioProcessor;
     
     std::unique_ptr<juce::WebBrowserComponent> webComponent;
 

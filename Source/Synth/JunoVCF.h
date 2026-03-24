@@ -39,6 +39,8 @@ public:
                          float lfoMod,
                          float kybdTrack,
                          float noteHz,
+                         float minHz = 18.0f,
+                         float maxHz = 18000.0f,
                          float selfOscThreshold = 0.92f,
                          float saturationScale = 1.0f);
 
@@ -47,7 +49,9 @@ private:
                            float envMod,
                            float lfoMod,
                            float kybdTrack,
-                           float noteHz) const;
+                           float noteHz,
+                           float minHz,
+                           float maxHz) const;
 
     float computeResonanceFeedback (float res01, float selfOscThreshold) const;
 
@@ -61,10 +65,7 @@ private:
     double sampleRate    = 44100.0;
     float  invSampleRate = 1.0f / 44100.0f;
 
-    // Rango de corte del 80017A: ~18 Hz – ~18 kHz (~10 octavas)
-    static constexpr float kMinHz = 18.0f;
-    static constexpr float kMaxHz = 18000.0f;
-    static constexpr float kRatio = 1000.0f; // kMaxHz / kMinHz
+    // [Build 29] Ranges are now dynamic via CalibrationManager
 
     // Resonancia: umbral de autooscilación (HW: ~0.92)
     // float kSelfOscThreshold = 0.92f; // Moved to dynamic parameter

@@ -32,21 +32,39 @@ public:
     
     void setMode(Mode m)        { mode = m; }
     void setRate(float hz)      { lfoRate = juce::jlimit(0.1f, 8.0f, hz); }
-    void setDepth(float d)      { depth = juce::jlimit(0.0f, 1.0f, d); }
+    void setDepth(float d)      { m_depth = juce::jlimit(0.0f, 1.0f, d); }
     void setMix(float w)        { wetMix = juce::jlimit(0.0f, 1.0f, w); }
     void setHissLevel(float db) { hissLvlDb = juce::jlimit(-96.0f, -40.0f, db); }
+    
+    // [Build 29] Calibration Overrides
+    void setCalibrationParams(float dI, float dII, float depth, float sat, float cutoff) {
+        calDelayI = dI;
+        calDelayII = dII;
+        calModDepth = depth;
+        calSatBoost = sat;
+        calFilterCutoff = cutoff;
+    }
+
+    void setHissMultiplier(float m) { hissMultiplier = juce::jlimit(0.0f, 2.0f, m); }
 
     /** Procesa buffer estéreo in-place */
     void process(juce::AudioBuffer<float>& buffer);
 
 private:
-    //── Parámetros ─────────────────────────────────────────────────────────
+    //-- Parameters ---------------------------------------------------------
     Mode  mode     { Mode::Off };
     float lfoRate  { 0.513f };
-    float depth    { 0.65f  };
+    float m_depth    { 0.65f  };
     float wetMix   { 0.50f  };
     float hissLvlDb { -52.0f };
     double sr      { 44100.0 };
+
+    // [Build 29] Calibration Values
+    float calDelayI { 3.2f };
+    float calDelayII { 6.4f };
+    float calModDepth { 1.5f };
+    float calSatBoost { 1.2f };
+    float calFilterCutoff { 8000.0f };
 
     //── Delay lines ────────────────────────────────────────────────────────
     static constexpr int MAX_DELAY_SAMPLES = 8192; // 100ms+ a 48k para seguridad
@@ -122,6 +140,10 @@ private:
 
     OnePoleLP filterI_L, filterI_R, filterII_L, filterII_R;
 
-    //── Saturation NE570 ──────────────────────────────────────────────────
-    inline float saturate(float x) const { return std::tanh(x * 1.2f); }
+    //── Saturation & Noise ────────────────────────────────────────────────
+    inline float saturate(float x) const { return std::tanh(x * calSatBoost); }
+
+    juce::Random random;
+    float hissMultiplier { 1.0f };
+    float noiseFilterL { 0.0f }, noiseFilterR { 0.0f };
 };

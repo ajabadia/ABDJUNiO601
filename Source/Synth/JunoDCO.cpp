@@ -165,11 +165,11 @@ float JunoDCO::getNextSample(float lfoValue) {
     if (pulseLevel > 0.0f) {
         float targetPWM = kPwmCenterDuty;
         if (pwmMode == PWMMode::Manual) {
-            // [Fidelity] Juno-106: 50% at center, 95% at max
-            targetPWM = kPwmCenterDuty + (pwmValue - 0.5f) * 2.0f * (kPwmMaxDuty - kPwmCenterDuty);
+            // [Fidelity] Juno-106: 50% at center, 95% at max. [Build 29] Added Calibration Offset
+            targetPWM = kPwmCenterDuty + pwmOffset + (pwmValue - 0.5f) * 2.0f * (kPwmMaxDuty - kPwmCenterDuty);
         } else {
-            // LFO depth applies to the 50% center
-            targetPWM = juce::jlimit(kPwmMinDuty, kPwmMaxDuty, kPwmCenterDuty + lfoValue * pwmValue * 0.45f);
+            // LFO depth applies to the 50% center. [Build 29] Added Calibration Offset
+            targetPWM = juce::jlimit(kPwmMinDuty, kPwmMaxDuty, kPwmCenterDuty + pwmOffset + lfoValue * pwmValue * 0.45f);
         }
         
         // PWM "Off" mode: force waveform level if too narrow
@@ -212,7 +212,8 @@ float JunoDCO::getNextSample(float lfoValue) {
         float noise = (noiseGen.nextFloat() * 2.0f - 1.0f);
         // [Fidelity] Noise color (LowPass roll-off at 12kHz)
         noise = noiseFilter.processSample(noise);
-        output += noise * noiseLevel * kNoiseAmpScale;
+        // [Build 29] Apply calibrated noise gain
+        output += noise * noiseLevel * kNoiseAmpScale * noiseGain;
     }
     
     // [Fidelity] Output Gain scaled to prevent VCF saturation

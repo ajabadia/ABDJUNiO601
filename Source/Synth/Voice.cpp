@@ -75,7 +75,7 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
     // [Fidelity] Refined Unison Spread Logic
     // Centers the spread regardless of the number of active voices.
     if (params.polyMode == 3 && numVoicesInUnison > 1) {
-        float spreadAmt = params.unisonDetune * kUnisonDetuneMaxSemitones; 
+        float spreadAmt = params.unisonDetune * kUnisonDetuneMaxSemitones * params.unisonSpread; 
         float center = (numVoicesInUnison - 1) * 0.5f;
         float detuneSemitones = (voiceIndex - center) * spreadAmt;
         targetFrequency *= std::pow(2.0f, detuneSemitones / 12.0f);
@@ -192,23 +192,28 @@ void Voice::updateParams(const SynthParams& p) {
     
     dco.setMixerGain(p.dcoMixerGain);
     dco.setSubAmpScale(p.subAmpScale);
+    dco.setPWMOffset(p.pwmOffset);
+    dco.setNoiseGain(p.noiseGain);
+    dco.setVoiceVariance(p.voiceVariance);
     
     updateHPF();
 }
 
-void Voice::updateHPF() {
-    switch (params.hpfFreq) {
+void Voice::updateHPF(int position) {
+    int activePos = (position >= 0) ? position : params.hpfFreq;
+    
+    switch (activePos) {
         case 0: // Position 0: [Fidelity] Bass Boost (+3dB @ 70Hz shelving)
-            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, HPF::kShelfFreq, 0.707f, std::pow(10.0f, HPF::kShelfGainDb / 20.0f));
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, params.hpfShelfFreq, params.hpfQ, std::pow(10.0f, params.hpfShelfGain / 20.0f));
             break;
         case 1: // Position 1: Bypass (All-pass)
             hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f);
             break;
         case 2: // Position 2: 225Hz
-            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, HPF::kFreq2, 0.707f);
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, params.hpfFreq2, params.hpfQ);
             break;
         case 3: // Position 3: 700Hz
-            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, HPF::kFreq3, 0.707f);
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, params.hpfFreq3, params.hpfQ);
             break;
         default:
             hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f);
@@ -242,6 +247,9 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
     isActive_ = true;
     
     if (numSamples > tempBuffer.getNumSamples()) numSamples = tempBuffer.getNumSamples();
+    
+    // [Build 29] Diagnostic cycles update
+    updateHPF(params.hpfCyclePos);
     
     float bendedFrequency = updatePitch(numSamples);
     dco.setFrequency(bendedFrequency);
@@ -293,15 +301,22 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         // Soft-clipper (DCO Mixer saturation)
         if (std::abs(dcoSample) > kDcoMixerSaturationThreshold) {
-             float x = dcoSample * 1.15f;
+             float x = dcoSample * params.mixerSaturation; // [Build 29] Use calibration
              dcoSample = x - (x * x * x) / 24.0f; 
         }
         
-        float signal = dcoSample + neighborCrosstalk * kVoiceCrosstalkAmount + rippleNoise;
+        float signal = dcoSample + neighborCrosstalk * params.vcaCrosstalk + rippleNoise;
         
         // 2. HPF (Original position preserved)
-        signal = hpFilter.processSample(signal);
-        if (params.hpfFreq == 0) signal = hpfShelfFilter.processSample(signal);
+        // [Build 29] HPF Cycle Diagnostic Override
+        int activeHpfPos = (params.hpfCyclePos >= 0) ? params.hpfCyclePos : params.hpfFreq;
+        
+        // Re-calculate coefficients if position changed (optimization: usually stable)
+        // For simplicity during diagnostics, we'll just process. 
+        // If we need glitch-free cycling, we'd check if activeHpfPos changed.
+        
+        signal = hpFilter.processSample(signal); 
+        if (activeHpfPos == 0) signal = hpfShelfFilter.processSample(signal);
         
         // 3. VCF (High-Fidelity TPT Ladder)
         float voiceHz = currentFrequency;
@@ -315,12 +330,14 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         // Process VCF using the new high-fidelity model
         signal = filter.processSample(
             signal,
-            params.vcfFreq,
+            params.vcfFreq, // [Build 29] VCF Sweep Support (overridden in PluginProcessor)
             params.resonance,
             envMod,
             lfoVCF,
             params.kybdTracking,
             voiceHz,
+            params.vcfMinHz,
+            params.vcfMaxHz,
             params.vcfSelfOscThreshold,
             params.vcfSaturation
         );
@@ -334,14 +351,15 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         // [Fidelity] Resonance-compensated VCA Gain
         // Moog-style/Juno ladders thin out at high resonance. We compensate slightly.
-        float resComp = 1.0f + (params.resonance * params.resonance * 0.5f);
+        float resComp = 1.0f + (params.resonance * params.resonance * params.vcfResoComp);
         
         // [Improvement] Velocity Sensitivity
-        float velScale = 1.0f - params.velocitySens + (params.velocitySens * velocity);
+        float velBase = 1.0f - params.velocitySens + (params.velocitySens * velocity);
+        float velScale = std::pow(velBase, params.vcaVelSensScale); // [Build 29] Scale depth
         
         // [Fidelity Fix] Always use envVal (even in GATE mode) to leverage the 2ms anti-click slew
         float vcaGain = (params.vcaMode == 1) ? (rawVcaLev * envVal) : (envVal * rawVcaLev);
-        vcaGain *= velScale;
+        vcaGain *= velScale * params.vcaMasterGain; // [Build 29] Master Gain calibration
         
         // Final Output
         voiceData[i] = signal * vcaGain * resComp * kVoiceOutputGain;

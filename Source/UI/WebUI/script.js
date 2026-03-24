@@ -76,11 +76,14 @@ function listenEvent(eventName, callback) {
     }
 }
 
-// [Build 22] Global bridge convenience for index.html handlers
+// [Build 22/23] Global bridge convenience for index.html handlers
 window.juce = {
     menuAction: (action, ...args) => callNative("menuAction", action, ...args),
     setParameter: (id, val) => callNative("setParameter", id, val),
-    loadPreset: (idx) => callNative("loadPreset", idx)
+    loadPreset: (idx) => callNative("loadPreset", idx),
+    getCalibrationParams: () => callNative("getCalibrationParams"),
+    setCalibrationParam: (id, val) => callNative("setCalibrationParam", id, val),
+    serviceAction: (data) => callNative("serviceAction", data)
 };
 
 // =============================

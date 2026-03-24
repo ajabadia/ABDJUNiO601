@@ -49,7 +49,7 @@ public:
     
     void updateParams(const SynthParams& params);
     void forceUpdate(); // [Fix] Instant parameter update (no smoothing) for patch load
-    void updateHPF();
+    void updateHPF(int position = -1);
     
     void setBender(float v);
     void setPortamentoEnabled(bool b);

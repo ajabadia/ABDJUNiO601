@@ -38,17 +38,18 @@ float JunoVCF::computeCutoffHz (float cutoff01,
                                  float envMod,
                                  float lfoMod,
                                  float kybdTrack,
-                                 float noteHz) const
+                                 float noteHz,
+                                 float minHz,
+                                 float maxHz) const
 {
     // Suma de todas las fuentes de CV en el dominio normalizado
     float cv = juce::jlimit (0.0f, 1.0f, cutoff01 + envMod + lfoMod);
 
-    // Ley exponencial: ~18 Hz a ~18 kHz
-    float cutoffHz = kMinHz * std::pow (kRatio, cv);
+    // Ley exponencial: minHz a maxHz
+    const float ratio = maxHz / std::max(1.0f, minHz);
+    float cutoffHz = minHz * std::pow (ratio, cv);
 
     // Keyboard tracking: V/oct centrado en A4 (440 Hz)
-    // kybdTrack = 0 → sin tracking
-    // kybdTrack = 1 → tracking completo (1 V/oct)
     if (kybdTrack > 0.001f)
     {
         const float trackRatio = noteHz / 440.0f;
@@ -56,7 +57,7 @@ float JunoVCF::computeCutoffHz (float cutoff01,
         cutoffHz *= std::max (trackMult, 0.01f);
     }
 
-    return juce::jlimit (kMinHz, kMaxHz, cutoffHz);
+    return juce::jlimit (minHz, maxHz, cutoffHz);
 }
 
 // ------------------------------------------------------------
@@ -97,12 +98,14 @@ float JunoVCF::processSample (float input,
                                float lfoMod,
                                float kybdTrack,
                                float noteHz,
+                               float minHz,
+                               float maxHz,
                                float selfOscThreshold,
                                float saturationScale)
 {
     // 1. Frecuencia de corte con todas las modulaciones
     const float cutoffHz = computeCutoffHz (cutoff01, envMod, lfoMod,
-                                            kybdTrack, noteHz);
+                                            kybdTrack, noteHz, minHz, maxHz);
 
     // 2. Pre-warping TPT: g = tan(π·fc/fs)
     //    Compensa la contracción de frecuencia del dominio discreto

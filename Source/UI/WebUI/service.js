@@ -31,24 +31,71 @@ const ServiceMode = {
         if (!container) return;
 
         container.innerHTML = '';
-        this.params.forEach(p => {
-            const row = document.createElement('div');
-            row.className = 'service-param-row';
-            row.title = p.tooltip; // Native tooltip for now
-            row.innerHTML = `
-                <div class="service-param-info">
-                    <span class="service-param-label">${p.label}</span>
-                    <div class="service-param-values">
-                        <span class="service-param-default" title="Factory Default">Def: ${p.defaultValue.toFixed(2)}${p.unit}</span>
-                        <span class="service-param-value" id="val-${p.id}">${p.currentValue.toFixed(2)}${p.unit}</span>
-                    </div>
-                </div>
-                <input type="range" class="service-slider" 
-                    min="${p.minValue}" max="${p.maxValue}" step="${p.stepSize}" 
-                    value="${p.currentValue}" 
-                    oninput="ServiceMode.updateParam('${p.id}', this.value)">
-            `;
-            container.appendChild(row);
+        
+        // [Build 24/25] Order modules as requested: LFO, DCO, HPF, VCF, VCA, ENV, CHORUS
+        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "CHORUS", "ADSR", "AGING"];
+        
+        categories.forEach(cat => {
+            const catParams = this.params.filter(p => p.category === cat);
+            
+            // Always create a header for the category as requested
+            const header = document.createElement('div');
+            header.className = 'service-cat-header';
+            header.innerText = (cat === 'AGING') ? 'ANALOG AGING & FIDELITY' : cat;
+            container.appendChild(header);
+
+            if (catParams.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'service-param-empty';
+                empty.innerText = 'No adjustable parameters';
+                container.appendChild(empty);
+            } else {
+                const grid = document.createElement('div');
+                grid.className = 'service-param-grid';
+                catParams.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'service-param-row';
+                    row.title = p.tooltip;
+                    row.innerHTML = `
+                        <div class="service-param-info">
+                            <span class="service-param-label">${p.label}</span>
+                            <div class="service-param-values">
+                                <span class="service-param-default">Def: ${p.defaultValue.toFixed(2)}${p.unit}</span>
+                                <span class="service-param-value" id="val-${p.id}">${p.currentValue.toFixed(2)}${p.unit}</span>
+                            </div>
+                        </div>
+                        <input type="range" class="service-slider" 
+                            min="${p.minValue}" max="${p.maxValue}" step="${p.stepSize}" 
+                            value="${p.currentValue}" 
+                            oninput="ServiceMode.updateParam('${p.id}', this.value)">
+                    `;
+                    grid.appendChild(row);
+                });
+                container.appendChild(grid);
+
+                // Inject Category Action Buttons
+                if (cat === 'VCF' || cat === 'HPF' || cat === 'CHORUS') {
+                    const actionContainer = document.createElement('div');
+                    actionContainer.className = 'service-cat-actions';
+                    
+                    let btnText = '';
+                    let actionFn = null;
+                    let btnId = '';
+
+                    if (cat === 'VCF') { btnText = 'START VCF SWEEP'; actionFn = () => this.startSweep(); btnId = 'btn-vcf-sweep'; }
+                    else if (cat === 'HPF') { btnText = 'CYCLE HPF POSITIONS'; actionFn = () => this.startHpfCycle(); btnId = 'btn-hpf-cycle'; }
+                    else if (cat === 'CHORUS') { btnText = 'CYCLE CHORUS MODES'; actionFn = () => this.startChorusCycle(); btnId = 'btn-chorus-cycle'; }
+
+                    const btn = document.createElement('button');
+                    btn.className = 'tuning-btn service-action-btn';
+                    btn.id = btnId;
+                    btn.innerText = btnText;
+                    btn.onclick = actionFn;
+                    
+                    actionContainer.appendChild(btn);
+                    container.appendChild(actionContainer);
+                }
+            }
         });
     },
 
@@ -96,6 +143,14 @@ const ServiceMode = {
 
     startSweep() {
         juce.serviceAction({ action: 'sweepVCF' });
+    },
+
+    startHpfCycle() {
+        juce.serviceAction({ action: 'hpfCycle' });
+    },
+
+    startChorusCycle() {
+        juce.serviceAction({ action: 'chorusCycle' });
     },
 
     testScalePlaying: false,

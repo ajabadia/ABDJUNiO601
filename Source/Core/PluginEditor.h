@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include "ABDSimpleJuno106AudioProcessor.h"
 #include "../UI/ScaledComponent.h"
 #include "../UI/SkinManager.h"
 
@@ -20,17 +20,17 @@
 #include "../UI/JunoUIHelpers.h"
 
 /**
- * SimpleJuno106AudioProcessorEditor
+ * ABDSimpleJuno106AudioProcessorEditor
  * UX/UI Overhaul: "The J106 Experience"
  */
-class SimpleJuno106AudioProcessorEditor : public juce::AudioProcessorEditor,
+class ABDSimpleJuno106AudioProcessorEditor : public juce::AudioProcessorEditor,
                                            public juce::Timer,
                                            public juce::MenuBarModel,
                                            public juce::AudioProcessorValueTreeState::Listener
 {
 public:
-    SimpleJuno106AudioProcessorEditor(SimpleJuno106AudioProcessor&);
-    ~SimpleJuno106AudioProcessorEditor() override;
+    ABDSimpleJuno106AudioProcessorEditor(ABDSimpleJuno106AudioProcessor&);
+    ~ABDSimpleJuno106AudioProcessorEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -57,7 +57,7 @@ public:
     void parameterChanged (const juce::String& parameterID, float newValue) override;
 
 private:
-    SimpleJuno106AudioProcessor& audioProcessor;
+    ABDSimpleJuno106AudioProcessor& audioProcessor;
     int localChangeCounter = 0; // For tracking updates
     JunoUI::JunoLookAndFeel lookAndFeel;
     
@@ -91,5 +91,5 @@ private:
     int lcdDisplayTimer = 0;
     juce::String lastPresetName = "--";
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleJuno106AudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ABDSimpleJuno106AudioProcessorEditor)
 };

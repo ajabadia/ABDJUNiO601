@@ -1,18 +1,22 @@
-#include "PluginProcessor.h"
+#include "ABDSimpleJuno106AudioProcessor.h"
 #include <JuceHeader.h>
 #include <memory>
 #if !JUCE_HEADLESS_PLUGIN
  #include "PluginEditor.h"
  #include "../UI/WebView/WebViewEditor.h"
 #endif
-#include "PresetManager.h"
+#include "CalibrationSettings.h"
+#include "ServiceModeManager.h"
 #include "../Synth/ChorusBBD.h"
 #include "JunoConstants.h"
 
 using namespace JunoConstants;
 
+CalibrationSettings& ABDSimpleJuno106AudioProcessor::getCalibrationSettings() { return *calibrationSettings; }
+ServiceModeManager& ABDSimpleJuno106AudioProcessor::getServiceModeManager() { return *serviceModeManager; }
+
 //==============================================================================
-SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
+ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : juce::AudioProcessor (juce::AudioProcessor::BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -25,11 +29,9 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
 #else
     : juce::AudioProcessor(JucePlugin_PreferredChannelConfigurations),
 #endif
-      apvts(*this, &undoManager, "Parameters", createParameterLayout()),
-      calibrationManager()
+      apvts(*this, &undoManager, "Parameters", createParameterLayout())
 {
-    serviceModeManager = std::make_unique<ServiceModeManager>(*this);
-    DBG("SimpleJuno106AudioProcessor::Constructor Body START");
+    DBG("ABDSimpleJuno106AudioProcessor::Constructor Body START");
 
     // 1. [CRITICAL] Initialize Cached Pointers FIRST
     auto getCachedParam = [&](const juce::String& id) {
@@ -93,11 +95,13 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     fmtNumVoices = getCachedParam("numVoices");
     // fmtUnisonWidth = getCachedParam("unisonWidth"); 
 
-    DBG("SimpleJuno106AudioProcessor::Parameters cached DONE");
+    DBG("ABDSimpleJuno106AudioProcessor::Parameters cached DONE");
 
     // 2. Initialize secondary components
     presetManager = std::make_unique<PresetManager>();
-    DBG("SimpleJuno106AudioProcessor::PresetManager created DONE");
+    calibrationSettings = std::make_unique<CalibrationSettings>();
+    serviceModeManager = std::make_unique<ServiceModeManager>(*this);
+    DBG("ABDSimpleJuno106AudioProcessor::Components created DONE");
 
     midiLearnHandler.bind(16, "lfoRate");
     midiLearnHandler.bind(17, "lfoDelay");
@@ -120,42 +124,42 @@ SimpleJuno106AudioProcessor::SimpleJuno106AudioProcessor()
     keyboardState.addListener(this);
 
     // 3. Register calibration change callback
-    calibrationManager.setOnChangeCallback([this](const juce::String&, float) {
+    calibrationSettings->setOnChangeCallback([this](std::string, float) {
         paramsAreDirty.store(true);
     });
 
-    DBG("SimpleJuno106AudioProcessor::Constructor Body END");
+    DBG("ABDSimpleJuno106AudioProcessor::Constructor Body END");
     
     // [Build 13] Ensure initial parameters are reflected in DSP and UI
     updateParamsFromAPVTS();
     requestPatchDump();
 }
 
-SimpleJuno106AudioProcessor::~SimpleJuno106AudioProcessor() {
+ABDSimpleJuno106AudioProcessor::~ABDSimpleJuno106AudioProcessor() {
     juce::Logger::setCurrentLogger (nullptr); 
 }
 
-const juce::String SimpleJuno106AudioProcessor::getName() const { return JucePlugin_Name; }
-bool SimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
-bool SimpleJuno106AudioProcessor::producesMidi() const { return true; }
-bool SimpleJuno106AudioProcessor::isMidiEffect() const { return false; }
+const juce::String ABDSimpleJuno106AudioProcessor::getName() const { return JucePlugin_Name; }
+bool ABDSimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
+bool ABDSimpleJuno106AudioProcessor::producesMidi() const { return true; }
+bool ABDSimpleJuno106AudioProcessor::isMidiEffect() const { return false; }
 
-int SimpleJuno106AudioProcessor::getNumPrograms() { return 128; } // Standard GM bank size for mapping
-int SimpleJuno106AudioProcessor::getCurrentProgram() { 
+int ABDSimpleJuno106AudioProcessor::getNumPrograms() { return 128; } // Standard GM bank size for mapping
+int ABDSimpleJuno106AudioProcessor::getCurrentProgram() { 
     return presetManager ? presetManager->getCurrentPresetIndex() : 0; 
 }
-void SimpleJuno106AudioProcessor::setCurrentProgram (int index) { loadPreset(index); }
-const juce::String SimpleJuno106AudioProcessor::getProgramName (int index) { 
+void ABDSimpleJuno106AudioProcessor::setCurrentProgram (int index) { loadPreset(index); }
+const juce::String ABDSimpleJuno106AudioProcessor::getProgramName (int index) { 
     if (presetManager) {
         if (auto* p = presetManager->getPreset(index)) return p->name;
     }
     return "Initial Patch";
 }
-void SimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
+void ABDSimpleJuno106AudioProcessor::changeProgramName (int index, const juce::String& newName) { juce::ignoreUnused(index, newName); }
 
-void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
+void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
 {
-    DBG("SimpleJuno106AudioProcessor::prepareToPlay START (sr=" + juce::String(sr) + ")");
+    DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay START (sr=" + juce::String(sr) + ")");
     setLatencySamples(0);
 
     voiceManager.prepare(sr, samplesPerBlock);
@@ -176,18 +180,18 @@ void SimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlock)
     masterLfoPhase = 0.0f; 
     masterLfoDelayEnvelope = 0.0f; 
     wasAnyNoteHeld = false;
-    DBG("SimpleJuno106AudioProcessor::prepareToPlay END");
+    DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
 }
 
-void SimpleJuno106AudioProcessor::releaseResources() {}
+void ABDSimpleJuno106AudioProcessor::releaseResources() {}
 
-bool SimpleJuno106AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool ABDSimpleJuno106AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono() && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo()) return false;
     return true;
 }
 
-void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     const int numSamples = buffer.getNumSamples();
@@ -376,9 +380,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
     applyPerformanceModulations(currentParams);
     
-    // [Service Mode] Apply VCF Sweep if active
-    if (serviceModeManager && serviceModeManager->isVcfSweepActive()) {
-        currentParams.vcfFreq = serviceModeManager->getVcfSweepCutoff();
+    // [Service Mode] Apply Diagnostic Overrides
+    if (serviceModeManager) {
+        if (serviceModeManager->isVcfSweepActive()) 
+            currentParams.vcfFreq = serviceModeManager->getVcfSweepCutoff();
+            
+        currentParams.hpfCyclePos = serviceModeManager->getHpfCyclePos();
+        currentParams.chorusCycleMode = serviceModeManager->getChorusCycleMode();
     }
     
     if (++thermalCounter > kThermalInertia) {
@@ -403,13 +411,13 @@ void SimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     processMasterEffects(buffer, numSamples);
 }
 
-void SimpleJuno106AudioProcessor::renderAudio(juce::AudioBuffer<float>& buffer, int numSamples) {
+void ABDSimpleJuno106AudioProcessor::renderAudio(juce::AudioBuffer<float>& buffer, int numSamples) {
     using namespace JunoConstants;
     const double sr = getSampleRate();
 
-    float ratio = JunoTimeCurves::kLfoMaxHz / JunoTimeCurves::kLfoMinHz;
-    float lfoRateHz = JunoTimeCurves::kLfoMinHz * std::pow(ratio, (float)currentParams.lfoRate);
-    float lfoDelaySeconds = currentParams.lfoDelay * JunoTimeCurves::kLfoDelayMax;
+    float ratio = currentParams.lfoMaxRate / currentParams.lfoMinRate;
+    float lfoRateHz = currentParams.lfoMinRate * std::pow(ratio, (float)currentParams.lfoRate);
+    float lfoDelaySeconds = currentParams.lfoDelay * currentParams.lfoDelayMax;
     float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)sr)) : 1.0f;
     
     bool lfoTrigRequested = fmtLfoTrig->load() > 0.5f;
@@ -435,53 +443,67 @@ void SimpleJuno106AudioProcessor::renderAudio(juce::AudioBuffer<float>& buffer, 
         }
 
         float lfoTri = 1.0f - 4.0f * std::abs(masterLfoPhase - 0.5f); 
-        // [Fidelity] Center-biased 4-bit stepping (to match 16-level resolution without DC bias)
-        float lfoTriStepped = std::round(lfoTri * 7.5f) / 7.5f; 
+        // [Fidelity] Center-biased stepping (7.5 = hardware 4-bit resolution)
+        float res = currentParams.lfoResolution;
+        float lfoTriStepped = std::round(lfoTri * res) / res; 
         lfoBuffer[i] = lfoTriStepped * masterLfoDelayEnvelope;
     }
 
     voiceManager.renderNextBlock(buffer, 0, numSamples, lfoBuffer);
 }
 
-void SimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buffer, int numSamples)
+void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buffer, int /*numSamples*/)
 {
-    juce::ignoreUnused(numSamples);
-    
-    // Set Chorus Mode from APVTS bits
-    bool ch1 = fmtChorus1->load() > 0.5f;
-    bool ch2 = fmtChorus2->load() > 0.5f;
-    
-    ChorusBBD::Mode mode = ChorusBBD::Mode::Off;
-    if (ch1 && ch2) mode = ChorusBBD::Mode::ChorusBoth;
-    else if (ch1) mode = ChorusBBD::Mode::ChorusI;
-    else if (ch2) mode = ChorusBBD::Mode::ChorusII;
+    // [Build 29] Chorus Cycle Diagnostic Override
+    int activeMode = (currentParams.chorusCycleMode >= 0) ? currentParams.chorusCycleMode : currentParams.chorusMode;
+    ChorusBBD::Mode mode = static_cast<ChorusBBD::Mode>(activeMode);
     
     chorus.setMode(mode);
     chorus.setHissLevel(currentParams.chorusHissLvl);
+    chorus.setHissMultiplier(currentParams.chorusHiss); // Add preference scaling
     
     if (mode == ChorusBBD::Mode::Off)
         return;
 
-    // Map hardware-authentic rates if not overridden by custom parameters
-    // In this implementation, we use the standard rates but allow APVTS depth/mix control
+    // [Build 29] Dynamic Calibration Overrides
+    chorus.setCalibrationParams(currentParams.chorusDelayI, 
+                                currentParams.chorusDelayII, 
+                                currentParams.chorusModDepth, 
+                                currentParams.chorusSatBoost, 
+                                currentParams.chorusFilterCutoff);
+
+    // Map hardware-authentic rates
+    bool ch2 = (mode == ChorusBBD::Mode::ChorusII || mode == ChorusBBD::Mode::ChorusBoth);
     float rate = ch2 ? JunoConstants::Chorus::kRateII : JunoConstants::Chorus::kRateI;
     if (mode == ChorusBBD::Mode::ChorusBoth) rate *= 1.2f; 
     
     chorus.setRate(rate);
-    chorus.setDepth(1.0f); // Default to full hardware depth, controlled by mix
-    chorus.setMix(fmtChorusMix->load());
+    chorus.setDepth(1.0f); 
+    chorus.setMix(currentParams.chorusMix);
     
     chorus.process(buffer);
 }
 
-void SimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples) {
-    float envSum = voiceManager.getTotalEnvelopeLevel();
-    float rawSag = 1.0f - (envSum * 0.025f);
-    rawSag = juce::jlimit(0.8f, 1.0f, rawSag);
-    smoothedSagGain.setTargetValue(rawSag);
-    
+void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples) {
     float masterVol = fmtMasterVolume->load();
+    float envSum = voiceManager.getTotalEnvelopeLevel();
+    float finalSag = 1.0f - (envSum * currentParams.vcaSagAmt);
+    finalSag = juce::jlimit(0.7f, 1.0f, finalSag);
+    smoothedSagGain.setTargetValue(finalSag);
+    
     buffer.applyGain(smoothedSagGain.getNextValue() * masterVol);
+
+    // [Fidelity] Master Noise Floor (Global background hiss)
+    const float noiseLin = std::pow(10.0f, currentParams.masterNoise / 20.0f);
+    if (noiseLin > 1e-7f) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+            float* d = buffer.getWritePointer(ch);
+            for (int i = 0; i < numSamples; ++i) {
+                float n = (masterNoiseGen.nextFloat() * 2.0f - 1.0f) * noiseLin;
+                d[i] += n;
+            }
+        }
+    }
 
     for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
         float* d = buffer.getWritePointer(ch);
@@ -501,10 +523,11 @@ void SimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>&
     if (buffer.getNumChannels() > 1) {
         float* l = buffer.getWritePointer(0);
         float* r = buffer.getWritePointer(1);
+        float bleed = currentParams.stereoBleed;
         for (int i = 0; i < numSamples; ++i) {
             float vL = l[i], vR = r[i];
-            l[i] = vL + vR * 0.03f;
-            r[i] = vR + vL * 0.03f;
+            l[i] = vL + vR * bleed;
+            r[i] = vR + vL * bleed;
         }
     }
 
@@ -520,9 +543,9 @@ void SimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>&
     dcBlocker.process(context);
 }
 
-void SimpleJuno106AudioProcessor::enterTestMode(bool enter) { isTestMode = enter; }
+void ABDSimpleJuno106AudioProcessor::enterTestMode(bool enter) { isTestMode = enter; }
 #include "TestPrograms.h"
-void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
+void ABDSimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     if (!isTestMode || bankIndex < 0 || bankIndex >= 8) return;
     const auto prog = getTestProgram(bankIndex);
     auto setVal = [&](juce::String id, float val) { if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val); };
@@ -538,10 +561,10 @@ void SimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
     setBool("chorus1", prog.chorus1); setBool("chorus2", prog.chorus2);
 }
 
-void SimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { voiceManager.noteOn(0, midiNoteNumber, velocity); }
-void SimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
+void ABDSimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { voiceManager.noteOn(0, midiNoteNumber, velocity); }
+void ABDSimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
 
-SynthParams SimpleJuno106AudioProcessor::getMirrorParameters() {
+SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     SynthParams p;
     p.dcoRange = (int)std::lround(fmtDcoRange->load()); 
     p.sawOn = fmtSawOn->load() > 0.5f; 
@@ -595,32 +618,77 @@ SynthParams SimpleJuno106AudioProcessor::getMirrorParameters() {
     p.lowCpuMode = fmtLowCpuMode->load() > 0.5f;
     
     // --- Inject Calibration Overrides ---
-    p.vcfSelfOscThreshold = calibrationManager.getValue("vcfSelfOscPoint");
-    p.subAmpScale = calibrationManager.getValue("subAmpScale");
-    p.dcoMixerGain = calibrationManager.getValue("dcoMixerGain");
-    p.adsrSlewMs = calibrationManager.getValue("adsrSlewMs");
-    p.vcfSaturation = calibrationManager.getValue("vcfSaturation");
-    p.adsrAttackFactor = calibrationManager.getValue("adsrAttackFactor");
-    p.chorusHissLvl = calibrationManager.getValue("chorusHissLvl");
+    p.dcoMixerGain = calibrationSettings->getValue("dcoMixerGain");
+    p.subAmpScale = calibrationSettings->getValue("subAmpScale");
+    p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
+    p.thermalDrift = calibrationSettings->getValue("thermalDrift"); 
+    p.vcaSagAmt = calibrationSettings->getValue("vcaSagAmt");
+    p.vcaCrosstalk = calibrationSettings->getValue("vcaCrosstalk");
+    p.masterNoise = calibrationSettings->getValue("masterNoise");
+    p.stereoBleed = calibrationSettings->getValue("stereoBleed");
+    p.noiseGain = calibrationSettings->getValue("noiseGain");
+    p.pwmOffset = calibrationSettings->getValue("pwmOffset") / 100.0f; // UI is %
+    p.voiceVariance = calibrationSettings->getValue("voiceVariance");
+    p.unisonSpread = calibrationSettings->getValue("unisonSpread");
+
+    // [Build 25/29] Filter Calibration
+    p.vcfMinHz = calibrationSettings->getValue("vcfMinHz");
+    p.vcfMaxHz = calibrationSettings->getValue("vcfMaxHz");
+    p.vcfSelfOscThreshold = calibrationSettings->getValue("vcfSelfOscThreshold");
+    p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
+    p.vcfSaturation = calibrationSettings->getValue("vcfSaturation");
+
+    // [Build 28] HPF Calibration
+    p.hpfFreq2 = calibrationSettings->getValue("hpfFreq2");
+    p.hpfFreq3 = calibrationSettings->getValue("hpfFreq3");
+    p.hpfShelfFreq = calibrationSettings->getValue("hpfShelfFreq");
+    p.hpfShelfGain = calibrationSettings->getValue("hpfShelfGain");
+    p.hpfQ = calibrationSettings->getValue("hpfQ");
+
+    // [Build 29] VCA Calibration
+    p.vcaMasterGain = calibrationSettings->getValue("vcaMasterGain");
+    p.vcaVelSensScale = calibrationSettings->getValue("vcaVelSensScale");
+    
+    // [Build 29] Envelope Calibration
+    p.adsrSlewMs = calibrationSettings->getValue("adsrSlewMs");
+    p.adsrAttackFactor = calibrationSettings->getValue("adsrAttackFactor");
+
+    // [Build 29] Chorus Calibration
+    p.chorusHissLvl = calibrationSettings->getValue("chorusHissLvl");
+    p.chorusDelayI = calibrationSettings->getValue("chorusDelayI");
+    p.chorusDelayII = calibrationSettings->getValue("chorusDelayII");
+    p.chorusModDepth = calibrationSettings->getValue("chorusModDepth");
+    p.chorusSatBoost = calibrationSettings->getValue("chorusSatBoost");
+    p.chorusFilterCutoff = calibrationSettings->getValue("chorusFilterCutoff");
+
+    // [Build 25] LFO Calibration
+    p.lfoMaxRate = calibrationSettings->getValue("lfoMaxRate");
+    p.lfoMinRate = calibrationSettings->getValue("lfoMinRate");
+    p.lfoDelayMax = calibrationSettings->getValue("lfoDelayMax");
+    p.lfoResolution = calibrationSettings->getValue("lfoResolution");
+
+    // [Build 29] Diagnostic Cycle States
+    p.hpfCyclePos = serviceModeManager->getHpfCyclePos();
+    p.chorusCycleMode = serviceModeManager->getChorusCycleMode();
 
     return p;
 }
 
-void SimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
+void ABDSimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
     currentParams = getMirrorParameters();
     currentParams.currentAftertouch = currentAftertouch.load();
     lastParams = currentParams;
 }
 
-void SimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
+void ABDSimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
     float modWheel = p.benderToLFO;
     p.lfoToDCO = juce::jlimit<float>(0.0f, 1.0f, p.lfoToDCO + modWheel * 0.3f);
     p.vcfLFOAmount = juce::jlimit<float>(0.0f, 1.0f, p.lfoToVCF + modWheel);
     p.envAmount = juce::jlimit<float>(0.0f, 1.0f, p.envAmount + currentAftertouch.load() * p.aftertouchToVCF);
 }
 
-void SimpleJuno106AudioProcessor::sendPatchDump() { sendSysEx(sysExEngine.makePatchDump(currentParams.midiChannel - 1, currentParams)); }
-void SimpleJuno106AudioProcessor::sendManualMode() { 
+void ABDSimpleJuno106AudioProcessor::sendPatchDump() { sendSysEx(sysExEngine.makePatchDump(currentParams.midiChannel - 1, currentParams)); }
+void ABDSimpleJuno106AudioProcessor::sendManualMode() { 
     sendSysEx(JunoSysEx::createManualMode(currentParams.midiChannel - 1)); 
     
     // [Manual Mode Logic] Force immediate snapshot from APVTS to DSP
@@ -630,16 +698,16 @@ void SimpleJuno106AudioProcessor::sendManualMode() {
     needsVoiceReset.store(true);
 }
 
-void SimpleJuno106AudioProcessor::triggerPanic() {
+void ABDSimpleJuno106AudioProcessor::triggerPanic() {
     panicRequested.store(true);
     midiOutBuffer.addEvent(juce::MidiMessage::allNotesOff(1), 0);
 }
 
-void SimpleJuno106AudioProcessor::triggerLFO() {
+void ABDSimpleJuno106AudioProcessor::triggerLFO() {
     if (fmtLfoTrig) fmtLfoTrig->store(1.0f);
 }
 
-void SimpleJuno106AudioProcessor::loadPreset(int index) {
+void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
     if (presetManager) {
         presetManager->setCurrentPreset(index);
         auto state = presetManager->getCurrentPresetState();
@@ -664,9 +732,9 @@ void SimpleJuno106AudioProcessor::loadPreset(int index) {
     }
 }
 
-PresetManager* SimpleJuno106AudioProcessor::getPresetManager() { return presetManager.get(); }
+PresetManager* ABDSimpleJuno106AudioProcessor::getPresetManager() { return presetManager.get(); }
 
-juce::AudioProcessorValueTreeState::ParameterLayout SimpleJuno106AudioProcessor::createParameterLayout() {
+juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcessor::createParameterLayout() {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     auto makeParam = [](juce::String id, juce::String name, float min, float max, float def) { return std::make_unique<juce::AudioParameterFloat>(id, name, min, max, def); };
     auto makeIntParam = [](juce::String id, juce::String name, int min, int max, int def) { return std::make_unique<juce::AudioParameterInt>(id, name, min, max, def); };
@@ -727,16 +795,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleJuno106AudioProcessor:
     return { params.begin(), params.end() };
 }
 
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new SimpleJuno106AudioProcessor(); }
-bool SimpleJuno106AudioProcessor::hasEditor() const { return true; }
-juce::AudioProcessorEditor* SimpleJuno106AudioProcessor::createEditor() { return new WebViewEditor (*this); }
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new ABDSimpleJuno106AudioProcessor(); }
+bool ABDSimpleJuno106AudioProcessor::hasEditor() const { return true; }
+juce::AudioProcessorEditor* ABDSimpleJuno106AudioProcessor::createEditor() { return new WebViewEditor (*this); }
 
-void SimpleJuno106AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
+void ABDSimpleJuno106AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
-void SimpleJuno106AudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
+void ABDSimpleJuno106AudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState != nullptr) if (xmlState->hasTagName(apvts.state.getType())) {
         apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
@@ -745,8 +813,8 @@ void SimpleJuno106AudioProcessor::setStateInformation(const void* data, int size
         voiceManager.forceUpdate();
     }
 }
-void SimpleJuno106AudioProcessor::loadTuningFile() {
-    DBG("SimpleJuno106AudioProcessor::loadTuningFile CALLED");
+void ABDSimpleJuno106AudioProcessor::loadTuningFile() {
+    DBG("ABDSimpleJuno106AudioProcessor::loadTuningFile CALLED");
     auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
 
     fileChooser = std::make_unique<juce::FileChooser>("Select Scala Tuning File...",
@@ -765,14 +833,14 @@ void SimpleJuno106AudioProcessor::loadTuningFile() {
     });
 }
 
-void SimpleJuno106AudioProcessor::resetTuning() {
-    DBG("SimpleJuno106AudioProcessor::resetTuning CALLED");
+void ABDSimpleJuno106AudioProcessor::resetTuning() {
+    DBG("ABDSimpleJuno106AudioProcessor::resetTuning CALLED");
     tuningManager.resetToStandard();
     voiceManager.setTuningTable(tuningManager.getTuningTable());
     currentTuningName = "Standard Tuning";
     DBG("Standard Tuning Restored");
 }
 
-juce::MidiMessage SimpleJuno106AudioProcessor::getCurrentSysExData() {
+juce::MidiMessage ABDSimpleJuno106AudioProcessor::getCurrentSysExData() {
     return lastSysExMessage;
 }

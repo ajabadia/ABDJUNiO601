@@ -12,6 +12,7 @@ struct SynthParams {
     bool pulseOn = true;        
     float pwmAmount = 0.5f;     
     int pwmMode = 0;            
+
     float subOscLevel = 0.0f;   
     float noiseLevel = 0.0f;    
     float lfoToDCO = 0.0f;      
@@ -75,13 +76,55 @@ struct SynthParams {
     bool lowCpuMode = false;        // [New] Reduce Hiss and use cheaper saturation
     
     // [Calibration] Dynamic values from CalibrationManager
-    float vcfSelfOscThreshold = 0.92f;
     float adsrSlewMs = 1.5f;
+    float adsrAttackFactor = 0.35f;
     float dcoMixerGain = 0.7f;
     float subAmpScale = 1.0f;
-    float vcfSaturation = 1.0f;
-    float adsrAttackFactor = 0.35f;
     float chorusHissLvl = -52.0f;
+    
+    // [Build 25/27] LFO Calibration
+    float lfoMaxRate = 30.0f;
+    float lfoMinRate = 0.1f;
+    float lfoDelayMax = 3.0f;
+    float lfoResolution = 7.5f; 
+
+    // [Build 28] HPF Calibration
+    float hpfFreq2 = 225.0f;
+    float hpfFreq3 = 700.0f;
+    float hpfShelfFreq = 70.0f;
+    float hpfShelfGain = 3.0f;
+    float hpfQ = 0.707f;
+
+    // [Build 29] VCF Calibration
+    float vcfMinHz = 18.0f;
+    float vcfMaxHz = 18000.0f;
+    float vcfSelfOscThreshold = 0.95f; // [Renamed from vcfSelfOscPoint for consistency]
+    float vcfResoComp = 0.5f;
+    float vcfSaturation = 1.0f;
+
+    // [Build 29] VCA & Mixer Calibration
+    float vcaMasterGain = 1.0f;
+    float vcaVelSensScale = 1.0f;
+    float mixerSaturation = 1.15f;
+
+    // [Build 29] Chorus Calibration
+    float chorusDelayI = 3.2f;
+    float chorusDelayII = 6.4f;
+    float chorusModDepth = 1.5f;
+    float chorusSatBoost = 1.2f;
+    float chorusFilterCutoff = 8000.0f;
+    float vcaSagAmt = 0.025f;
+    float vcaCrosstalk = 0.007f;
+    float masterNoise = -80.0f;
+    float stereoBleed = 0.03f;
+    float noiseGain = 1.0f;
+    float pwmOffset = 0.0f;
+    float voiceVariance = 2.0f;
+    float unisonSpread = 1.0f;
+
+    // Diagnostic Cycle States (Read-only for UI)
+    int hpfCyclePos = -1; // -1 = Off, 0-3 = Active position
+    int chorusCycleMode = -1; // -1 = Off, 0=Off, 1=I, 2=II, 3=Both
 
     bool isSamePatch(const SynthParams& other) const {
         const float tol = 0.008f; // [Fix] Increased tolerance for 7-bit SysEx quantization (1/127 approx 0.0078)

@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include <atomic>
 
-class SimpleJuno106AudioProcessor;
+class ABDSimpleJuno106AudioProcessor;
 
 /**
  * ServiceModeManager - Diagnostic and calibration routines.
@@ -12,7 +12,7 @@ class SimpleJuno106AudioProcessor;
 class ServiceModeManager
 {
 public:
-    ServiceModeManager(SimpleJuno106AudioProcessor& p);
+    ServiceModeManager(ABDSimpleJuno106AudioProcessor& p);
     
     // Diagnostic Controls
     void setVoiceSolo(int voiceIndex); // -1 for normal poly
@@ -20,6 +20,8 @@ public:
     
     void triggerDCOReference(int midiNote, int rangeIndex);
     void startVCFSweep();
+    void startHpfCycle();
+    void startChorusCycle();
     void startTestScale();
     void stopAllTests();
 
@@ -28,12 +30,15 @@ public:
     bool isVcfSweepActive() const { return vcfSweepActive.load(); }
     float getVcfSweepCutoff() const { return vcfSweepValue.load(); }
     bool isTestScaleActive() const { return testScaleActive.load(); }
+    
+    int getHpfCyclePos() const { return hpfCycleActive.load() ? hpfCycleValue.load() : -1; }
+    int getChorusCycleMode() const { return chorusCycleActive.load() ? chorusCycleValue.load() : -1; }
 
     // Processing (called from PluginProcessor::processBlock)
     void update(double sampleRate, int numSamples);
 
 private:
-    SimpleJuno106AudioProcessor& processor;
+    ABDSimpleJuno106AudioProcessor& processor;
     
     std::atomic<int> soloVoice;
     
@@ -51,5 +56,15 @@ private:
     std::atomic<float> scaleTimer;
     std::atomic<int> currentScaleNoteIdx;
     
+    // HPF Cycle State
+    std::atomic<bool> hpfCycleActive {false};
+    std::atomic<int> hpfCycleValue {0};
+    double hpfCycleTimer = 0.0;
+
+    // Chorus Cycle State
+    std::atomic<bool> chorusCycleActive {false};
+    std::atomic<int> chorusCycleValue {0};
+    double chorusCycleTimer = 0.0;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServiceModeManager)
 };

@@ -688,14 +688,14 @@
     </div>
 
     <!-- SERVICE MODE MODAL -->
-    <div id="modal-serviceMode" class="modal-overlay">
-        <div class="settings-container modal-content" style="max-width: 1024px;">
+    <div id="modal-serviceMode" class="modal-overlay" style="overflow: hidden;">
+        <div class="settings-container modal-content" style="max-width: 1100px;">
             <div class="settings-header">
                 <span class="settings-title">SERVICE MODE & CALIBRATION</span>
                 <button class="close-btn" onclick="hideServiceMode()">&times;</button>
             </div>
             
-            <div class="settings-content" style="display: block;">
+            <div class="settings-content" style="display: block; overflow: hidden;">
                 <div class="service-section">
                     <div class="service-section-title">Voice Diagnostics</div>
                     <div id="voice-test-grid" class="voice-test-grid"></div>
@@ -710,7 +710,6 @@
             <div class="settings-footer" style="gap: 10px;">
                 <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.exportCalibration()">EXPORT JSON</button>
                 <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.importCalibration()">IMPORT JSON</button>
-                <button class="tuning-btn" style="min-width: 120px;" id="btn-vcf-sweep" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
                 <button class="tuning-btn" style="min-width: 140px; border: 1px solid #0a0;" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
                 <button class="tuning-btn" style="min-width: 120px; background: #600;" onclick="ServiceMode.resetCalibration()">RESET</button>
                 <button class="tuning-btn" style="min-width: 120px; background: #333;" onclick="hideServiceMode()">CLOSE</button>
