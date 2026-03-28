@@ -1,0 +1,132 @@
+{
+  "debugExtensions": {
+    "remoteWindows": {
+      "vsDebugEngineGuid": "{​​​​​3B476D35-A401-11D2-AAD4-00C04F990171}​​​​​",
+      "VsDebugTargetInfo4": {
+        "bstrCurDir": "${​​​​​debugInfo.defaultWorkingDirectory}​​​​​",
+        "bstrExe": "${​​​​​debugInfo.fullTargetPath}​​​​​",
+        "bstrOptions": "*"
+      },
+      "templates": [
+        {
+          "templateId": "launchRemoteWindows",
+          "displayName": "{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}:5001",
+          "description": "{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}:5002",
+          "fileExtensions": [
+            "*.exe",
+            "*.dll"
+          ],
+          "initialConfiguration": {
+            "remoteMachineName": "",
+            "cwd": "${debugInfo.defaultWorkingDirectory}",
+            "program": "${debugInfo.fullTargetPath}",
+            "deploy": [],
+            "comment": "Aprenda a configurar la depuración remota de Windows. Para obtener más información, consulte https://docs.microsoft.com/cpp/build/cmake-remote-debugging",
+            "args": [],
+            "env": {}
+          }
+        }
+      ],
+      "schema": {
+        "definitions": {
+          "remote_windows_schema": {
+            "type": "object",
+            "properties": {
+              "program": {
+                "type": "string",
+                "default": "${debugInfo.fullTargetPath}",
+                "description": "Especifica el comando de depuración que se va a ejecutar. Cuando se usa CMake, la macro ${debugInfo.fullTargetPath} puede utilizarse como valor de este campo."
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "remoteWindows"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "description": "Especifica los argumentos de la línea de comandos que se pasan al programa que se está depurando.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "remoteMachineName": {
+                "type": "string",
+                "description": "Nombre del servidor remoto o IP."
+              },
+              "debugType": {
+                "type": "string",
+                "enum": [
+                  "native",
+                  "mixed"
+                ],
+                "default": "native",
+                "description": "Especifica el tipo de depuración native o mixed."
+              },
+              "deployDirectory": {
+                "type": "string",
+                "description": "Especifica el directorio de la máquina remota donde se implementa la salida del proyecto de forma automática."
+              },
+              "deploy": {
+                "type": "array",
+                "description": "Especifica la configuración de implementación avanzada.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sourcePath": {
+                      "type": "string",
+                      "description": "Especifica la ubicación del archivo o directorio en la máquina local."
+                    },
+                    "targetPath": {
+                      "type": "string",
+                      "description": "Especifica la ubicación del archivo o directorio en la máquina remota."
+                    }
+                  }
+                }
+              },
+              "cwd": {
+                "type": "string",
+                "default": "${debugInfo.defaultWorkingDirectory}",
+                "description": "Especifica la ruta de acceso completa al directorio de la máquina remota donde se ejecuta \"program\". El valor predeterminado es el directorio que contiene el ejecutable que se especifica en el campo del programa."
+              },
+              "authenticationType": {
+                "type": "string",
+                "enum": [
+                  "windows",
+                  "none"
+                ],
+                "default": "windows",
+                "description": "Especifica el tipo de conexión. El valor debe coincidir con el del depurador remoto que se ejecuta en la máquina remota. El valor \"windows\" se asigna a \"Autenticación de Windows\" y \"none\" se asigna a \"Sin autenticación\"."
+              },
+              "deployDebugRuntimeLibraries": {
+                "type": "boolean",
+                "description": "Indica si se van a implementar las bibliotecas de depuración en tiempo de ejecución para la plataforma activa. El valor predeterminado es \"true\" si el valor de configurationType activo es \"Debug\"."
+              },
+              "deployRuntimeLibraries": {
+                "type": "boolean",
+                "description": "Indica si se van a implementar las bibliotecas en tiempo de ejecución para la plataforma activa. El valor predeterminado es \"true\" si el valor de configurationtype activo es \"MinSizeRel\", \"RelWithDebInfo\" o \"Release\"."
+              },
+              "disableDeploy": {
+                "type": "boolean",
+                "description": "Indica si debe deshabilitarse la implementación de archivos en la máquina remota.",
+                "default": "false"
+              }
+            },
+            "required": [
+              "type",
+              "remoteMachineName"
+            ]
+          },
+          "remoteWindowsTemplateLayout": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/remote_windows_schema"
+              }
+            ]
+          }
+        },
+        "configuration": "#/definitions/remoteWindowsTemplateLayout"
+      }
+    }
+  }
+}

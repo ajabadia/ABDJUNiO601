@@ -1,0 +1,202 @@
+[$RootKey$\CLSID\{43502F82-6017-49AB-B825-8104661A3F0E}]
+"Assembly"="Microsoft.VisualStudio.CMake.Project"
+"Class"="Microsoft.VisualStudio.CMake.Project.Debugger.AdapterLauncher"
+"CodeBase"="$PackageFolder$\Microsoft.VisualStudio.CMake.Project.dll"
+
+;
+; Registration for the CMakeDebugAdapter engine
+;
+; -------------------------------------------------------------------
+
+; The GUID below should be replaced with a unique GUID for each adapter.
+[$RootKey$\AD7Metrics\Engine\{A41379F2-AB14-416F-BB0D-83F27AEB11F5}]
+
+;
+; Boilerplate settings
+;  These settings are required and are the same for all debug adapters
+;
+
+; Indicates that the "Debug Adapter Host" engine should be used
+"CLSID"="{DAB324E9-7B35-454C-ACA8-F6BB0D5C8673}"
+
+; Indicates that the engine should be loaded directly by VS
+"AlwaysLoadLocal"=dword:00000001
+
+; Address and callstack breakpoints are not currently supported by the Debug Adapter Host
+"AddressBP"=dword:00000000
+"CallStackBP"=dword:00000000
+
+;
+; Adapter capabilities
+;  These settings indicate to VS what features the adapter supports
+;
+
+"AdapterLauncher"="{43502F82-6017-49AB-B825-8104661A3F0E}"
+
+; "Attach to Process" support
+;   To support attaching via the VS "Attach to Process" dialog:
+;     - Set the "Attach" property to "1" below
+;     - Provide a port supplier GUID.  To attach to processes on the local machine by PID, the default
+;         port supplier is suffient, and can be used by uncommenting the "PortSupplier" property below.
+;     - Provide a custom IAdapterLauncher implementation to generate launch configuration JSON
+;         for the adapter based on the selection in the "Attach to Process" dialog, and specify
+;         its CLSID in the "AdapterLauncher" property below.
+"Attach"=dword:00000000
+
+; Set to "1" if the debug adapter will use the VS "Exception Setting" tool window.  The debug adapter's must
+;  support one of the following:
+;    - Exception Breakpoints
+;        The debug adapter's response to the "initialize" request must contain a set of ExceptionBreakpointFilters,
+;         and the "ExceptionBreakpointCategory" property must be defined below.  An optional set of
+;         "ExceptionBreakpointMappings" may also be provided if the VS exception names do not correspond to the
+;         "Label" properties of the ExceptionBreakpointFilters.
+;    - Exception Options
+;        The debug adapter's response to the "initialize" request must contain the "SupportsExceptionOptions"
+;         and "SupportsExceptionDetailsRequest" flags, and ExceptionCategoryMapping information must be supplied.
+"Exceptions"=dword:00000001
+
+; Set to "1" if the debug adapter supports the VS exception conditions experience (For skipping exceptions in specific modules).
+;   The debug adapter's response to the "initialize" request must contain the "SupportsExceptionConditions"
+;   and "SupportsExceptionDetailsRequest" flags.
+"ExceptionConditions"=dword:00000000
+
+; Set to "1" if the adapter supports moving the current execution point via the "goto" / "gotoTargets" requests.
+"SetNextStatement"=dword:00000001
+
+;
+; Debug Adapter Host settings
+;  These settings control the behavior of the Debug Adapter Host
+;
+
+; Name of the debug adapter
+;   This appears in VS in several places.  For example:
+;     - The "Select Code Type" dialog for choosing which debugger to attach to a process (if Attach is supported)
+;     - The "Debugging" column of the "Processes" tool window
+"Name"="CMake Debug Adapter"
+
+; Path to the debug adapter executable
+"Adapter"="$PackageFolder$\CMake\bin\cmake.exe"
+
+; Arguments for the debug adapter executable (optional)
+;"AdapterArgs"=""
+
+; Language name
+;   This appears in (e.g.) the "Language" column of the Stack Trace tool window.
+"Language"="CMake"
+
+; Language service (optional)
+;   If the adapter has an associated VS Language Service, specify its GUID in the "LanguageId" property
+"LanguageId"="{00000000-0000-0000-0000-000000000000}"
+
+; Support search navigation for symbols while debugging
+"SupportsEESearch"=dword:00000001
+
+; Locals Scope Name (optional)
+;  If a debug adapter returns a single scope in response to the "scopes" request, its contents are shown as
+;    top-level items in the "Locals" window in VS.  If more than one scope is returned in response to the
+;    "scopes" request, each scope's name is displayed as a top-level item in the "Locals" window, and the
+;    contents of the scope are shown as children of the top-level item.  In this scenario, the contents of
+;    a scope can be promoted to top-level items by specifying the name of the scope here.
+;"LocalsScopeName"="Locals"
+
+; Modules request on attach behavior (optional)
+;   If a debug adapter supports the "modules" request, the Debug Adapter Host will issue a request to get
+;    the list of modules on attach.  Some debug adapters automatically send a set of "module" events on
+;    attach and don't need the "modules" request, so it can be disabled by setting this property to "1".
+;"SuppressModulesRequestOnAttach"=dword:00000001
+
+; Custom Protocol Extensions (optional)
+;   A debug adapter can implement non-standard extensions to the VS Code Debug Protocol, e.g. to communicate with
+;    custom UI or services hosted in Visual Studio.  To register custom protocol extensions, provide an implementation
+;    of "ICustomProtocolExtension", and specify its CLSID below.  The CLSID is defined in the "Type Registrations"
+;    section of this file.
+;"CustomProtocolExtension"="{extension-guid}"
+
+; ExceptionBreakpoint category (optional)
+;  If a debug adapter supports Exception Breakpoints, it may map them to a category in the VS "Exception Settings"
+;   tool window.  The GUID of the category should be provided below, and the category's "State" value should include
+;   the "EXCEPTION_IS_VSCODE_FILTER" flag (0x10000).
+"ExceptionBreakpointCategory"="{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}"
+
+; Set to "1" if the debug adapter should be used to launch the target process in non-debugging scenarios such as
+;  Ctrl-F5 by setting the "noDebug" field to "true" in the launch configuration.  If this value is not set to "1",
+;  the project system in VS must launch the process itself or call IVsDebugger4.LaunchDebugTargets4 with a
+;  VsDebugTargetInfo4 where "bstrExe" must contain a valid path to an executable and "LaunchFlags" must include
+;  the "DBGLAUNCH_NoDebug" flag.
+;"UseEngineForNonDebugLaunch"=dword:00000001
+
+;
+; Exception Category Mappings (optional)
+;  These settings map VS exception category GUIDs to VS Code Protocol exception categories
+;
+; -------------------------------------------------------------------
+
+[$RootKey$\AD7Metrics\Engine\{A41379F2-AB14-416F-BB0D-83F27AEB11F5}\ExceptionCategoryMappings]
+
+; Mapping between protocol category and associated VS exception category, defined below.
+"CMake Exceptions"="{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}"
+
+;
+; Registration for the custom exceptions
+;   Exception "state" is represented as a bitwise-or of any of the following values:
+;     -  0x0001: Stop when the exception is thrown (EXCEPTION_STOP_FIRST_CHANCE)
+;     -  0x0002: Stop if the exception is thrown and not caught (EXCEPTION_STOP_SECOND_CHANCE)
+;     -  0x0020: Stop if the exception is thrown and not caught by "user code" (EXCEPTION_STOP_USER_UNCAUGHT)
+;     -  0x1000: Exception has an associated numeric code
+;     -  0x2000: Numeric code should be displayed in the UI in hex
+;     -  0x4000: "Just My Code" supported - required for "user uncaught" exceptions
+;     - 0x10000: Exception category is a set of Visual Studio Code exception filters
+;   NOTE: Visual Studio doesn't allow exceptions to be completely ignored, so all exception states
+;         automatically include EXCEPTION_STOP_SECOND_CHANCE
+;
+; -------------------------------------------------------------------
+
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}]
+
+; Category registration
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions]
+
+; Default state for exceptions in this category (Break when user uncaught)
+"State"=dword:00004000
+
+;
+; Exception type registrations
+;   A "State" is required for all exception types
+;
+; -------------------------------------------------------------------
+
+; AUTHOR_WARNING - State = No break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Warning (dev)]
+"State"=dword:00004000
+
+; AUTHOR_ERROR - State = Break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Error (dev)]
+"State"=dword:00004001
+
+; FATAL_ERROR - State = Break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Fatal error]
+"State"=dword:00004001
+
+; INTERNAL_ERROR - State = Break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Internal error]
+"State"=dword:00004001
+
+; MESSAGE - State = No break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Other messages]
+"State"=dword:00004000
+
+; WARNING - State = No break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Warning]
+"State"=dword:00004000
+
+; LOG - State = No break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Debug log]
+"State"=dword:00004000
+
+; DEPRECATION_ERROR - State = Break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Deprecation error]
+"State"=dword:00004001
+
+; DEPRECATION_WARNING - State = No break when thrown
+[$RootKey$\AD7Metrics\Exception\{A50B15DC-A2C4-40BD-BC3E-AD1AC16DF553}\CMake Exceptions\Deprecation warning]
+"State"=dword:00004000

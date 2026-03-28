@@ -12,10 +12,11 @@
 #include "JunoVCF.h"
 
 /**
- * Voice
+ * Voice - A single 106 voice instance.
  * 
- * Represents one of the 6 voices of the JUNiO 601.
- * Now inherits from ABD::VoiceBase for modular architecture.
+ * Manages the complete signal chain for one voice:
+ * DCO -> HPF -> VCF -> VCA -> Outputs.
+ * Integrates independent LFO, ADSR, and Thermal Drift logic.
  */
 class Voice : public ABD::VoiceBase {
 public:
@@ -29,7 +30,13 @@ public:
     void onNoteOn(int midiNote, float velocity) override;
     void onNoteOff(float velocity) override;
     
-    // The voice now processes using internal state for LFO/Crosstalk
+    /**
+     * Renders the next block of audio for this voice.
+     * 
+     * @param buffer      The output audio buffer to render into.
+     * @param startSample The starting sample index in the buffer.
+     * @param numSamples  The number of samples to process.
+     */
     void renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples) override;
     
     // Setters for dynamic render state (called by VoiceAllocator or Manager)

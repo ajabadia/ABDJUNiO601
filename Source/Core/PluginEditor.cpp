@@ -279,28 +279,28 @@ void ABDSimpleJuno106AudioProcessorEditor::resized()
     
     // 4. MAIN SYNTH ROWS (Remaining Space)
     auto mainArea = b.reduced(5);
-    using namespace juce;
-    FlexBox mainRows;
-    mainRows.flexDirection = FlexBox::Direction::column;
-    mainRows.flexWrap = FlexBox::Wrap::noWrap;
+    
+    juce::FlexBox mainRows;
+    mainRows.flexDirection = juce::FlexBox::Direction::column;
+    mainRows.flexWrap = juce::FlexBox::Wrap::noWrap;
     
     // Row 1: LFO, DCO, HPF
-    FlexBox row1;
-    row1.flexDirection = FlexBox::Direction::row;
-    row1.items.add(FlexItem(lfoSection).withFlex(1.2f).withMargin(2));
-    row1.items.add(FlexItem(dcoSection).withFlex(2.8f).withMargin(2));
-    row1.items.add(FlexItem(hpfSection).withFlex(0.8f).withMargin(2));
+    juce::FlexBox row1;
+    row1.flexDirection = juce::FlexBox::Direction::row;
+    row1.items.add(juce::FlexItem(lfoSection).withFlex(1.2f).withMargin(2));
+    row1.items.add(juce::FlexItem(dcoSection).withFlex(2.8f).withMargin(2));
+    row1.items.add(juce::FlexItem(hpfSection).withFlex(0.8f).withMargin(2));
     
     // Row 2: VCF, VCA, ENV, Chorus
-    FlexBox row2;
-    row2.flexDirection = FlexBox::Direction::row;
-    row2.items.add(FlexItem(vcfSection).withFlex(2.2f).withMargin(2));
-    row2.items.add(FlexItem(vcaSection).withFlex(1.0f).withMargin(2));
-    row2.items.add(FlexItem(envSection).withFlex(1.8f).withMargin(2));
-    row2.items.add(FlexItem(chorusSection).withFlex(1.0f).withMargin(2));
+    juce::FlexBox row2;
+    row2.flexDirection = juce::FlexBox::Direction::row;
+    row2.items.add(juce::FlexItem(vcfSection).withFlex(2.2f).withMargin(2));
+    row2.items.add(juce::FlexItem(vcaSection).withFlex(1.0f).withMargin(2));
+    row2.items.add(juce::FlexItem(envSection).withFlex(1.8f).withMargin(2));
+    row2.items.add(juce::FlexItem(chorusSection).withFlex(1.0f).withMargin(2));
     
-    mainRows.items.add(FlexItem(row1).withFlex(1.0f));
-    mainRows.items.add(FlexItem(row2).withFlex(1.0f));
+    mainRows.items.add(juce::FlexItem(row1).withFlex(1.0f));
+    mainRows.items.add(juce::FlexItem(row2).withFlex(1.0f));
     
     mainRows.performLayout(mainArea);
 }

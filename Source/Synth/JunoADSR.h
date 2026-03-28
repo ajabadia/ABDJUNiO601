@@ -1,7 +1,7 @@
 // Source/Synth/JunoADSR.h
 #pragma once
 
-#include <JuceHeader.h>
+
 
 /**
  * JunoADSR - Authentic Juno-106 ADSR Envelope

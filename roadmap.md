@@ -42,17 +42,11 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 - [x] **Full Serialization**: DAW state persistence and cross-platform JSON/XML export. (Ref: 0006.txt)
 - [x] **Tape Simulation**: Reinstated robust FSK encoding/decoding for .wav tape backups.
 
-## Sprint 5: WebUI & UX "Premium" Expansion
-**Goal**: High-end user experience and accessibility.
-**Reference**: [0002.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0002.txt), [0007.1.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0007.1.txt)
-- [ ] **Responsive Engine**: Dynamic layouts for Desktop, Tablet, and Mobile. (Ref: 0007.1.txt)
-- [x] **Service Mode & Calibration**: Full diagnostic panel for voice/VCF/DCO testing. (Ref: 0002.txt)
-    - [x] Initial implementation of calibration parameters and voice soloing.
-    - [x] Real-time DSP integration and Juno-style UI.
+- [x] **Service Mode & Calibration (Production Ready)**: Full diagnostic panel for voice/VCF/DCO testing. (Ref: 0002.txt)
     - [x] Matrix voice grid (8x2) and 2-column parameter layout.
     - [x] Integrated "Test Scale" sequencer for real-time auditioning.
-    - [x] Add advanced calibration parameters (VCF scaling per octave, DCO drift constants).
     - [x] Implement VCF/DCO auto-tuning routines.
+    - [x] **Persistent Logging Control**: ON/OFF selector in System Settings > General (Build 94).
 - [ ] **Accessibility (Web & Native)**: Keyboard navigation, ARIA labels, and high-contrast themes. (Ref: 0007.1.txt)
 
 ## Sprint 6: Hardware Targets (Raspberry Pi)
@@ -70,11 +64,16 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 - [ ] **CPU Benchmarking**: Section-by-section budget analysis. (Ref: 0008.txt)
 - [ ] **Host Validation**: Stress testing in Live, Reaper, and Logic Pro. (Ref: 0009.txt)
 
-## Technical Debt & Code Polish
-**Goal**: Improve maintainability and adhere to strict coding standards.
-- [ ] **Math Namespace Standardization**: Consistently use `std::` for all math functions (`std::tan`, `std::max`, `std::pow`) across `JunoVCF.cpp`, `JunoADSR.cpp`, and `JunoDCO.cpp` to prevent ambiguity with global macros or `fmath` variants.
-- [ ] **Header Include Hygiene**: Verify and clean up transitive includes.
-    - Ensure `ChorusBBD.h` explicitly includes `<vector>` and `<cmath>`.
-    - Audit `JunoVoice.h` for unnecessary JUCE dependencies.
-- [ ] **JUCE Namespace Consistency**: Standardize on `juce::` prefixing rather than `using namespace juce` to improve code clarity in `PluginProcessor.cpp` and `WebViewEditor.cpp`.
-- [ ] **Redundant Logic Audit**: Perform a cleanup of the `Voice::renderVoiceCycles` loop to remove any legacy filter or HPF processing remnants discovered during the High-Fidelity refactor.
+## Sprint 8: Professional Standards & Final Refactoring
+**Goal**: Elevate codebase to production-grade quality and maintainability.
+- [ ] **Math Namespace Standardization**: Consistently use `std::` for all math functions (`std::tan`, `std::max`, `std::pow`) across `JunoVCF.cpp`, `JunoADSR.cpp`, and `JunoDCO.cpp`.
+- [ ] **JUCE Namespace Consistency**: Standardize on `juce::` prefixing rather than `using namespace juce` to improve code clarity.
+- [ ] **Header Include Hygiene**: Verify and clean up transitive includes (Audit `JunoVoice.h`).
+- [ ] **Doxygen Documentation**: Add structured comments to all public headers for automatic documentation generation.
+- [ ] **Memory Audit**: Replace any remaining raw pointers with `std::unique_ptr` or `juce::Component::SafePointer` where appropriate.
+- [ ] **Logic Cleanup**: Perform a cleanup of the `Voice::renderVoiceCycles` loop to remove any legacy remnants.
+
+## Post-Launch / Future Iterations
+- [ ] **Responsive Engine**: Re-evaluate dynamic layouts for Desktop, Tablet, and Mobile.
+- [ ] **Accessibility (Web & Native)**: Keyboard navigation, ARIA labels, and high-contrast themes.
+- [ ] **Expansion**: Additional chorus modes or vintage "aging" profiles.

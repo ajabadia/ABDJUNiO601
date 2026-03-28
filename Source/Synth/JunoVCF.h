@@ -1,17 +1,16 @@
 #pragma once
-#include <JuceHeader.h>
 #include <array>
 
 /**
  * JunoVCF - OTA Ladder Filter (IR3109 / 80017A model)
  *
- * Topología: 4 polos OTA ladder, 24 dB/oct LP
- * Saturación: Padé 3/3 por etapa (carácter OTA, no BJT)
- * Pre-warping: tan(π·fc/fs) TPT trapezoidal por etapa
- * Autooscilación: natural cuando k > 4.0
- * Keyboard tracking: exponencial V/oct centrado en A4
+ * Topology: 4-pole OTA ladder, 24 dB/oct Low-Pass.
+ * Saturation: Padé 3/3 approximation per stage (OTA character, non-BJT).
+ * Pre-warping: tan(π·fc/fs) TPT trapezoidal integration per stage.
+ * Self-oscillation: Natural oscillation when resonance feedback k > 4.0.
+ * Keyboard tracking: Exponential V/oct scaling centered around A4 (440Hz).
  *
- * Referencia hardware: Roland 80017A (IR3109 + BA662)
+ * Hardware Reference: Roland 80017A (containing IR3109 and BA662 clones).
  */
 class JunoVCF
 {
@@ -22,15 +21,23 @@ public:
     void setSampleRate (double sr);
 
     /**
-     * Procesa una muestra
-     * @param input       señal pre-VCF (DCO + noise mezclados)
-     * @param cutoff01    frecuencia de corte normalizada 0–1
-     * @param resonance   resonancia normalizada 0–1
-     * @param envMod      modulación de envolvente, ya escalada [-1..+1]
-     * @param lfoMod      modulación LFO, ya escalada [-1..+1]
-     * @param kybdTrack   keyboard tracking 0–1
-     * @param noteHz      frecuencia fundamental de la voz en Hz
-     * @return            muestra filtrada
+     * Processes a single audio sample through the filter.
+     * 
+     * @param input             Pre-VCF audio signal (mixed DCO, Sub, and Noise).
+     * @param cutoff01          Normalized cutoff frequency (0.0 to 1.0).
+     * @param resonance         Normalized resonance level (0.0 to 1.0).
+     * @param envMod            Envelope modulation intensity, pre-scaled [-1.0 to 1.0].
+     * @param lfoMod            LFO modulation intensity, pre-scaled [-1.0 to 1.0].
+     * @param kybdTrack         Keyboard tracking intensity (0.0 to 1.0).
+     * @param noteHz            The fundamental frequency of the currently playing note.
+     * @param minHz             The minimum allowed cutoff frequency (calibration).
+     * @param maxHz             The maximum allowed cutoff frequency (calibration).
+     * @param selfOscThreshold  The resonance level where oscillation begins.
+     * @param saturationScale   Multiplier for the OTA stage saturation intensity.
+     * @param selfOscInt        Intensity of the self-oscillation feedback loop.
+     * @param trackCenterHz     The frequency pivot point for keyboard tracking.
+     * @param vcfWidth          Scaling accuracy for V/oct tracking.
+     * @return                  The filtered audio sample.
      */
     float processSample (float input, 
                          float cutoff01, float resonance,
@@ -57,7 +64,7 @@ private:
 
     float computeResonanceFeedback (float res01, float selfOscThreshold, float selfOscInt) const;
 
-    // Saturación Padé 3/3: aproximación de tanh, simétrica, cara OTA
+    // Padé 3/3 Saturation: Approximates tanh characteristics of OTA stages.
     static inline float stageSaturate (float x, float scale = 1.0f) noexcept;
 
     // Estado de las 4 etapas TPT

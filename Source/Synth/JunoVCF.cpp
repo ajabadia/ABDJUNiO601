@@ -1,4 +1,7 @@
+#include <JuceHeader.h>
 #include "JunoVCF.h"
+#include <cmath>
+#include <algorithm>
 
 JunoVCF::JunoVCF()
 {

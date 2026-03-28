@@ -7,7 +7,7 @@
 #include "../../Core/BuildVersion.h"
 #include <optional>
 
-using namespace juce;
+
 
 WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
     : juce::AudioProcessorEditor (&p), audioProcessor (p)

@@ -1,0 +1,124 @@
+{
+  // Unified Settings registration for CMake > General
+  "properties": {
+    "cmake.general.useCMakePresets": {
+      "type": "string",
+      "title": "@CMake_UseCMakePresets_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "if-available",
+      "enum": ["always", "if-available", "never"],
+      "enumItemLabels": [
+        "@CMake_UseCMakePresets_Always;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+        "@CMake_UseCMakePresets_IfAvailable;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+        "@CMake_UseCMakePresets_Never;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+      ]
+    },
+    "cmake.general.showCacheNotifications": {
+      "type": "boolean",
+      "title": "@CMake_ShowCacheNotifications_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.general.autoConfigure": {
+      "type": "string",
+      "title": "@CMake_AutoConfigure_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "always",
+      "enum": ["always", "if-exists", "never"],
+      "enumItemLabels": [
+        "@CMake_AutoConfigure_Always;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+        "@CMake_AutoConfigure_IfExists;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+        "@CMake_AutoConfigure_Never;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+      ]
+    },
+    "cmake.general.enableUnifiedPresetDropdown": {
+      "type": "boolean",
+      "title": "@CMake_EnableUnifiedPresetDropdown_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.general.enableVerboseOutput": {
+      "type": "boolean",
+      "title": "@CMake_EnableVerboseOutput_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.general.enableProjectStructureManipulationFromFolderView": {
+      "type": "boolean",
+      "title": "@CMake_EnableProjectStructureManipulationFromFolderView_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.general.useIgnoredTargetsViewGroups": {
+      "type": "boolean",
+      "title": "@CMake_UseIgnoredTargetsViewGroups_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": false
+    },
+    "cmake.general.settingsTemplateDirectory": {
+      "type": "string",
+      "title": "@CMake_SettingsTemplateDirectory_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "%USERPROFILE%\\Documents\\Visual Studio\\CMakeSettingsTemplates",
+      "format": "path",
+      "pathKind": "folder"
+    },
+    "cmake.general.enableCustomCMakeInformation": {
+      "type": "boolean",
+      "title": "@CMake_EnableCustomCMakeInformation_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": false
+    },
+    "cmake.general.customCMakeExecutableDirectory": {
+      "type": "string",
+      "title": "@CMake_CustomCMakeExecutableDirectory_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "%USERPROFILE%\\Documents",
+      "format": "path",
+      "pathKind": "folder"
+    },
+    "cmake.general.enableLogging": {
+      "type": "boolean",
+      "title": "@CMake_EnableLogging_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": false
+    },
+    "cmake.general.loggingVerbosityLevel": {
+      "type": "string",
+      "title": "@CMake_LoggingVerbosityLevel_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "normal",
+      "enum": ["normal", "verbose"],
+      "enumItemLabels": [
+        "@CMake_LoggingVerbosityLevel_Normal;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+        "@CMake_LoggingVerbosityLevel_Verbose;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+      ]
+    },
+    "cmake.general.logToOutput": {
+      "type": "boolean",
+      "title": "@CMake_LogToOutput_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.general.logToFile": {
+      "type": "boolean",
+      "title": "@CMake_LogToFile_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": false
+    },
+    "cmake.general.logFileDirectory": {
+      "type": "string",
+      "title": "@CMake_LogFileDirectory_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": "%TEMP%\\CMakeLogging",
+      "format": "path",
+      "pathKind": "folder"
+    },
+    "cmake.languageServices.enableLanguageServices": {
+      "type": "boolean",
+      "title": "@CMake_EnableLanguageServices_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    },
+    "cmake.languageServices.enableInEditorDocumentation": {
+      "type": "boolean",
+      "title": "@CMake_EnableInEditorDocumentation_Title;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}",
+      "default": true
+    }
+  },
+  "categories": {
+    "cmake": {
+      "title": "@CMake_Category;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+    },
+    "cmake.general": {
+      "title": "@CMake_General_Category;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+    },
+    "cmake.languageServices": {
+      "title": "@CMake_LanguageServices_Category;{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}"
+    }
+  }
+}

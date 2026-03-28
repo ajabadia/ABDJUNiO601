@@ -4,22 +4,13 @@
 #include <JuceHeader.h>
 
 /**
- * JunoDCO - Complete Authentic Juno-106 DCO
+ * JunoDCO - Complete Authentic Juno-106 Digitally Controlled Oscillator
  * 
- * AUTHENTIC CONTROLS (from front panel):
- * - RANGE: 16', 8', 4' (octave selector)
- * - LFO: LFO modulation depth to pitch
- * - PWM: Pulse width (MAN) or PWM depth (LFO)
- * - LFO/MAN: PWM mode selector
- * - Waveforms: Pulse, Saw (both can be active)
- * - SUB: Sub-oscillator level
- * - NOISE: Noise generator level
- * 
- * JUCE COMPONENTS USED:
- * - juce::dsp::Oscillator for Sawtooth
- * - juce::Random for Noise
- * - Custom for Pulse (PWM slew support)
- * - Custom for Sub-osc (flip-flop authentic)
+ * Supports authentic Juno-106 behavior:
+ * - Multi-waveform mixing (Pulse + Saw + Sub + Noise).
+ * - Authentic 16', 8', 4' range selection.
+ * - Software-calibrated pitch drift and voice variance.
+ * - Hardware-accurate PWM and Sub-oscillator logic.
  */
 class JunoDCO {
 public:
@@ -73,7 +64,12 @@ public:
     void setVoiceDriftScale(float cents) { voiceDriftScale = cents; }
     void setMasterClock(float hz) { masterClockHz = hz; }
     
-    // Processing (receives LFO value from external LFO)
+    /**
+     * Processes the next audio sample for this DCO.
+     * 
+     * @param lfoValue The current normalized value from the master LFO (-1.0 to 1.0).
+     * @return The combined output of all active waveforms.
+     */
     float getNextSample(float lfoValue);
     
 private:

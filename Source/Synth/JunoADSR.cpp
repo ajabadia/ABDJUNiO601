@@ -1,5 +1,7 @@
+#include <JuceHeader.h>
 #include "JunoADSR.h"
 #include <cmath>
+#include <algorithm>
 
 // ============================================================================
 // JunoADSR Implementation

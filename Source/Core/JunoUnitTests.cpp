@@ -11,7 +11,7 @@
 #include "JunoTapeEncoder.h"
 #include "JunoTapeDecoder.h"
 
-using namespace juce;
+
 
 /**
  * JunoUnitTests

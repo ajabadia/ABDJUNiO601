@@ -1,0 +1,967 @@
+{
+    "string_sets": {
+        "HASH": [
+            "MD5",
+            "SHA1",
+            "SHA224",
+            "SHA256",
+            "SHA384",
+            "SHA512",
+            "SHA3_224",
+            "SHA3_256",
+            "SHA3_384",
+            "SHA3_512"
+        ]
+    },
+    "patterns": [
+        {
+            "command": "aux_source_directory",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "build_command",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "cmake_host_system_information",
+            "argument": "RESULT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "cmake_policy",
+            "argument": "GET",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_build",
+            "argument": "NUMBER_ERRORS",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_build",
+            "argument": "NUMBER_WARNINGS",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_build",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_build",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_configure",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_configure",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_coverage",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_coverage",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_memcheck",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_memcheck",
+            "argument": "DEFECT_COUNT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_run_script",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_submit",
+            "argument": "BUILD_ID",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_submit",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_submit",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_test",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_test",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_update",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_update",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "ctest_upload",
+            "argument": "CAPTURE_CMAKE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "else",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "elseif",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "endif",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "endforeach",
+            "index": 0,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "endwhile",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "exec_program",
+            "argument": "OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "exec_program",
+            "argument": "RETURN_VALUE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "execute_process",
+            "argument": "RESULT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "execute_process",
+            "argument": "RESULTS_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "execute_process",
+            "argument": "OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "execute_process",
+            "argument": "ERROR_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "READ",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "STRINGS",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": {
+                "string_set": "HASH"
+            },
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "TIMESTAMP",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "RESOLVED_DEPENDENCIES_VAR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "UNRESOLVED_DEPENDENCIES_VAR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "GLOB",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "GLOB_RECURSE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "SIZE",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "READ_SYMLINK",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "RELATIVE_PATH",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "TO_CMAKE_PATH",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "TO_NATIVE_PATH",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "LOG",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "STATUS",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "file",
+            "argument": "RESULT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "find_library",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "find_library",
+            "index": 0,
+            "kind": "variable_definition",
+            "transform": {
+                "name": "suffix",
+                "value": "-NOTFOUND"
+            }
+        },
+        {
+            "command": "foreach",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "foreach",
+            "argument": "LISTS",
+            "index": 1,
+            "end_argument": "ITEMS",
+            "end_index": -1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "function",
+            "index": 1,
+            "end_index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_cmake_property",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_directory_property",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_directory_property",
+            "argument": "DEFINITION",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "get_filename_component",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_property",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_property",
+            "argument": "VARIABLE",
+            "index": 2,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "get_source_file_property",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_target_property",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "get_test_property",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "if",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "include",
+            "argument": "RESULT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "LENGTH",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "list",
+            "argument": "LENGTH",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "GET",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "list",
+            "argument": "GET",
+            "index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "JOIN",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "list",
+            "argument": "JOIN",
+            "index": 3,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "SUBLIST",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "list",
+            "argument": "SUBLIST",
+            "index": 4,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "FIND",
+            "index": 1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "list",
+            "argument": "FIND",
+            "index": 3,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "APPEND",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "FILTER",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "INSERT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "POP_BACK",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "POP_BACK",
+            "index": 2,
+            "end_index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "POP_FRONT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "POP_FRONT",
+            "index": 2,
+            "end_index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "PREPEND",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "REMOVE_ITEM",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "REMOVE_AT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "REMOVE_DUPLICATES",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "TRANSFORM",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "OUTPUT_VARIABLE ",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "REVERSE ",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "list",
+            "argument": "SORT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "macro",
+            "index": 1,
+            "end_index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "mark_as_advanced",
+            "index": 1,
+            "end_index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "math",
+            "argument": "EXPR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "option",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "remove",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "separate_arguments",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "set",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "FIND",
+            "index": 3,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "REPLACE",
+            "index": 3,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "MATCH",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "MATCHALL",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "APPEND",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "PREPEND",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "CONCAT",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "JOIN",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "TOLOWER",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "TOUPPER",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "LENGTH",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "SUBSTRING",
+            "index": 4,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "STRIP",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "GENEX_STRIP",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "REPEAT",
+            "index": 3,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "COMPARE",
+            "index": 4,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": {
+                "string_set": "HASH"
+            },
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "ASCII",
+            "index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "CONFIGURE",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "MAKE_C_IDENTIFIER",
+            "index": 2,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "RANDOM",
+            "index": -1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "TIMESTAMP ",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "string",
+            "argument": "UUID ",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_compile",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_compile",
+            "argument": "OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_compile",
+            "argument": "COPY_FILE_ERROR",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_run",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_run",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_run",
+            "argument": "COMPILE_OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_run",
+            "argument": "RUN_OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "try_run",
+            "argument": "OUTPUT_VARIABLE",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "unset",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "variable_requires",
+            "index": 0,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "variable_requires",
+            "index": 1,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "variable_requires",
+            "index": 2,
+            "end_index": -1,
+            "kind": "variable_reference"
+        },
+        {
+            "command": "variable_watch",
+            "index": 0,
+            "kind": "variable_definition"
+        },
+        {
+            "command": "while",
+            "index": 0,
+            "end_index": -1,
+            "kind": "variable_reference",
+            "transform": {
+                "name": "condition"
+            }
+        },
+        {
+            "command": "add_custom_command",
+            "argument": "TARGET",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "add_custom_target",
+            "index": 0,
+            "kind": "target_definition"
+        },
+        {
+            "command": "add_dependencies",
+            "index": 0,
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "add_executable",
+            "index": 0,
+            "kind": "target_definition"
+        },
+        {
+            "command": "add_executable",
+            "argument": "ALIAS",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "add_library",
+            "index": 0,
+            "kind": "target_definition"
+        },
+        {
+            "command": "add_library",
+            "argument": "ALIAS",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "build_command",
+            "argument": "TARGET",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "ctest_build",
+            "argument": "TARGET",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "export",
+            "argument": "TARGETS",
+            "index": 1,
+            "end_argument": "FILE",
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "get_property",
+            "argument": "TARGET",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "get_target_property",
+            "index": 1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "install",
+            "argument": "TARGETS",
+            "index": 1,
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "set_property",
+            "argument": "TARGET",
+            "index": 1,
+            "end_argument": "PROPERTY",
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "set_target_properties",
+            "index": 0,
+            "end_argument": "PROPERTIES",
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_compile_definitions",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_compile_features",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_compile_options",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_include_directories",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_link_directories",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_link_libraries",
+            "index": 0,
+            "end_index": -1,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_link_options",
+            "index": 0,
+            "kind": "target_reference"
+        },
+        {
+            "command": "target_sources",
+            "index": 0,
+            "kind": "target_reference"
+        }
+    ]
+}

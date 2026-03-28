@@ -1,0 +1,130 @@
+﻿{
+    "debugExtensions": {
+        "remoteWindows": {
+            "vsDebugEngineGuid": "{​​​​​3B476D35-A401-11D2-AAD4-00C04F990171}​​​​​",
+            "VsDebugTargetInfo4": {
+                "bstrCurDir": "${​​​​​debugInfo.defaultWorkingDirectory}​​​​​",
+                "bstrExe": "${​​​​​debugInfo.fullTargetPath}​​​​​",
+                "bstrOptions": "*"
+            },
+            "templates": [
+                {
+                    "templateId": "launchRemoteWindows",
+                    "displayName": "{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}:5001",
+                    "description": "{F50A0AB8-B1FA-4901-BA52-1AF791ABA4B1}:5002",
+                    "fileExtensions": [
+                        "*.exe",
+                        "*.dll"
+                    ],
+                    "initialConfiguration": {
+                        "remoteMachineName": "",
+                        "cwd": "${debugInfo.defaultWorkingDirectory}",
+                        "program": "${debugInfo.fullTargetPath}",
+                        "deploy": [],
+                        "comment": "Learn how to configure remote Windows debugging. For more info, see https://docs.microsoft.com/cpp/build/cmake-remote-debugging",
+                        "args": [],
+                        "env": {}
+                    }
+                }
+            ],
+            "schema": {
+                "definitions": {
+                    "remote_windows_schema": {
+                        "type": "object",
+                        "properties": {
+                            "program": {
+                                "type": "string",
+                                "default": "${debugInfo.fullTargetPath}",
+                                "description": "Specifies the debug command to execute. When using CMake the macro ${debugInfo.fullTargetPath} can be used as the value of this field."
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "remoteWindows"
+                                ]
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Specifies the command line arguments passed to the program being debugged.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "remoteMachineName": {
+                                "type": "string",
+                                "description": "Name of the remote server / IP."
+                            },
+                            "debugType": {
+                                "type": "string",
+                                "enum": [ "native", "mixed" ],
+                                "default": "native",
+                                "description": "Specifies the native or mixed debug type."
+                            },
+                            "deployDirectory": {
+                                "type": "string",
+                                "description": "Specifies the directory in remote machine where project outputs automatically deploy to."
+                            },
+                            "deploy": {
+                                "type": "array",
+                                "description": "Specifies advanced configuration for deployment settings.",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "sourcePath": {
+                                            "type": "string",
+                                            "description": "Specifies the file or directory location on the local machine."
+                                        },
+                                        "targetPath": {
+                                            "type": "string",
+                                            "description": "Specifies the file or directory location on the remote machine."
+                                        }
+                                    }
+                                }
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "default": "${debugInfo.defaultWorkingDirectory}",
+                                "description": "Specifies the full path to the directory on the remote machine where \"program\" is run. Default value is the directory containing the executable specified in the program field."
+                            },
+                            "authenticationType": {
+                                "type": "string",
+                                "enum": [
+                                    "windows",
+                                    "none"
+                                ],
+                                "default": "windows",
+                                "description": "Specifies the connection type. Its value should match the value of the remote debugger running on your remote machine. \"windows\" maps to \"Windows authentication\"; \"none\" maps to \"no authentication\"."
+                            },
+                            "deployDebugRuntimeLibraries": {
+                                "type": "boolean",
+                                "description": "Indicates whether to deploy the debug runtime libraries for the active platform. It defaults to \"true\" if the active configurationType is \"Debug\"."
+                            },
+                            "deployRuntimeLibraries": {
+                                "type": "boolean",
+                                "description": "Indicates whether to deploy the runtime libraries for the active platform. It defaults to \"true\" if the active configurationtype is \"MinSizeRel\" , \"RelWithDebInfo\" or \"Release\"."
+                            },
+                            "disableDeploy": {
+                                "type": "boolean",
+                                "description": "Indicates whether to disable deloying files to remote machine.",
+                                "default": "false"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "remoteMachineName"
+                        ]
+                    },
+                    "remoteWindowsTemplateLayout": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/remote_windows_schema"
+                            }
+                        ]
+                    }
+
+                },
+                "configuration": "#/definitions/remoteWindowsTemplateLayout"
+            }
+        }
+    }
+}

@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+        "name": "WSL-Debug",
+        "description": "TemplateDescription_Localize_CodespaceWSLDebug",
+        "generator": "Ninja",
+        "remoteMachineName": "${defaultRemoteMachineName}",
+        "configurationType": "Debug",
+        "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+        "cmakeExecutable": "cmake",
+        "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+        "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+        "remoteCopySources": true,
+        "remoteCopySourcesOutputVerbosity": "Normal",
+        "remoteCopySourcesMethod": "rsync",
+        "remoteCopySourcesExclusionList": [
+            ".vs",
+            ".git",
+            "out"
+        ],
+        "rsyncCommandArgs": "-t --delete",
+        "remoteCopyBuildOutput": false,
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "",
+        "ctestCommandArgs": "",
+        "inheritEnvironments": [
+            "linux_x64"
+        ],
+        "addressSanitizerRuntimeFlags": "detect_leaks=0"
+    }
+  ]
+}
