@@ -87,8 +87,8 @@ float JunoADSR::getNextSample()
             case Stage::Attack:
             {
                 // [Audit Compliance] VCF Overshoot emulation (Target > 1.0)
-                // We target 1.08f to simulate the analog overshoot behavior commanded by the 8031.
-                currentValue += attackRate * (1.08f - currentValue); 
+                // We target 'overshoot' (default 1.08f) to simulate the analog overshoot behavior commanded by the 8031.
+                currentValue += attackRate * (overshoot - currentValue); 
                 if (currentValue >= 1.0f) {
                     currentValue = 1.0f;
                     stage = Stage::Decay;
@@ -140,8 +140,8 @@ float JunoADSR::getNextSample()
     }
     }
     
-    // [Fidelity Improvement] 10-BIT DAC EMULATION (1024 steps)
-    float quantized = std::floor(currentValue * 1023.99f) / 1023.0f;
+    // [Fidelity Improvement] DYNAMIC DAC EMULATION
+    float quantized = std::floor(currentValue * (dacSteps - 0.01f)) / (dacSteps - 1.0f);
     
     // [Fix] Analog-style Slew (dynamic via calibration) to kill 3ms digital stairs
     float alpha = 1.0f - std::exp(-1.0f / (std::max(0.1f, slewMs) * 0.001f * (float)sampleRate));
@@ -154,7 +154,7 @@ void JunoADSR::calculateRates()
     if (sampleRate <= 0.0) return;
     
     // Recalculate MCU samples
-    mcuUpdateRateSamples = (int)(0.003 * sampleRate); // 3ms
+    mcuUpdateRateSamples = (int)(mcuRateFactor * 0.001 * sampleRate); 
     if (mcuUpdateRateSamples < 1) mcuUpdateRateSamples = 1;
 
     auto getAuthenticRate = [&](float tau, bool isAttack) -> float {

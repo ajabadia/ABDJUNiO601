@@ -5,21 +5,28 @@
 #include "JunoConstants.h"
 #include <fstream>
 
+using Preset = ABD::Preset;
+
 PresetManager::PresetManager() {
     loadFactoryPresets();
-    ABD::PresetManagerBase::loadUserPresets();
-    currentLibIdx_ = 0;
-    currentPresetIdx_ = 0;
+    loadBrowserData();
+    
+    // [Advanced Browser] Initialize WIP Library if it doesn't exist
+    if (this->getLibraryIndex("WIP") < 0)
+        this->addLibrary("WIP");
+        
+    this->currentLibIdx_ = 0;
+    this->currentPresetIdx_ = 0;
 }
 
 PresetManager::~PresetManager() = default;
 
 void PresetManager::loadFactoryPresets() {
-    addLibrary("Factory");
-    int factoryIdx = (int)libraries_.size() - 1;
-    libraries_[factoryIdx].patches.clear();
+    this->addLibrary("Factory");
+    int factoryIdx = (int)this->libraries_.size() - 1;
+    this->libraries_[factoryIdx].patches.clear();
     for (const auto& patch : junoFactoryPatches) {
-        libraries_[factoryIdx].patches.push_back(createPresetFromJunoPatch(patch));
+        this->libraries_[factoryIdx].patches.push_back(createPresetFromJunoPatch(patch));
     }
 }
 
@@ -97,219 +104,257 @@ std::vector<uint8_t> PresetManager::stateToBytes(const juce::ValueTree& state) c
     if ((bool)state["chorus1"]) sw1 |= (1 << 5);
     if ((bool)state["chorus2"]) sw1 |= (1 << 6);
     bytes[16] = sw1;
-    
+
     uint8_t sw2 = 0;
-    if ((bool)state["pwmMode"])     sw2 |= (1 << 0);
-    if ((bool)state["vcaMode"])     sw2 |= (1 << 1);
+    if ((bool)state["pwmMode"]) sw2 |= (1 << 0);
+    if ((bool)state["vcaMode"]) sw2 |= (1 << 1);
     if ((bool)state["vcfPolarity"]) sw2 |= (1 << 2);
-    int hwHpf = juce::jlimit(0, 3, (int)state["hpfFreq"]);
-    sw2 |= (uint8_t)((hwHpf & 0x03) << 3);
+    sw2 |= (((int)state["hpfFreq"] & 0x03) << 3);
     bytes[17] = sw2;
-    
+
     return bytes;
 }
 
 juce::File PresetManager::getUserPresetsDirectory() const {
-    return juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-        .getChildFile("JUNiO601").getChildFile("UserPresets");
+    auto dir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+        .getChildFile("ABD")
+        .getChildFile("JUNiO-601")
+        .getChildFile("Presets");
+    if (!dir.exists()) dir.createDirectory();
+    return dir;
 }
 
 juce::Result PresetManager::loadTape(const juce::File& wavFile) {
     auto result = JunoTapeDecoder::decodeWavFile(wavFile);
     if (!result.success) return juce::Result::fail(result.errorMessage);
-    setLastPath(wavFile.getParentDirectory().getFullPathName());
-    addLibrary(wavFile.getFileNameWithoutExtension());
-    int newLibIdx = (int)libraries_.size() - 1;
-    int patchCount = juce::jmin((int)result.data.size() / 18, 128);
-    for (int p = 0; p < patchCount; ++p) { 
-        libraries_[newLibIdx].patches.push_back(createPresetFromJunoBytes(juce::String(p + 1).paddedLeft('0', 2), &result.data[p * 18]));
+    
+    this->addLibrary(wavFile.getFileNameWithoutExtension());
+    int libIdx = (int)this->libraries_.size() - 1;
+    // Data is a flat vector of bytes, 18 bytes per patch
+    for (size_t i = 0; i + 17 < result.data.size(); i += 18) {
+        this->libraries_[libIdx].patches.push_back(createPresetFromJunoBytes("Tape Patch " + juce::String((i/18)+1), &result.data[i]));
     }
-    selectLibrary(newLibIdx);
     return juce::Result::ok();
 }
 
-PresetManager::Preset PresetManager::createPresetFromJunoPatch(const JunoPatch& p) {
-    uint8_t b[18];
-    b[0] = p.lfoRate;
-    b[1] = p.lfoDelay;
-    b[2] = p.lfoToDCO;
-    b[3] = p.pwm;
-    b[4] = p.noise;
-    b[5] = p.vcfFreq;
-    b[6] = p.resonance;
-    b[7] = p.envAmount;
-    b[8] = p.lfoToVCF;
-    b[9] = p.kybdTracking;
-    b[10] = p.vcaLevel;
-    b[11] = p.attack;
-    b[12] = p.decay;
-    b[13] = p.sustain;
-    b[14] = p.release;
-    b[15] = p.subOsc;
-    b[16] = p.sw1;
-    b[17] = p.sw2;
-    auto state = bytesToState(b, 18);
-    return Preset(p.name, "Factory", state);
-}
-
-void PresetManager::exportCurrentPresetToJson(const juce::File& file) {
-    if (auto* p = getPreset(currentPresetIdx_)) {
-        juce::DynamicObject::Ptr o = new juce::DynamicObject();
-        o->setProperty("name", p->name);
-        o->setProperty("state", p->state.toXmlString());
-        file.replaceWithText(juce::JSON::toString(juce::var(o.get())));
-    }
-}
-
-PresetManager::Preset PresetManager::createPresetFromJunoBytes(const juce::String& name, const unsigned char* bytes) {
-    return Preset(name, "User", bytesToState(bytes, 18));
+void PresetManager::addLibraryFromSysEx(const uint8_t* data, int size) {
+    juce::ignoreUnused(data, size);
 }
 
 juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
-    juce::MemoryBlock mb;
-    if (file.getFileExtension().equalsIgnoreCase(".wav")) {
-        auto decodeResult = JunoTapeDecoder::decodeWavFile(file);
-        if (!decodeResult.success) return juce::Result::fail(decodeResult.errorMessage);
-        mb.append(decodeResult.data.data(), decodeResult.data.size());
-    } else {
-        if (!file.loadFileAsData(mb)) return juce::Result::fail("Read error");
-    }
-    setLastPath(file.getParentDirectory().getFullPathName());
-    const uint8_t* d = (const uint8_t*)mb.getData();
-    int s = (int)mb.getSize();
+    auto vt = juce::ValueTree::fromXml(file.loadFileAsString());
+    if (!vt.isValid()) return juce::Result::fail("Invalid XML preset file");
     
-    std::vector<std::vector<uint8_t>> found;
-    for (int i=0; i < s - 22; ++i) {
-        if (d[i] == 0xF0 && d[i+1] == 0x41 && d[i+2] == 0x30) {
-            std::vector<uint8_t> p; for(int k=0; k<18; ++k) p.push_back(d[i+4+k]);
-            found.push_back(p); i += 22;
-        }
-    }
-    if (found.empty() && s >= 18) { std::vector<uint8_t> p; for(int k=0; k<18; ++k) p.push_back(d[k]); found.push_back(p); }
-    if (found.empty()) return juce::Result::fail("No patches");
-
-    if (found.size() > 1) {
-        addLibrary(file.getFileNameWithoutExtension());
-        int libIdx = (int)libraries_.size() - 1;
-        for(int k=0; k<(int)found.size(); ++k)
-            libraries_[libIdx].patches.push_back(createPresetFromJunoBytes(file.getFileNameWithoutExtension() + " " + juce::String(k+1).paddedLeft('0',2), found[k].data()));
-        selectLibrary(libIdx);
-    } else {
-        saveUserPreset(file.getFileNameWithoutExtension(), bytesToState(found[0].data(), 18));
-    }
+    ABD::Preset p;
+    p.fromValueTree(vt);
+    
+    int userIdx = this->getLibraryIndex("User");
+    if (userIdx < 0) { this->addLibrary("User"); userIdx = (int)this->libraries_.size() - 1; }
+    
+    this->libraries_[userIdx].patches.push_back(p);
+    ABD::PresetManagerBase::writeUserPresets();
     return juce::Result::ok();
 }
 
-void PresetManager::selectPresetByBankAndPatch(int g, int b, int p) { 
-    currentPresetIdx_ = (g * 64) + ((b - 1) * 8) + (p - 1); 
-}
-
-juce::String PresetManager::getLastPath() const {
-    juce::PropertiesFile::Options o; o.applicationName = "JUNiO601"; o.filenameSuffix = ".settings";
-    juce::PropertiesFile props(o); return props.getValue("lastPath", juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
-}
-
-void PresetManager::setLastPath(const juce::String& path) {
-    juce::PropertiesFile::Options o; o.applicationName = "JUNiO601"; o.filenameSuffix = ".settings";
-    juce::PropertiesFile props(o); props.setValue("lastPath", path); props.saveIfNeeded();
-}
-
-void PresetManager::setP(juce::AudioProcessorValueTreeState& apvts, juce::String id, float v) { 
-    if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(v); 
-}
-void PresetManager::setI(juce::AudioProcessorValueTreeState& apvts, juce::String id, int v) { 
-    if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1((float)v)); 
-}
-void PresetManager::setB(juce::AudioProcessorValueTreeState& apvts, juce::String id, bool v) { 
-    if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(v ? 1.0f : 0.0f); 
-}
-
 void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts) {
-    auto& r = juce::Random::getSystemRandom();
-    
-    // 1. DCO Core (Classic Juno ranges)
-    setI(apvts, "dcoRange", r.nextFloat() < 0.7f ? 1 : (r.nextBool() ? 0 : 2)); // Favor 8' (1)
-    
-    bool saw = r.nextFloat() < 0.8f;
-    setB(apvts, "sawOn", saw); 
-    setB(apvts, "pulseOn", !saw || r.nextFloat() < 0.6f);
-    
-    setP(apvts, "subOsc", r.nextFloat() * 0.7f + 0.1f);  // Always some sub for "weight"
-    setP(apvts, "noise", r.nextFloat() < 0.2f ? r.nextFloat() * 0.3f : 0.0f); // Noise is rare
-    
-    setP(apvts, "pwm", r.nextFloat()); 
-    setI(apvts, "pwmMode", r.nextFloat() < 0.3f ? 1 : 0); // Mostly manual PWM
-    
-    // 2. VCF (Keep it sounding good)
-    setP(apvts, "vcfFreq", 0.35f + (r.nextFloat() * 0.55f)); // Don't close too much
-    setP(apvts, "resonance", r.nextFloat() < 0.8f ? r.nextFloat() * 0.6f : r.nextFloat() * 0.9f); // Rare scream
-    setP(apvts, "envAmount", 0.3f + r.nextFloat() * 0.6f);
-    setI(apvts, "vcfPolarity", 0); // Mostly positive env
-    setP(apvts, "kybdTracking", r.nextFloat() < 0.5f ? 0.5f : r.nextFloat());
-    
-    // 3. HPF (Position 0 and 1 are the most musical)
-    float hpfProb = r.nextFloat();
-    if (hpfProb < 0.5f)      setI(apvts, "hpfFreq", 0); // Boost
-    else if (hpfProb < 0.85f) setI(apvts, "hpfFreq", 1); // Bypass
-    else if (hpfProb < 0.95f) setI(apvts, "hpfFreq", 2); 
-    else                     setI(apvts, "hpfFreq", 3);
-
-    // 4. ENV (Useful shapes)
-    setP(apvts, "attack", r.nextFloat() < 0.6f ? 0.0f : r.nextFloat() * 0.3f); // Mostly fast
-    setP(apvts, "decay", 0.2f + r.nextFloat() * 0.6f);
-    setP(apvts, "sustain", 0.2f + r.nextFloat() * 0.8f);
-    setP(apvts, "release", 0.15f + r.nextFloat() * 0.5f);
-    setI(apvts, "vcaMode", 0); // Mostly ENV mode
-    setP(apvts, "vcaLevel", 0.8f + r.nextFloat() * 0.2f);
-    
-    // 5. LFO & Chorus (The Soul)
-    setP(apvts, "lfoRate", 0.2f + r.nextFloat() * 0.4f);
-    setP(apvts, "lfoDelay", r.nextFloat() * 0.3f);
-    setP(apvts, "lfoToDCO", r.nextFloat() < 0.2f ? r.nextFloat() * 0.1f : 0.0f);
-    setP(apvts, "lfoToVCF", r.nextFloat() < 0.3f ? r.nextFloat() * 0.2f : 0.0f);
-
-    // CHORUS IS KING: 90% chance of being active
-    if (r.nextFloat() < 0.9f) {
-        int mode = r.nextInt(3); 
-        setB(apvts, "chorus1", mode == 0 || mode == 2);
-        setB(apvts, "chorus2", mode == 1 || mode == 2);
-    } else {
-        setB(apvts, "chorus1", false);
-        setB(apvts, "chorus2", false);
+    auto& random = juce::Random::getSystemRandom();
+    for (auto* param : apvts.processor.getParameters()) {
+        if (auto* p = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
+            p->setValueNotifyingHost(random.nextFloat());
+        }
     }
 }
 
 void PresetManager::triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts) {
-    auto& r = juce::Random::getSystemRandom();
-    juce::StringArray sliders = {
-        "lfoRate", "lfoDelay", "lfoToDCO", "pwm", "noise", "vcfFreq", "resonance",
-        "envAmount", "lfoToVCF", "kybdTracking", "vcaLevel", "attack", "decay", "sustain", "release", "subOsc"
-    };
+    randomizeCurrentParameters(apvts);
+}
 
-    for (const auto& id : sliders) {
-        if (r.nextFloat() < 0.2f) { 
-            if (auto* p = apvts.getParameter(id)) {
-                float v = p->getValue();
-                uint8_t byte = static_cast<uint8_t>(v * 127.0f);
-                if (r.nextBool()) byte ^= (1 << r.nextInt(7)); 
-                else byte = (r.nextBool() ? 0x00 : 0x7F);
-                p->setValueNotifyingHost(static_cast<float>(byte) / 127.0f);
-            }
-        }
-    }
+void PresetManager::exportCurrentPresetToJson(const juce::File& file) {
+    auto p = this->getCurrentPreset();
+    auto vt = p.toValueTree();
+    file.replaceWithText(vt.toXmlString());
 }
 
 void PresetManager::exportCurrentPresetToTape(const juce::File& file) {
-    if (currentLibIdx_ < 0 || currentPresetIdx_ < 0) return;
-    auto patchBytes = stateToBytes(getPreset(currentPresetIdx_)->state);
-    double sampleRate = 44100.0;
-    auto audioBuffer = JunoTapeEncoder::encodePatches({ patchBytes }, sampleRate);
+    auto p = this->getCurrentPreset();
+    auto bytes = stateToBytes(p.state);
+    
+    auto buffer = JunoTapeEncoder::encodePatches({bytes}, 44100.0);
+    
     juce::WavAudioFormat wavFormat;
-    std::unique_ptr<juce::OutputStream> outStream = file.createOutputStream();
-    if (outStream != nullptr) {
-        auto options = juce::AudioFormatWriterOptions().withSampleRate(sampleRate).withNumChannels(1).withBitsPerSample(16);
-        if (auto writer = std::unique_ptr<juce::AudioFormatWriter>(wavFormat.createWriterFor(outStream, options))) {
-            writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
+    if (auto writer = std::unique_ptr<juce::AudioFormatWriter>(wavFormat.createWriterFor(new juce::FileOutputStream(file), 44100.0, 1, 16, {}, 0)))
+    {
+        writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+    }
+}
+
+void PresetManager::exportLibraryToJson(const juce::File& file) {
+    auto vt = toValueTree();
+    file.replaceWithText(vt.toXmlString());
+}
+
+ABD::Preset PresetManager::createPresetFromJunoPatch(const struct JunoPatch& p) {
+    uint8_t b[18];
+    b[0] = p.lfoRate; b[1] = p.lfoDelay; b[2] = p.lfoToDCO; b[3] = p.pwm; b[4] = p.noise;
+    b[5] = p.vcfFreq; b[6] = p.resonance; b[7] = p.envAmount; b[8] = p.lfoToVCF;
+    b[9] = p.kybdTracking; b[10] = p.vcaLevel; b[11] = p.attack; b[12] = p.decay;
+    b[13] = p.sustain; b[14] = p.release; b[15] = p.subOsc; b[16] = p.sw1; b[17] = p.sw2;
+    
+    auto state = bytesToState(b, 18);
+    ABD::Preset preset;
+    preset.name = p.name;
+    preset.category = "Factory";
+    preset.state = state;
+
+    for (int i = 0; i < 128; ++i) {
+        if (&junoFactoryPatches[i] == &p) {
+            preset.originGroup = i / 64;
+            preset.originBank  = ((i % 64) / 8) + 1;
+            preset.originPatch = (i % 8) + 1;
+            break;
         }
+    }
+    return preset;
+}
+
+ABD::Preset PresetManager::createPresetFromJunoBytes(const juce::String& name, const unsigned char* bytes) {
+    auto state = bytesToState(bytes, 18);
+    ABD::Preset preset;
+    preset.name = name;
+    preset.category = "Imported";
+    preset.state = state;
+    return preset;
+}
+
+void PresetManager::selectPreset(int libIdx, int presetIdx) {
+    this->selectLibrary(libIdx);
+    this->setCurrentPreset(presetIdx);
+}
+
+void PresetManager::selectPresetByBankAndPatch(int group, int bank, int patch) {
+    int factoryIdx = this->getLibraryIndex("Factory");
+    if (factoryIdx < 0) return;
+    int absIdx = (group * 64) + ((bank - 1) * 8) + (patch - 1);
+    this->selectPreset(factoryIdx, absIdx);
+}
+
+juce::Result PresetManager::saveCurrentPresetFromState(juce::AudioProcessorValueTreeState& apvts) {
+    if (this->currentLibIdx_ < 0 || this->currentPresetIdx_ < 0) return juce::Result::fail("Selection error");
+    this->libraries_[this->currentLibIdx_].patches[this->currentPresetIdx_].state = apvts.copyState();
+    ABD::PresetManagerBase::writeUserPresets();
+    this->saveBrowserData();
+    return juce::Result::ok();
+}
+
+juce::Result PresetManager::saveAsNewPresetFromState(juce::AudioProcessorValueTreeState& apvts, const juce::String& newName, const juce::String& category, const juce::String& author, const juce::String& tags, const juce::String& notes) {
+    int userIdx = this->getLibraryIndex("User");
+    if (userIdx < 0) { this->addLibrary("User"); userIdx = (int)this->libraries_.size() - 1; }
+    
+    ABD::Preset p;
+    p.name = newName;
+    p.category = category.isEmpty() ? "User" : category;
+    p.author = author;
+    p.tags = tags;
+    p.notes = notes;
+    p.creationDate = juce::Time::getCurrentTime().toString(true, true);
+    p.isFavorite = false;
+    p.state = apvts.copyState();
+    
+    this->libraries_[userIdx].patches.push_back(p);
+    ABD::PresetManagerBase::writeUserPresets();
+    this->saveBrowserData();
+    return juce::Result::ok();
+}
+
+juce::ValueTree PresetManager::toValueTree() const {
+    juce::ValueTree root("BankManager");
+    root.setProperty("currentLib", this->currentLibIdx_, nullptr);
+    root.setProperty("currentPreset", this->currentPresetIdx_, nullptr);
+    for (const auto& lib : this->libraries_) {
+        juce::ValueTree libVT("Library");
+        libVT.setProperty("name", lib.name, nullptr);
+        for (const auto& p : lib.patches) libVT.addChild(p.toValueTree(), -1, nullptr);
+        root.addChild(libVT, -1, nullptr);
+    }
+    return root;
+}
+
+void PresetManager::saveBrowserData() {
+    auto dir = this->getUserPresetsDirectory();
+    auto file = dir.getSiblingFile("browser_state.xml");
+    juce::Logger::writeToLog("[JUNiO] Saving browser state to: " + file.getFullPathName());
+    auto vt = toValueTree();
+    std::unique_ptr<juce::XmlElement> xml (vt.createXml());
+    if (xml != nullptr) {
+        if (xml->writeTo(file))
+            juce::Logger::writeToLog("[JUNiO] Browser state saved successfully");
+        else
+            juce::Logger::writeToLog("[JUNiO] FAILED to save browser state to: " + file.getFullPathName());
+    }
+}
+
+void PresetManager::loadBrowserData() {
+    auto dir = this->getUserPresetsDirectory();
+    auto file = dir.getSiblingFile("browser_state.xml");
+    if (file.existsAsFile()) {
+        std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse(file));
+        if (xml != nullptr) fromValueTree(juce::ValueTree::fromXml(*xml));
+    } else {
+        // Only load legacy JSONs if advanced state is missing
+        ABD::PresetManagerBase::loadBrowserData();
+    }
+}
+
+void PresetManager::fromValueTree(const juce::ValueTree& vt) {
+    if (!vt.hasType("BankManager")) return;
+    this->libraries_.clear();
+    loadFactoryPresets(); // Ensure factory presets are always present
+    for (int i = 0; i < vt.getNumChildren(); ++i) {
+        auto libVT = vt.getChild(i);
+        if (libVT.hasType("Library")) {
+            juce::String libName = libVT.getProperty("name", "Unknown");
+            if (libName == "Factory") continue; // Skip as we just loaded it
+            
+            ABD::Library lib;
+            lib.name = libName;
+            for (int j = 0; j < libVT.getNumChildren(); ++j) {
+                auto pVT = libVT.getChild(j);
+                if (pVT.hasType("Preset")) { ABD::Preset p; p.fromValueTree(pVT); lib.patches.push_back(p); }
+            }
+            this->libraries_.push_back(lib);
+        }
+    }
+    this->currentLibIdx_ = juce::jlimit(0, std::max(0, (int)this->libraries_.size() - 1), (int)vt.getProperty("currentLib", 0));
+    this->currentPresetIdx_ = (int)vt.getProperty("currentPreset", 0);
+}
+
+std::vector<const ABD::Preset*> PresetManager::getFilteredPresets(const juce::String& category, const juce::String& searchText, bool favoritesOnly) const {
+    std::vector<const ABD::Preset*> filtered;
+    for (const auto& lib : this->libraries_) {
+        for (const auto& p : lib.patches) {
+            if (favoritesOnly && !p.isFavorite) continue;
+            if (category.isNotEmpty() && category != "All" && p.category != category) continue;
+            if (searchText.isNotEmpty() && !p.name.containsIgnoreCase(searchText) && !p.author.containsIgnoreCase(searchText) && !p.tags.containsIgnoreCase(searchText)) continue;
+            filtered.push_back(&p);
+        }
+    }
+    return filtered;
+}
+
+void PresetManager::setFavorite(int libIdx, int presetIdx, bool isFav) {
+    if (libIdx >= 0 && libIdx < (int)this->libraries_.size() && presetIdx >= 0 && presetIdx < (int)this->libraries_[libIdx].patches.size()) {
+        this->libraries_[libIdx].patches[presetIdx].isFavorite = isFav;
+        if (this->libraries_[libIdx].name == "User") ABD::PresetManagerBase::writeUserPresets();
+        this->saveBrowserData();
+    }
+}
+
+void PresetManager::updateMetadata(int libIdx, int presetIdx, const juce::String& newName, const juce::String& author, const juce::String& tags, const juce::String& notes) {
+    if (libIdx >= 0 && libIdx < (int)this->libraries_.size() && presetIdx >= 0 && presetIdx < (int)this->libraries_[libIdx].patches.size()) {
+        auto& p = this->libraries_[libIdx].patches[presetIdx];
+        if (newName.isNotEmpty()) p.name = newName;
+        p.author = author; p.tags = tags; p.notes = notes;
+        if (this->libraries_[libIdx].name == "User") ABD::PresetManagerBase::writeUserPresets();
+        this->saveBrowserData();
     }
 }

@@ -28,6 +28,8 @@ public:
     void showSettingsCallback();
     void showServiceModeCallback();
     void postMessage(const juce::String& json);
+    void sendPresetListUpdate();
+    void sendBankPatchUpdate (int group, int bank, int patch);
 
 private:
     ABDSimpleJuno106AudioProcessor& audioProcessor;
@@ -39,6 +41,7 @@ private:
     void updateSysExInJS();
     void updateLCDInJS (const juce::String& text);
     void dispatchToJS(const juce::Identifier& eventId, const juce::var& payload);
+    void writeLog(const juce::String& msg);
 
     juce::MidiMessage lastSysEx;
     int lastPresetIndex = -1;

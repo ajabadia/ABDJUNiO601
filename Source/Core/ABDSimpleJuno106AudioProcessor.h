@@ -6,7 +6,7 @@
 #include <atomic>
 #include <cmath>
 #include <algorithm>
-#include "../Synth/Voice.h"
+#include "../Synth/JunoVoice.h"
 #include "JunoVoiceManager.h"
 #include "JunoSysEx.h"
 #include "MidiLearnHandler.h"
@@ -50,6 +50,10 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
+    
+    // [0006.txt] State management
+    void migrateStateIfNeeded(juce::ValueTree& state, int formatVersion, const juce::String& pluginVersion);
+    void notifyUIOfStateChange();
     
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
     class PresetManager* getPresetManager();
@@ -100,12 +104,16 @@ public:
             p->setValueNotifyingHost(p->getValue() > 0.5f ? 0.0f : 1.0f);
     }
 
-    CalibrationSettings& getCalibrationSettings();
     ServiceModeManager& getServiceModeManager();
-    // Getters for bridge and diagnostic access
-    // apvts and voiceManager are accessible via getters defined earlier:
-    // getAPVTS() at line 54
-    // getVoiceManager() at line 56
+
+    // [Advanced Browser] A/B Compare & WIP
+    void switchABSlot(int slot);
+    void copyCurrentToAlternateSlot();
+    void updateMetadata(const SynthParams& newParams);
+    int getWipCount() const;
+    int getActiveABSlot() const { return activeSlot; }
+    void sendParamUpdateToUI();
+    CalibrationSettings& getCalibrationSettings() { return *calibrationSettings; }
 
 private:
     juce::UndoManager undoManager;
@@ -115,6 +123,11 @@ private:
     JunoVoiceManager voiceManager;
     SynthParams currentParams;
     SynthParams lastParams;
+    
+    // [Advanced Browser] A/B Slots
+    SynthParams slotA, slotB;
+    int activeSlot = 0; // 0=A, 1=B
+
     std::atomic<bool> needsVoiceReset { false };
 
 
@@ -165,7 +178,6 @@ private:
     float currentPowerSag = 0.0f;
     std::atomic<float> currentAftertouch { 0.0f };
     float chorusFade = 0.0f;
-    float chorusHiss = 1.0f; // [New] User control over BBD Hiss level
     int midiFunction = 2; // [New] 0=I, 1=II, 2=III
     float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading
 

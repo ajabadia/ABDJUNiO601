@@ -62,25 +62,23 @@ struct SynthParams {
     
     // [Modern] Modernization Features
     float unisonDetune = 0.5f;  // 0.0 to 1.0 (mapped to cents)
-    float chorusMix = 1.0f;     // 0.0 to 1.0 (Mix factor)
     float velocitySens = 0.5f;  
     float lcdBrightness = 0.8f; 
     int numVoices = 16;         
     bool sustainInverted = false;
     bool midiOut = false;       
-    float chorusHiss = 1.0f; // [New] User control over BBD Hiss level
     int midiFunction = 2; // [New] 0=I, 1=II, 2=III
     float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading
     float aftertouchToVCF = 0.5f; // [New] Aftertouch -> VCF intensity
     float currentAftertouch = 0.0f; // [New] Current global aftertouch value
     bool lowCpuMode = false;        // [New] Reduce Hiss and use cheaper saturation
+    int sustainMode = 0;           // [New] 0=Normal, 1=SOS, 2=Toggle
     
     // [Calibration] Dynamic values from CalibrationManager
     float adsrSlewMs = 1.5f;
     float adsrAttackFactor = 0.35f;
     float dcoMixerGain = 0.7f;
     float subAmpScale = 1.0f;
-    float chorusHissLvl = -52.0f;
     
     // [Build 25/27] LFO Calibration
     float lfoMaxRate = 30.0f;
@@ -121,13 +119,72 @@ struct SynthParams {
     float pwmOffset = 0.0f;
     float voiceVariance = 2.0f;
     float unisonSpread = 1.0f;
+    
+    // [Advanced Fidelity]
+    float dcoGlobalDrift = 0.5f;
+    float dcoVoiceDrift = 0.3f;
+    float vcfLfoDepth = 0.3f;
+    float vcfEnvRange = 2.0f;
+    float vcfSelfOscInt = 0.5f;
+    float vcfTrackCenter = 440.0f;
+    float adsrMcuRate = 3.0f;
+    float adsrDacSteps = 1024.0f;
+    float adsrOvershoot = 1.08f;
+    float vcaRippleDepth = 0.0005f;
+    float chorusHissColor = 0.4f;
+    float lfoDelayCurve = 5.0f;
+    float dcoDriftRate = 0.008f;
+    float dcoLfoPitchDepth = 0.4f;
+    float chorusHiss = 1.0f;        // [Moved here for full sync/persistence]
+    float chorusMix = 1.0f;         // [Moved here for full sync/persistence]
+    float chorusHissLvl = 1.0f;      // [New] Calibration level
+
+    // [Thermal Expansion]
+    float thermalInertia = 1024.0f;
+    float thermalMigration = 0.0005f;
+    float masterOutputGain = 1.0f;
+    float masterPitchCents = 0.0f;
+    float masterClockHz = 8000000.0f;
+    float a4Reference = 440.0f;     // [New] Master tuning ref
+    int oversampling = 1;          // [New] 1x, 2x, 4x
+    float sliderHysteresis = 0.01f; // [New] Pot wear simulation
+    float paramSlewRate = 0.95f;    // [New] Hardware lag simulation
+    float vcaKillThreshold = 0.004f; // [New] Silence threshold
+    float vcaDcOffset = 0.0f;       // [New] Per-voice imbalance
+    float chorusLfoRate = 0.513f;   // [New] BBD LFO speed
+    float vcfResoSpread = 0.05f;    // [New] 80017A chip tolerance (resonance)
+    float pwmCenterDuty = 0.5f;     // [New] PWM calibration
+    float pwmMaxDuty = 0.95f;
+    float pwmMinDuty = 0.05f;
+    float vcfWidth = 1.0f;          // [New] V/oct scaling
+    float dcoDriftComplexity = 0.5f; // [New] Fractal noise depth
+    float vcaOffset = 0.0f;         // [New] Per-voice hardware bias
+
+    // --- Metadata ---
+    juce::String patchName = "INITIAL PATCH";
+    juce::String author = "ABD-IA";
+    juce::String category = "Unknown";
+    juce::String tags = "";
+    juce::String notes = "";
+    juce::String creationDate = "";
+    bool isFavorite = false;
 
     // Diagnostic Cycle States (Read-only for UI)
     int hpfCyclePos = -1; // -1 = Off, 0-3 = Active position
     int chorusCycleMode = -1; // -1 = Off, 0=Off, 1=I, 2=II, 3=Both
 
-    bool isSamePatch(const SynthParams& other) const {
+    bool isSamePatch(const SynthParams& other, bool includeMetadata = false) const {
         const float tol = 0.008f; // [Fix] Increased tolerance for 7-bit SysEx quantization (1/127 approx 0.0078)
+        
+        if (includeMetadata)
+        {
+            if (patchName != other.patchName || author != other.author || 
+                category != other.category || tags != other.tags || 
+                notes != other.notes || creationDate != other.creationDate || 
+                isFavorite != other.isFavorite)
+                return false;
+        }
+
         return dcoRange == other.dcoRange &&
                sawOn == other.sawOn &&
                pulseOn == other.pulseOn &&

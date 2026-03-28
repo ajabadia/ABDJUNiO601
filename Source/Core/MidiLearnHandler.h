@@ -88,13 +88,13 @@ public:
     /** Serializes mappings to a ValueTree */
     juce::ValueTree saveState() const
     {
-        juce::ValueTree vt("MIDI_MAPPINGS");
+        juce::ValueTree vt("MidiLearn");
         for (auto const& [cc, id] : ccToParam)
         {
-            juce::ValueTree entry("MAP");
+            juce::ValueTree entry("Mapping");
             entry.setProperty("cc", cc, nullptr);
-            entry.setProperty("param", id, nullptr);
-            vt.appendChild(entry, nullptr);
+            entry.setProperty("paramID", id, nullptr);
+            vt.addChild(entry, -1, nullptr);
         }
         return vt;
     }
@@ -102,20 +102,18 @@ public:
     /** Deserializes mappings from a ValueTree */
     void loadState(const juce::ValueTree& vt)
     {
-        ccToParam.clear(); // Ensure clean slate even if VT is invalid/empty
+        ccToParam.clear();
 
-        if (vt.getType() != juce::Identifier("MIDI_MAPPINGS")) return;
+        if (vt.getType().toString() != "MidiLearn") return;
         for (int i = 0; i < vt.getNumChildren(); ++i)
         {
             auto child = vt.getChild(i);
-            if (child.getType() == juce::Identifier("MAP"))
+            if (child.hasType("Mapping"))
             {
-                int cc = child.getProperty("cc");
-                juce::String id = child.getProperty("param");
+                int cc = child.getProperty("cc", -1);
+                juce::String id = child.getProperty("paramID", "");
                 if (cc >= 0 && cc <= 127 && id.isNotEmpty())
-                {
                     ccToParam[cc] = id;
-                }
             }
         }
     }

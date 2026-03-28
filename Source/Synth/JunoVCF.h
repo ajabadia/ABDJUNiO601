@@ -32,17 +32,17 @@ public:
      * @param noteHz      frecuencia fundamental de la voz en Hz
      * @return            muestra filtrada
      */
-    float processSample (float input,
-                         float cutoff01,
-                         float resonance,
-                         float envMod,
-                         float lfoMod,
-                         float kybdTrack,
-                         float noteHz,
+    float processSample (float input, 
+                         float cutoff01, float resonance,
+                         float envMod, float lfoMod, 
+                         float kybdTrack, float noteHz,
                          float minHz = 18.0f,
                          float maxHz = 18000.0f,
                          float selfOscThreshold = 0.92f,
-                         float saturationScale = 1.0f);
+                         float saturationScale = 1.0f,
+                         float selfOscInt = 0.5f,
+                         float trackCenterHz = 440.0f,
+                         float vcfWidth = 1.0f);
 
 private:
     float computeCutoffHz (float cutoff01,
@@ -51,9 +51,11 @@ private:
                            float kybdTrack,
                            float noteHz,
                            float minHz,
-                           float maxHz) const;
+                           float maxHz,
+                           float trackCenterHz,
+                           float vcfWidth) const;
 
-    float computeResonanceFeedback (float res01, float selfOscThreshold) const;
+    float computeResonanceFeedback (float res01, float selfOscThreshold, float selfOscInt) const;
 
     // Saturación Padé 3/3: aproximación de tanh, simétrica, cara OTA
     static inline float stageSaturate (float x, float scale = 1.0f) noexcept;

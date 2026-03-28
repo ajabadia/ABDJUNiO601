@@ -113,9 +113,22 @@ body {
 }
 
 .styled-scroll::-webkit-scrollbar {
-    width: 4px;
+    width: 8px;
 }
 
 .styled-scroll::-webkit-scrollbar-thumb {
-    background: #333;
+    background: #555;
+    border-radius: 4px;
 }
+
+.styled-scroll::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.styled-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.hidden {
+    display: none !important;
+}

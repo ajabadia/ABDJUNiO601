@@ -5,6 +5,7 @@
  #include "PluginEditor.h"
  #include "../UI/WebView/WebViewEditor.h"
 #endif
+#include "PresetManager.h"
 #include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
 #include "../Synth/ChorusBBD.h"
@@ -12,7 +13,6 @@
 
 using namespace JunoConstants;
 
-CalibrationSettings& ABDSimpleJuno106AudioProcessor::getCalibrationSettings() { return *calibrationSettings; }
 ServiceModeManager& ABDSimpleJuno106AudioProcessor::getServiceModeManager() { return *serviceModeManager; }
 
 //==============================================================================
@@ -630,6 +630,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.pwmOffset = calibrationSettings->getValue("pwmOffset") / 100.0f; // UI is %
     p.voiceVariance = calibrationSettings->getValue("voiceVariance");
     p.unisonSpread = calibrationSettings->getValue("unisonSpread");
+    p.dcoDriftComplexity = calibrationSettings->getValue("dcoDriftComplexity");
 
     // [Build 25/29] Filter Calibration
     p.vcfMinHz = calibrationSettings->getValue("vcfMinHz");
@@ -637,6 +638,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.vcfSelfOscThreshold = calibrationSettings->getValue("vcfSelfOscThreshold");
     p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
     p.vcfSaturation = calibrationSettings->getValue("vcfSaturation");
+    p.vcfWidth = calibrationSettings->getValue("vcfWidth");
 
     // [Build 28] HPF Calibration
     p.hpfFreq2 = calibrationSettings->getValue("hpfFreq2");
@@ -648,6 +650,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     // [Build 29] VCA Calibration
     p.vcaMasterGain = calibrationSettings->getValue("vcaMasterGain");
     p.vcaVelSensScale = calibrationSettings->getValue("vcaVelSensScale");
+    p.vcaOffset = calibrationSettings->getValue("vcaOffset");
     
     // [Build 29] Envelope Calibration
     p.adsrSlewMs = calibrationSettings->getValue("adsrSlewMs");
@@ -670,6 +673,15 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     // [Build 29] Diagnostic Cycle States
     p.hpfCyclePos = serviceModeManager->getHpfCyclePos();
     p.chorusCycleMode = serviceModeManager->getChorusCycleMode();
+
+    // Copy metadata from current state
+    p.patchName     = currentParams.patchName;
+    p.author        = currentParams.author;
+    p.category      = currentParams.category;
+    p.tags          = currentParams.tags;
+    p.notes         = currentParams.notes;
+    p.creationDate  = currentParams.creationDate;
+    p.isFavorite    = currentParams.isFavorite;
 
     return p;
 }
@@ -729,6 +741,7 @@ void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
         }
+        notifyUIOfStateChange();
     }
 }
 
@@ -797,20 +810,68 @@ juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcess
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new ABDSimpleJuno106AudioProcessor(); }
 bool ABDSimpleJuno106AudioProcessor::hasEditor() const { return true; }
-juce::AudioProcessorEditor* ABDSimpleJuno106AudioProcessor::createEditor() { return new WebViewEditor (*this); }
+juce::AudioProcessorEditor* ABDSimpleJuno106AudioProcessor::createEditor() { 
+    editor = new WebViewEditor (*this); 
+    return editor; 
+}
 
 void ABDSimpleJuno106AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts.copyState();
+    
+    // [0006.txt] Add Session node for non-automatable state
+    juce::ValueTree session("Session");
+    session.setProperty("version", 2, nullptr);
+    session.setProperty("currentBank", (presetManager ? presetManager->getActiveLibraryIndex() : 0), nullptr);
+    session.setProperty("currentPreset", (presetManager ? presetManager->getCurrentPresetIndex() : 0), nullptr);
+    session.setProperty("activeABSlot", activeSlot, nullptr);
+    
+    // Current Metadata
+    session.setProperty("patchName", currentParams.patchName, nullptr);
+    session.setProperty("author",    currentParams.author, nullptr);
+    session.setProperty("category",  currentParams.category, nullptr);
+    session.setProperty("tags",      currentParams.tags, nullptr);
+    session.setProperty("notes",     currentParams.notes, nullptr);
+    session.setProperty("date",      currentParams.creationDate, nullptr);
+    session.setProperty("favorite",  currentParams.isFavorite, nullptr);
+
+    state.addChild(session, -1, nullptr);
+
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
+
 void ABDSimpleJuno106AudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState != nullptr) if (xmlState->hasTagName(apvts.state.getType())) {
-        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+    if (xmlState != nullptr && xmlState->hasTagName(apvts.state.getType())) {
+        auto tree = juce::ValueTree::fromXml(*xmlState);
+        apvts.replaceState(tree);
+        
+        // Restore Session State if available (v2)
+        auto session = tree.getChildWithName("Session");
+        if (session.isValid()) {
+            activeSlot = session.getProperty("activeABSlot", 0);
+            
+            currentParams.patchName    = session.getProperty("patchName", "Initial Patch").toString();
+            currentParams.author       = session.getProperty("author", "").toString();
+            currentParams.category     = session.getProperty("category", "Uncategorized").toString();
+            currentParams.tags         = session.getProperty("tags", "").toString();
+            currentParams.notes        = session.getProperty("notes", "").toString();
+            currentParams.creationDate = session.getProperty("date", "").toString();
+            currentParams.isFavorite   = session.getProperty("favorite", false);
+            
+            int bank = session.getProperty("currentBank", 0);
+            int preset = session.getProperty("currentPreset", 0);
+            if (presetManager) {
+                presetManager->selectLibrary(bank);
+                // We don't necessarily load the preset here to avoid overwriting session tweaks,
+                // but we keep the index synced for the UI.
+            }
+        }
+
         updateParamsFromAPVTS();
         voiceManager.updateParams(currentParams);
         voiceManager.forceUpdate();
+        notifyUIOfStateChange();
     }
 }
 void ABDSimpleJuno106AudioProcessor::loadTuningFile() {
@@ -843,4 +904,114 @@ void ABDSimpleJuno106AudioProcessor::resetTuning() {
 
 juce::MidiMessage ABDSimpleJuno106AudioProcessor::getCurrentSysExData() {
     return lastSysExMessage;
+}
+
+void ABDSimpleJuno106AudioProcessor::switchABSlot(int slot)
+{
+    if (slot == activeSlot) return;
+
+    // Save current parameters to the snapshot of the soon-to-be-inactive slot
+    if (activeSlot == 0) slotA = getMirrorParameters();
+    else                 slotB = getMirrorParameters();
+
+    activeSlot = slot;
+    const auto& newParams = (activeSlot == 0) ? slotA : slotB;
+
+    // Apply snapshot to APVTS (this triggers updateParamsFromAPVTS via listeners effectively)
+    auto setParam = [&](juce::String id, float val) {
+        if (auto* p = apvts.getParameter(id))
+            p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1(val));
+    };
+
+    setParam("dcoRange", (float)newParams.dcoRange);
+    setParam("sawOn", newParams.sawOn ? 1.0f : 0.0f);
+    setParam("pulseOn", newParams.pulseOn ? 1.0f : 0.0f);
+    setParam("pwm", newParams.pwmAmount);
+    setParam("pwmMode", (float)newParams.pwmMode);
+    setParam("subOsc", newParams.subOscLevel);
+    setParam("noise", newParams.noiseLevel);
+    setParam("lfoToDCO", newParams.lfoToDCO);
+    setParam("hpfFreq", (float)newParams.hpfFreq);
+    setParam("vcfFreq", newParams.vcfFreq);
+    setParam("resonance", newParams.resonance);
+    setParam("envAmount", newParams.envAmount);
+    setParam("lfoToVCF", newParams.lfoToVCF);
+    setParam("kybdTracking", newParams.kybdTracking);
+    setParam("vcfPolarity", (float)newParams.vcfPolarity);
+    setParam("vcaMode", (float)newParams.vcaMode);
+    setParam("vcaLevel", newParams.vcaLevel);
+    setParam("attack", newParams.attack);
+    setParam("decay", newParams.decay);
+    setParam("sustain", newParams.sustain);
+    setParam("release", newParams.release);
+    setParam("lfoRate", newParams.lfoRate);
+    setParam("lfoDelay", newParams.lfoDelay);
+    setParam("chorus1", newParams.chorus1 ? 1.0f : 0.0f);
+    setParam("chorus2", newParams.chorus2 ? 1.0f : 0.0f);
+
+    // Also update current metadata
+    currentParams.patchName     = newParams.patchName;
+    currentParams.author        = newParams.author;
+    currentParams.category      = newParams.category;
+    currentParams.tags          = newParams.tags;
+    currentParams.notes         = newParams.notes;
+    currentParams.creationDate  = newParams.creationDate;
+    currentParams.isFavorite    = newParams.isFavorite;
+
+    notifyUIOfStateChange();
+}
+
+void ABDSimpleJuno106AudioProcessor::copyCurrentToAlternateSlot()
+{
+    if (activeSlot == 0) slotB = getMirrorParameters();
+    else                 slotA = getMirrorParameters();
+}
+
+int ABDSimpleJuno106AudioProcessor::getWipCount() const
+{
+    if (presetManager)
+    {
+        int wipIdx = presetManager->getLibraryIndex("WIP");
+        if (wipIdx >= 0)
+        {
+            const auto& lib = presetManager->getLibrary(wipIdx);
+            return (int)lib.patches.size();
+        }
+    }
+    return 0; 
+}
+
+void ABDSimpleJuno106AudioProcessor::updateMetadata(const SynthParams& newParams)
+{
+    currentParams.patchName    = newParams.patchName;
+    currentParams.author       = newParams.author;
+    currentParams.category     = newParams.category;
+    currentParams.tags         = newParams.tags;
+    currentParams.notes        = newParams.notes;
+    currentParams.creationDate = newParams.creationDate;
+    currentParams.isFavorite   = newParams.isFavorite;
+
+    notifyUIOfStateChange();
+}
+
+void ABDSimpleJuno106AudioProcessor::notifyUIOfStateChange()
+{
+    // Notify the host that the state has changed
+    updateHostDisplay();
+    
+    // Custom trigger for WebViewEditor if needed
+    if (editor != nullptr) {
+        if (auto* wv = dynamic_cast<WebViewEditor*>(editor)) {
+            wv->sendPresetListUpdate();
+            if (presetManager) {
+                const auto& p = presetManager->getCurrentPreset();
+                wv->sendBankPatchUpdate(p.originGroup, p.originBank, p.originPatch);
+            }
+        }
+    }
+}
+
+void ABDSimpleJuno106AudioProcessor::sendParamUpdateToUI()
+{
+    // Trigger any specific refresh logic in the editor
 }

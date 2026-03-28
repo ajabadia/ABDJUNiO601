@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include "PresetManager.h"
+#include "../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
 #include "BuildVersion.h"
 #include "../Core/JunoTapeEncoder.h" 
 
@@ -48,9 +49,8 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
     // --- CONNECT LOGIC ---
     
     // Preset Load
-    bankSection.presetBrowser.onPresetChanged = [this](const juce::String&) {
-         int idx = bankSection.presetBrowser.getPresetManager().getCurrentPresetIndex();
-         audioProcessor.loadPreset(idx);
+    bankSection.presetBrowser.onPresetSelected = [this](int /*libIdx*/, int presetIdx) {
+         audioProcessor.loadPreset(presetIdx);
     };
     
     // Bank Buttons (1-8)
@@ -63,41 +63,41 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
                  return;
              }
 
-             auto& pm = bankSection.presetBrowser.getPresetManager();
+             auto& pm = *audioProcessor.getPresetManager();
              int currentBank = ((pm.getCurrentPresetIndex() % 64) / 8) + 1;
-             int group = (pm.getCurrentPresetIndex() >= 64) ? 1 : 0; // Deduce group from current index
+             int group = (pm.getCurrentPresetIndex() >= 64) ? 1 : 0; 
              pm.selectPresetByBankAndPatch(group, currentBank, i + 1);
-             bankSection.presetBrowser.setPresetIndex(pm.getCurrentPresetIndex());
+             bankSection.presetBrowser.refresh();
              audioProcessor.loadPreset(pm.getCurrentPresetIndex());
         };
     }
     
     // NAVIGATION LOGIC
     auto navPatch = [this](int delta) {
-        auto& pm = bankSection.presetBrowser.getPresetManager();
+        auto& pm = *audioProcessor.getPresetManager();
         int newIdx = pm.getCurrentPresetIndex() + delta;
-        newIdx = juce::jlimit(0, 127, newIdx); // Limit to 0-127
+        newIdx = juce::jlimit(0, 127, newIdx); 
         pm.setCurrentPreset(newIdx);
-        bankSection.presetBrowser.setPresetIndex(newIdx);
+        bankSection.presetBrowser.refresh();
         audioProcessor.loadPreset(newIdx);
     };
     
     auto navBank = [this](int delta) {
-        auto& pm = bankSection.presetBrowser.getPresetManager();
+        auto& pm = *audioProcessor.getPresetManager();
         int current = pm.getCurrentPresetIndex();
         int bank = (current % 64) / 8; // 0-7
         int group = current / 64; // 0-1
         int patch = current % 8; // 0-7
         
         bank += delta;
-        if (bank > 7) { bank = 0; group = 1 - group; } // Wrap banks? Or cycle?
+        if (bank > 7) { bank = 0; group = 1 - group; } 
         if (bank < 0) { bank = 7; group = 1 - group; }
         
         int newIdx = (group * 64) + (bank * 8) + patch;
         newIdx = juce::jlimit(0, 127, newIdx);
         
         pm.setCurrentPreset(newIdx);
-        bankSection.presetBrowser.setPresetIndex(newIdx);
+        bankSection.presetBrowser.refresh();
         audioProcessor.loadPreset(newIdx);
     };
 
@@ -151,7 +151,7 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
     DBG("ABDSimpleJuno106AudioProcessorEditor::Constructor END");
     
     // Initial LCD state
-    lastPresetName = bankSection.presetBrowser.getPresetManager().getCurrentPresetName();
+    lastPresetName = audioProcessor.getPresetManager()->getCurrentPreset().name;
     lcd.setText(lastPresetName);
 }
 
@@ -173,10 +173,10 @@ ABDSimpleJuno106AudioProcessorEditor::~ABDSimpleJuno106AudioProcessorEditor()
 
 void ABDSimpleJuno106AudioProcessorEditor::timerCallback()
 {
-    auto& pm = bankSection.presetBrowser.getPresetManager();
+    auto& pm = *audioProcessor.getPresetManager();
     
     // 1. Detect Preset Change (to update display and state)
-    juce::String currentPreset = pm.getCurrentPresetName();
+    juce::String currentPreset = pm.getCurrentPreset().name;
     if (currentPreset != lastPresetName) {
         lastPresetName = currentPreset;
         
@@ -374,7 +374,7 @@ void ABDSimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int
 void ABDSimpleJuno106AudioProcessorEditor::handleSave()
 {
     auto* aw = new juce::AlertWindow("Save Patch", "Enter name for current patch:", juce::MessageBoxIconType::NoIcon);
-    aw->addTextEditor("name", bankSection.presetBrowser.getPresetManager().getCurrentPresetName());
+    aw->addTextEditor("name", audioProcessor.getPresetManager()->getCurrentPreset().name);
     aw->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
     aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
     
@@ -382,8 +382,8 @@ void ABDSimpleJuno106AudioProcessorEditor::handleSave()
         if (result == 1) {
             juce::String newName = aw->getTextEditorContents("name");
             if (newName.isNotEmpty()) {
-                bankSection.presetBrowser.getPresetManager().saveUserPreset(newName, audioProcessor.getAPVTS().copyState());
-                bankSection.presetBrowser.refreshPresetList();
+                audioProcessor.getPresetManager()->saveAsNewPresetFromState(audioProcessor.getAPVTS(), newName);
+                bankSection.presetBrowser.refresh();
                 lcd.setText("PATCH SAVED: " + newName);
             }
         }
@@ -394,7 +394,7 @@ void ABDSimpleJuno106AudioProcessorEditor::handleSave()
 void ABDSimpleJuno106AudioProcessorEditor::handleLoad()
 {
     fileChooser = std::make_unique<juce::FileChooser> ("Load Patch...", 
-        bankSection.presetBrowser.getPresetManager().getLastPath(), "*.jno");
+        audioProcessor.getPresetManager()->getLastPath(), "*.jno");
         
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
         [this] (const juce::FileChooser& fc) {
@@ -402,8 +402,8 @@ void ABDSimpleJuno106AudioProcessorEditor::handleLoad()
             if (file.existsAsFile()) {
                 bankSection.presetBrowser.getPresetManager().setLastPath(file.getParentDirectory().getFullPathName());
                 // Logic to load .jno
-                bankSection.presetBrowser.getPresetManager().importPresetsFromFile(file);
-                bankSection.presetBrowser.refreshPresetList();
+                audioProcessor.getPresetManager()->importPresetsFromFile(file);
+                bankSection.presetBrowser.refresh();
             }
         });
 }
@@ -411,16 +411,16 @@ void ABDSimpleJuno106AudioProcessorEditor::handleLoad()
 void ABDSimpleJuno106AudioProcessorEditor::handleImportSysex()
 {
     fileChooser = std::make_unique<juce::FileChooser> ("Import SysEx / JNO...", 
-        bankSection.presetBrowser.getPresetManager().getLastPath(), "*.syx;*.jno");
+        audioProcessor.getPresetManager()->getLastPath(), "*.syx;*.jno");
         
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
         [this] (const juce::FileChooser& fc) {
             auto file = fc.getResult();
             if (file.existsAsFile()) {
-                bankSection.presetBrowser.getPresetManager().setLastPath(file.getParentDirectory().getFullPathName());
-                auto res = bankSection.presetBrowser.getPresetManager().importPresetsFromFile(file);
+                audioProcessor.getPresetManager()->setLastPath(file.getParentDirectory().getFullPathName());
+                auto res = audioProcessor.getPresetManager()->importPresetsFromFile(file);
                 if (res.wasOk()) {
-                    bankSection.presetBrowser.refreshPresetList();
+                    bankSection.presetBrowser.refresh();
                     lcd.setText("IMPORT SUCCESSFUL");
                 } else {
                     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Import Error", res.getErrorMessage());
@@ -432,16 +432,16 @@ void ABDSimpleJuno106AudioProcessorEditor::handleImportSysex()
 void ABDSimpleJuno106AudioProcessorEditor::handleLoadTape()
 {
      fileChooser = std::make_unique<juce::FileChooser> ("Load Tape (.wav)...", 
-        bankSection.presetBrowser.getPresetManager().getLastPath(), "*.wav");
+        audioProcessor.getPresetManager()->getLastPath(), "*.wav");
         
     fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
         [this] (const juce::FileChooser& fc) {
             auto file = fc.getResult();
             if (file.existsAsFile()) {
-                bankSection.presetBrowser.getPresetManager().setLastPath(file.getParentDirectory().getFullPathName());
-                auto res = bankSection.presetBrowser.getPresetManager().loadTape(file);
+                audioProcessor.getPresetManager()->setLastPath(file.getParentDirectory().getFullPathName());
+                auto res = audioProcessor.getPresetManager()->loadTape(file);
                 if (res.wasOk()) {
-                    bankSection.presetBrowser.refreshPresetList();
+                    bankSection.presetBrowser.refresh();
                     lcd.setText("TAPE LOADED");
                 } else {
                     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Tape Error", res.getErrorMessage());
@@ -459,8 +459,8 @@ void ABDSimpleJuno106AudioProcessorEditor::handleExportBank()
         [this] (const juce::FileChooser& fc) {
             auto file = fc.getResult();
             if (file != juce::File()) {
-                bankSection.presetBrowser.getPresetManager().setLastPath(file.getParentDirectory().getFullPathName());
-                bankSection.presetBrowser.getPresetManager().exportLibraryToJson(file);
+                audioProcessor.getPresetManager()->setLastPath(file.getParentDirectory().getFullPathName());
+                audioProcessor.getPresetManager()->exportLibraryToJson(file);
                 lcd.setText("BANK EXPORTED");
             }
         });
@@ -468,7 +468,7 @@ void ABDSimpleJuno106AudioProcessorEditor::handleExportBank()
 
 void ABDSimpleJuno106AudioProcessorEditor::handleRandomize()
 {
-    bankSection.presetBrowser.getPresetManager().randomizeCurrentParameters(audioProcessor.getAPVTS());
+    audioProcessor.getPresetManager()->randomizeCurrentParameters(audioProcessor.getAPVTS());
     lcd.setText("RANDOMIZED");
 }
 

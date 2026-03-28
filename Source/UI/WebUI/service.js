@@ -10,6 +10,9 @@ const ServiceMode = {
             console.error("ServiceMode: Failed to load calibration params. Render continue.", e);
         }
         this.renderVoices();
+        
+        // Render GENERAL tab dynamically if container exists
+        this.renderCategory("GENERAL", "general-params-list");
     },
 
     async refreshParams() {
@@ -32,71 +35,106 @@ const ServiceMode = {
 
         container.innerHTML = '';
         
-        // [Build 24/25] Order modules as requested: LFO, DCO, HPF, VCF, VCA, ENV, CHORUS
-        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "CHORUS", "ADSR", "AGING"];
+        // [Build 35] Order modules: LFO, DCO, HPF, VCF, VCA, ADSR, CHORUS, THERMAL, AGING, SYSTEM (GENERAL handled separately)
+        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "ADSR", "CHORUS", "THERMAL", "AGING", "SYSTEM"];
         
         categories.forEach(cat => {
-            const catParams = this.params.filter(p => p.category === cat);
-            
-            // Always create a header for the category as requested
-            const header = document.createElement('div');
-            header.className = 'service-cat-header';
-            header.innerText = (cat === 'AGING') ? 'ANALOG AGING & FIDELITY' : cat;
-            container.appendChild(header);
+            this.internalRenderCategory(cat, container);
+        });
+        console.log("ServiceMode: Params refreshed and rendered to", container.id);
+    },
 
-            if (catParams.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'service-param-empty';
-                empty.innerText = 'No adjustable parameters';
-                container.appendChild(empty);
-            } else {
-                const grid = document.createElement('div');
-                grid.className = 'service-param-grid';
-                catParams.forEach(p => {
-                    const row = document.createElement('div');
-                    row.className = 'service-param-row';
-                    row.title = p.tooltip;
+    renderCategory(cat, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        this.internalRenderCategory(cat, container);
+    },
+
+    internalRenderCategory(cat, container) {
+        const catParams = this.params.filter(p => p.category === cat);
+        if (catParams.length === 0 && cat !== "GENERAL") return;
+
+        const header = document.createElement('div');
+        header.className = 'service-cat-header';
+        header.innerHTML = `
+            <span>${cat}</span>
+            <button class="service-reset-btn cat-reset" onclick="ServiceMode.resetCategory('${cat}')" title="Reset this section to factory defaults">RESET SECTION</button>
+        `;
+        container.appendChild(header);
+
+        if (catParams.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'service-param-empty';
+            empty.innerText = 'No adjustable parameters';
+            container.appendChild(empty);
+        } else {
+            const grid = document.createElement('div');
+            grid.className = 'service-param-grid';
+            catParams.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'service-param-row';
+                row.title = p.tooltip || '';
+                
+                // Format value (handles integers like MIDI channel)
+                const fmtVal = p.isInteger ? Math.round(p.currentValue) : p.currentValue.toFixed(2);
+                const fmtDef = p.isInteger ? Math.round(p.defaultValue) : p.defaultValue.toFixed(2);
+                const unitStr = p.unit || '';
+
+                // List of parameters that should be rendered as SELECT instead of SLIDER
+                const choiceParams = {
+                    "midiChannel": { 0: "OMNI", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11", 12: "12", 13: "13", 14: "14", 15: "15", 16: "16" },
+                    "numVoices": { 1: "1 (MONO)", 2: "2", 4: "4", 6: "6 (CLASSIC)", 8: "8", 12: "12", 16: "16 (MAX)" },
+                    "benderRange": { 1: "1 SEMI", 2: "2 SEMIS", 3: "3 SEMIS", 4: "4 SEMIS", 7: "5th", 12: "OCTAVE" },
+                    "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
+                    "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
+                    "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
+                    "enableLogging": { 0: "OFF", 1: "ON" }
+                };
+
+                if (choiceParams[p.id]) {
+                    const options = Object.entries(choiceParams[p.id]).map(([val, lbl]) => 
+                        `<option value="${val}" ${Math.round(p.currentValue) == val ? 'selected' : ''}>${lbl}</option>`
+                    ).join('');
+
                     row.innerHTML = `
                         <div class="service-param-info">
                             <span class="service-param-label">${p.label}</span>
                             <div class="service-param-values">
-                                <span class="service-param-default">Def: ${p.defaultValue.toFixed(2)}${p.unit}</span>
-                                <span class="service-param-value" id="val-${p.id}">${p.currentValue.toFixed(2)}${p.unit}</span>
+                                <span class="service-param-default">Def: ${choiceParams[p.id][Math.round(p.defaultValue)]}</span>
+                                <span class="service-param-value" id="val-${p.id}">${choiceParams[p.id][Math.round(p.currentValue)]}</span>
                             </div>
                         </div>
-                        <input type="range" class="service-slider" 
-                            min="${p.minValue}" max="${p.maxValue}" step="${p.stepSize}" 
-                            value="${p.currentValue}" 
-                            oninput="ServiceMode.updateParam('${p.id}', this.value)">
+                        <div class="service-slider-row">
+                            <select class="service-select" onchange="ServiceMode.updateParam('${p.id}', this.value)">
+                                ${options}
+                            </select>
+                            <button class="service-reset-btn param-reset" onclick="ServiceMode.resetParam('${p.id}')" title="Reset to default">↺</button>
+                        </div>
                     `;
-                    grid.appendChild(row);
-                });
-                container.appendChild(grid);
-
-                // Inject Category Action Buttons
-                if (cat === 'VCF' || cat === 'HPF' || cat === 'CHORUS') {
-                    const actionContainer = document.createElement('div');
-                    actionContainer.className = 'service-cat-actions';
-                    
-                    let btnText = '';
-                    let actionFn = null;
-                    let btnId = '';
-
-                    if (cat === 'VCF') { btnText = 'START VCF SWEEP'; actionFn = () => this.startSweep(); btnId = 'btn-vcf-sweep'; }
-                    else if (cat === 'HPF') { btnText = 'CYCLE HPF POSITIONS'; actionFn = () => this.startHpfCycle(); btnId = 'btn-hpf-cycle'; }
-                    else if (cat === 'CHORUS') { btnText = 'CYCLE CHORUS MODES'; actionFn = () => this.startChorusCycle(); btnId = 'btn-chorus-cycle'; }
-
-                    const btn = document.createElement('button');
-                    btn.className = 'tuning-btn service-action-btn';
-                    btn.id = btnId;
-                    btn.innerText = btnText;
-                    btn.onclick = actionFn;
-                    
-                    actionContainer.appendChild(btn);
-                    container.appendChild(actionContainer);
+                } else {
+                    row.innerHTML = `
+                        <div class="service-param-info">
+                            <span class="service-param-label">${p.label}</span>
+                            <div class="service-param-values">
+                                <span class="service-param-default">Def: ${fmtDef}${unitStr}</span>
+                                <span class="service-param-value" id="val-${p.id}">${fmtVal}${unitStr}</span>
+                            </div>
+                        </div>
+                        <div class="service-slider-row">
+                            <input type="range" class="service-slider" 
+                                min="${p.minValue}" max="${p.maxValue}" step="${p.stepSize}" 
+                                value="${p.currentValue}" 
+                                oninput="ServiceMode.updateParam('${p.id}', this.value)">
+                            <button class="service-reset-btn param-reset" onclick="ServiceMode.resetParam('${p.id}')" title="Reset to ${fmtDef}${unitStr}">↺</button>
+                        </div>
+                    `;
                 }
-            }
-        });
+                grid.appendChild(row);
+            });
+            console.log(`ServiceMode: Rendered category ${cat} with ${catParams.length} params`);
+            container.appendChild(grid);
+        }
     },
 
     updateParam(id, value) {
@@ -145,12 +183,10 @@ const ServiceMode = {
         juce.serviceAction({ action: 'sweepVCF' });
     },
 
-    startHpfCycle() {
-        juce.serviceAction({ action: 'hpfCycle' });
-    },
-
-    startChorusCycle() {
-        juce.serviceAction({ action: 'chorusCycle' });
+    startAutoTune() {
+        if (confirm("START AUTOMATED VCF TUNING?\nThis requires Voice 1 solo and a reference tone. The process will take ~3 seconds.")) {
+            juce.serviceAction({ action: 'autoTuneVCF' });
+        }
     },
 
     testScalePlaying: false,
@@ -173,8 +209,22 @@ const ServiceMode = {
     },
 
     async resetCalibration() {
-        await juce.serviceAction({ action: 'resetToFactory' });
+        if (confirm("Restore ALL calibration parameters to factory defaults?")) {
+            await juce.serviceAction({ action: 'resetToFactory' });
+            await this.refreshParams();
+        }
+    },
+
+    async resetParam(id) {
+        await juce.serviceAction({ action: 'resetParam', id: id });
         await this.refreshParams();
+    },
+
+    async resetCategory(cat) {
+        if (confirm(`Reset all parameters in ${cat} to defaults?`)) {
+            await juce.serviceAction({ action: 'resetCategory', category: cat });
+            await this.refreshParams();
+        }
     },
 
     onHostEvent(msg) {

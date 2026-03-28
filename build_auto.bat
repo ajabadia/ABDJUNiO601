@@ -70,7 +70,11 @@ set "EXE_SRC=build\ABDSimpleJuno106_artefacts\Release\Standalone\ABDSimpleJuno10
 
 if exist "%EXE_SRC%" (
     echo [INFO] Encontrado ejecutable en: %EXE_SRC%
-    copy /Y "%EXE_SRC%" "JUNiO_601.exe" >nul
+    copy /Y "%EXE_SRC%" "JUNiO_601.exe"
+    if !ERRORLEVEL! NEQ 0 (
+        echo [ERROR] No se pudo sobrescribir JUNiO_601.exe. ^¿Esta la aplicacion abierta?
+        exit /b 1
+    )
     echo [INFO] Copiando WebUI...
     xcopy /E /I /Y "Source\UI\WebUI" "WebUI" >nul
     echo.

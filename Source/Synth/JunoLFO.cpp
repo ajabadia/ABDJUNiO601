@@ -42,7 +42,8 @@ float JunoLFO::process(float globalLfoValue) {
             delayTimer += 1.0f / static_cast<float>(sampleRate);
             // [Enrichment] RC-style Exponential Onset
             float linearProgress = juce::jlimit(0.0f, 1.0f, delayTimer / delay);
-            delayEnvelope = 1.0f - std::exp(-5.0f * linearProgress); 
+            // [Enrichment] RC-style Exponential Onset (Curve calibrated)
+            delayEnvelope = 1.0f - std::exp(-lfoDelayCurve * linearProgress); 
         } else {
             delayEnvelope = 1.0f;
         }

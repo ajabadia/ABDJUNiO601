@@ -41,6 +41,9 @@ public:
     void setGateMode(bool enabled);    // ENV button
     void setSlewMs(float ms);         // [Calibration] Dynamic smoothing
     void setAttackFactor(float factor); 
+    void setMcuRate(float ms) { mcuRateFactor = ms; calculateRates(); }
+    void setDacSteps(float steps) { dacSteps = steps; }
+    void setOvershoot(float level) { overshoot = level; }
     
     // Lifecycle
     void noteOn();
@@ -64,6 +67,9 @@ private:
     bool gateMode = false;         // ENV button state
     float slewMs = 1.5f;           // [Calibration] Output smoothing time
     float attackFactor = 0.35f;    // [Calibration] Attack curvature
+    float mcuRateFactor = 3.0f;    // [Calibration] MCU update speed (ms)
+    float dacSteps = 1024.0f;      // [Calibration] DAC resolution (steps)
+    float overshoot = 1.08f;       // [Calibration] Attack overshoot target
     
     // Linear rates (per-sample increment/decrement)
     float attackRate = 0.0f;

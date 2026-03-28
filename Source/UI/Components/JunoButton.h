@@ -17,6 +17,7 @@ namespace JunoUI
     class JunoButton : public juce::TextButton
     {
     public:
+        JunoButton() : JunoButton("") {}
         JunoButton(const juce::String& buttonName) : juce::TextButton(buttonName)
         {
             // Set base styling

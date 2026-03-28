@@ -35,6 +35,7 @@ public:
     void setDepth(float d)      { m_depth = juce::jlimit(0.0f, 1.0f, d); }
     void setMix(float w)        { wetMix = juce::jlimit(0.0f, 1.0f, w); }
     void setHissLevel(float db) { hissLvlDb = juce::jlimit(-96.0f, -40.0f, db); }
+    void setHissColor(float color) { calHissColor = color; }
     
     // [Build 29] Calibration Overrides
     void setCalibrationParams(float dI, float dII, float depth, float sat, float cutoff) {
@@ -145,5 +146,6 @@ private:
 
     juce::Random random;
     float hissMultiplier { 1.0f };
+    float calHissColor { 0.4f };
     float noiseFilterL { 0.0f }, noiseFilterR { 0.0f };
 };

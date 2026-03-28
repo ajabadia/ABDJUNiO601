@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include "JunoDCO.h"
+#include "JunoLFO.h"
 #include "../ABD-SynthEngine/Core/Voices/VoiceBase.h"
 #include "JunoADSR.h"
 #include "../ABD-SynthEngine/Core/LFO/LFOGeneric.h"
@@ -70,6 +71,7 @@ private:
     // Components
     JunoDCO dco;
     JunoADSR adsr;
+    JunoLFO voiceLFO;
     
     JunoVCF filter;
     juce::dsp::IIR::Filter<float> hpFilter;

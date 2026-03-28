@@ -35,12 +35,18 @@ function callNative(name, ...args) {
         return Promise.reject("No bridge");
     }
 
-    // [New] Forward direct calls to native functions if they exist on the bridge
     if (typeof backend.callNativeFunction === 'function') {
         return backend.callNativeFunction(name, args);
     }
+    // [Build 34] Support direct window bridge functions if backend is proxy
     if (typeof backend[name] === 'function') {
         return backend[name](...args);
+    }
+    // [New] Support withNativeFunction protocol directly if exposed
+    if (name === "serviceAction" || name === "getCalibrationParams" || name === "setCalibrationParam") {
+        if (backend.withNativeFunction) {
+             return backend.withNativeFunction(name)(...args);
+        }
     }
 
     // Fallback for emitEvent protocol if needed, though withNativeFunction should handle it
@@ -83,7 +89,18 @@ window.juce = {
     loadPreset: (idx) => callNative("loadPreset", idx),
     getCalibrationParams: () => callNative("getCalibrationParams"),
     setCalibrationParam: (id, val) => callNative("setCalibrationParam", id, val),
-    serviceAction: (data) => callNative("serviceAction", data)
+    serviceAction: (data) => callNative("serviceAction", data),
+    getBrowserData: () => callNative("getBrowserData"),
+    setFavorite: (lib, prst, fav) => callNative("setFavorite", lib, prst, fav),
+    updateMetadata: (lib, prst, name, aut, tag, nts) => callNative("updateMetadata", lib, prst, name, aut, tag, nts),
+    switchAB: (slot) => callNative("switchAB", slot),
+    copyAB: () => callNative("copyAB"),
+    exportBank: (lib) => callNative("exportBank", lib),
+    importBank: () => callNative("importBank"),
+    setBrowserData: (data) => callNative("setBrowserData", data),
+    loadLibraryPreset: (libIdx, prstIdx) => callNative("loadLibraryPreset", libIdx, prstIdx),
+    savePresetDetailed: (libIdx, prstIdx) => callNative("savePresetDetailed", libIdx, prstIdx),
+    saveAsNewPresetDetailed: (name, cat, aut, tag, nts) => callNative("saveAsNewPresetDetailed", name, cat, aut, tag, nts)
 };
 
 // =============================
@@ -93,9 +110,10 @@ function initApp() {
     listenEvent("onParameterChanged", (data) => syncUI(data.id, data.value));
     listenEvent("onLCDUpdate", (text) => updateLCD(text, false));
     listenEvent("showModal", (data) => {
-        if (data === "preferences") showSettings();
+        if (data === "preferences") showGlobalSettings('general');
         else if (data === "about") showAbout();
-        else if (data === "serviceMode") showServiceMode();
+        else if (data === "serviceMode") showGlobalSettings('calibration');
+        else if (data === "browser") showBrowser();
     });
     listenEvent("onShowAbout", () => showAbout());
     listenEvent("onShowSettings", () => showSettings());
@@ -104,14 +122,87 @@ function initApp() {
         if (info) info.innerText = name.toUpperCase();
     });
 
+    const updateDigit = (elementId, char) => {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        let filename = char.toString().toUpperCase();
+        if (filename === " ") filename = "SPACE";
+        if (filename === "-") filename = "DASH";
+        const spritePath = `assets/led/${filename}.png`;
+        
+        // 1. Text Fallback (Independent node)
+        let textSpan = el.querySelector('.led-text-fallback');
+        if (!textSpan) {
+            textSpan = document.createElement('span');
+            textSpan.className = 'led-text-fallback';
+            el.appendChild(textSpan);
+        }
+        textSpan.innerText = char;
+        
+        // 2. Image Sprite (Independent node)
+        let img = el.querySelector('img.led-sprite');
+        if (!img) {
+            img = document.createElement('img');
+            img.className = 'led-sprite';
+            img.style.height = "100%";
+            img.style.display = "none";
+            img.onerror = () => { img.style.display = "none"; textSpan.style.display = "inline"; };
+            img.onload = () => { img.style.display = "block"; textSpan.style.display = "none"; };
+            el.appendChild(img);
+        }
+        if (img.src.indexOf(spritePath) === -1) img.src = spritePath;
+    };
+
     const handleBankPatch = (data) => {
         if (!data) return;
-        currentBankGlobal = data.bank || 1;
-        currentPatchGlobal = data.patch || 1;
-        updateSevenSegment();
+        const absoluteIdx = (data.bank - 1) * 8 + (data.patch - 1);
+        
+        let displayB, displayP;
+        if (absoluteIdx < 64) {
+            displayB = Math.floor(absoluteIdx / 8) + 1;
+            displayP = (absoluteIdx % 8) + 1;
+        } else {
+            const userIdx = absoluteIdx - 64;
+            displayB = (Math.floor(userIdx / 10) < 26) ? String.fromCharCode(65 + Math.floor(userIdx / 10)) : "?";
+            displayP = userIdx % 10;
+        }
+
+        updateDigit('bank-digit', displayB);
+        updateDigit('patch-digit', displayP);
+        
+        currentBankGlobal = data.bank;
+        currentPatchGlobal = data.patch;
     };
     listenEvent("onBankPatchUpdate", handleBankPatch);
-    listenEvent("onLCDIndexUpdate", handleBankPatch); // Fallback for old C++ versions
+
+    listenEvent("onLCDUpdate", (text) => {
+        const display = document.getElementById('lcd-display');
+        if (display) display.innerText = text;
+        
+        // Build 90: Parse "P: 12" for Bank/Patch individual updates
+        if (text && text.startsWith("P: ")) {
+            const parts = text.split(" ");
+            if (parts.length >= 2) {
+                const num = parseInt(parts[1]);
+                if (!isNaN(num)) {
+                    const b = Math.floor((num - 1) / 8) + 1;
+                    const p = ((num - 1) % 8) + 1;
+                    updateDigit('bank-digit', b);
+                    updateDigit('patch-digit', p);
+                }
+            }
+        }
+    });
+
+    listenEvent("onMidiTraffic", (active) => {
+        const led = document.getElementById('front-midi-badge');
+        if (led) {
+            led.classList.toggle('active', active);
+            // Auto-off after 100ms
+            if (active) setTimeout(() => led.classList.remove('active'), 100);
+        }
+    });
 
     const backend = getBackend();
     const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
@@ -142,6 +233,25 @@ function initApp() {
         if (c2Led && c2Led.classList.contains('active')) {
             c2Led.style.opacity = 0.5 + Math.sin(data.c2 * Math.PI * 2) * 0.5;
         } else if (c2Led) c2Led.style.opacity = 1;
+    });
+
+    listenEvent("onLCDStatusUpdate", (data) => {
+        const lcLed = document.getElementById('badge-lc');
+        const abLed = document.getElementById('badge-ab');
+        const wipLed = document.getElementById('badge-wip');
+        
+        if (lcLed) {
+            lcLed.classList.toggle('active', data.lc);
+            lcLed.innerText = data.lc ? 'LRN' : 'LC';
+        }
+        if (abLed) {
+            abLed.innerText = data.ab;
+            abLed.classList.toggle('b-slot', data.ab === 'B');
+        }
+        if (wipLed) {
+            wipLed.innerText = data.wip;
+            wipLed.classList.toggle('has-wip', data.wip > 0);
+        }
     });
 
     listenEvent("onSysExUpdate", (hex) => {
@@ -249,17 +359,26 @@ function updateLCD(text, isTemporary) {
     if (!lcd) return;
     if (lcdTimer) clearTimeout(lcdTimer);
 
+    // Helper to apply marquee if text is long
+    const applyText = (target, str) => {
+        if (str.length > 16) {
+            target.innerHTML = `<div class="marquee-scroller">${str} &nbsp;&nbsp;&nbsp;&nbsp; ${str}</div>`;
+        } else {
+            target.innerText = str;
+        }
+    };
+
     if (isTemporary) {
-        lcd.innerText = text;
+        applyText(lcd, text);
         lcd.style.color = "#ff8888";
         lcdTimer = setTimeout(() => {
-            lcd.innerText = lastPresetName;
+            applyText(lcd, lastPresetName);
             lcd.style.color = "#ff3c3c";
             lcdTimer = null;
-        }, 1500);
+        }, 3000); // 3 seconds per user request
     } else {
         lastPresetName = text;
-        lcd.innerText = text;
+        applyText(lcd, text);
         lcd.style.color = "#ff3c3c";
         if (lcdTimer) {
             clearTimeout(lcdTimer);
@@ -655,13 +774,19 @@ function updateSevenSegment() {
     if (p) p.innerText = currentPatchGlobal;
 }
 
-function showSettings() {
-    const el = document.getElementById('modal-settings');
-    if (el) el.style.display = 'flex';
+// =============================
+// GLOBAL SETTINGS & TABS
+// =============================
+function showGlobalSettings(tabName) {
+    const el = document.getElementById('modal-globalSettings');
+    if (el) {
+        el.style.display = 'flex';
+        if (tabName) switchTab(tabName);
+    }
 }
 
-function hideSettings() {
-    const el = document.getElementById('modal-settings');
+function hideGlobalSettings() {
+    const el = document.getElementById('modal-globalSettings');
     if (el) el.style.display = 'none';
 }
 
@@ -675,35 +800,55 @@ function hideAbout() {
     if (el) el.style.display = 'none';
 }
 
-function showServiceMode() {
-    const el = document.getElementById('modal-serviceMode');
-    if (el) {
+function showBrowser() {
+    const el = document.getElementById('modal-browser');
+    if (el && window.PresetBrowser) {
         el.style.display = 'flex';
-        if (window.ServiceMode && typeof window.ServiceMode.init === 'function') {
-            window.ServiceMode.init();
-        }
+        window.PresetBrowser.init();
     }
 }
 
-function hideServiceMode() {
-    const el = document.getElementById('modal-serviceMode');
+function hideBrowser() {
+    const el = document.getElementById('modal-browser');
     if (el) el.style.display = 'none';
+}
+
+function switchTab(tabName) {
+    // 1. Update Buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.innerText.toLowerCase() === tabName.toLowerCase();
+        btn.classList.toggle('active', isActive);
+    });
+
+    // 2. Update Content Sections
+    document.querySelectorAll('.settings-content').forEach(section => {
+        const sectionId = section.id;
+        const isActive = sectionId === 'tab-' + tabName;
+        section.classList.toggle('active', isActive);
+        
+        // Trigger ServiceMode refresh if entering general, calibration or diagnostics
+        if (isActive && (tabName === 'general' || tabName === 'calibration' || tabName === 'diagnostics')) {
+            if (window.ServiceMode && typeof window.ServiceMode.init === 'function') {
+                window.ServiceMode.init();
+            }
+        }
+    });
+
+    updateLCD("MODE: " + tabName.toUpperCase(), true);
 }
 
 function updatePref(el) {
     const id = el.getAttribute('data-param');
-    let val = el.value;
+    let val = parseFloat(el.value);
+    
+    // [Build 35] Route through ServiceMode if it's a calibration/pref parameter
+    if (window.ServiceMode && window.ServiceMode.params && window.ServiceMode.params.some(p => p.id === id)) {
+        window.ServiceMode.updateParam(id, val);
+        return;
+    }
+
     let normalized = val;
-    if (id === 'midiChannel') normalized = (val - 1) / 15;
-    if (id === 'benderRange') normalized = (val - 1) / 11;
-    if (id === 'numVoices') normalized = (val - 1) / 15;
-    if (id === 'sustainInverted') normalized = val; 
-    if (id === 'chorusHiss') normalized = val / 2.0;
-    if (id === 'midiFunction') normalized = val / 2.0;
-    if (id === 'unisonWidth') normalized = val;
-    if (id === 'unisonDetune') normalized = val;
-    if (id === 'chorusMix') normalized = val;
-    if (id === 'aftertouchToVCF') normalized = val;
+    // ... legacy normalization logic if needed for non-calibration params ...
     
     if (window.juce && typeof window.juce.setParameter === 'function') {
         window.juce.setParameter(id, parseFloat(normalized));

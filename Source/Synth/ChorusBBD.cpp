@@ -9,13 +9,11 @@ void ChorusBBD::prepare(double sampleRate, int /*maxBlockSize*/)
 {
     sr = sampleRate;
     
-    // Inicializar líneas de retardo
     lineI_L.init(MAX_DELAY_SAMPLES);
     lineI_R.init(MAX_DELAY_SAMPLES);
     lineII_L.init(MAX_DELAY_SAMPLES);
     lineII_R.init(MAX_DELAY_SAMPLES);
 
-    // Filtros post-BBD (reconstrucción dinámica)
     filterI_L.prepare(sr, calFilterCutoff);
     filterI_R.prepare(sr, calFilterCutoff);
     filterII_L.prepare(sr, calFilterCutoff);
@@ -66,60 +64,44 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
         float outL = inL;
         float outR = inR;
 
-        //-- Chorus I ---------------------------------------------------------
         if (doI)
         {
-            // LFO I: L=0°, R=180°
             float lfo_L = (float)std::sin(lfoPhase);
             float lfo_R = (float)std::sin(lfoPhase + juce::MathConstants<double>::pi);
-
             float del_L = baseI + modAmp * lfo_L;
             float del_R = baseI + modAmp * lfo_R;
 
             lineI_L.write(saturate(inL));
             lineI_R.write(saturate(inR));
-
             float wet_L = filterI_L.process(lineI_L.read(del_L));
             float wet_R = filterI_R.process(lineI_R.read(del_R));
 
-            // Mezcla wet/dry del Chorus I
             outL += wetMix * (wet_L - inL);
             outR += wetMix * (wet_R - inR);
         }
 
-        //-- Chorus II --------------------------------------------------------
         if (doII)
         {
-            // LFO II: L=90°, R=270° (Cuadratura respecto a Chorus I)
             float lfo_L = (float)std::sin(lfoPhase + juce::MathConstants<double>::halfPi);
             float lfo_R = (float)std::sin(lfoPhase + 3.0 * juce::MathConstants<double>::halfPi);
-
             float del_L = baseII + modAmp * lfo_L;
             float del_R = baseII + modAmp * lfo_R;
 
             lineII_L.write(saturate(inL));
             lineII_R.write(saturate(inR));
-
             float wet_L = filterII_L.process(lineII_L.read(del_L));
             float wet_R = filterII_R.process(lineII_R.read(del_R));
 
-            // Mezcla wet/dry (acumulativa si ChorusBoth)
             outL += wetMix * (wet_L - inL);
             outR += wetMix * (wet_R - inR);
         }
 
-        // 3. (Post-BBD Noise Hiss Floor)
-        // [Fidelity] BBD hiss is constant but slightly filtered by the reconstruction stage
-        // We add it to the final output to simulate the hardware's noise floor.
         const float noiseBase = std::pow(10.0f, hissLvlDb / 20.0f) * hissMultiplier;
         if (noiseBase > 1e-6f) {
             float nL = (random.nextFloat() * 2.0f - 1.0f) * noiseBase;
             float nR = (random.nextFloat() * 2.0f - 1.0f) * noiseBase;
-            
-            // Simple warm LP for noise (approx 4kHz)
-            noiseFilterL += 0.4f * (nL - noiseFilterL);
-            noiseFilterR += 0.4f * (nR - noiseFilterR);
-            
+            noiseFilterL += calHissColor * (nL - noiseFilterL);
+            noiseFilterR += calHissColor * (nR - noiseFilterR);
             outL += noiseFilterL;
             outR += noiseFilterR;
         }

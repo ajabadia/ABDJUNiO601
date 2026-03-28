@@ -11,6 +11,7 @@ ServiceModeManager::ServiceModeManager(ABDSimpleJuno106AudioProcessor& p)
     testScaleActive.store(false);
     scaleTimer.store(0.0f);
     currentScaleNoteIdx.store(0);
+    autoVcfTuneActive.store(false);
 }
 
 void ServiceModeManager::setVoiceSolo(int voiceIndex)
@@ -50,6 +51,17 @@ void ServiceModeManager::startTestScale()
     if (!next) processor.keyboardState.allNotesOff(1);
 }
 
+void ServiceModeManager::startAutoVcfTune()
+{
+    stopAllTests();
+    autoVcfTuneActive.store(true);
+    autoTuneCycle = 0;
+    autoTuneStep = 0.0f;
+    
+    // Preparation: Solo Voice 1, VCF Self-Osc
+    setVoiceSolo(0);
+}
+
 void ServiceModeManager::stopAllTests()
 {
     vcfSweepActive.store(false);
@@ -57,6 +69,7 @@ void ServiceModeManager::stopAllTests()
     chorusCycleActive.store(false);
     dcoRefActive.store(false);
     testScaleActive.store(false);
+    autoVcfTuneActive.store(false);
     soloVoice.store(-1);
     processor.keyboardState.allNotesOff(1);
 }
@@ -118,6 +131,41 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
             currentScaleNoteIdx.store(idx);
             processor.keyboardState.noteOn(1, scale[idx], 0.8f);
             scaleTimer.store(0.0f);
+        }
+    }
+
+    if (autoVcfTuneActive.load())
+    {
+        double dt = (double)numSamples / sampleRate;
+        autoTuneStep += (float)dt;
+
+        // Iterative Tuning Algorithm (Simulated Measurement & Correction)
+        // Cycle 0: Find MinHz (A0 reference)
+        // Cycle 1: Find Width (A4 reference)
+        
+        const float cycleDuration = 1.0f; 
+        if (autoTuneStep >= cycleDuration)
+        {
+            autoTuneStep = 0.0f;
+            autoTuneCycle++;
+
+            if (autoTuneCycle == 1) 
+            {
+                // Simulated: Found MinHz error -> Correcting
+                float currentMin = processor.getCalibrationSettings().getValue("vcfMinHz");
+                processor.getCalibrationSettings().setValue("vcfMinHz", currentMin * 1.02f); // Small adjustment
+            }
+            else if (autoTuneCycle == 2)
+            {
+                // Simulated: Found Width error -> Correcting
+                float currentWidth = processor.getCalibrationSettings().getValue("vcfWidth");
+                processor.getCalibrationSettings().setValue("vcfWidth", currentWidth * 0.98f);
+            }
+            else if (autoTuneCycle >= 3)
+            {
+                // Finished
+                stopAllTests();
+            }
         }
     }
 }

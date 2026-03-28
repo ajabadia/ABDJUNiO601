@@ -50,13 +50,13 @@ public:
     bool  isActive()  const noexcept { return isActive_; }
     int   getNote()   const noexcept { return note_; }
     float getVelocity() const noexcept { return velocity_; }
-
-    /** La voz se marca inactiva cuando el envelope termina el release */
-    void markInactive() noexcept { isActive_ = false; }
-
-protected:
+    double getSampleRate() const noexcept { return sr; }
+    int    getBlockSize()  const noexcept { return blockSz; }
+    
     double sr      { 44100.0 };
     int    blockSz { 512 };
+
+    /** La voz se marca inactiva cuando el envelope termina el release */
     int    note_   { -1 };
     float  velocity_ { 0.f };
     bool   isActive_ { false };

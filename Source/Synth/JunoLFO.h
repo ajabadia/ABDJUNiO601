@@ -20,6 +20,7 @@ public:
     
     void setDepth(float amount);     // 0 - 1
     void setDelay(float seconds);    // 0 - 5 seconds
+    void setDelayCurve(float curve) { lfoDelayCurve = curve; }
     
     void noteOn();
     void noteOff();
@@ -33,6 +34,7 @@ private:
     double sampleRate = 44100.0;
     float depth = 1.0f;
     float delay = 0.0f;
+    float lfoDelayCurve = 5.0f;
     
     float delayTimer = 0.0f;
     float delayEnvelope = 0.0f;

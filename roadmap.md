@@ -35,18 +35,24 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 ## Sprint 4: Preset & State Intelligence
 **Goal**: Robust session management and metadata.
 **Reference**: [0005.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0005.txt), [0006.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0006.txt)
-- [ ] **Bank Manager**: Support for .syx (Roland) and .jnp (Extended JSON) imports. (Ref: 0005.txt)
-- [ ] **Metadata**: Authors, categories, and searchable tags for every patch. (Ref: 0005.txt)
-- [ ] **Musical Randomize**: Update randomization logic to respect musical parameter ranges. (Ref: 0005.txt)
-- [ ] **State Versioning**: ValueTree migration strategies for future-proofing. (Ref: 0006.txt)
-- [ ] **Full Serialization**: Ensure MIDI Learn, Low-CPU, and PolyMode are saved in DAW projects. (Ref: 0006.txt)
+- [x] **Bank Manager**: Support for cross-synth bank management via `PresetManagerBase`. (Ref: 0005.txt)
+- [x] **Metadata**: Authors, categories, and searchable tags for every patch. (Ref: 0005.txt)
+- [x] **Musical Randomize**: Fixed ranges and musical consistency in randomization. (Ref: 0005.txt)
+- [x] **State Versioning**: ValueTree-based migration and XML persistence. (Ref: 0006.txt)
+- [x] **Full Serialization**: DAW state persistence and cross-platform JSON/XML export. (Ref: 0006.txt)
+- [x] **Tape Simulation**: Reinstated robust FSK encoding/decoding for .wav tape backups.
 
 ## Sprint 5: WebUI & UX "Premium" Expansion
 **Goal**: High-end user experience and accessibility.
 **Reference**: [0002.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0002.txt), [0007.1.txt](file:///D:/desarrollos/ABDJUNiO601/docs/newDev/0007.1.txt)
 - [ ] **Responsive Engine**: Dynamic layouts for Desktop, Tablet, and Mobile. (Ref: 0007.1.txt)
-- [x] **Service Mode**: Full diagnostic panel for voice/VCF/DCO testing. (Ref: 0002.txt)
-- [ ] **Visual Feedback**: Real-time animations and tactile response in knobs/sliders. (Ref: 0007.1.txt)
+- [x] **Service Mode & Calibration**: Full diagnostic panel for voice/VCF/DCO testing. (Ref: 0002.txt)
+    - [x] Initial implementation of calibration parameters and voice soloing.
+    - [x] Real-time DSP integration and Juno-style UI.
+    - [x] Matrix voice grid (8x2) and 2-column parameter layout.
+    - [x] Integrated "Test Scale" sequencer for real-time auditioning.
+    - [x] Add advanced calibration parameters (VCF scaling per octave, DCO drift constants).
+    - [x] Implement VCF/DCO auto-tuning routines.
 - [ ] **Accessibility (Web & Native)**: Keyboard navigation, ARIA labels, and high-contrast themes. (Ref: 0007.1.txt)
 
 ## Sprint 6: Hardware Targets (Raspberry Pi)

@@ -6,6 +6,7 @@
 using namespace JunoConstants;
 
 JunoDCO::JunoDCO() {
+    masterClockHz = 8000000.0f;
     updateRangeMultiplier();
     reset();
 }
@@ -22,7 +23,8 @@ void JunoDCO::prepare(double sr, int maxBlockSize) {
 
 void JunoDCO::reset() {
     pulsePhase = 0.0;
-    staticSpreadCents = (noiseGen.nextFloat() * 2.0f - 1.0f) * kDcoDriftMaxSpreadCents;
+    // [Build 29] Use calibrated voice variance instead of hardcoded kDcoDriftMaxSpreadCents
+    staticSpreadCents = (noiseGen.nextFloat() * 2.0f - 1.0f) * voiceVariance;
     voicePhase = noiseGen.nextFloat() * juce::MathConstants<float>::twoPi;
     voiceRate = 0.01f + noiseGen.nextFloat() * 0.04f;
     currentPWM = pwmValue;
@@ -90,8 +92,8 @@ float JunoDCO::getNextSample(float lfoValue) {
     voiceDriftCents = std::sin(voicePhase) * (kDcoDriftMaxVoiceCents * 0.5f) * driftAmount;
     
     // 3. (Global drift for this voice would be set externally or simulated here)
-    // For simplicity, we'll simulate a 0.015Hz global drift here if driftAmount > 0
-    globalDriftPhase += juce::MathConstants<float>::twoPi * 0.008f / (float)sampleRate;
+    // For simplicity, we'll simulate a slow global drift (rate calibrated)
+    globalDriftPhase += juce::MathConstants<float>::twoPi * driftRate / (float)sampleRate;
     if (globalDriftPhase > juce::MathConstants<float>::twoPi) globalDriftPhase -= juce::MathConstants<float>::twoPi;
     globalDriftCents = std::sin(globalDriftPhase) * (kDcoDriftMaxGlobalCents * 0.5f) * driftAmount;
 
@@ -100,8 +102,8 @@ float JunoDCO::getNextSample(float lfoValue) {
     // === FREQUENCY with RANGE, LFO, and DRIFT ===
     float freq = baseFrequency * rangeMultiplier;
     
-    // Apply LFO to pitch (vibrato)
-    float lfoSemitones = lfoValue * lfoDepth * 0.4f; // Fixed: Bipolar mapping
+    // [Fidelity] LFO to Pitch Sensitivity (Calibrated)
+    float lfoSemitones = lfoValue * lfoDepth * dcoLfoPitchDepth; 
     freq *= std::pow(2.0f, (lfoSemitones + (totalDriftCents / 100.0f)) / 12.0f);
 
     // [Fidelity] 8253 TIMER QUANTIZATION (STRICT IMPL)
@@ -111,7 +113,7 @@ float JunoDCO::getNextSample(float lfoValue) {
     
     if (freq > 0.0f) {
         // Calculate required ticks (Float)
-        float rawTicks = kMasterClockHz / (freq * 256.0f);
+        float rawTicks = masterClockHz / (freq * 256.0f);
         
         // Quantize to Integer (The Counter Register)
         // [Audit Fix] Strict integer casting/rounding
@@ -122,7 +124,7 @@ float JunoDCO::getNextSample(float lfoValue) {
         if (quantizedTicks > 65535) quantizedTicks = 65535;
         
         // Recalculate EXACT Frequency driven by the Timer
-        freq = kMasterClockHz / (quantizedTicks * 256.0f);
+        freq = masterClockHz / (quantizedTicks * 256.0f);
     }
     
     // updateRangeMultiplier() handles the range. baseFrequency is bended.

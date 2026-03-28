@@ -5,14 +5,51 @@
 
 .settings-container {
     background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-    width: 820px; /* Wider for two columns */
+    width: 920px; /* Slightly wider for the unified view */
     border: 2px solid #333;
     border-radius: 4px;
-    padding: 35px;
+    padding: 0; /* Removing fixed padding to handle tab bar */
     box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
     position: relative;
     color: #eee;
     font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.settings-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 2px solid #222;
+    padding: 0 20px;
+}
+
+.tab-btn {
+    padding: 15px 25px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #666;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    color: #aaa;
+}
+
+.tab-btn.active {
+    color: #ff3c3c;
+    border-bottom-color: #ff3c3c;
+    background: rgba(255, 60, 60, 0.05);
+}
+
+.settings-inner {
+    padding: 30px;
 }
 
 .settings-header {
@@ -20,8 +57,8 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #333;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
+    padding: 20px 30px;
+    background: rgba(255,255,255,0.02);
 }
 
 .settings-title {
@@ -33,12 +70,20 @@
 }
 
 .settings-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns */
+    display: none; /* Hidden by default, toggled by JS */
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
-    max-height: 500px;
+    max-height: 520px;
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 15px;
+}
+
+.settings-content.active {
+    display: grid;
+}
+
+.settings-content.single-col {
+    grid-template-columns: 1fr;
 }
 
 .setting-row {

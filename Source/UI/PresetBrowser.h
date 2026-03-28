@@ -1,36 +1,55 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Core/PresetManager.h"
+#include <functional>
+#include "../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
+class PresetManager;
 
-class PresetBrowser : public juce::Component
+class PresetBrowser : public juce::Component, public juce::ListBoxModel
 {
 public:
     PresetBrowser(PresetManager& pm);
-    ~PresetBrowser() override;
+    ~PresetBrowser() override = default;
     
     void paint(juce::Graphics& g) override;
     void resized() override;
     
-    void refreshPresetList();
+    // ListBoxModel
+    int getNumRows() override;
+    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
     
-    // External Control
-    void setPresetIndex(int index);
-    void nextPreset();
-    void prevPreset();
-    void savePreset();
-    void loadPreset();
-    
-    // Callbacks
+    void refresh();
+    void setPresetIndex(int idx) { refresh(); } // Legacy compatibility
     
     PresetManager& getPresetManager() { return presetManager; }
-
-    std::function<void(const juce::String&)> onPresetChanged;
-    std::function<juce::ValueTree()> onGetCurrentState;
     
+    // Callbacks
+    std::function<void(int libraryIndex, int presetIndex)> onPresetSelected;
+    std::function<void()> onSaveClicked;
+    std::function<void()> onSaveAsClicked;
+
 private:
     PresetManager& presetManager;
-    juce::ComboBox presetList;
+    
+    juce::TextEditor searchField;
+    juce::ComboBox   librarySelector;
+    juce::ComboBox   categoryFilter;
+    juce::ToggleButton favoritesToggle { "★" };
+    
+    juce::ListBox    presetList;
+    
+    juce::TextButton saveBtn   { "SAVE" };
+    juce::TextButton saveAsBtn { "SAVE AS" };
+    
+    struct PresetRef {
+        int libIdx;
+        int presetIdx;
+        const ABD::Preset*  preset;
+    };
+    
+    std::vector<PresetRef> filteredItems;
+    void updateFilters();
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetBrowser)
 };

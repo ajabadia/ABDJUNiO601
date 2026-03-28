@@ -23,6 +23,7 @@ public:
     void startHpfCycle();
     void startChorusCycle();
     void startTestScale();
+    void startAutoVcfTune();
     void stopAllTests();
 
     // State Access
@@ -30,6 +31,7 @@ public:
     bool isVcfSweepActive() const { return vcfSweepActive.load(); }
     float getVcfSweepCutoff() const { return vcfSweepValue.load(); }
     bool isTestScaleActive() const { return testScaleActive.load(); }
+    bool isAutoTuning() const { return autoVcfTuneActive.load(); }
     
     int getHpfCyclePos() const { return hpfCycleActive.load() ? hpfCycleValue.load() : -1; }
     int getChorusCycleMode() const { return chorusCycleActive.load() ? chorusCycleValue.load() : -1; }
@@ -65,6 +67,11 @@ private:
     std::atomic<bool> chorusCycleActive {false};
     std::atomic<int> chorusCycleValue {0};
     double chorusCycleTimer = 0.0;
+
+    // Auto-Tuning State
+    std::atomic<bool> autoVcfTuneActive {false};
+    float autoTuneStep = 0.0f;
+    int autoTuneCycle = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServiceModeManager)
 };

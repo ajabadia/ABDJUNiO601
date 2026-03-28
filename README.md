@@ -39,6 +39,16 @@ Replicates the diagnostic "Test Mode" used by technicians:
     - **UNISON**: 6-voice stacked mode.
 - **Digital Display**: A dedicated `JunoLCD` provides real-time "Group-Bank-Patch" and parameter feedback.
 - **Calibration Macros**: BANK buttons 1-8 are mapped to specific service manual calibration programs.
+- **Advanced Calibration (Service Mode)**: Modern trim-pot simulation including `vcfWidth` (tracking), `dcoDriftComplexity` (aging), and `vcaOffset` (bias).
+- **Auto-Tune Routine**: Automated iterative routine to align filter self-oscillation tracking against DCO reference tones.
+
+## Advanced Preset Browser
+A dual-tier management system for factory and user content:
+- **ABD-SynthEngine Core**: Unified `Preset` and `Library` models with JSON/XML persistence.
+- **Library Management**: Dynamic selection between "Factory", "User", and "Imported" banks.
+- **Advanced Metadata**: Tagging, authoring, and notes for deep organization.
+- **Tape Simulation**: Authentic FSK encoding/decoding for .wav-based patch backups, replicating original 1980s data storage.
+- **Musical Randomization**: Context-aware parameter generation for quick sound design.
 
 ## Standard MIDI Support
 - **CC 1 (Modulation)**: Mapped to the LFO depth lever (Mod Wheel).
@@ -62,4 +72,4 @@ The script extracts only entries whose name starts with `A` (factory patches) an
 
 ---
 *Developed by **ABD-IA** - Advanced Agentic Coding Project*
-**Version: 1.1.0**
+**Version: 1.2.0 (Stabilized)**

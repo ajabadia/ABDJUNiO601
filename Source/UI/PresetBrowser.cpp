@@ -1,104 +1,156 @@
 #include "PresetBrowser.h"
-#include "JunoUIHelpers.h"
+#include "../Core/PresetManager.h"
+#include "../../Source/ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
 
 PresetBrowser::PresetBrowser(PresetManager& pm) : presetManager(pm)
 {
+    addAndMakeVisible(searchField);
+    searchField.setTextToShowWhenEmpty("Search presets...", juce::Colours::grey);
+    searchField.onTextChange = [this] { updateFilters(); };
+    
+    addAndMakeVisible(librarySelector);
+    librarySelector.addItem("All Libraries", 1);
+    librarySelector.addItem("Factory", 2);
+    librarySelector.addItem("User", 3);
+    librarySelector.setSelectedId(1, juce::dontSendNotification);
+    librarySelector.onChange = [this] { updateFilters(); };
+    
+    addAndMakeVisible(categoryFilter);
+    categoryFilter.addItem("All Categories", 1);
+    // Add known categories from manager
+    for(int i=0; i<presetManager.categories_.size(); ++i)
+        categoryFilter.addItem(presetManager.categories_[i], i+2);
+    categoryFilter.setSelectedId(1, juce::dontSendNotification);
+    categoryFilter.onChange = [this] { updateFilters(); };
+    
+    addAndMakeVisible(favoritesToggle);
+    favoritesToggle.onClick = [this] { updateFilters(); };
+    
     addAndMakeVisible(presetList);
-    presetList.setTextWhenNothingSelected("Select Preset...");
-    presetList.onChange = [this] {
-        int id = presetList.getSelectedId();
-        if (id > 0) {
-            int index = id - 1;
-            presetManager.setCurrentPreset(index);
-            if (onPresetChanged) onPresetChanged(juce::String(index));
-        }
-    };
-    refreshPresetList();
-    if (presetList.getNumItems() > 0) presetList.setSelectedId(1, juce::dontSendNotification);
-}
-
-void PresetBrowser::setPresetIndex(int index) {
-    if (index >= 0 && index < presetList.getNumItems())
-        presetList.setSelectedItemIndex(index, juce::sendNotification);
-}
-
-void PresetBrowser::nextPreset() {
-    int current = presetList.getSelectedItemIndex();
-    int next = (current + 1) % juce::jmax(1, presetList.getNumItems());
-    presetList.setSelectedItemIndex(next, juce::sendNotification);
-}
-
-void PresetBrowser::prevPreset() {
-    int current = presetList.getSelectedItemIndex();
-    int prev = (current - 1 + presetList.getNumItems()) % juce::jmax(1, presetList.getNumItems());
-    presetList.setSelectedItemIndex(prev, juce::sendNotification);
-}
-
-void PresetBrowser::savePreset() {
-    if (!onGetCurrentState) return;
-    juce::ValueTree currentState = onGetCurrentState();
+    presetList.setModel(this);
+    presetList.setRowHeight(24);
     
-    auto* w = new juce::AlertWindow("Save Preset", "Enter preset name:", juce::MessageBoxIconType::QuestionIcon);
-    w->addTextEditor("name", "My Preset", "Preset Name:");
-    w->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    w->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    addAndMakeVisible(saveBtn);
+    saveBtn.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+    saveBtn.onClick = [this] { if (onSaveClicked) onSaveClicked(); };
     
-    w->enterModalState(true, juce::ModalCallbackFunction::create([this, currentState, w](int result) {
-        if (result == 1) {
-            juce::String name = w->getTextEditorContents("name");
-            if (name.isNotEmpty()) {
-                presetManager.saveUserPreset(name, currentState);
-                refreshPresetList();
-                
-                // Select the newly saved preset
-                auto names = presetManager.getPresetNames();
-                int idx = names.indexOf(name);
-                if (idx >= 0) setPresetIndex(idx);
-            }
+    addAndMakeVisible(saveAsBtn);
+    saveAsBtn.setColour(juce::TextButton::buttonColourId, juce::Colours::darkblue.withAlpha(0.5f));
+    saveAsBtn.onClick = [this] { if (onSaveAsClicked) onSaveAsClicked(); };
+
+    refresh();
+}
+
+
+void PresetBrowser::paint(juce::Graphics& g) 
+{
+    g.fillAll(juce::Colours::black.withAlpha(0.2f));
+}
+
+void PresetBrowser::resized() 
+{
+    auto area = getLocalBounds().reduced(5);
+    auto topArea = area.removeFromTop(30);
+    
+    searchField.setBounds(topArea.removeFromLeft(topArea.getWidth() * 0.4f).reduced(2));
+    librarySelector.setBounds(topArea.removeFromLeft(topArea.getWidth() * 0.4f).reduced(2));
+    favoritesToggle.setBounds(topArea.reduced(2));
+    
+    area.removeFromTop(5);
+    auto filterArea = area.removeFromTop(30);
+    categoryFilter.setBounds(filterArea.reduced(2));
+    
+    area.removeFromTop(5);
+    auto bottomArea = area.removeFromBottom(30);
+    saveBtn.setBounds(bottomArea.removeFromLeft(bottomArea.getWidth() / 2).reduced(2));
+    saveAsBtn.setBounds(bottomArea.reduced(2));
+    
+    area.removeFromTop(5);
+    presetList.setBounds(area);
+}
+
+int PresetBrowser::getNumRows() 
+{
+    return (int)filteredItems.size();
+}
+
+void PresetBrowser::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) 
+{
+    if (rowNumber < (int)filteredItems.size())
+    {
+        auto& item = filteredItems[rowNumber];
+        
+        if (rowIsSelected)
+            g.fillAll(juce::Colours::lightblue.withAlpha(0.2f));
+            
+        g.setColour(juce::Colours::white.withAlpha(0.8f));
+        g.setFont(height * 0.7f);
+        
+        // Star for favorites
+        if (item.preset->isFavorite) {
+            g.setColour(juce::Colours::yellow.withAlpha(0.8f));
+            g.drawText("★", 5, 0, 20, height, juce::Justification::centred);
+            g.setColour(juce::Colours::white);
         }
-        delete w;
-    }), true);
-}
-
-void PresetBrowser::loadPreset() {
-    auto fileChooser = std::make_shared<juce::FileChooser>(
-        "Load User Preset",
-        juce::File(presetManager.getLastPath()),
-        "*.json");
-
-    auto browserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
-                 
-    fileChooser->launchAsync(browserFlags, [this, fileChooser](const juce::FileChooser& fc) {
-        auto file = fc.getResult();
-        if (file.existsAsFile()) {
-            auto json = juce::JSON::parse(file);
-            if (json.isObject()) {
-                auto obj = json.getDynamicObject();
-                if (obj && obj->hasProperty("state")) {
-                     juce::ValueTree state = juce::ValueTree::fromXml(obj->getProperty("state").toString());
-                     juce::String name = obj->getProperty("name").toString();
-                     presetManager.saveUserPreset(name, state);
-                     presetManager.setLastPath(file.getParentDirectory().getFullPathName());
-                     refreshPresetList();
-                     auto names = presetManager.getPresetNames();
-                     int idx = names.indexOf(name);
-                     if (idx >= 0) setPresetIndex(idx);
-                }
-            }
+        
+        g.drawText(item.preset->name, 25, 0, width - 100, height, juce::Justification::centredLeft, true);
+        
+        // heritage badge
+        if (item.preset->originGroup >= 0) {
+            juce::String badge;
+            badge << (char)('A' + item.preset->originGroup) << "-" << item.preset->originBank << "-" << item.preset->originPatch;
+            g.setColour(juce::Colours::orange.withAlpha(0.6f));
+            g.setFont(height * 0.5f);
+            g.drawText(badge, width - 75, 0, 70, height, juce::Justification::centredRight, true);
         }
-    });
+    }
 }
 
-void PresetBrowser::paint(juce::Graphics& /*g*/) {}
-
-void PresetBrowser::resized() {
-    presetList.setBounds(0, 0, getWidth(), getHeight());
+void PresetBrowser::listBoxItemClicked(int row, const juce::MouseEvent&) 
+{
+    if (row < (int)filteredItems.size()) {
+        auto& item = filteredItems[row];
+        presetManager.selectPreset(item.libIdx, item.presetIdx);
+        if (onPresetSelected) onPresetSelected(item.libIdx, item.presetIdx);
+    }
 }
 
-void PresetBrowser::refreshPresetList() {
-    presetList.clear();
-    auto names = presetManager.getPresetNames();
-    for(int i=0; i<names.size(); ++i) presetList.addItem(names[i], i+1);
+void PresetBrowser::refresh() 
+{
+    updateFilters();
 }
 
-PresetBrowser::~PresetBrowser(){}
+void PresetBrowser::updateFilters() 
+{
+    filteredItems.clear();
+    juce::String search = searchField.getText();
+    juce::String category = categoryFilter.getText();
+    if (category == "All Categories") category = "";
+    
+    juce::String libName = librarySelector.getText();
+    if (libName == "All Libraries") libName = "";
+    
+    bool favOnly = favoritesToggle.getToggleState();
+    
+    for (int l = 0; l < (int)presetManager.libraries_.size(); ++l) {
+        auto& lib = presetManager.libraries_[l];
+        if (libName.isNotEmpty() && lib.name != libName) continue;
+        
+        for (int p = 0; p < (int)lib.patches.size(); ++p) {
+            auto& pr = lib.patches[p];
+            
+            if (favOnly && !pr.isFavorite) continue;
+            if (category.isNotEmpty() && pr.category != category) continue;
+            if (search.isNotEmpty() && !pr.name.containsIgnoreCase(search)) continue;
+            
+            PresetRef ref;
+            ref.libIdx = l;
+            ref.presetIdx = p;
+            ref.preset = &pr;
+            filteredItems.push_back(ref);
+        }
+    }
+    
+    presetList.updateContent();
+    presetList.repaint();
+}

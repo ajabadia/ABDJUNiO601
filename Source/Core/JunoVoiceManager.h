@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Synth/Voice.h"
+#include "../Synth/JunoVoice.h"
 #include "../ABD-SynthEngine/Core/Voices/VoiceAllocator.h"
 #include "SynthParams.h"
 #include <array>

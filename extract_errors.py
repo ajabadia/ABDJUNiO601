@@ -1,29 +1,21 @@
 
-import sys
 import io
+import sys
 
-# Set encoding for stdout to utf-8
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-
-def extract_errors(file_path):
+def extract_errors():
     try:
-        with open(file_path, 'r', encoding='utf-16') as f:
-            lines = f.readlines()
-            # Find lines containing ": error" (this is the typical MSVC error format)
-            for i, line in enumerate(lines):
-                if ": error" in line or "fatal error" in line:
-                    # Print context: 2 lines before, current line, 7 lines after
-                    start = max(0, i - 2)
-                    end = min(len(lines), i + 8)
-                    print("-" * 40)
-                    for k in range(start, end):
-                        sys.stdout.write(lines[k])
-                    print("-" * 40)
+        # Open build_log.txt as UTF-16
+        with open('build_log.txt', 'r', encoding='utf-16') as f_in:
+            # Open output file as UTF-8
+            with open('final_errors_utf8.txt', 'w', encoding='utf-8') as f_out:
+                for line in f_in:
+                    # Filter for typical error/warning patterns
+                    l_lower = line.lower()
+                    if 'error' in l_lower or 'fatal' in l_lower or 'failed' in l_lower:
+                        f_out.write(line)
+        print("Successfully extracted errors to final_errors_utf8.txt")
     except Exception as e:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        extract_errors(sys.argv[1])
-    else:
-        print("Usage: python extract_errors.py <file_path>")
+    extract_errors()

@@ -81,4 +81,7 @@ namespace JunoConstants
         static constexpr float kHissLevelHalfDb = -58.0f;
         static constexpr float kHissLevelFullDb = -52.0f;
     }
+
+    // --- Versioning ---
+    static constexpr int kCurrentSaveFormatVersion = 2;
 }

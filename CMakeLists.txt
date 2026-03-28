@@ -46,7 +46,7 @@ juce_add_plugin(ABDSimpleJuno106
 )
 
 target_sources(ABDSimpleJuno106 PRIVATE
-    Source/Core/PluginProcessor.h
+    Source/Core/ABDSimpleJuno106AudioProcessor.h
     Source/Core/PluginProcessor.cpp
     Source/Core/PresetManager.h
     Source/Core/PresetManager.cpp
@@ -61,7 +61,13 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/PerformanceState.h
     Source/Core/PerformanceState.cpp
     Source/Core/ServiceModeManager.cpp
-    Source/Core/CalibrationManager.cpp
+    Source/Core/CalibrationSettings.cpp
+
+    Source/ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h
+    Source/ABD-SynthEngine/Core/Voices/VoiceBase.h
+    Source/ABD-SynthEngine/Core/Voices/VoiceAllocator.h
+    Source/ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
+    Source/ABD-SynthEngine/Core/LFO/LFOGeneric.h
 
     Source/UI/WebView/WebViewEditor.h
     Source/UI/WebView/WebViewEditor.cpp
@@ -72,8 +78,8 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Synth/JunoDCO.cpp
     Source/Synth/JunoLFO.h
     Source/Synth/JunoLFO.cpp
-    Source/Synth/Voice.h
-    Source/Synth/Voice.cpp
+    Source/Synth/JunoVoice.h
+    Source/Synth/JunoVoice.cpp
     Source/Synth/JunoVCF.h
     Source/Synth/JunoVCF.cpp
     Source/Synth/ChorusBBD.h
@@ -104,6 +110,7 @@ if(NOT BUILD_HEADLESS)
         Source/UI/Sections/JunoVCASection.h
         Source/UI/Sections/JunoVCFSection.h
         Source/UI/Sections/JunoPerformanceSection.h
+        Source/UI/Sections/JunoBankSection.cpp
     )
 endif()
 
@@ -139,6 +146,45 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/button_white_off.png
     Source/UI/WebUI/button_white_on.png
     
+    Source/UI/WebUI/assets/led/0.png
+    Source/UI/WebUI/assets/led/1.png
+    Source/UI/WebUI/assets/led/2.png
+    Source/UI/WebUI/assets/led/3.png
+    Source/UI/WebUI/assets/led/4.png
+    Source/UI/WebUI/assets/led/5.png
+    Source/UI/WebUI/assets/led/6.png
+    Source/UI/WebUI/assets/led/7.png
+    Source/UI/WebUI/assets/led/8.png
+    Source/UI/WebUI/assets/led/9.png
+    Source/UI/WebUI/assets/led/A.png
+    Source/UI/WebUI/assets/led/B.png
+    Source/UI/WebUI/assets/led/C.png
+    Source/UI/WebUI/assets/led/D.png
+    Source/UI/WebUI/assets/led/DASH.png
+    Source/UI/WebUI/assets/led/E.png
+    Source/UI/WebUI/assets/led/F.png
+    Source/UI/WebUI/assets/led/G.png
+    Source/UI/WebUI/assets/led/H.png
+    Source/UI/WebUI/assets/led/I.png
+    Source/UI/WebUI/assets/led/J.png
+    Source/UI/WebUI/assets/led/K.png
+    Source/UI/WebUI/assets/led/L.png
+    Source/UI/WebUI/assets/led/M.png
+    Source/UI/WebUI/assets/led/N.png
+    Source/UI/WebUI/assets/led/O.png
+    Source/UI/WebUI/assets/led/P.png
+    Source/UI/WebUI/assets/led/Q.png
+    Source/UI/WebUI/assets/led/R.png
+    Source/UI/WebUI/assets/led/S.png
+    Source/UI/WebUI/assets/led/SPACE.png
+    Source/UI/WebUI/assets/led/T.png
+    Source/UI/WebUI/assets/led/U.png
+    Source/UI/WebUI/assets/led/V.png
+    Source/UI/WebUI/assets/led/W.png
+    Source/UI/WebUI/assets/led/X.png
+    Source/UI/WebUI/assets/led/Y.png
+    Source/UI/WebUI/assets/led/Z.png
+    
     Source/UI/WebUI/css/about.css
     Source/UI/WebUI/css/base.css
     Source/UI/WebUI/css/controls.css
@@ -156,6 +202,7 @@ message(STATUS "Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/
 target_include_directories(ABDSimpleJuno106 PRIVATE 
     Source
     Source/Core
+    Source/ABD-SynthEngine
     Source/UI
     Source/UI/WebView
 )
@@ -211,10 +258,10 @@ target_sources(JunoUnitTests PRIVATE
     Source/Synth/JunoADSR.cpp
     Source/Synth/JunoVCF.cpp
     Source/Synth/ChorusBBD.cpp
-    Source/Synth/Voice.cpp
+    Source/Synth/JunoLFO.cpp
+    Source/Synth/JunoVoice.cpp
     Source/Core/JunoSysExEngine.cpp
-    Source/Core/ServiceModeManager.cpp
-    Source/Core/CalibrationManager.cpp
+    Source/Core/CalibrationSettings.cpp
 )
 
 target_link_libraries(JunoUnitTests PRIVATE

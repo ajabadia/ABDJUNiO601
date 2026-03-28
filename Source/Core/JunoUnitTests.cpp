@@ -4,7 +4,7 @@
 #include "../Synth/JunoADSR.h"
 #include "../Synth/JunoVCF.h"
 #include "../Synth/ChorusBBD.h"
-#include "../Synth/Voice.h"
+#include "../Synth/JunoVoice.h"
 #include "JunoConstants.h"
 #include "../ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h"
 #include "JunoSysExEngine.h"

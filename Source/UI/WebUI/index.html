@@ -5,9 +5,14 @@
     <meta charset="UTF-8">
     <title>ABD JUNiO 601 - Gold Standard</title>
     <!-- Immediate black background to prevent white flash during bridge initialization -->
-    <style>html, body { background-color: #111 !important; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }</style>
+    <style>
+        html, body { background-color: #111 !important; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        .hidden { display: none !important; }
+        #modal-saveas { z-index: 20000 !important; }
+    </style>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="service.css">
+    <link rel="stylesheet" href="browser.css">
 </head>
 
 <body class="smooth-fade">
@@ -20,19 +25,15 @@
     </div>
 
     <div id="synth-app">
-        <!-- 1. TOP BAR: FULL MENU -->
+        <!-- 1. TOP BAR (FULL MENU) -->
         <header id="top-bar">
-            <nav class="menu-nav">
+            <div class="menu-nav">
                 <div class="menu-item">
                     File
                     <ul class="dropdown">
-                        <li onclick="juce.menuAction('handleLoad')">Load Patch...</li>
-                        <li onclick="juce.menuAction('handleSave')">Save Current Patch...</li>
+                        <li onclick="juce.menuAction('showBrowser')">Preset Browser...</li>
                         <li class="divider"></li>
-                        <li onclick="juce.menuAction('handleExportBank')">Export Bank as JSON...</li>
                         <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / JNO...</li>
-                        <li onclick="juce.menuAction('handleLoadTape')">Load Tape (.wav)...</li>
-                        <li onclick="juce.menuAction('handleSaveTape')">Save Tape (.wav)...</li>
                         <li class="divider"></li>
                         <li onclick="juce.menuAction('exit')">Exit</li>
                     </ul>
@@ -51,33 +52,31 @@
                             MIDI TX <span class="check-mark">✔</span>
                         </li>
                         <li class="divider"></li>
-                        <li onclick="juce.menuAction('handleSettings')">Preferences...</li>
+                        <li onclick="switchTab('general'); showGlobalSettings('general')">General Settings...</li>
                     </ul>
                 </div>
                 <div class="menu-item">
-                    View
+                    Service
                     <ul class="dropdown">
-                        <li>Show/Hide Sidebar</li>
-                    </ul>
-                </div>
-                <div class="menu-item">
-                    Help
-                    <ul class="dropdown">
-                        <li onclick="juce.menuAction('handleServiceMode')">Service Mode / Calibration...</li>
+                        <li onclick="switchTab('calibration'); showGlobalSettings('calibration')">Calibration Settings...</li>
+                        <li onclick="switchTab('diagnostics'); showGlobalSettings('diagnostics')">Voice Diagnostics...</li>
                         <li class="divider"></li>
                         <li onclick="juce.menuAction('handleAbout')">About ABD JUNiO 601...</li>
                     </ul>
                 </div>
-            </nav>
-            <div id="app-title-mini">ABD JUNiO 601 (Build Loading...)</div>
+                <div class="menu-item" onclick="showBrowser()" style="color: var(--juno-blue); font-weight: bold; margin-left: 20px;">[ BROWSER ]</div>
+            </div>
+            <div id="app-title-mini">ABD JUNiO 601</div>
         </header>
 
         <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
         <div id="header-panel">
             <div id="top-left-display">
                 <div class="zone-label">BANK / PATCH</div>
-                <div id="seven-segment-display">
-                    <div class="digit" id="bank-digit">8</div>
+                <div id="seven-segment-display" style="position: relative;">
+                    <!-- MIDI LED INSIDE BEZEL (Build 67 refined) -->
+                    <div class="front-midi-badge" id="front-midi-badge" style="left: 6px; top: 50%;"></div>
+                    <div class="digit" id="bank-digit" style="margin-left: 14px;">8</div>
                     <div class="digit" id="patch-digit">8</div>
                 </div>
             </div>
@@ -587,138 +586,228 @@
             </div>
         </div>
     </div>
-    <!-- PREFERENCES MODAL -->
-    <div id="modal-settings" class="modal-overlay">
-        <div id="settings-modal" class="settings-container">
+    <!-- UNIFIED SETTINGS & CALIBRATION MODAL -->
+    <div id="modal-globalSettings" class="modal-overlay">
+        <div class="settings-container">
             <div class="settings-header">
-                <span class="settings-title">PREFERENCES</span>
-                <button class="close-btn" onclick="hideSettings()">&times;</button>
+                <span class="settings-title">SYSTEM SETTINGS</span>
+                <button class="close-btn" onclick="hideGlobalSettings()">&times;</button>
             </div>
-            <div class="settings-content">
-                <div class="setting-row">
-                    <label>MIDI CHANNEL</label>
-                    <select id="pref-midiChannel" data-param="midiChannel" onchange="updatePref(this)">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                        <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-                        <option value="16">16</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>BENDER RANGE</label>
-                    <select id="pref-benderRange" data-param="benderRange" onchange="updatePref(this)">
-                        <option value="1">1 SEMI</option><option value="2">2 SEMIS</option>
-                        <option value="3">3 SEMIS</option><option value="4">4 SEMIS</option>
-                        <option value="7">7 SEMIS</option><option value="12">1 OCT</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>VELOCITY SENS</label>
-                    <input type="range" id="pref-velocitySens" data-param="velocitySens" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-velocitySens">50%</span>
-                </div>
-                <div class="setting-row">
-                    <label>LCD BRIGHTNESS</label>
-                    <input type="range" id="pref-lcdBrightness" data-param="lcdBrightness" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-lcdBrightness">80%</span>
-                </div>
-                <div class="setting-row">
-                    <label>VOICE LIMIT</label>
-                    <select id="pref-numVoices" data-param="numVoices" onchange="updatePref(this)">
-                        <option value="1">1 (MONO)</option><option value="2">2</option><option value="4">4</option>
-                        <option value="6">6 (CLASSIC)</option><option value="8">8</option><option value="12">12</option>
-                        <option value="16">16 (MAX)</option>
-                    </select>
-                </div>
-                <div class="setting-row" id="row-unisonWidth">
-                    <label>UNISON STEREO</label>
-                    <input type="range" id="pref-unisonWidth" data-param="unisonWidth" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-unisonWidth">0%</span>
-                </div>
-                <div class="setting-row">
-                    <label>UNISON DETUNE</label>
-                    <input type="range" id="pref-unisonDetune" data-param="unisonDetune" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-unisonDetune">50%</span>
-                </div>
-                <div class="setting-row">
-                    <label>CHORUS MIX</label>
-                    <input type="range" id="pref-chorusMix" data-param="chorusMix" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-chorusMix">100%</span>
-                </div>
-                <div class="setting-row">
-                    <label>SUSTAIN PEDAL</label>
-                    <select id="pref-sustainInverted" data-param="sustainInverted" onchange="updatePref(this)">
-                        <option value="0">NORMAL</option>
-                        <option value="1">INVERTED</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>CHORUS HISS</label>
-                    <input type="range" id="pref-chorusHiss" data-param="chorusHiss" min="0" max="2" step="0.01" value="1.0" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-chorusHiss">100%</span>
-                </div>
-                <div class="setting-row">
-                    <label>MIDI FUNCTION</label>
-                    <select id="pref-midiFunction" data-param="midiFunction" onchange="updatePref(this)">
-                        <option value="0">I (NOTE)</option>
-                        <option value="1">II (+ PATCH)</option>
-                        <option value="2">III (+ SYSEX)</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>AFTERTOUCH SENS</label>
-                    <input type="range" id="pref-aftertouchToVCF" data-param="aftertouchToVCF" min="0" max="1" step="0.01" oninput="updatePref(this)">
-                    <span class="val-lbl" id="val-aftertouchToVCF">50%</span>
-                </div>
-                <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px; display: block;">
-                    <label style="margin-bottom: 10px; display: block;">MICROTUNING (SCL)</label>
-                    <div style="display: flex; gap: 10px; width: 100%;">
-                        <button class="tuning-btn" onclick="handleTuningClick('load')">LOAD .SCL</button>
-                        <button class="tuning-btn" onclick="handleTuningClick('reset')">RESET</button>
+
+            <div class="settings-tabs">
+                <button class="tab-btn active" onclick="switchTab('general')">GENERAL</button>
+                <button class="tab-btn" onclick="switchTab('calibration')">CALIBRATION</button>
+                <button class="tab-btn" onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
+            </div>
+
+            <div class="settings-inner">
+                <div id="tab-general" class="settings-content active single-col">
+                    <div id="general-params-list" class="service-param-list styled-scroll"></div>
+                    
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>Microtuning (SCL)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('load')">LOAD .SCL</button>
+                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('reset')">RESET TUNING</button>
+                                </div>
+                                <div id="tuning-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Standard Tuning</div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="tuning-info" style="font-size: 9px; color: #888; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Standard Tuning</div>
+                </div>
+
+                <!-- TAB 2: CALIBRATION PARAMS -->
+                <div id="tab-calibration" class="settings-content single-col">
+                    <div id="service-params-list" class="styled-scroll" style="max-height: 440px; overflow-y: auto; padding-right: 15px;"></div>
+                    <div class="service-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                         <button class="tuning-btn primary" id="btn-auto-tune-cal" onclick="ServiceMode.startAutoTune()" style="background: #a50; color: white;">RUN AUTO-VCF TUNE</button>
+                    </div>
+                </div>
+
+                <!-- TAB 3: DIAGNOSTICS & TOOLS -->
+                <div id="tab-diagnostics" class="settings-content single-col">
+                    <div class="service-section">
+                        <div class="service-section-title">Voice Diagnostics</div>
+                        <div id="voice-test-grid" class="voice-test-grid"></div>
+                    </div>
+                    <div class="service-section" style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+                         <button class="tuning-btn" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
+                          <button class="tuning-btn" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
+                         <button class="tuning-btn" onclick="ServiceMode.exportCalibration()">EXPORT CALIBRATION JSON</button>
+                         <button class="tuning-btn" onclick="ServiceMode.importCalibration()">IMPORT CALIBRATION JSON</button>
+                    </div>
                 </div>
             </div>
-            <div class="settings-footer">
-                <button class="tuning-btn" style="width: 120px; height: 36px; font-size: 14px; background: #333;" onclick="hideSettings()">OK</button>
+
+            <div class="settings-footer" style="gap: 15px; padding: 20px; border-top: 1px solid #222; background: rgba(0,0,0,0.2);">
+                <button class="tuning-btn" style="max-width: 180px; background: #600;" onclick="ServiceMode.resetCalibration()">FACTORY RESET</button>
+                <button class="tuning-btn" style="max-width: 140px; background: #333; font-size: 14px;" onclick="hideGlobalSettings()">CLOSE</button>
             </div>
         </div>
     </div>
 
-    <!-- SERVICE MODE MODAL -->
-    <div id="modal-serviceMode" class="modal-overlay" style="overflow: hidden;">
-        <div class="settings-container modal-content" style="max-width: 1100px;">
-            <div class="settings-header">
-                <span class="settings-title">SERVICE MODE & CALIBRATION</span>
-                <button class="close-btn" onclick="hideServiceMode()">&times;</button>
+    <!-- Modal browser moved down -->
+
+    <div id="modal-browser" class="modal-overlay">
+        <div class="browser-container">
+            <div class="browser-header">
+                <div class="browser-title-zone">
+                    <span class="browser-title">PRESET BROWSER</span>
+                    <div id="browser-status-badges">
+                        <div class="badge-unit"><div class="badge" id="badge-lc">LC</div><div class="badge-lbl">MIDI</div></div>
+                        <div class="badge-unit"><div class="badge" id="badge-ab">A</div><div class="badge-lbl">SLOT</div></div>
+                        <div class="badge-unit"><div class="badge" id="badge-wip">0</div><div class="badge-lbl">WIP</div></div>
+                    </div>
+                </div>
+                <div class="browser-search-zone">
+                    <input type="text" id="browser-search" placeholder="Search presets, authors, tags...">
+                    <button class="close-btn" onclick="hideBrowser()">&times;</button>
+                </div>
             </div>
-            
-            <div class="settings-content" style="display: block; overflow: hidden;">
-                <div class="service-section">
-                    <div class="service-section-title">Voice Diagnostics</div>
-                    <div id="voice-test-grid" class="voice-test-grid"></div>
+
+            <div class="browser-main">
+                <!-- PANE 1: CATEGORIES -->
+                <div class="browser-pane" id="pane-categories">
+                    <div class="pane-header">
+                        CATEGORIES
+                        <div class="pane-actions">
+                            <button class="icon-btn" onclick="PresetBrowser.addCategory()" title="Add Category">+</button>
+                            <button class="icon-btn" onclick="PresetBrowser.editCategory()" title="Edit Selected">✎</button>
+                            <button class="icon-btn" onclick="PresetBrowser.deleteCategory()" title="Delete Selected">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="cat-list" tabindex="0">
+                        <li class="active" data-cat="All">All</li>
+                        <li data-cat="Factory">Factory</li>
+                        <li data-cat="User">User</li>
+                        <li data-cat="WIP">WIP (Work in Progress)</li>
+                        <li data-cat="Favorites">Favorites</li>
+                    </ul>
                 </div>
 
-                <div class="service-section" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
-                    <div class="service-section-title">Synthesis Calibration</div>
-                    <div id="service-params-list" class="styled-scroll" style="max-height: 320px; overflow-y: auto; padding-right: 15px;"></div>
+                <!-- PANE 2: LIBRARIES / BANKS -->
+                <div class="browser-pane" id="pane-libraries">
+                    <div class="pane-header">
+                        LIBRARIES / BANKS
+                        <div class="pane-actions">
+                            <button class="icon-btn" onclick="PresetBrowser.addLibrary()" title="Add Library">+</button>
+                            <button class="icon-btn" id="lib-edit-btn" onclick="PresetBrowser.editLibrary()" title="Rename Library">✎</button>
+                            <button class="icon-btn" id="lib-delete-btn" onclick="PresetBrowser.deleteLibrary()" title="Delete Library">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="lib-list" tabindex="0"></ul>
+                    <div class="pane-footer-actions bank-ops-grid">
+                        <button class="footer-action-btn" onclick="juce.menuAction('handleImportSysex')">IMPORT .SYX</button>
+                        <button class="footer-action-btn" onclick="PresetBrowser.importLibrary()">IMPORT .JSON</button>
+                        <button class="footer-action-btn" onclick="PresetBrowser.exportLibrary()">EXPORT .JSON</button>
+                        <button class="footer-action-btn" id="btn-save-tape" onclick="PresetBrowser.saveTape()">SAVE TAPE (.WAV)</button>
+                        <button class="footer-action-btn" id="btn-load-tape" onclick="PresetBrowser.loadTape()">LOAD TAPE (.WAV)</button>
+                    </div>
+                </div>
+
+                <!-- PANE 3: PRESETS -->
+                <div class="browser-pane" id="pane-presets">
+                    <div class="pane-header">
+                        PRESETS
+                        <div class="pane-actions">
+                            <button class="icon-btn" id="preset-add-btn" onclick="PresetBrowser.addPreset()" title="New Preset">+</button>
+                            <button class="icon-btn" id="preset-dup-btn" onclick="PresetBrowser.duplicatePreset()" title="Duplicate Selected">⧉</button>
+                            <button class="icon-btn" id="preset-move-btn" onclick="PresetBrowser.movePresetToLibrary()" title="Move to another Bank">➔</button>
+                            <button class="icon-btn" onclick="PresetBrowser.movePreset(-1)" title="Move Up">▲</button>
+                            <button class="icon-btn" onclick="PresetBrowser.movePreset(1)" title="Move Down">▼</button>
+                            <button class="icon-btn" id="preset-delete-btn" onclick="PresetBrowser.deletePreset()" title="Delete Selected">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="preset-list" tabindex="0"></ul>
+                    <div class="pane-footer-actions">
+                        <div class="preset-count" id="preset-count-label">0 Presets</div>
+                    </div>
+                </div>
+
+                <!-- PANE 4: METADATA & PREVIEW -->
+                <div id="pane-info">
+                    <div class="info-header">METADATA</div>
+                    <div class="info-content">
+                        <div class="meta-row">
+                            <label>Name</label>
+                            <input type="text" id="meta-name" readonly>
+                        </div>
+                        <div class="meta-row">
+                            <label>Author</label>
+                            <input type="text" id="meta-author">
+                        </div>
+                        <div class="meta-row">
+                            <label>Category</label>
+                            <select id="meta-category">
+                                <option>Bass</option>
+                                <option>Lead</option>
+                                <option>Pad</option>
+                                <option>Strings</option>
+                                <option>Brass</option>
+                                <option>FX</option>
+                                <option>Keys</option>
+                                <option>Organ</option>
+                                <option>Arp</option>
+                                <option>User</option>
+                            </select>
+                        </div>
+                        <div class="meta-row">
+                            <label>Tags</label>
+                            <input type="text" id="meta-tags" placeholder="80s, analog, warm...">
+                        </div>
+                        <div class="meta-row stack">
+                            <label>Notes</label>
+                            <textarea id="meta-notes" class="styled-scroll"></textarea>
+                        </div>
+                        <div class="meta-footer-info">
+                            <span id="meta-date">Created: --/--/----</span>
+                        </div>
+                        <div class="meta-actions">
+                            <button class="footer-action-btn primary" onclick="PresetBrowser.applyMetadata()">UPDATE METADATA</button>
+                            <button class="footer-action-btn" id="preset-saveas-btn" onclick="PresetBrowser.showSaveAsModal()">SAVE AS...</button>
+                            <button class="footer-action-btn" id="preset-write-btn" onclick="PresetBrowser.saveSynthToPreset()">SAVE CURRENT SOUND (WRITE)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ab-compare-zone">
+                        <div class="ab-header">A/B COMPARE</div>
+                        <div class="ab-buttons">
+                            <button id="btn-slot-a" class="ab-btn active" onclick="PresetBrowser.switchAB(0)">SLOT A</button>
+                            <button id="btn-slot-b" class="ab-btn" onclick="PresetBrowser.switchAB(1)">SLOT B</button>
+                            <button id="btn-copy-ab" class="ab-btn" onclick="PresetBrowser.copyAB()">COPY A➔B</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="settings-footer" style="gap: 10px;">
-                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.exportCalibration()">EXPORT JSON</button>
-                <button class="tuning-btn" style="min-width: 120px;" onclick="ServiceMode.importCalibration()">IMPORT JSON</button>
-                <button class="tuning-btn" style="min-width: 140px; border: 1px solid #0a0;" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
-                <button class="tuning-btn" style="min-width: 120px; background: #600;" onclick="ServiceMode.resetCalibration()">RESET</button>
-                <button class="tuning-btn" style="min-width: 120px; background: #333;" onclick="hideServiceMode()">CLOSE</button>
+            <div class="browser-footer">
+                <div class="footer-right" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px 20px;">
+                    <button class="footer-btn cancel" onclick="hideBrowser()">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-saveas" class="modal-overlay hidden" style="z-index: 20000;">
+        <div class="modal-content" style="max-width: 400px; background: #111; border: 1px solid #333; padding: 30px;">
+            <h3 style="margin-top:0; color: #0f0; border-bottom: 1px solid #222; padding-bottom: 10px;">SAVE PRESET AS</h3>
+            <div class="meta-row stack" style="margin: 20px 0;">
+                <label>New Preset Name</label>
+                <input type="text" id="saveas-name-input" style="width: 100%; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; padding: 10px;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="footer-btn" onclick="PresetBrowser.closeSaveAsModal()">CANCEL</button>
+                <button class="footer-btn primary" onclick="PresetBrowser.confirmSaveAs()">SAVE AS NEW</button>
             </div>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script src="service.js"></script>
+    <script src="browser.js"></script>
 </body>
 
 </html>

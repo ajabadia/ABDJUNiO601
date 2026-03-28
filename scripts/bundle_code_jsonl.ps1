@@ -39,6 +39,16 @@ $specificFiles = @(
 # Folders to explicitly INCLUDE (relative to root)
 $foldersToProcess = @("Source", "WebUI", "scripts")
 
+# Priority Files to verify presence (Architecture / Bridge)
+$priorityFiles = @(
+    "Source\UI\WebView\WebViewEditor.cpp",
+    "Source\UI\WebView\WebViewEditor.h",
+    "Source\Core\PresetManager.cpp",
+    "Source\UI\WebUI\browser.js",
+    "Source\UI\WebUI\script.js",
+    "Source\UI\Sections\JunoBankSection.cpp"
+)
+
 # Directories to exclude (always ignore these)
 $excludeDirsBase = @(
     "node_modules", ".next", ".git", ".vscode", "tmp", "out", "bin", "obj",
@@ -49,7 +59,7 @@ $excludeDirsBase = @(
 
 # Combine base excludes with user-provided ones (normalized as paths starting from root)
 $excludeDirs = New-Object System.Collections.Generic.List[string]
-$excludeDirs.AddRange($excludeDirsBase)
+$excludeDirs.AddRange([string[]]$excludeDirsBase)
 
 foreach ($ex in $Exclude) {
     if ([string]::IsNullOrWhiteSpace($ex)) { continue }
@@ -180,6 +190,20 @@ function Get-GitInfo {
 # Create Writers
 $jsonlWriter   = [System.IO.StreamWriter]::new($jsonlFile, $false, [System.Text.Encoding]::UTF8)
 $controlWriter = [System.IO.StreamWriter]::new($controlFile, $false, [System.Text.Encoding]::UTF8)
+
+# Write Summary of Key Files at top for easy review
+$controlWriter.WriteLine("================================================================================")
+$controlWriter.WriteLine("SUMMARY OF KEY FILES (Architecture / Bridge)")
+$controlWriter.WriteLine("================================================================================")
+foreach($pf in $priorityFiles) {
+    if (Test-Path (Join-Path $rootDir $pf)) {
+        $controlWriter.WriteLine("$pf : OK (Architecture)")
+    } else {
+        $controlWriter.WriteLine("$pf : MISSING (CRITICAL CHECK)")
+    }
+}
+$controlWriter.WriteLine("================================================================================")
+$controlWriter.WriteLine("")
 
 # Global stats
 $totalFiles       = 0
@@ -344,6 +368,7 @@ try {
             skippedEmpty    = $skippedEmpty
             skippedErrors   = $skippedErrors
         }
+        manifest    = $priorityFiles
     }
 
     # 1) Escribir metadata como primer registro del JSONL

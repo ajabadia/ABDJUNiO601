@@ -20,6 +20,8 @@ public:
     void load();
     void save();
     void resetToDefaults();
+    void resetParam(const std::string& id);
+    void resetCategory(const std::string& category);
 
     // External file support
     bool loadFromPath(const std::string& path);

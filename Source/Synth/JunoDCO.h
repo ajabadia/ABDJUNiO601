@@ -60,6 +60,8 @@ public:
     
     // Character
     void setDrift(float amount);        // 0-1 (analog drift)
+    void setDriftRate(float rate) { driftRate = rate; }
+    void setLfoPitchDepth(float depth) { dcoLfoPitchDepth = depth; }
     
     // [Calibration]
     void setMixerGain(float gain);      // Master DCO gain (default 0.7)
@@ -67,6 +69,9 @@ public:
     void setPWMOffset(float offset) { pwmOffset = offset; }
     void setNoiseGain(float gain) { noiseGain = gain; }
     void setVoiceVariance(float cents) { voiceVariance = cents; }
+    void setGlobalDriftScale(float cents) { globalDriftScale = cents; }
+    void setVoiceDriftScale(float cents) { voiceDriftScale = cents; }
+    void setMasterClock(float hz) { masterClockHz = hz; }
     
     // Processing (receives LFO value from external LFO)
     float getNextSample(float lfoValue);
@@ -99,6 +104,11 @@ private:
     float pwmOffset = 0.0f;
     float noiseGain = 1.0f;
     float voiceVariance = 2.0f;
+    float globalDriftScale = 0.5f;
+    float voiceDriftScale = 0.3f;
+    float driftRate = 0.008f;
+    float dcoLfoPitchDepth = 0.4f;
+    float masterClockHz = 8000000.0f;
     
     // PWM
     float pwmValue = 0.5f;

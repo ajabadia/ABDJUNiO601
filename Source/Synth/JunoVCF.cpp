@@ -40,19 +40,25 @@ float JunoVCF::computeCutoffHz (float cutoff01,
                                  float kybdTrack,
                                  float noteHz,
                                  float minHz,
-                                 float maxHz) const
+                                 float maxHz,
+                                 float trackCenterHz,
+                                 float vcfWidth) const
 {
     // Suma de todas las fuentes de CV en el dominio normalizado
     float cv = juce::jlimit (0.0f, 1.0f, cutoff01 + envMod + lfoMod);
+
+    // [vcfWidth] Escalado de la curva exponencial
+    // Simula el trim pot de Width que ajusta el rango efectivo de CV
+    cv *= vcfWidth;
 
     // Ley exponencial: minHz a maxHz
     const float ratio = maxHz / std::max(1.0f, minHz);
     float cutoffHz = minHz * std::pow (ratio, cv);
 
-    // Keyboard tracking: V/oct centrado en A4 (440 Hz)
+    // Keyboard tracking: V/oct centered at trackCenterHz
     if (kybdTrack > 0.001f)
     {
-        const float trackRatio = noteHz / 440.0f;
+        const float trackRatio = noteHz / std::max(1.0f, trackCenterHz);
         const float trackMult  = 1.0f + kybdTrack * (trackRatio - 1.0f);
         cutoffHz *= std::max (trackMult, 0.01f);
     }
@@ -65,7 +71,7 @@ float JunoVCF::computeCutoffHz (float cutoff01,
 // k < 4.0 → filtrado normal
 // k > 4.0 → autooscilación (igual que el 80017A)
 // ------------------------------------------------------------
-float JunoVCF::computeResonanceFeedback (float res01, float selfOscThreshold) const
+float JunoVCF::computeResonanceFeedback (float res01, float selfOscThreshold, float selfOscInt) const
 {
     if (res01 < selfOscThreshold)
     {
@@ -78,7 +84,8 @@ float JunoVCF::computeResonanceFeedback (float res01, float selfOscThreshold) co
     const float excess = (res01 - selfOscThreshold)
                        / (1.0f - selfOscThreshold);
 
-    return 4.0f + excess * 0.5f;
+    // [Build 29] Calibrated Self-Osc Intensity
+    return 4.0f + excess * selfOscInt;
 }
 
 // ------------------------------------------------------------
@@ -101,11 +108,14 @@ float JunoVCF::processSample (float input,
                                float minHz,
                                float maxHz,
                                float selfOscThreshold,
-                               float saturationScale)
+                               float saturationScale,
+                               float selfOscInt,
+                               float trackCenterHz,
+                               float vcfWidth)
 {
     // 1. Frecuencia de corte con todas las modulaciones
     const float cutoffHz = computeCutoffHz (cutoff01, envMod, lfoMod,
-                                            kybdTrack, noteHz, minHz, maxHz);
+                                            kybdTrack, noteHz, minHz, maxHz, trackCenterHz, vcfWidth);
 
     // 2. Pre-warping TPT: g = tan(π·fc/fs)
     //    Compensa la contracción de frecuencia del dominio discreto
@@ -119,7 +129,7 @@ float JunoVCF::processSample (float input,
     const float G = g / (1.0f + g);
 
     // 3. Coeficiente de resonancia (feedback)
-    const float k = computeResonanceFeedback (resonance, selfOscThreshold);
+    const float k = computeResonanceFeedback (resonance, selfOscThreshold, selfOscInt);
 
     // 4. Señal de entrada con feedback saturado
     //    Modela el overload OTA del IR3109 cuando hay señal grande
