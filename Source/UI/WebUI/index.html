@@ -73,11 +73,12 @@
         <div id="header-panel">
             <div id="top-left-display">
                 <div class="zone-label">BANK / PATCH</div>
-                <div id="seven-segment-display" style="position: relative;">
-                    <!-- MIDI LED INSIDE BEZEL (Build 67 refined) -->
-                    <div class="front-midi-badge" id="front-midi-badge" style="left: 6px; top: 50%;"></div>
-                    <div class="digit" id="bank-digit" style="margin-left: 14px;">8</div>
-                    <div class="digit" id="patch-digit">8</div>
+                <div class="display-with-telemetry" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="front-midi-badge" id="front-midi-badge"></div>
+                    <div id="seven-segment-display">
+                        <div class="digit" id="bank-digit">8</div>
+                        <div class="digit" id="patch-digit">8</div>
+                    </div>
                 </div>
             </div>
 

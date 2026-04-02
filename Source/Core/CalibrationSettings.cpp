@@ -1,4 +1,4 @@
-#include <JuceHeader.h>
+﻿#include <JuceHeader.h>
 #include "CalibrationSettings.h"
 #include "JunoConstants.h"
 #include <fstream>

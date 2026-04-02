@@ -2,6 +2,7 @@
 #include "JunoVoiceManager.h"
 #include "SynthParams.h"
 
+namespace ABD {
 PerformanceState::PerformanceState() : noteOffFifo(256)
 {
     sustainPedalActive = false;
@@ -70,3 +71,4 @@ void PerformanceState::updateParams(const SynthParams& p)
     // but we added the call in PluginProcessor. 
     // We can leave it empty or use it for future performance flags.
 }
+} // namespace ABD

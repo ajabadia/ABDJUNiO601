@@ -12,6 +12,7 @@
  * 
  * Handles the allocation and lifecycle of 6 fixed voices.
  */
+namespace ABD {
 class JunoVoiceManager {
 public:
     JunoVoiceManager();
@@ -89,4 +90,5 @@ private:
     juce::CriticalSection lock;
     int nextPoly1Index = 0; // [Fidelidad] Authentic Cyclic allocation state
 };
+} // namespace ABD
 

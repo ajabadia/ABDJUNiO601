@@ -1,4 +1,4 @@
-#include <JuceHeader.h>
+﻿#include <JuceHeader.h>
 #include "JunoADSR.h"
 #include <cmath>
 #include <algorithm>

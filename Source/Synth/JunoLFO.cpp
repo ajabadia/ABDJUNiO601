@@ -1,4 +1,4 @@
-// Source/Synth/JunoLFO.cpp
+﻿// Source/Synth/JunoLFO.cpp
 #include "JunoLFO.h"
 #include "../Core/JunoConstants.h"
 

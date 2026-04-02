@@ -1,4 +1,4 @@
-#include "JunoBankSection.h"
+﻿#include "JunoBankSection.h"
 #include "../../Core/PresetManager.h"
 #include "../../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"

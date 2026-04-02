@@ -1,5 +1,6 @@
 #include "JunoVoiceManager.h"
 
+namespace ABD {
 JunoVoiceManager::JunoVoiceManager() {
     currentActiveVoices.store(8);
     for (auto& ts : voiceTimestamps) ts.store(0);
@@ -209,3 +210,4 @@ void JunoVoiceManager::setPortamentoLegato(bool b) {
     auto& voices = allocator.getVoices();
     for (auto& voice : voices) voice.setPortamentoLegato(b);
 }
+} // namespace ABD

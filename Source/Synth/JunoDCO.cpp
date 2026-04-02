@@ -1,4 +1,4 @@
-// Source/Synth/JunoDCO.cpp
+﻿// Source/Synth/JunoDCO.cpp
 #include "JunoDCO.h"
 #include "../Core/JunoConstants.h"
 #include <cmath>

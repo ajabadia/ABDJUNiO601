@@ -49,7 +49,7 @@ if not exist %BUILD_DIR% mkdir %BUILD_DIR%
 
 echo.
 echo 1. Configurando proyecto...
-"%CMAKE_PATH%" -B %BUILD_DIR% -A x64 -T v143 -DBUILD_SHARED_LIBS=OFF
+"%CMAKE_PATH%" -B %BUILD_DIR% -A x64 -T v143,host=x64 -DBUILD_SHARED_LIBS=OFF
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Error en la configuracion de CMake.
     exit /b %ERRORLEVEL%
@@ -57,7 +57,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo 2. Compilando JUNiO 601 (Release)...
-"%CMAKE_PATH%" --build %BUILD_DIR% --config Release --target ABDSimpleJuno106_Standalone
+"%CMAKE_PATH%" --build %BUILD_DIR% --config Release --target ABDSimpleJuno106_Standalone -- /p:CL_MPCount=1 /p:AdditionalOptions="/Zm2000"
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] La compilacion ha fallado.
     exit /b %ERRORLEVEL%

@@ -245,10 +245,10 @@ void ABDSimpleJuno106AudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(JunoUI::kStripOrange);
     g.fillRect(stripeW * 2, (float)footer.getY(), stripeW, 4.0f);
     
-    // Header Name "JUNiO 601"
+    // Header Name "ABD JUNiO 601"
     g.setColour(JunoUI::kTextWhite);
     g.setFont(juce::FontOptions("Arial", 28.0f, juce::Font::bold));
-    g.drawText("JUNiO 601", bounds.getRight() - 220, 30, 200, 40, juce::Justification::centredRight);
+    g.drawText("ABD JUNiO 601", bounds.getRight() - 260, 30, 240, 40, juce::Justification::centredRight);
 }
 
 void ABDSimpleJuno106AudioProcessorEditor::resized()
@@ -481,7 +481,7 @@ void ABDSimpleJuno106AudioProcessorEditor::handlePanic()
 void ABDSimpleJuno106AudioProcessorEditor::handleAbout()
 {
     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, 
-        "About Juno-601", 
-        "JUNiO 601\nVersion " + juce::String(ProjectInfo::versionString) + "\n\nAuthentic Juno-106 Emulation\n(c) 2026 SynthOps Laboratory", 
+        "About ABD JUNiO 601", 
+        "ABD JUNiO 601\nVersion " + juce::String(ProjectInfo::versionString) + "\n\nAuthentic Juno-106 Emulation\n(c) 2026 SynthOps Laboratory", 
         "OK");
 }

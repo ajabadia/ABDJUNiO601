@@ -1,4 +1,4 @@
-// ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
+﻿// ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
 #pragma once
 #include <JuceHeader.h>
 #include <cmath>

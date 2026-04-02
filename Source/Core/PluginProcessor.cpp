@@ -198,6 +198,9 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     // Update Service mode (TuningManager is static)
     if (serviceModeManager) serviceModeManager->update(getSampleRate(), buffer.getNumSamples());
     
+    // [Telemetry] Signal MIDI activity to UI
+    if (!midiMessages.isEmpty()) midiTrafficFlag.store(true);
+
     // Check for parameter changes
     if (panicRequested.exchange(false)) {
         voiceManager.resetAllVoices();

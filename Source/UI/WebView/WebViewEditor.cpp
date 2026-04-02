@@ -1,4 +1,4 @@
-#include <JuceHeader.h>
+﻿#include <JuceHeader.h>
 #include "WebViewEditor.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
 #include "../../Core/CalibrationSettings.h"
@@ -90,7 +90,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 juce::Logger::writeToLog("[JUNiO] setParameter JS CALL: ID=" + paramID + ", Value=" + juce::String(val));
                 if (auto* param = audioProcessor.getAPVTS().getParameter(paramID))
                 {
-                    param->setValueNotifyingHost(param->getNormalisableRange().convertTo0to1((float)val));
+                    param->setValueNotifyingHost((float)val);
                     completion (juce::var::undefined());
                 }
                 else
@@ -231,10 +231,14 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 else if (action == "handleSettings") showSettingsCallback();
                 else if (action == "handleServiceMode") showServiceModeCallback();
                 else if (action == "uiReady") {
+                    writeLog("[JUNiO] UI READY - Performing full state dump");
                     sendPresetListUpdate();
                     if (auto* pm = audioProcessor.getPresetManager()) {
                         const auto& pr = pm->getCurrentPreset();
                         sendBankPatchUpdate(pr.originGroup, pr.originBank, pr.originPatch);
+                        
+                        juce::String lcdString = "P: " + juce::String(audioProcessor.getCurrentProgram() + 1) + " " + audioProcessor.getProgramName(audioProcessor.getCurrentProgram());
+                        dispatchToJS ("onLCDUpdate", lcdString);
                     }
                 }
                 else if (action == "exit") {
@@ -290,10 +294,22 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                             }
                         });
                 }
-                else if (action == "bank-inc" || action == "handleBankInc") audioProcessor.setCurrentProgram(std::min(127, audioProcessor.getCurrentProgram() + 8));
-                else if (action == "bank-dec" || action == "handleBankDec") audioProcessor.setCurrentProgram(std::max(0, audioProcessor.getCurrentProgram() - 8));
-                else if (action == "patch-inc" || action == "handlePatchInc") audioProcessor.setCurrentProgram(std::min(127, audioProcessor.getCurrentProgram() + 1));
-                else if (action == "patch-dec" || action == "handlePatchDec") audioProcessor.setCurrentProgram(std::max(0, audioProcessor.getCurrentProgram() - 1));
+                else if (action == "bank-inc" || action == "handleBankInc") {
+                    int next = std::min(127, audioProcessor.getCurrentProgram() + 8);
+                    audioProcessor.setCurrentProgram(next);
+                }
+                else if (action == "bank-inc" || action == "handleBankInc") {
+                    if (auto* pm = audioProcessor.getPresetManager()) pm->nextBank();
+                }
+                else if (action == "bank-dec" || action == "handleBankDec") {
+                    if (auto* pm = audioProcessor.getPresetManager()) pm->prevBank();
+                }
+                else if (action == "patch-inc" || action == "handlePatchInc") {
+                    if (auto* pm = audioProcessor.getPresetManager()) pm->nextPatch();
+                }
+                else if (action == "patch-dec" || action == "handlePatchDec") {
+                    if (auto* pm = audioProcessor.getPresetManager()) pm->prevPatch();
+                }
                 else if (action == "handleSavePreset") {
                     if (auto* pm = audioProcessor.getPresetManager()) {
                         auto res = pm->saveCurrentPresetFromState(audioProcessor.getAPVTS());
@@ -318,10 +334,9 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                         }
                     }
                 }
-                else if (action == "uiReady") {
-                    sendPresetListUpdate();
+                else if (action == "showBrowser") {
+                    dispatchToJS("showModal", "browser");
                 }
-                else if (action == "showBrowser") dispatchToJS("showModal", "browser");
             }
             completion({});
         })
@@ -667,7 +682,11 @@ void WebViewEditor::timerCallback()
 {
     updateSysExInJS();
 
-    // Monitor for Preset/Index changes that might happen internally
+#ifndef ABD_PROCESSOR_HAS_TELEMETRY
+#error "Wrong ABDSimpleJuno106AudioProcessor.h included! Check your include paths."
+#endif
+    if (audioProcessor.popMidiTrafficFlag())
+        dispatchToJS("onMidiTraffic", true);
     if (auto* pm = audioProcessor.getPresetManager()) {
         int currentIdx = pm->getCurrentPresetIndex();
         if (currentIdx != lastPresetIndex) {
@@ -701,27 +720,14 @@ void WebViewEditor::timerCallback()
 void WebViewEditor::dispatchToJS(const juce::Identifier& eventId, const juce::var& payload)
 {
     if (webComponent) {
-        juce::Logger::writeToLog("[JUNiO] Dispatching event: " + eventId.toString());
-
-        // 1. Emit direct event (JUCE 8 Style)
+        // [OMEGA] Hardened JUCE 8 emission
         webComponent->emitEventIfBrowserIsVisible(eventId.toString(), payload);
 
-        // 2. Fallbacks for older/different JS listeners
-        juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-        obj->setProperty("id", eventId.toString());
-        obj->setProperty("payload", payload);
-        webComponent->emitEventIfBrowserIsVisible("hostEvent", juce::var(obj.get()));
-        
-        juce::Array<juce::var> eventParams;
-        eventParams.add(eventId.toString());
-        eventParams.add(payload);
-        webComponent->emitEventIfBrowserIsVisible("onJuceEvent", eventParams);
-
-        // 4. Ultimate Fallback (JavaScript Evaluation)
-        juce::String json = juce::JSON::toString (payload, false);
-        juce::String escaped = json.replace ("\\", "\\\\").replace ("'", "\\'");
-        webComponent->evaluateJavascript ("(function(){ if(window.__JUCE__ && window.__JUCE__.backend && window.__JUCE__.backend.emitByBackend) window.__JUCE__.backend.emitByBackend(" + 
-            eventId.toString().quoted() + ", " + escaped.quoted('\'') + "); })();");
+        // Fallback for generic hostEvent listener
+        juce::DynamicObject::Ptr fObj = new juce::DynamicObject();
+        fObj->setProperty("id", eventId.toString());
+        fObj->setProperty("payload", payload);
+        webComponent->emitEventIfBrowserIsVisible("hostEvent", juce::var(fObj.get()));
     }
 }
 

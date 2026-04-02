@@ -1,4 +1,4 @@
-// ABD-SynthEngine/Core/Voices/VoiceBase.h
+﻿// ABD-SynthEngine/Core/Voices/VoiceBase.h
 #pragma once
 #include <JuceHeader.h>
 

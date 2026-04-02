@@ -1,4 +1,4 @@
-#include "JunoSidePanel.h"
+﻿#include "JunoSidePanel.h"
 #include "../../UI/JunoBender.h"
 
 JunoSidePanel::JunoSidePanel(juce::AudioProcessorValueTreeState& apvts, MidiLearnHandler& mlh)

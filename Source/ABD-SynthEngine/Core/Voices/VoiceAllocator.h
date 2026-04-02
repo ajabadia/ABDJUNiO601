@@ -1,4 +1,4 @@
-// ABD-SynthEngine/Core/Voices/VoiceAllocator.h
+﻿// ABD-SynthEngine/Core/Voices/VoiceAllocator.h
 #pragma once
 #include "VoiceBase.h"
 #include <array>

@@ -1,3 +1,4 @@
+#define ABD_PROCESSOR_HAS_TELEMETRY 1
 #ifndef ABDSIMPLEJUNO106AUDIOPROCESSOR_H_INCLUDED
 #define ABDSIMPLEJUNO106AUDIOPROCESSOR_H_INCLUDED
 
@@ -57,9 +58,9 @@ public:
     
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
     class PresetManager* getPresetManager();
-    const JunoVoiceManager& getVoiceManager() const { return voiceManager; }
-    JunoVoiceManager& getVoiceManagerNC() { return voiceManager; } 
-    MidiLearnHandler& getMidiLearnHandler() { return midiLearnHandler; }
+    const ABD::JunoVoiceManager& getVoiceManager() const { return voiceManager; }
+    ABD::JunoVoiceManager& getVoiceManagerNC() { return voiceManager; } 
+    ABD::PerformanceState& getPerformanceState() { return performanceState; }
     
     juce::MidiKeyboardState keyboardState;
 
@@ -105,6 +106,13 @@ public:
     }
 
     ServiceModeManager& getServiceModeManager();
+    CalibrationSettings& getCalibrationSettings() { return *calibrationSettings; }
+
+    // [Telemetry]
+    std::atomic<bool> midiTrafficFlag { false };
+    bool popMidiTrafficFlag() { return midiTrafficFlag.exchange(false); }
+
+    MidiLearnHandler& getMidiLearnHandler() { return midiLearnHandler; }
 
     // [Advanced Browser] A/B Compare & WIP
     void switchABSlot(int slot);
@@ -113,14 +121,13 @@ public:
     int getWipCount() const;
     int getActiveABSlot() const { return activeSlot; }
     void sendParamUpdateToUI();
-    CalibrationSettings& getCalibrationSettings() { return *calibrationSettings; }
 
 private:
     juce::UndoManager undoManager;
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
-    JunoVoiceManager voiceManager;
+    ABD::JunoVoiceManager voiceManager;
     SynthParams currentParams;
     SynthParams lastParams;
     
@@ -139,7 +146,7 @@ private:
     juce::String currentTuningName { "Standard Tuning" };
     
     JunoSysExEngine sysExEngine;
-    PerformanceState performanceState;
+    ABD::PerformanceState performanceState;
     bool sustainInverted = false;
     
     // Store last SysEx for Echo Protection and Display

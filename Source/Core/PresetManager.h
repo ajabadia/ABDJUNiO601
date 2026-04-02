@@ -42,6 +42,12 @@ public:
     void selectPreset(int libraryIndex, int presetIndex);
     void selectPresetByBankAndPatch(int group, int bank, int patch); 
 
+    // Navigation
+    void nextBank();
+    void prevBank();
+    void nextPatch();
+    void prevPatch();
+
     // Persistence 
     juce::Result saveCurrentPresetFromState(juce::AudioProcessorValueTreeState& apvts);
     juce::Result saveAsNewPresetFromState(juce::AudioProcessorValueTreeState& apvts, 

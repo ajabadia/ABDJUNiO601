@@ -358,3 +358,44 @@ void PresetManager::updateMetadata(int libIdx, int presetIdx, const juce::String
         this->saveBrowserData();
     }
 }
+
+void PresetManager::nextBank() {
+    int factoryIdx = getLibraryIndex("Factory");
+    if (currentLibIdx_ != factoryIdx) return;
+    int g = currentPresetIdx_ / 64;
+    int b = ((currentPresetIdx_ % 64) / 8) + 1;
+    int p = (currentPresetIdx_ % 8) + 1;
+    b++; if (b > 8) b = 1;
+    selectPresetByBankAndPatch(g, b, p);
+}
+
+void PresetManager::prevBank() {
+    int factoryIdx = getLibraryIndex("Factory");
+    if (currentLibIdx_ != factoryIdx) return;
+    int g = currentPresetIdx_ / 64;
+    int b = ((currentPresetIdx_ % 64) / 8) + 1;
+    int p = (currentPresetIdx_ % 8) + 1;
+    b--; if (b < 1) b = 8;
+    selectPresetByBankAndPatch(g, b, p);
+}
+
+void PresetManager::nextPatch() {
+    int factoryIdx = getLibraryIndex("Factory");
+    if (currentLibIdx_ != factoryIdx) return;
+    int g = currentPresetIdx_ / 64;
+    int b = ((currentPresetIdx_ % 64) / 8) + 1;
+    int p = (currentPresetIdx_ % 8) + 1;
+    p++; if (p > 8) p = 1;
+    selectPresetByBankAndPatch(g, b, p);
+}
+
+void PresetManager::prevPatch() {
+    int factoryIdx = getLibraryIndex("Factory");
+    if (currentLibIdx_ != factoryIdx) return;
+    int g = currentPresetIdx_ / 64;
+    int b = ((currentPresetIdx_ % 64) / 8) + 1;
+    int p = (currentPresetIdx_ % 8) + 1;
+    p--; if (p < 1) p = 8;
+    selectPresetByBankAndPatch(g, b, p);
+}
+

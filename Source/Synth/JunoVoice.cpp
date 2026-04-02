@@ -1,4 +1,4 @@
-#include <JuceHeader.h>
+﻿#include <JuceHeader.h>
 #include "JunoVoice.h"
 #include <cmath>
 #include "../Core/SynthParams.h"

@@ -1,5 +1,5 @@
-#define JUCE_UNIT_TESTS 1
-#include <JuceHeader.h>
+﻿#include <JuceHeader.h>
+﻿#define JUCE_UNIT_TESTS 1
 #include "../Synth/JunoDCO.h"
 #include "../Synth/JunoADSR.h"
 #include "../Synth/JunoVCF.h"

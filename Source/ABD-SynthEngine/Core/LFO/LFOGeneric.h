@@ -1,4 +1,4 @@
-// ABD-SynthEngine/Core/LFO/LFOGeneric.h
+﻿// ABD-SynthEngine/Core/LFO/LFOGeneric.h
 #pragma once
 #include <JuceHeader.h>
 #include <cmath>

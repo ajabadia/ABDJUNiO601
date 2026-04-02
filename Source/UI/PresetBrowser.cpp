@@ -1,6 +1,5 @@
 #include "PresetBrowser.h"
 #include "../Core/PresetManager.h"
-#include "../../Source/ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
 
 PresetBrowser::PresetBrowser(PresetManager& pm) : presetManager(pm)
 {
@@ -154,3 +153,4 @@ void PresetBrowser::updateFilters()
     presetList.updateContent();
     presetList.repaint();
 }
+PresetManager& PresetBrowser::getPresetManager() { return presetManager; }

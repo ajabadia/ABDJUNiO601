@@ -4,6 +4,7 @@
 #include <atomic>
 #include <array>
 // Forward declarations
+namespace ABD {
 class JunoVoiceManager;
 
 struct PerformanceState
@@ -25,3 +26,4 @@ struct PerformanceState
 private:
     std::atomic<bool> sustainPedalActive { false };
 };
+} // namespace ABD

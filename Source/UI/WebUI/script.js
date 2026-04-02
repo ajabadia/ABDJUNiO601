@@ -108,7 +108,6 @@ window.juce = {
 // =============================
 function initApp() {
     listenEvent("onParameterChanged", (data) => syncUI(data.id, data.value));
-    listenEvent("onLCDUpdate", (text) => updateLCD(text, false));
     listenEvent("showModal", (data) => {
         if (data === "preferences") showGlobalSettings('general');
         else if (data === "about") showAbout();
@@ -177,10 +176,10 @@ function initApp() {
     listenEvent("onBankPatchUpdate", handleBankPatch);
 
     listenEvent("onLCDUpdate", (text) => {
-        const display = document.getElementById('lcd-display');
-        if (display) display.innerText = text;
+        // 1. Update the LCD text bezel
+        updateLCD(text, false);
         
-        // Build 90: Parse "P: 12" for Bank/Patch individual updates
+        // 2. Fallback: Parse "P: 1" for Bank/Patch individual updates if onBankPatchUpdate was missed
         if (text && text.startsWith("P: ")) {
             const parts = text.split(" ");
             if (parts.length >= 2) {

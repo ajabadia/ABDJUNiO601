@@ -22,7 +22,7 @@ public:
     void refresh();
     void setPresetIndex(int idx) { refresh(); } // Legacy compatibility
     
-    PresetManager& getPresetManager() { return presetManager; }
+    PresetManager& getPresetManager();
     
     // Callbacks
     std::function<void(int libraryIndex, int presetIndex)> onPresetSelected;

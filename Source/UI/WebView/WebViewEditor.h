@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifndef JUCE_USE_WIN_WEBVIEW2
 #define JUCE_USE_WIN_WEBVIEW2 1

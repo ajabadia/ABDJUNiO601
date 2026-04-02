@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 #include "../../UI/JunoBender.h" // Include full definition

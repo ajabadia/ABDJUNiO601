@@ -1,4 +1,4 @@
-// Source/Synth/JunoLFO.h
+﻿// Source/Synth/JunoLFO.h
 #pragma once
 
 #include <JuceHeader.h>
