@@ -66,13 +66,13 @@ if %ERRORLEVEL% NEQ 0 (
 :: 5. Mover ejecutable
 echo.
 echo 3. Finalizando...
-set "EXE_SRC=build\ABDSimpleJuno106_artefacts\Release\Standalone\ABDSimpleJuno106.exe"
+set "EXE_SRC=build\ABDSimpleJuno106_artefacts\Release\Standalone\ABD JUNiO 601.exe"
 
 if exist "%EXE_SRC%" (
     echo [INFO] Encontrado ejecutable en: %EXE_SRC%
     copy /Y "%EXE_SRC%" "JUNiO_601.exe"
     if !ERRORLEVEL! NEQ 0 (
-        echo [ERROR] No se pudo sobrescribir JUNiO_601.exe. ^¿Esta la aplicacion abierta?
+        echo [ERROR] No se pudo sobrescribir JUNiO_601.exe. ¿Esta la aplicacion abierta?
         exit /b 1
     )
     echo [INFO] Copiando WebUI...

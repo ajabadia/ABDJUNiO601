@@ -65,6 +65,7 @@ public:
     juce::MidiKeyboardState keyboardState;
 
     void loadPreset(int index);
+    void loadLibraryPreset(int libIdx, int presetIdx);
     void updateParamsFromAPVTS();
     
     void applyPerformanceModulations(SynthParams& p);
@@ -98,6 +99,7 @@ public:
     std::atomic<bool> patchDumpRequested { false };
     void requestPatchDump() { patchDumpRequested.store(true); }
 
+    void randomizeSound();
     void undo() { undoManager.undo(); }
     void redo() { undoManager.redo(); }
     void toggleMidiOut() { 

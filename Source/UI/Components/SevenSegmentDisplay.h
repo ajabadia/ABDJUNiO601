@@ -1,4 +1,4 @@
-﻿/*
+/*
   ==============================================================================
 
     SevenSegmentDisplay.h
@@ -10,6 +10,8 @@
 
 #pragma once
 #include <JuceHeader.h>
+#include <cctype>
+#include <cstdint>
 
 class SevenSegmentDisplay : public juce::Component {
 public:
@@ -17,13 +19,20 @@ public:
         setOpaque(false);
     }
     
-    void setValue(int v) {
-        if (value != v) {
-            value = v;
+    void setCharacter(char c) {
+        if (currentChar != c) {
+            currentChar = c;
             repaint();
         }
     }
     
+    // Legacy support
+    void setValue(int v) {
+        if (v >= 0 && v <= 9) setCharacter((char)('0' + v));
+        else if (v == -1) setCharacter('-');
+        else setCharacter(' ');
+    }
+
     void setColor(juce::Colour c) {
         onColor = c;
         offColor = c.withAlpha(0.08f); // Low ghosting
@@ -43,10 +52,32 @@ public:
         float gS = t * 0.3f; // Gap size
         float cy = h * 0.5f;
 
-        // Encoding 0-9
-        const uint8_t enc[] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
-        uint8_t mask = (value >= 0 && value <= 9) ? enc[value] : 0x00;
-        if (value == -1) mask = 0x40; // Minus (-1) shows G
+        // Expanded Encoding: A-G segments
+        juce::uint8 mask = 0x00;
+        switch (std::toupper(currentChar)) {
+            case '0': mask = 0x3F; break;
+            case '1': mask = 0x06; break;
+            case '2': mask = 0x5B; break;
+            case '3': mask = 0x4F; break;
+            case '4': mask = 0x66; break;
+            case '5': mask = 0x6D; break;
+            case '6': mask = 0x7D; break;
+            case '7': mask = 0x07; break;
+            case '8': mask = 0x7F; break;
+            case '9': mask = 0x6F; break;
+            case 'A': mask = 0x77; break;
+            case 'B': mask = 0x7C; break; // lowercase 'b' for clarity
+            case 'C': mask = 0x39; break;
+            case 'D': mask = 0x5E; break; // lowercase 'd'
+            case 'E': mask = 0x79; break;
+            case 'F': mask = 0x71; break;
+            case 'L': mask = 0x38; break;
+            case 'P': mask = 0x73; break;
+            case 'U': mask = 0x3E; break;
+            case '-': mask = 0x40; break;
+            case '_': mask = 0x08; break;
+            default : mask = 0x00; break;
+        }
 
         auto draw = [&](int idx, float x, float y, float sw, float sh) {
              juce::Path p;
@@ -90,7 +121,7 @@ public:
     }
 
 private:
-    int value = 8;
+    char currentChar = ' ';
     // [Fidelidad] Authentic Roland Colors from SVG
     juce::Colour onColor = juce::Colour(0xffff3030); // #ff3030
     juce::Colour offColor = juce::Colour(0xff502020); // #502020

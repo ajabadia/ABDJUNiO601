@@ -158,12 +158,49 @@ juce::Result PresetManager::importPresetsFromFile(const juce::File& file) {
 
 void PresetManager::randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts) {
     auto& random = juce::Random::getSystemRandom();
+    
+    // Whitelist for musical randomization (excluding system, master and hidden settings)
+    static const juce::StringArray whitelist {
+        "sawOn", "pulseOn", "pwm", "subOsc", "noise", "dcoRange",
+        "vcfFreq", "resonance", "hpfFreq", "kybdTracking", "envAmount", "lfoToVCF", "vcfPolarity",
+        "vcaMode", "vcaLevel",
+        "lfoRate", "lfoDelay", "lfoToDCO",
+        "attack", "decay", "sustain", "release",
+        "chorus1", "chorus2"
+    };
+
     for (auto* param : apvts.processor.getParameters()) {
         if (auto* p = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
-            p->setValueNotifyingHost(random.nextFloat());
+            juce::String id = p->getParameterID();
+            if (whitelist.contains(id)) {
+                float val = random.nextFloat();
+                
+                // [IA Musical] Apply synthesis constraints to avoid digital artifacts
+                if (id == "resonance") val *= 0.88f;         // Avoid extreme screaming feedback
+                if (id == "lfoRate")   val *= 0.85f;         // Avoid high-speed FM noise
+                if (id == "attack")    val = 0.002f + val * 0.998f; // Avoid hard digital clicks
+                if (id == "subOsc")    val *= 0.80f;         // Avoid extreme bass clipping
+                if (id == "noise")     val *= 0.50f;         // Keep noise level controlled
+                
+                p->setValueNotifyingHost(val);
+            }
+        }
+    }
+    
+    // [Safety Check] Ensure at least one primary oscillator is active
+    auto* saw = dynamic_cast<juce::AudioProcessorParameterWithID*>(apvts.getParameter("sawOn"));
+    auto* pulse = dynamic_cast<juce::AudioProcessorParameterWithID*>(apvts.getParameter("pulseOn"));
+    auto* sub = dynamic_cast<juce::AudioProcessorParameterWithID*>(apvts.getParameter("subOsc"));
+    
+    if (saw && pulse && sub) {
+        if (saw->getValue() < 0.5f && pulse->getValue() < 0.5f && sub->getValue() < 0.2f) {
+            // Force one primary source if the patch is too silent/noisy
+            if (random.nextBool()) saw->setValueNotifyingHost(1.0f);
+            else pulse->setValueNotifyingHost(1.0f);
         }
     }
 }
+
 
 void PresetManager::triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts) {
     randomizeCurrentParameters(apvts);
@@ -178,13 +215,18 @@ void PresetManager::exportCurrentPresetToJson(const juce::File& file) {
 void PresetManager::exportCurrentPresetToTape(const juce::File& file) {
     auto p = this->getCurrentPreset();
     auto bytes = stateToBytes(p.state);
-    
     auto buffer = JunoTapeEncoder::encodePatches({bytes}, 44100.0);
-    
-    juce::WavAudioFormat wavFormat;
-    if (auto writer = std::unique_ptr<juce::AudioFormatWriter>(wavFormat.createWriterFor(new juce::FileOutputStream(file), 44100.0, 1, 16, {}, 0)))
+
+    auto outStream = std::make_unique<juce::FileOutputStream>(file);
+    if (outStream->openedOk())
     {
-        writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+        juce::WavAudioFormat wavFormat;
+        // Use standard non-options creation to ensure compatibility, even if deprecated
+        if (auto writer = std::unique_ptr<juce::AudioFormatWriter>(wavFormat.createWriterFor(outStream.get(), 44100.0, 1, 16, {}, 0)))
+        {
+            outStream.release(); // Writer now owns the stream
+            writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+        }
     }
 }
 

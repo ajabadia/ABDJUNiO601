@@ -1,4 +1,4 @@
-﻿#include "JunoBankSection.h"
+#include "JunoBankSection.h"
 #include "../../Core/PresetManager.h"
 #include "../../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
@@ -48,9 +48,9 @@ JunoBankSection::JunoBankSection(PresetManager& pm, juce::AudioProcessorValueTre
 
 JunoBankSection::~JunoBankSection() {}
 
-void JunoBankSection::updateDisplay(int bank, int patch) {
-    bankDigit.setValue(bank);
-    patchDigit.setValue(patch);
+void JunoBankSection::updateDisplay(const juce::String& bank, const juce::String& patch) {
+    if (bank.isNotEmpty())  bankDigit.setCharacter(static_cast<char>(bank[0]));
+    if (patch.isNotEmpty()) patchDigit.setCharacter(static_cast<char>(patch[0]));
 }
 
 void JunoBankSection::updateBankLeds(int bankIdx) {

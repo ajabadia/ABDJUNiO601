@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 #include "../../UI/PresetBrowser.h"
@@ -18,7 +18,7 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     
-    void updateDisplay(int bank, int patch);
+    void updateDisplay(const juce::String& bank, const juce::String& patch);
     void updateBankLeds(int bankIdx);
 
     // Public Listeners

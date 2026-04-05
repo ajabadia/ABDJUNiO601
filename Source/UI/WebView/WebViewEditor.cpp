@@ -1,4 +1,4 @@
-﻿#include <JuceHeader.h>
+#include <JuceHeader.h>
 #include "WebViewEditor.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
 #include "../../Core/CalibrationSettings.h"
@@ -105,6 +105,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             }
         })
         .withNativeFunction ("getCalibrationParams", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            juce::ignoreUnused(args);
             juce::Array<juce::var> result;
             auto& cal = audioProcessor.getCalibrationSettings();
             for (const auto& p : cal.getAllParams()) {
@@ -197,6 +198,14 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             }
             completion({});
         })
+        .withNativeFunction ("loadLibraryPreset", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            if (args.size() >= 2) {
+                int libIdx = (int)args[0];
+                int prstIdx = (int)args[1];
+                audioProcessor.loadLibraryPreset(libIdx, prstIdx);
+            }
+            completion({});
+        })
         .withNativeFunction ("menuAction", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
             if (args.size() >= 1) {
                 juce::String action = args[0].toString();
@@ -223,9 +232,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                     if (args.size() >= 2) audioProcessor.triggerTestProgram((int)args[1]);
                 }
                 else if (action == "handleRandomize") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        pm->randomizeCurrentParameters(audioProcessor.getAPVTS());
-                    }
+                    audioProcessor.randomizeSound();
                 }
                 else if (action == "handleAbout") showAboutCallback();
                 else if (action == "handleSettings") showSettingsCallback();
@@ -407,6 +414,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             completion(juce::var::undefined());
         })
         .withNativeFunction ("getSynthState", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            juce::ignoreUnused(args);
             juce::DynamicObject::Ptr state = new juce::DynamicObject();
             for (auto* param : audioProcessor.getParameters()) {
                 if (auto* p = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
@@ -416,6 +424,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             completion(juce::var(state.get()));
         })
         .withNativeFunction ("getBrowserData", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            juce::ignoreUnused(args);
             if (auto* pm = audioProcessor.getPresetManager()) {
                 juce::DynamicObject::Ptr root = new juce::DynamicObject();
                 juce::Array<juce::var> libs;
@@ -507,6 +516,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             completion({});
         })
         .withNativeFunction ("importBank", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            juce::ignoreUnused(args);
             fileChooser = std::make_unique<juce::FileChooser>("Import Bank JSON...", 
                 juce::File::getSpecialLocation(juce::File::userHomeDirectory), "*.json");
             
@@ -566,6 +576,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             completion({});
         })
         .withNativeFunction ("uiReady", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            juce::ignoreUnused(args);
             writeLog("[JUNiO] JS UI is Ready. Sending Initial State...");
             
             // Mandatory completion for JUCE 8

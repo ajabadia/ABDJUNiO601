@@ -732,8 +732,8 @@ void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
                 if (auto* p = apvts.getParameter(propName)) {
                     auto prop = state.getProperty(propName);
                     if (prop.isDouble() || prop.isInt() || prop.isBool()) {
-                         float val = static_cast<float>(prop);
-                         p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1(val));
+                         float val = (float)(double)prop;
+                         p->setValueNotifyingHost(val);
                     }
                 }
             }
@@ -741,6 +741,48 @@ void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
             voiceManager.updateParams(currentParams);
             voiceManager.forceUpdate(); 
             paramsAreDirty.store(true); 
+            needsVoiceReset.store(true);
+            patchDumpRequested.store(true);
+        }
+        notifyUIOfStateChange();
+    }
+}
+
+void ABDSimpleJuno106AudioProcessor::randomizeSound() {
+    if (presetManager) {
+        presetManager->randomizeCurrentParameters(apvts);
+        
+        // Ensure engine is zero-latency updated
+        updateParamsFromAPVTS();
+        voiceManager.updateParams(currentParams);
+        voiceManager.forceUpdate();
+        
+        paramsAreDirty.store(true);
+        requestPatchDump(); // Force full SysEx/WebUI refresh
+        notifyUIOfStateChange();
+    }
+}
+
+
+void ABDSimpleJuno106AudioProcessor::loadLibraryPreset(int libIdx, int presetIdx) {
+    if (presetManager) {
+        presetManager->selectPreset(libIdx, presetIdx);
+        auto state = presetManager->getCurrentPresetState();
+        if (state.isValid()) {
+            for (int i = 0; i < state.getNumProperties(); ++i) {
+                auto propName = state.getPropertyName(i).toString();
+                if (auto* p = apvts.getParameter(propName)) {
+                    auto prop = state.getProperty(propName);
+                    if (prop.isDouble() || prop.isInt() || prop.isBool()) {
+                         float val = (float)(double)prop;
+                         p->setValueNotifyingHost(val);
+                    }
+                }
+            }
+            updateParamsFromAPVTS();
+            voiceManager.updateParams(currentParams);
+            voiceManager.forceUpdate();
+            paramsAreDirty.store(true);
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
         }
@@ -854,16 +896,16 @@ void ABDSimpleJuno106AudioProcessor::setStateInformation(const void* data, int s
         if (session.isValid()) {
             activeSlot = session.getProperty("activeABSlot", 0);
             
-            currentParams.patchName    = session.getProperty("patchName", "Initial Patch").toString();
-            currentParams.author       = session.getProperty("author", "").toString();
-            currentParams.category     = session.getProperty("category", "Uncategorized").toString();
-            currentParams.tags         = session.getProperty("tags", "").toString();
-            currentParams.notes        = session.getProperty("notes", "").toString();
-            currentParams.creationDate = session.getProperty("date", "").toString();
+            currentParams.patchName    = session.getProperty("patchName", "Initial Patch");
+            currentParams.author       = session.getProperty("author", "");
+            currentParams.category     = session.getProperty("category", "Uncategorized");
+            currentParams.tags         = session.getProperty("tags", "");
+            currentParams.notes        = session.getProperty("notes", "");
+            currentParams.creationDate = session.getProperty("date", "");
             currentParams.isFavorite   = session.getProperty("favorite", false);
             
             int bank = session.getProperty("currentBank", 0);
-            int preset = session.getProperty("currentPreset", 0);
+            /*int preset =*/ session.getProperty("currentPreset", 0);
             if (presetManager) {
                 presetManager->selectLibrary(bank);
                 // We don't necessarily load the preset here to avoid overwriting session tweaks,
@@ -923,7 +965,7 @@ void ABDSimpleJuno106AudioProcessor::switchABSlot(int slot)
     // Apply snapshot to APVTS (this triggers updateParamsFromAPVTS via listeners effectively)
     auto setParam = [&](juce::String id, float val) {
         if (auto* p = apvts.getParameter(id))
-            p->setValueNotifyingHost(p->getNormalisableRange().convertTo0to1(val));
+            p->setValueNotifyingHost(val);
     };
 
     setParam("dcoRange", (float)newParams.dcoRange);

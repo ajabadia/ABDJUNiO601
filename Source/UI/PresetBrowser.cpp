@@ -51,8 +51,8 @@ void PresetBrowser::resized()
     auto area = getLocalBounds().reduced(5);
     auto topArea = area.removeFromTop(30);
     
-    searchField.setBounds(topArea.removeFromLeft(topArea.getWidth() * 0.4f).reduced(2));
-    librarySelector.setBounds(topArea.removeFromLeft(topArea.getWidth() * 0.4f).reduced(2));
+    searchField.setBounds(topArea.removeFromLeft((int)(topArea.getWidth() * 0.4f)).reduced(2));
+    librarySelector.setBounds(topArea.removeFromLeft((int)(topArea.getWidth() * 0.4f)).reduced(2));
     favoritesToggle.setBounds(topArea.reduced(2));
     
     area.removeFromTop(5);

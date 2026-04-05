@@ -20,7 +20,7 @@ public:
     void listBoxItemClicked (int row, const juce::MouseEvent& e) override;
     
     void refresh();
-    void setPresetIndex(int idx) { refresh(); } // Legacy compatibility
+    void setPresetIndex(int /*idx*/) { refresh(); } // Legacy compatibility
     
     PresetManager& getPresetManager();
     

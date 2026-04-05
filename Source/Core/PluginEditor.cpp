@@ -203,13 +203,24 @@ void ABDSimpleJuno106AudioProcessorEditor::timerCallback()
         }
     }
 
-    // 3. Update Procedural 7-Segment Display (Persistent Index)
-    int idx = pm.getCurrentPresetIndex(); // 0-127
-    int effectiveIdx = idx % 64; // Wrap for Group B
-    int bankNum = (effectiveIdx / 8) + 1;
-    int patchNum = (effectiveIdx % 8) + 1;
+    // 3. Update Procedural 7-Segment Display (Alphanumeric Context)
+    auto libName = pm.getCurrentLibraryName();
+    int idx = pm.getCurrentPresetIndex();
+    const auto& p = pm.getCurrentPreset();
     
-    bankSection.updateDisplay(bankNum, patchNum);
+    juce::String bS, pS;
+    if (libName == "Factory") {
+        bS = juce::String(p.originBank);
+        pS = juce::String(p.originPatch);
+    } else {
+        // Show Library Initial (U, L, etc.) and Patch Index (0-9, A-F in Hex)
+        bS = libName.substring(0, 1).toUpperCase();
+        int wrappedIdx = idx % 16;
+        if (wrappedIdx < 10) pS = juce::String (wrappedIdx);
+        else pS = juce::String (static_cast<juce::juce_wchar> ('A' + (wrappedIdx - 10)));
+    }
+    
+    bankSection.updateDisplay(bS, pS);
 }
 
 void ABDSimpleJuno106AudioProcessorEditor::parameterChanged (const juce::String& parameterID, float newValue)
@@ -468,7 +479,7 @@ void ABDSimpleJuno106AudioProcessorEditor::handleExportBank()
 
 void ABDSimpleJuno106AudioProcessorEditor::handleRandomize()
 {
-    audioProcessor.getPresetManager()->randomizeCurrentParameters(audioProcessor.getAPVTS());
+    audioProcessor.randomizeSound();
     lcd.setText("RANDOMIZED");
 }
 
