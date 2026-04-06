@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 
@@ -60,8 +60,8 @@ public:
         
         modeSwitch.setBounds(cxMode - switchW/2, centerY - switchH/2, switchW, switchH);
         
-        lblGate.setBounds(cxMode - 40, centerY - switchH/2 - 20, 80, 20);
-        lblEnv.setBounds(cxMode - 40, centerY + switchH/2, 80, 20);
+        lblEnv.setBounds(cxMode - 40, centerY - switchH/2 - 20, 80, 20);
+        lblGate.setBounds(cxMode - 40, centerY + switchH/2, 80, 20);
     }
 
 private:

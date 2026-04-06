@@ -1,7 +1,8 @@
-﻿#include <JuceHeader.h>
+#include <JuceHeader.h>
 #include "JunoADSR.h"
 #include <cmath>
 #include <algorithm>
+#include "../Core/JunoConstants.h"
 
 // ============================================================================
 // JunoADSR Implementation
@@ -29,13 +30,13 @@ void JunoADSR::reset()
 
 void JunoADSR::setAttack(float seconds)
 {
-    attackTime = juce::jlimit(0.001f, 10.0f, seconds);
+    attackTime = juce::jlimit(JunoConstants::Curves::kAttackMin, JunoConstants::Curves::kAttackMax, seconds);
     calculateRates();
 }
 
 void JunoADSR::setDecay(float seconds)
 {
-    decayTime = juce::jlimit(0.001f, 10.0f, seconds);
+    decayTime = juce::jlimit(JunoConstants::Curves::kDecayMin, JunoConstants::Curves::kDecayMax, seconds);
     calculateRates();
 }
 
@@ -46,7 +47,7 @@ void JunoADSR::setSustain(float level)
 
 void JunoADSR::setRelease(float seconds)
 {
-    releaseTime = juce::jlimit(0.001f, 10.0f, seconds);
+    releaseTime = juce::jlimit(JunoConstants::Curves::kReleaseMin, JunoConstants::Curves::kReleaseMax, seconds);
     calculateRates();
 }
 

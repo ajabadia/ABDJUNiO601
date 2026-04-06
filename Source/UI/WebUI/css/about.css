@@ -11,13 +11,17 @@
     height: 100vh;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
-    display: none; /* Controlled via showAbout/hideAbout */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 10000;
 }
 
-#about-modal {
+.modal-overlay.active {
+    display: flex !important;
+}
+
+.about-modal {
     background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
     width: 480px;
     border: 2px solid #333;
@@ -101,7 +105,7 @@
     justify-content: center;
 }
 
-#about-modal button.sq.beige {
+.about-modal button.sq.beige {
     width: 120px;
     height:35px;
     font-size: 14px;

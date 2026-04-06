@@ -88,6 +88,7 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     fmtMidiFunction = getCachedParam("midiFunction");
     fmtAftertouchToVCF = getCachedParam("aftertouchToVCF");
     fmtLowCpuMode = getCachedParam("lowCpuMode");
+    fmtMemoryProtect = getCachedParam("memoryProtect");
     fmtMidiChannel = getCachedParam("midiChannel");
     fmtBenderRange = getCachedParam("benderRange");
     fmtVelocitySens = getCachedParam("velocitySens");
@@ -96,6 +97,7 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     // fmtUnisonWidth = getCachedParam("unisonWidth"); 
 
     DBG("ABDSimpleJuno106AudioProcessor::Parameters cached DONE");
+    loadUserSettings();
 
     // 2. Initialize secondary components
     presetManager = std::make_unique<PresetManager>();
@@ -473,11 +475,11 @@ void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buff
                                 currentParams.chorusDelayII, 
                                 currentParams.chorusModDepth, 
                                 currentParams.chorusSatBoost, 
-                                currentParams.chorusFilterCutoff);
+                                currentParams.chorusFilterCutoff,
+                                currentParams.chorusBothRate);
 
     // Map hardware-authentic rates
-    bool ch2 = (mode == ChorusBBD::Mode::ChorusII || mode == ChorusBBD::Mode::ChorusBoth);
-    float rate = ch2 ? JunoConstants::Chorus::kRateII : JunoConstants::Chorus::kRateI;
+    float rate = (mode == ChorusBBD::Mode::ChorusII) ? JunoConstants::Chorus::kRateII : JunoConstants::Chorus::kRateI;
     if (mode == ChorusBBD::Mode::ChorusBoth) rate *= 1.2f; 
     
     chorus.setRate(rate);
@@ -619,6 +621,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.midiFunction = (int)std::lround(fmtMidiFunction->load());
     p.aftertouchToVCF = fmtAftertouchToVCF->load();
     p.lowCpuMode = fmtLowCpuMode->load() > 0.5f;
+    p.memoryProtect = fmtMemoryProtect->load() > 0.5f;
     
     // --- Inject Calibration Overrides ---
     p.dcoMixerGain = calibrationSettings->getValue("dcoMixerGain");
@@ -642,6 +645,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
     p.vcfSaturation = calibrationSettings->getValue("vcfSaturation");
     p.vcfWidth = calibrationSettings->getValue("vcfWidth");
+    p.vcfResoCompBoost = calibrationSettings->getValue("vcfResoCompBoost");
 
     // [Build 28] HPF Calibration
     p.hpfFreq2 = calibrationSettings->getValue("hpfFreq2");
@@ -658,6 +662,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     // [Build 29] Envelope Calibration
     p.adsrSlewMs = calibrationSettings->getValue("adsrSlewMs");
     p.adsrAttackFactor = calibrationSettings->getValue("adsrAttackFactor");
+    p.adsrCurveExponent = calibrationSettings->getValue("adsrCurveExponent");
 
     // [Build 29] Chorus Calibration
     p.chorusHissLvl = calibrationSettings->getValue("chorusHissLvl");
@@ -666,6 +671,7 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.chorusModDepth = calibrationSettings->getValue("chorusModDepth");
     p.chorusSatBoost = calibrationSettings->getValue("chorusSatBoost");
     p.chorusFilterCutoff = calibrationSettings->getValue("chorusFilterCutoff");
+    p.chorusBothRate = calibrationSettings->getValue("chorusBothRate");
 
     // [Build 25] LFO Calibration
     p.lfoMaxRate = calibrationSettings->getValue("lfoMaxRate");
@@ -836,6 +842,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcess
     params.push_back(makeParam("benderToLFO", "Bender to LFO", 0.0f, 1.0f, 0.0f));
     params.push_back(makeParam("tune", "Master Tune", -50.0f, 50.0f, 0.0f));
     params.push_back(makeBool("midiOut", "MIDI Out Enabled", false));
+    params.push_back(makeBool("memoryProtect", "Memory Protect", false));
     params.push_back(makeParam("masterVolume", "Master Volume", 0.0f, 1.0f, 1.0f));
     params.push_back(makeBool("lfoTrig", "LFO Trigger", false));
     
@@ -1059,4 +1066,32 @@ void ABDSimpleJuno106AudioProcessor::notifyUIOfStateChange()
 void ABDSimpleJuno106AudioProcessor::sendParamUpdateToUI()
 {
     // Trigger any specific refresh logic in the editor
+}
+void ABDSimpleJuno106AudioProcessor::loadUserSettings() {
+    auto file = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                    .getChildFile("ABD-IA")
+                    .getChildFile("JUNiO-601")
+                    .getChildFile("settings.xml");
+    if (file.existsAsFile()) {
+        auto xml = juce::XmlDocument::parse(file);
+        if (xml != nullptr) {
+            auto vt = juce::ValueTree::fromXml(*xml);
+            if (vt.hasType("Settings")) {
+                userName = vt.getProperty("userName", "ABD USER").toString();
+            }
+        }
+    }
+}
+
+void ABDSimpleJuno106AudioProcessor::saveUserSettings() {
+    auto file = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                    .getChildFile("ABD-IA")
+                    .getChildFile("JUNiO-601")
+                    .getChildFile("settings.xml");
+    if (!file.getParentDirectory().exists()) file.getParentDirectory().createDirectory();
+
+    juce::ValueTree vt("Settings");
+    vt.setProperty("userName", userName, nullptr);
+    auto xml = vt.createXml();
+    if (xml != nullptr) xml->writeTo(file);
 }

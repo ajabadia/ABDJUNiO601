@@ -41,12 +41,25 @@ public:
     
     void selectPreset(int libraryIndex, int presetIndex);
     void selectPresetByBankAndPatch(int group, int bank, int patch); 
+    
+    // Internal Memory (128 slots)
+    void loadUserRam();
+    void saveUserRam();
+    juce::Result writeToInternalSlot(int group, int bank, int patch, 
+                                     const juce::ValueTree& state,
+                                     const juce::String& name = "",
+                                     const juce::String& author = "");
+    bool isUserRamActive() const;
 
     // Navigation
     void nextBank();
     void prevBank();
     void nextPatch();
     void prevPatch();
+
+    // Mode State
+    void setWriteArmed(bool b) noexcept { isWriteArmed_ = b; }
+    bool isWriteArmed() const noexcept { return isWriteArmed_; }
 
     // Persistence 
     juce::Result saveCurrentPresetFromState(juce::AudioProcessorValueTreeState& apvts);
@@ -85,5 +98,6 @@ private:
     void setI(juce::AudioProcessorValueTreeState& apvts, juce::String id, int v);
     void setB(juce::AudioProcessorValueTreeState& apvts, juce::String id, bool v);
 
+    bool isWriteArmed_ = false;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetManager)
 };

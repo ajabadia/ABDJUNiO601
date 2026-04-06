@@ -260,6 +260,17 @@ private:
     std::atomic<float>* fmtChorusHiss = nullptr;
     std::atomic<float>* fmtMidiFunction = nullptr;
     std::atomic<float>* fmtLowCpuMode = nullptr;
+    std::atomic<float>* fmtMemoryProtect = nullptr;
+
+public:
+    // User Settings
+    juce::String getUserName() const { return userName; }
+    void setUserName(const juce::String& name) { userName = name; saveUserSettings(); }
+    void loadUserSettings();
+    void saveUserSettings();
+
+private:
+    juce::String userName { "ABD USER" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ABDSimpleJuno106AudioProcessor)
 };

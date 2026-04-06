@@ -41,6 +41,13 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
     addAndMakeVisible(chorusSection); DBG("Editor: chorusSection added");
     addAndMakeVisible(performanceSection); DBG("Editor: performanceSection added");
     addAndMakeVisible(midiKeyboard); DBG("Editor: midiKeyboard added");
+    
+    addAndMakeVisible(memoryProtectButton);
+    memoryProtectButton.setStyle(true); // Beige style
+    memoryProtectButton.setTooltip("Memory Protect (Internal RAM)");
+    memoryProtectButton.setClickingTogglesState(true);
+    memoryProtectAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.getAPVTS(), "memoryProtect", memoryProtectButton);
+    
     DBG("ABDSimpleJuno106AudioProcessorEditor::addAndMakeVisible DONE");
     midiKeyboard.setAvailableRange(36, 96); 
     
@@ -53,9 +60,33 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
          audioProcessor.loadPreset(presetIdx);
     };
     
-    // Bank Buttons (1-8)
+    // Bank Buttons (1-8) -> In Juno-106 terms, these are the PATCH buttons
     for(int i=0; i<8; ++i) {
         bankSection.bankButtons[i].onClick = [this, i] {
+             if (isWriteArmed) {
+                 writePatchTarget = i + 1;
+                 
+                 // Perform Write
+                 auto& pm = *audioProcessor.getPresetManager();
+                 bool protectedState = (float)*audioProcessor.getAPVTS().getRawParameterValue("memoryProtect") > 0.5f;
+                 
+                 if (protectedState) {
+                     lcd.setText("MEMORY PROTECTED");
+                     isWriteArmed = false;
+                     return;
+                 }
+                 
+                 auto res = pm.writeToInternalSlot(0, writeBankTarget, writePatchTarget, audioProcessor.getAPVTS().copyState());
+                 if (res.wasOk()) {
+                     lcd.setText("WRITTEN TO " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+                     bankSection.presetBrowser.refresh();
+                 } else {
+                     lcd.setText("WRITE ERROR");
+                 }
+                 isWriteArmed = false;
+                 return;
+             }
+
              if (audioProcessor.isTestMode) {
                  audioProcessor.triggerTestProgram(i + 1);
                  lcd.setText("TEST FUNCTION " + juce::String(i + 1));
@@ -101,10 +132,42 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
         audioProcessor.loadPreset(newIdx);
     };
 
-    bankSection.prevPatchButton.onClick = [navPatch] { navPatch(-1); };
-    bankSection.nextPatchButton.onClick   = [navPatch] { navPatch(1); };
-    bankSection.decBankButton.onClick  = [navBank] { navBank(-1); };
-    bankSection.incBankButton.onClick     = [navBank] { navBank(1); };
+    bankSection.prevPatchButton.onClick = [this, navPatch] { 
+        if (isWriteArmed) {
+            writeBankTarget--;
+            if (writeBankTarget < 1) writeBankTarget = 16;
+            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+            return;
+        }
+        navPatch(-1); 
+    };
+    bankSection.nextPatchButton.onClick   = [this, navPatch] { 
+        if (isWriteArmed) {
+            writeBankTarget++;
+            if (writeBankTarget > 16) writeBankTarget = 1;
+            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+            return;
+        }
+        navPatch(1); 
+    };
+    bankSection.decBankButton.onClick  = [this, navBank] { 
+        if (isWriteArmed) {
+            writeBankTarget--;
+            if (writeBankTarget < 1) writeBankTarget = 16;
+            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+            return;
+        }
+        navBank(-1); 
+    };
+    bankSection.incBankButton.onClick     = [this, navBank] { 
+        if (isWriteArmed) {
+            writeBankTarget++;
+            if (writeBankTarget > 16) writeBankTarget = 1;
+            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+            return;
+        }
+        navBank(1); 
+    };
 
     // Function Buttons
     bankSection.panicButton.onClick = [this] { audioProcessor.triggerPanic(); lcd.setText("PANIC"); };
@@ -276,7 +339,11 @@ void ABDSimpleJuno106AudioProcessorEditor::resized()
     sysExDisplay.setBounds(header.removeFromLeft(400).reduced(10, 5));
     
     // Center LCD in header
-    lcd.setBounds(header.reduced(20, 10).withWidth(400).withCentre(header.getCentre()));
+    auto lcdBounds = header.reduced(20, 10).withWidth(400).withCentre(header.getCentre());
+    lcd.setBounds(lcdBounds);
+    
+    // Memory Protect to the left of LCD
+    memoryProtectButton.setBounds(lcdBounds.getX() - 90, lcdBounds.getY() + 15, 80, 25);
     
     // 2. LEFT SIDEBAR (Bank + Performance) - SWAPPED SIDE
     auto sidebar = b.removeFromLeft(240);
@@ -384,22 +451,17 @@ void ABDSimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int
 
 void ABDSimpleJuno106AudioProcessorEditor::handleSave()
 {
-    auto* aw = new juce::AlertWindow("Save Patch", "Enter name for current patch:", juce::MessageBoxIconType::NoIcon);
-    aw->addTextEditor("name", audioProcessor.getPresetManager()->getCurrentPreset().name);
-    aw->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-    
-    aw->enterModalState(true, juce::ModalCallbackFunction::create([this, aw](int result) {
-        if (result == 1) {
-            juce::String newName = aw->getTextEditorContents("name");
-            if (newName.isNotEmpty()) {
-                audioProcessor.getPresetManager()->saveAsNewPresetFromState(audioProcessor.getAPVTS(), newName);
-                bankSection.presetBrowser.refresh();
-                lcd.setText("PATCH SAVED: " + newName);
-            }
-        }
-        delete aw;
-    }));
+    if (!isWriteArmed) {
+        isWriteArmed = true;
+        auto& pm = *audioProcessor.getPresetManager();
+        int idx = pm.getCurrentPresetIndex();
+        writeBankTarget = (idx / 8) + 1; // 1-16
+        writePatchTarget = (idx % 8) + 1; // 1-8
+        lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+    } else {
+        isWriteArmed = false;
+        lcd.setText(audioProcessor.getPresetManager()->getCurrentPreset().name);
+    }
 }
 
 void ABDSimpleJuno106AudioProcessorEditor::handleLoad()

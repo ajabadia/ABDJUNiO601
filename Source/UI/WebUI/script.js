@@ -9,6 +9,11 @@ let octaveShift = 0;
 let lastSysExHex = "";
 let currentBankGlobal = 1;
 let currentPatchGlobal = 1;
+let isWriteArmed = false;
+let targetBank = 1;
+let targetPatch = 1;
+let memoryProtectActive = false;
+let globalUserName = "ABD USER";
 
 // [Audit] Persistent SysEx Mirror for stable UI display
 let sysexMirror = new Array(23).fill(0);
@@ -503,6 +508,12 @@ function setupButtons() {
             e.preventDefault();
             btn.classList.add('pushed');
 
+            if (paramID === 'memoryProtect') {
+                const nextVal = memoryProtectActive ? 0 : 1;
+                callNative("setParameter", paramID, nextVal);
+                return;
+            }
+
             if (btn.classList.contains('range-btn')) {
                 const val = parseFloat(btn.getAttribute('data-val'));
                 syncUI("dcoRange", val);
@@ -526,6 +537,32 @@ function setupButtons() {
 
             const actionID = btn.getAttribute('data-action');
             if (actionID) {
+                if (actionID === 'handleSave' || actionID === 'handleWriteArm') {
+                    if (memoryProtectActive) {
+                        updateLCD("MEMORY PROTECTED", true);
+                        return;
+                    }
+
+                    if (btn.id === 'write-btn') {
+                        isWriteArmed = !isWriteArmed;
+                        if (isWriteArmed) {
+                            targetBank = currentBankGlobal;
+                            targetPatch = currentPatchGlobal; // Sync with current on arm
+                            updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                        } else {
+                            updateLCD(lastPresetName, false);
+                        }
+                        callNative("menuAction", "handleWriteArm"); // Exclusive arm action, no file dialog
+                    } else if (btn.id === 'save-patch-btn') {
+                        if (isWriteArmed) {
+                            showSaveModal(targetBank, targetPatch);
+                        } else {
+                            updateLCD("PRESS WRITE FIRST", true);
+                        }
+                    }
+                    return;
+                }
+
                 if (actionID === 'handleManual' || actionID === 'handleTest') {
                     const isActive = btn.getAttribute('data-active') === 'true';
                     document.querySelectorAll('[data-action="handleManual"], [data-action="handleTest"]').forEach(b => {
@@ -543,8 +580,14 @@ function setupButtons() {
 
             if (btn.classList.contains('num-btn')) {
                 const idx = parseInt(btn.getAttribute('data-bank'));
-                const testBtn = document.getElementById('test-btn');
+                
+                if (isWriteArmed) {
+                    targetPatch = idx + 1;
+                    updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                    return;
+                }
 
+                const testBtn = document.getElementById('test-btn');
                 if (testBtn && testBtn.getAttribute('data-active') === 'true') {
                     callNative("menuAction", "handleTestProgram", idx);
                 } else {
@@ -557,7 +600,17 @@ function setupButtons() {
                 callNative("menuAction", "panic");
             } else {
                 const actionMap = { 'bank-dec': 'handleBankDec', 'bank-inc': 'handleBankInc', 'patch-dec': 'handlePatchDec', 'patch-inc': 'handlePatchInc' };
-                if (actionMap[btn.id]) callNative("menuAction", actionMap[btn.id]);
+                if (actionMap[btn.id]) {
+                    if (isWriteArmed) {
+                        if (btn.id === 'bank-inc') targetBank = (targetBank % 16) + 1;
+                        if (btn.id === 'bank-dec') targetBank = targetBank === 1 ? 16 : targetBank - 1;
+                        if (btn.id === 'patch-inc') targetPatch = (targetPatch % 8) + 1;
+                        if (btn.id === 'patch-dec') targetPatch = targetPatch === 1 ? 8 : targetPatch - 1;
+                        updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                    } else {
+                        callNative("menuAction", actionMap[btn.id]);
+                    }
+                }
             }
         });
 
@@ -739,6 +792,15 @@ function syncUI(id, val) {
         }
     });
 
+    if (id === 'memoryProtect') {
+        memoryProtectActive = val > 0.5;
+        const pBtn = document.getElementById('protect-btn');
+        if (pBtn) {
+            pBtn.classList.toggle('active-mode', memoryProtectActive);
+            pBtn.setAttribute('data-active', memoryProtectActive ? 'true' : 'false');
+        }
+    }
+
     if (id === 'polyMode') {
         document.querySelectorAll('.poly-mode-btn').forEach(btn => {
             const btnVal = parseFloat(btn.getAttribute('data-poly-val'));
@@ -868,3 +930,73 @@ function handleTuningClick(type) {
         if (info) info.innerText = "RESETTING...";
     }
 }
+
+// --- SAVE MODAL LOGIC ---
+let pendingSaveSlot = -1;
+
+function showSaveModal(bank, patch) {
+    const slot = (bank - 1) * 8 + (patch - 1);
+    pendingSaveSlot = slot;
+    
+    document.getElementById('save-target-display').innerText = `BANK ${bank} - PATCH ${patch}`;
+    
+    // Suggest name: "NEW " + lastPresetName
+    const nameInput = document.getElementById('save-patch-name');
+    nameInput.value = "NEW " + lastPresetName.substring(0, 12);
+    
+    // Set author from global settings
+    document.getElementById('save-patch-author').value = globalUserName;
+    
+    document.getElementById('modal-savePatch').classList.add('active');
+    nameInput.focus();
+    nameInput.select();
+}
+
+function hideSaveModal() {
+    document.getElementById('modal-savePatch').classList.remove('active');
+    isWriteArmed = false;
+    updateLCD(lastPresetName.toUpperCase().substring(0, 16));
+}
+
+function commitInternalSave() {
+    const name = document.getElementById('save-patch-name').value || "NEW PATCH";
+    const author = document.getElementById('save-patch-author').value || globalUserName;
+    
+    if (pendingSaveSlot >= 0) {
+        callNative("menuAction", "writeToInternalSlot", pendingSaveSlot, name, author);
+        
+        // Visual feedback
+        updateLCD("WRITTEN TO RAM");
+        setTimeout(() => {
+            updateLCD(name.toUpperCase().substring(0, 16));
+            isWriteArmed = false;
+        }, 1500);
+    }
+    
+    document.getElementById('modal-savePatch').classList.remove('active');
+}
+
+// --- SETTINGS SYNC ---
+function initUserSettingsSync() {
+    // Fetch initial user name
+    callNative("menuAction", "getUserName").then(name => {
+        if (name) {
+            globalUserName = name;
+            const input = document.getElementById('setting-userName');
+            if (input) input.value = name;
+        }
+    });
+
+    const userNameInput = document.getElementById('setting-userName');
+    if (userNameInput) {
+        userNameInput.addEventListener('change', (e) => {
+            globalUserName = e.target.value;
+            callNative("menuAction", "setUserName", globalUserName);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // initKeyboard(); // If it exists elsewhere, otherwise I'll just init settings
+    initUserSettingsSync();
+});

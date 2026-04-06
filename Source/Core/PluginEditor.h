@@ -67,6 +67,8 @@ private:
     
     // Header
     JunoUI::JunoLCD lcd;
+    JunoUI::JunoButton memoryProtectButton { "PROTECT" };
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> memoryProtectAttachment;
     JunoSysExDisplay sysExDisplay;
     
     // Synth Rows
@@ -90,6 +92,9 @@ private:
     // Phase 5: LCD Interactive Feedback
     int lcdDisplayTimer = 0;
     juce::String lastPresetName = "--";
+    bool isWriteArmed = false;
+    int writeBankTarget = 0;
+    int writePatchTarget = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ABDSimpleJuno106AudioProcessorEditor)
 };

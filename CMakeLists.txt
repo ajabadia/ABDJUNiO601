@@ -262,6 +262,9 @@ target_sources(JunoUnitTests PRIVATE
     Source/Synth/JunoVoice.cpp
     Source/Core/JunoSysExEngine.cpp
     Source/Core/CalibrationSettings.cpp
+    Source/Core/PresetManager.cpp
+    Source/Core/JunoVoiceManager.cpp
+    Source/Core/PerformanceState.cpp
 )
 
 target_link_libraries(JunoUnitTests PRIVATE

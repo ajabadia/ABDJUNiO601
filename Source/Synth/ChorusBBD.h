@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include <array>
 #include <cmath>
@@ -38,12 +38,13 @@ public:
     void setHissColor(float color) { calHissColor = color; }
     
     // [Build 29] Calibration Overrides
-    void setCalibrationParams(float dI, float dII, float depth, float sat, float cutoff) {
+    void setCalibrationParams(float dI, float dII, float depth, float sat, float cutoff, float bothRate) {
         calDelayI = dI;
         calDelayII = dII;
         calModDepth = depth;
         calSatBoost = sat;
         calFilterCutoff = cutoff;
+        calBothRate = bothRate;
     }
 
     void setHissMultiplier(float m) { hissMultiplier = juce::jlimit(0.0f, 2.0f, m); }
@@ -66,6 +67,7 @@ private:
     float calModDepth { 1.5f };
     float calSatBoost { 1.2f };
     float calFilterCutoff { 8000.0f };
+    float calBothRate { 7.7f };
 
     //── Delay lines ────────────────────────────────────────────────────────
     static constexpr int MAX_DELAY_SAMPLES = 8192; // 100ms+ a 48k para seguridad

@@ -1,4 +1,4 @@
-﻿#include <JuceHeader.h>
+#include <JuceHeader.h>
 #include "JunoVoice.h"
 #include <cmath>
 #include "../Core/SynthParams.h"
@@ -77,11 +77,11 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
     bool runGlide = params.portamentoOn;
     if (params.portamentoLegato) runGlide = runGlide && isLegato;
     
-    adsr.setAttack(JunoConstants::curveMap(params.attack, Curves::kAttackMin, Curves::kAttackMax));
-    adsr.setDecay(JunoConstants::curveMap(params.decay, Curves::kDecayMin, Curves::kDecayMax));
+    adsr.setAttack(JunoConstants::curveMap(params.attack, Curves::kAttackMin, Curves::kAttackMax, params.adsrCurveExponent));
+    adsr.setDecay(JunoConstants::curveMap(params.decay, Curves::kDecayMin, Curves::kDecayMax, params.adsrCurveExponent));
     adsr.setSustain(params.sustain);
-    adsr.setRelease(JunoConstants::curveMap(params.release, Curves::kReleaseMin, Curves::kReleaseMax));
-    adsr.setGateMode(params.vcaMode == 1);
+    adsr.setRelease(JunoConstants::curveMap(params.release, Curves::kReleaseMin, Curves::kReleaseMax, params.adsrCurveExponent));
+    adsr.setGateMode(params.vcaMode == 0); // Internal 0 = GATE
     
     stealPending = false;
     
@@ -146,11 +146,11 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setLFODepth(p.lfoToDCO);
     dco.setMasterClock(p.masterClockHz);
     
-    adsr.setAttack(JunoConstants::curveMap(p.attack, Curves::kAttackMin, Curves::kAttackMax));
-    adsr.setDecay(JunoConstants::curveMap(p.decay, Curves::kDecayMin, Curves::kDecayMax));
+    adsr.setAttack(JunoConstants::curveMap(p.attack, Curves::kAttackMin, Curves::kAttackMax, p.adsrCurveExponent));
+    adsr.setDecay(JunoConstants::curveMap(p.decay, Curves::kDecayMin, Curves::kDecayMax, p.adsrCurveExponent));
     adsr.setSustain(p.sustain);
-    adsr.setRelease(JunoConstants::curveMap(p.release, Curves::kReleaseMin, Curves::kReleaseMax));
-    adsr.setGateMode(p.vcaMode == 1);
+    adsr.setRelease(JunoConstants::curveMap(p.release, Curves::kReleaseMin, Curves::kReleaseMax, p.adsrCurveExponent));
+    adsr.setGateMode(p.vcaMode == 0); // Internal 0 = GATE
     adsr.setSlewMs(p.adsrSlewMs);
     
     dco.setMixerGain(p.dcoMixerGain);
@@ -170,8 +170,10 @@ void Voice::updateParams(const SynthParams& p) {
 void Voice::updateHPF(int position) {
     int activePos = (position >= 0) ? position : params.hpfFreq;
     switch (activePos) {
-        case 0: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, params.hpfShelfFreq, params.hpfQ, std::pow(10.0f, params.hpfShelfGain / 20.0f)); break;
-        case 1: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f); break;
+        case 0: // Bass Boost mode: the main hpf is bypass, shelving is handled in render loop
+        case 1: // Flat mode: bypass
+            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f); 
+            break;
         case 2: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, params.hpfFreq2, params.hpfQ); break;
         case 3: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, params.hpfFreq3, params.hpfQ); break;
         default: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, 1000.0f); break;
@@ -240,8 +242,11 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         float signal = dcoSample + neighborCrosstalk * params.vcaCrosstalk + rippleNoise;
         
         int activeHpfPos = (params.hpfCyclePos >= 0) ? params.hpfCyclePos : params.hpfFreq;
-        signal = hpFilter.processSample(signal); 
-        if (activeHpfPos == 0) signal = hpfShelfFilter.processSample(signal);
+        if (activeHpfPos == 0) {
+            signal = hpfShelfFilter.processSample(signal); // Apply +3dB Bass Boost shelving
+        } else {
+            signal = hpFilter.processSample(signal); // Apply 225Hz/700Hz HPF or AllPass
+        }
         
         float envMod = params.envAmount * (envVal - 0.5f) * params.vcfEnvRange;
         if (params.vcfPolarity == 1) envMod = -envMod;
@@ -254,11 +259,21 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         juce::dsp::util::snapToZero(signal);
         
-        float vcaGain = (params.vcaMode == 1) ? (smoothedVCALevel.getNextValue() * envVal) : (envVal * smoothedVCALevel.getNextValue());
+        // [Fidelity Bugfix] VCA Mode branching
+        float vcaGain = smoothedVCALevel.getNextValue();
+        if (params.vcaMode == 1) { // 1 = ENV (TOP)
+             vcaGain *= envVal;
+        } else { // 0 = GATE (BOTTOM)
+             // Use adsr internal gate state (0 or 1 with slew)
+             vcaGain *= envVal; // Note: JunoADSR returns gate-slew if setGateMode(true).
+        }
+        
         float velScale = std::pow(1.0f - params.velocitySens + (params.velocitySens * velocity), params.vcaVelSensScale);
         vcaGain *= velScale * params.vcaMasterGain;
         
-        float resComp = 1.0f + (params.resonance * params.resonance * params.vcfResoComp);
+        // [Sprint 10 Fidelity] Accurate IR3109 Passband Loss.
+        // Modern emulations often compensate too much. Hardware 106 thins out significantly.
+        float resComp = 1.0f + (params.resonance * params.resonance * params.vcfResoComp * 0.4f);
         voiceData[i] = (signal + params.vcaDcOffset + params.vcaOffset) * vcaGain * resComp * kVoiceOutputGain;
     }
 }

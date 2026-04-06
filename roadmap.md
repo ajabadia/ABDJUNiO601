@@ -73,6 +73,32 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 - [x] **Memory Audit**: Verified shared pointers and modern C++ practices.
 - [x] **Logic Cleanup**: Refactored `Voice` and `JunoVCF` for professional readability.
 
+## Sprint 9: Deep Fidelity Audit & Hardware Verification [COMPLETED]
+**Goal**: Bit-accurate and component-level alignment with original Roland Juno-106 hardware.
+- [x] **DCO Research**: [CORREGIDO] Implementado Intel 8253 2MHz emulation (8MHz/4). Eliminada cuantización de 31kHz. Dividores de 16-bit reales para total fidelidad en barridos de pitch.
+- [x] **VCF Audit**: [CORREGIDO] Eliminada redundancia en HPF Pos 0. Auditado Passband loss del IR3109 (Verificado: resComp=0.2 por defecto).
+- [x] **VCA & Envelopes**: [CORREGIDO] Rangos de tiempo alineados con hardware (3s/12s/12s). Emulación MCU Rate (3ms) y DAC steps integrada.
+- [x] **HPF Verification**: [CORREGIDO] Posición 0 (Bass Boost) exclusiva vía shelving filter (+3dB @ 70Hz). Posiciones 1-3 alineadas con curvas de servicio.
+- [x] **LFO & Modulation**: [CORREGIDO] Rangos 0.1Hz - 30Hz validados. Curva de onset RC auténtica implementada.
+- [x] **Chorus BBD**: [CORREGIDO] Modo 'Both' a 7.7Hz mono-line (BBD clock acelerado). Añadida 'chorusBothRate' a zona de calibración.
+- [x] **SysEx Protocol**: [CORREGIDO] Bit-level compatibility with original Roland 106 patch dumps (SW1/SW2 alignment).
+- [x] **ADSR & VCA**: [CORREGIDO] Lógica GATE/ENV realineada con panel físico. Curva temporal cuadrática ajustable integrada en calibración.
+- [x] **Tape Interface**: [CORREGIDO] FSK Frequencies (1300/2100Hz) and raw 18-byte block parsing verified for hardware tape backups.
+- [ ] **Sample Comparison Audit**: Comprehensive A/B testing against original MP3 factory samples.
+
+## Sprint 10: Fidelity Alignment & Comparison Fixes [COMPLETED]
+**Goal**: Resolve "notable differences" found in sample comparison by hard-aligning engine response.
+- [x] **Disable Velocity Default**: Force velocity sensitivity to 0% for all factory ROM patches to match 1984 hardware behavior.
+- [x] **DCO Mixing Audit**: Re-verify relative levels of Saw, Pulse, and Sub-osc against service manual op-amp circuit gain.
+- [x] **VCF Curve Scaling**: Implement precise hardware-accurate exponential frequency mapping (0-127 to Hz).
+- [x] **Filter Passband Loss**: Fine-tune IR3109 resonance-induced volume drop to ensure authentic "thinning" of the sound.
+
+## Sprint 11: SysEx Audit & Final Alignment [IN PROGRESS]
+**Goal**: Ensure 100% bidirectional compatibility and project finalization.
+- [x] **SysEx Bit-Accuracy**: Fixed inversion logic for Chorus and VCA Mode in `JunoSysEx.h`.
+- [x] **Bidirectional Sync**: Ensure UI parameter changes match full patch dumps.
+- [ ] **Final Verification**: Confirm all MP3 samples match current engine output (Build #64).
+
 ## Post-Launch / Future Iterations
 - [ ] **Responsive Engine**: Re-evaluate dynamic layouts for Desktop, Tablet, and Mobile.
 - [ ] **Accessibility (Web & Native)**: Keyboard navigation, ARIA labels, and high-contrast themes.

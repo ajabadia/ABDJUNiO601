@@ -1,4 +1,4 @@
-﻿#include "JunoSysExEngine.h"
+#include "JunoSysExEngine.h"
 
 using namespace JunoSysEx;
 
@@ -62,26 +62,31 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[14] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.release * 127.0f));
     body[15] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.subOscLevel * 127.0f));
 
-    // [Hardware Authenticity] SW1 (Byte 20): Chorus, Range, Pulse, Saw
+    // [Hardware Authenticity] SW1 (Byte 20): Footage, Waves, Chorus
     uint8_t sw1 = 0;
-    // Bit 0: Chorus Enable
-    if (params.chorus1 || params.chorus2) sw1 |= (1 << 0);
-    // Bit 1: Chorus Type (1=II, 0=I)
-    if (params.chorus2) sw1 |= (1 << 1);
-    
-    // Bits 3-4: Range (0: 16', 1: 8', 2: 4')
+    // Bits 0-2: Range (16', 8', 4' - mutually exclusive)
     int hwRange = juce::jlimit(0, 2, params.dcoRange);
-    sw1 |= (uint8_t)((hwRange & 0x03) << 3);
+    if (hwRange == 0) sw1 |= (1 << 0); // 16'
+    if (hwRange == 1) sw1 |= (1 << 1); // 8'
+    if (hwRange == 2) sw1 |= (1 << 2); // 4'
     
-    // Bit 5: Pulse
-    if (params.pulseOn) sw1 |= (1 << 5);
-    // Bit 6: Saw
-    if (params.sawOn)   sw1 |= (1 << 6);
+    // Bit 3: Pulse
+    if (params.pulseOn) sw1 |= (1 << 3);
+    // Bit 4: Saw
+    if (params.sawOn)   sw1 |= (1 << 4);
+    
+    // Bit 5: Chorus Enable (0=ON, 1=OFF according to Roland 106 protocol)
+    if (params.chorus1 || params.chorus2) sw1 &= ~(1 << 5); else sw1 |= (1 << 5);
+    // Bit 6: Chorus Type (1=I, 0=II)
+    if (params.chorus1) sw1 |= (1 << 6);
+    // Note: for Chorus Both, we follow hardware and set it to Level 2 (0) or try both bits if used elsewhere.
 
     // [Hardware Authenticity] SW2 (Byte 21): PWM Mode, VCA Mode, Polarity, HPF
     uint8_t sw2 = 0;
     if (params.pwmMode == 1)     sw2 |= (1 << 0);
-    if (params.vcaMode == 1)     sw2 |= (1 << 1);
+    // Bit 1: VCA Mode (0=ENV, 1=GATE according to Roland protocol)
+    if (params.vcaMode == 0) sw2 |= (1 << 1); // Internal 0: GATE (Roland bit 1)
+    
     if (params.vcfPolarity == 1) sw2 |= (1 << 2);
 
     // HPF: Descending logic (3=Boost, 2=Flat, 1=225Hz, 0=450Hz)
@@ -118,20 +123,23 @@ void JunoSysExEngine::applyParamChange (int paramId,
 
         case SWITCHES_1:
              {
-                 bool cEnable = (value7bit & (1 << 0)) != 0;
-                 bool cMode2  = (value7bit & (1 << 1)) != 0;
-                 params.chorus1 = cEnable && !cMode2;
-                 params.chorus2 = cEnable && cMode2;
+                 params.dcoRange = (value7bit & (1 << 0)) ? 0 : 
+                                   (value7bit & (1 << 1)) ? 1 : 
+                                   (value7bit & (1 << 2)) ? 2 : params.dcoRange;
                  
-                 params.dcoRange = (value7bit >> 3) & 0x03;
-                 params.pulseOn  = (value7bit & (1 << 5)) != 0;
-                 params.sawOn    = (value7bit & (1 << 6)) != 0;
+                 params.pulseOn = (value7bit & (1 << 3)) != 0;
+                 params.sawOn   = (value7bit & (1 << 4)) != 0;
+
+                 bool cOn     = (value7bit & (1 << 5)) == 0; // 0 = ON
+                 bool cI      = (value7bit & (1 << 6)) != 0; // 1 = I
+                 params.chorus1 = cOn && cI;
+                 params.chorus2 = cOn && !cI;
              }
              break;
 
         case SWITCHES_2:
              params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
-             params.vcaMode     = (value7bit & (1 << 1)) ? 1 : 0;
+             params.vcaMode     = (value7bit & (1 << 1)) ? 0 : 1; // Roland 1=GATE(0), 0=ENV(1)
              params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
              // HPF: EngineVal = 3 - SysExVal
              params.hpfFreq     = 3 - ((value7bit >> 3) & 0x03);
@@ -167,24 +175,31 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     params.release     = v (14);
     params.subOscLevel = v (15);
 
+    // [Sprint 10 Fidelity Alignment] Hardware Juno-106 is not velocity sensitive.
+    // We force modern velocity scaling to 0 for incoming 18-byte dumps.
+    params.velocitySens = 0.0f;
+
     const uint8_t sw1 = dumpData[16];
     const uint8_t sw2 = dumpData[17];
 
     // SW1 Parsing
     {
-        bool cEnable = (sw1 & (1 << 0)) != 0;
-        bool cMode2  = (sw1 & (1 << 1)) != 0;
-        params.chorus1 = cEnable && !cMode2;
-        params.chorus2 = cEnable && cMode2;
+        params.dcoRange = (sw1 & (1 << 0)) ? 0 : 
+                          (sw1 & (1 << 1)) ? 1 : 
+                          (sw1 & (1 << 2)) ? 2 : params.dcoRange;
         
-        params.dcoRange = (sw1 >> 3) & 0x03;
-        params.pulseOn  = (sw1 & (1 << 5)) != 0;
-        params.sawOn    = (sw1 & (1 << 6)) != 0;
+        params.pulseOn = (sw1 & (1 << 3)) != 0;
+        params.sawOn   = (sw1 & (1 << 4)) != 0;
+
+        bool cOn    = (sw1 & (1 << 5)) == 0; // 0 = ON
+        bool cI     = (sw1 & (1 << 6)) != 0; // 1 = I
+        params.chorus1 = cOn && cI;
+        params.chorus2 = cOn && !cI;
     }
 
     // SW2 Parsing
     params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
-    params.vcaMode     = (sw2 & (1 << 1)) ? 1 : 0;
+    params.vcaMode     = (sw2 & (1 << 1)) ? 0 : 1; // Roland 1=GATE(0), 0=ENV(1)
     params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
     params.hpfFreq     = 3 - ((sw2 >> 3) & 0x03);
 }

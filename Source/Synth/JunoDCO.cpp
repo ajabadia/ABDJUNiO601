@@ -1,4 +1,4 @@
-﻿// Source/Synth/JunoDCO.cpp
+#include <JuceHeader.h>
 #include "JunoDCO.h"
 #include "../Core/JunoConstants.h"
 #include <cmath>
@@ -112,19 +112,21 @@ float JunoDCO::getNextSample(float lfoValue) {
     // The counter is a 16-bit integer. This causes frequency stepping.
     
     if (freq > 0.0f) {
-        // Calculate required ticks (Float)
-        float rawTicks = masterClockHz / (freq * 256.0f);
+        // [Audit Compliance] Intel 8253 Timer Emulation (Juno-106)
+        // Master Clock: 8MHz. Pre-dividers (Range): 16'=1/8, 8'=1/4, 4'=1/2.
+        // Clock entering 16-bit 8253 at 8': 2.0MHz.
+        float timerClock = masterClockHz / (4.0f / rangeMultiplier);
         
-        // Quantize to Integer (The Counter Register)
-        // [Audit Fix] Strict integer casting/rounding
+        // Calculate required ticks relative to the hardware clock for this range
+        float rawTicks = timerClock / (freq);
+        
+        // Quantize to 16-bit Integer Counter
         uint32_t quantizedTicks = (uint32_t)(rawTicks + 0.5f);
-        
         if (quantizedTicks < 1) quantizedTicks = 1;
-        // 16-bit Timer Limit
         if (quantizedTicks > 65535) quantizedTicks = 65535;
         
-        // Recalculate EXACT Frequency driven by the Timer
-        freq = masterClockHz / (quantizedTicks * 256.0f);
+        // The resulting frequency is determined by the integer divider
+        freq = timerClock / (float)quantizedTicks;
     }
     
     // updateRangeMultiplier() handles the range. baseFrequency is bended.

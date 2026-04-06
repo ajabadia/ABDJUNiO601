@@ -1,4 +1,5 @@
-﻿#include "ChorusBBD.h"
+#include "ChorusBBD.h"
+#include "../Core/JunoConstants.h"
 
 ChorusBBD::ChorusBBD()
 {
@@ -47,14 +48,12 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
     float* L = buffer.getWritePointer(0);
     float* R = numChannels > 1 ? buffer.getWritePointer(1) : nullptr;
 
-    const double phaseInc = juce::MathConstants<double>::twoPi * lfoRate / sr;
-    
+    const float modAmp = (calModDepth * m_depth * 0.001f) * (float)sr;
+    const float currentRate = (mode == Mode::ChorusBoth) ? calBothRate : lfoRate;
+    const double phaseInc = juce::MathConstants<double>::twoPi * currentRate / sr;
+
     const float baseI = (calDelayI * 0.001f) * (float)sr;
     const float baseII = (calDelayII * 0.001f) * (float)sr;
-    const float modAmp = (calModDepth * m_depth * 0.001f) * (float)sr;
-
-    const bool doI  = (mode == Mode::ChorusI  || mode == Mode::ChorusBoth);
-    const bool doII = (mode == Mode::ChorusII || mode == Mode::ChorusBoth);
 
     for (int s = 0; s < numSamples; ++s)
     {
@@ -64,7 +63,8 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
         float outL = inL;
         float outR = inR;
 
-        if (doI)
+        // --- Chorus I or Both (Both uses 8Hz mono-line logic) ---
+        if (mode == Mode::ChorusI || mode == Mode::ChorusBoth)
         {
             float lfo_L = (float)std::sin(lfoPhase);
             float lfo_R = (float)std::sin(lfoPhase + juce::MathConstants<double>::pi);
@@ -79,8 +79,7 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
             outL += wetMix * (wet_L - inL);
             outR += wetMix * (wet_R - inR);
         }
-
-        if (doII)
+        else if (mode == Mode::ChorusII)
         {
             float lfo_L = (float)std::sin(lfoPhase + juce::MathConstants<double>::halfPi);
             float lfo_R = (float)std::sin(lfoPhase + 3.0 * juce::MathConstants<double>::halfPi);

@@ -85,7 +85,7 @@
     height: var(--header-height);
     background: rgba(0, 0, 0, 0.4);
     display: grid;
-    grid-template-columns: 200px 1fr 400px;
+    grid-template-columns: 230px 60px 1fr 400px;
     align-items: center;
     padding: 0 15px;
     gap: 15px;
@@ -171,14 +171,38 @@
     white-space: pre-wrap;
 }
 
-#sysex-log .changed {
-    color: var(--black);
-    background-color: #2ecc71;
-    font-weight: bold;
+#protect-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-right: 10px;
+}
+
+#protect-btn {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.1s;
+    background: var(--beige-btn);
+    border: 2px solid #888;
+    box-shadow: 0 2px 0 #444;
+}
+
+#protect-btn.active-mode {
+    background: #f1c40f; /* Yellowish to match 'protected' warning */
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    border-color: #fff;
+}
+
+#protect-btn:active, #protect-btn.pushed {
+    background: #fff;
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(2px);
 }
 
 #lcd-bezel {
-    width: 450px;
+    width: 420px;
     height: 55px;
     background: var(--black);
     border: 4px solid #333;

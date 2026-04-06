@@ -9,6 +9,7 @@ using Preset = ABD::Preset;
 
 PresetManager::PresetManager() {
     loadFactoryPresets();
+    loadUserRam();
     loadBrowserData();
     
     // [Advanced Browser] Initialize WIP Library if it doesn't exist
@@ -350,12 +351,13 @@ void PresetManager::loadBrowserData() {
 void PresetManager::fromValueTree(const juce::ValueTree& vt) {
     if (!vt.hasType("BankManager")) return;
     this->libraries_.clear();
-    loadFactoryPresets(); // Ensure factory presets are always present
+    loadFactoryPresets(); 
+    loadUserRam();        // Ensure Internal RAM is always present
     for (int i = 0; i < vt.getNumChildren(); ++i) {
         auto libVT = vt.getChild(i);
         if (libVT.hasType("Library")) {
             juce::String libName = libVT.getProperty("name", "Unknown");
-            if (libName == "Factory") continue; // Skip as we just loaded it
+            if (libName == "Factory" || libName == "INTERNAL RAM") continue; // Skip to avoid duplication
             
             ABD::Library lib;
             lib.name = libName;
@@ -433,11 +435,89 @@ void PresetManager::nextPatch() {
 
 void PresetManager::prevPatch() {
     int factoryIdx = getLibraryIndex("Factory");
-    if (currentLibIdx_ != factoryIdx) return;
+    int ramIdx = getLibraryIndex("INTERNAL RAM");
+    if (currentLibIdx_ != factoryIdx && currentLibIdx_ != ramIdx) return;
+    
     int g = currentPresetIdx_ / 64;
     int b = ((currentPresetIdx_ % 64) / 8) + 1;
     int p = (currentPresetIdx_ % 8) + 1;
     p--; if (p < 1) p = 8;
     selectPresetByBankAndPatch(g, b, p);
+}
+
+void PresetManager::loadUserRam() {
+    if (getLibraryIndex("INTERNAL RAM") >= 0) return; // Already loaded
+    
+    auto dir = getUserPresetsDirectory();
+    auto file = dir.getSiblingFile("user_ram.xml");
+    
+    if (file.existsAsFile()) {
+        auto vt = juce::ValueTree::fromXml(file.loadFileAsString());
+        if (vt.isValid() && vt.hasType("Library")) {
+            ABD::Library ram;
+            ram.name = "INTERNAL RAM";
+            for (int i = 0; i < vt.getNumChildren(); ++i) {
+                ABD::Preset p;
+                p.fromValueTree(vt.getChild(i));
+                ram.patches.push_back(p);
+            }
+            this->libraries_.push_back(ram);
+            return;
+        }
+    }
+    
+    // First run or missing file: Clone Factory
+    this->addLibrary("INTERNAL RAM");
+    int ramIdx = getLibraryIndex("INTERNAL RAM");
+    this->libraries_[ramIdx].patches.clear();
+    for (const auto& patch : junoFactoryPatches) {
+        auto p = createPresetFromJunoPatch(patch);
+        p.category = "RAM";
+        this->libraries_[ramIdx].patches.push_back(p);
+    }
+    saveUserRam();
+}
+
+void PresetManager::saveUserRam() {
+    int ramIdx = getLibraryIndex("INTERNAL RAM");
+    if (ramIdx < 0) return;
+    
+    juce::ValueTree vt("Library");
+    vt.setProperty("name", "INTERNAL RAM", nullptr);
+    for (const auto& p : libraries_[ramIdx].patches) {
+        vt.addChild(p.toValueTree(), -1, nullptr);
+    }
+    
+    auto dir = getUserPresetsDirectory();
+    auto file = dir.getSiblingFile("user_ram.xml");
+    file.replaceWithText(vt.toXmlString());
+}
+
+juce::Result PresetManager::writeToInternalSlot(int group, int bank, int patch, 
+                                                 const juce::ValueTree& state,
+                                                 const juce::String& name,
+                                                 const juce::String& author) {
+    int ramIdx = getLibraryIndex("INTERNAL RAM");
+    if (ramIdx < 0) return juce::Result::fail("Internal RAM not found");
+    
+    int absIdx = (group * 64) + ((bank - 1) * 8) + (patch - 1);
+    if (absIdx < 0 || absIdx >= (int)libraries_[ramIdx].patches.size())
+        return juce::Result::fail("Invalid slot index");
+        
+    auto& p = libraries_[ramIdx].patches[absIdx];
+    p.state = state.createCopy();
+    if (name.isNotEmpty()) p.name = name;
+    if (author.isNotEmpty()) p.author = author;
+    p.category = "RAM"; // Ensure category is correct
+    p.creationDate = juce::Time::getCurrentTime().toString(true, true);
+    
+    saveUserRam();
+    saveBrowserData();
+    return juce::Result::ok();
+}
+
+bool PresetManager::isUserRamActive() const {
+    int ramIdx = getLibraryIndex("INTERNAL RAM");
+    return currentLibIdx_ == ramIdx;
 }
 

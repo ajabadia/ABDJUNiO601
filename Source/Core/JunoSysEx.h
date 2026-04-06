@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include <vector>
 
@@ -154,19 +154,22 @@ namespace JunoSysEx
         // Bit 5: Chorus 2
         // Bit 6: Chorus? (Usually Ch1 | Ch2<<1)
         
-        // [Hardware Authenticity] Switch 1: Chorus, Range, Pulse, Saw
+        // [Hardware Authenticity] Switch 1: Footage, Waves, Chorus
         auto makeSw1 = [](const SynthParams& p) -> uint8_t {
             uint8_t b = 0;
-            // Chorus (Bits 0-1)
-            if (p.chorus1 || p.chorus2) b |= (1 << 0);
-            if (p.chorus2) b |= (1 << 1);
-            
-            // Range (Bits 3-4)
+            // Bits 0-2: Range (16', 8', 4')
             int hwRange = juce::jlimit(0, 2, (int)p.dcoRange);
-            b |= (uint8_t)((hwRange & 0x03) << 3);
+            if (hwRange == 0) b |= (1 << 0);
+            if (hwRange == 1) b |= (1 << 1);
+            if (hwRange == 2) b |= (1 << 2);
             
-            if (p.pulseOn) b |= (1 << 5);
-            if (p.sawOn)   b |= (1 << 6);
+            // Bits 3-4: Waves
+            if (p.pulseOn) b |= (1 << 3);
+            if (p.sawOn)   b |= (1 << 4);
+
+            // Bits 5-6: Chorus (0=ON, 6=I/II)
+            if (p.chorus1 || p.chorus2) b &= ~(1 << 5); else b |= (1 << 5);
+            if (p.chorus1) b |= (1 << 6);
             return b;
         };
 
@@ -174,7 +177,7 @@ namespace JunoSysEx
         auto makeSw2 = [](const SynthParams& p) -> uint8_t {
              uint8_t b = 0;
              if (p.pwmMode == 1)     b |= (1 << 0);
-             if (p.vcaMode == 1)     b |= (1 << 1);
+             if (p.vcaMode == 0)     b |= (1 << 1); // 1 = GATE, 0 = ENV
              if (p.vcfPolarity == 1) b |= (1 << 2);
              
              // HPF (Bits 3-4): Descending logic

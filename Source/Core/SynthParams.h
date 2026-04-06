@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include "JunoConstants.h"
@@ -94,8 +94,8 @@ struct SynthParams {
     float hpfQ = 0.707f;
 
     // [Build 29] VCF Calibration
-    float vcfMinHz = 18.0f;
-    float vcfMaxHz = 18000.0f;
+    float vcfMinHz = JunoConstants::Curves::kVcfMinHz;
+    float vcfMaxHz = JunoConstants::Curves::kVcfMaxHz;
     float vcfSelfOscThreshold = 0.95f; // [Renamed from vcfSelfOscPoint for consistency]
     float vcfResoComp = 0.5f;
     float vcfSaturation = 1.0f;
@@ -138,6 +138,9 @@ struct SynthParams {
     float chorusHiss = 1.0f;        // [Moved here for full sync/persistence]
     float chorusMix = 1.0f;         // [Moved here for full sync/persistence]
     float chorusHissLvl = 1.0f;      // [New] Calibration level
+    float chorusBothRate = 7.7f;     // [Audit Fix] Accelerated BBD LFO speed
+    float adsrCurveExponent = 2.2f;  // [New] Non-linear ADSR slider scaling
+    float vcfResoCompBoost = 1.5f;   // [New] Additional multiplier for resonance compensation
 
     // [Thermal Expansion]
     float thermalInertia = 1024.0f;
@@ -168,6 +171,7 @@ struct SynthParams {
     juce::String notes = "";
     juce::String creationDate = "";
     bool isFavorite = false;
+    bool memoryProtect = false; // [New] Hardware-accurate write protection
 
     // Diagnostic Cycle States (Read-only for UI)
     int hpfCyclePos = -1; // -1 = Off, 0-3 = Active position

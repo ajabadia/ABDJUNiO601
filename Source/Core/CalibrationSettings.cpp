@@ -1,4 +1,4 @@
-﻿#include <JuceHeader.h>
+#include <JuceHeader.h>
 #include "CalibrationSettings.h"
 #include "JunoConstants.h"
 #include <fstream>
@@ -67,6 +67,7 @@ void CalibrationSettings::buildParameterList()
     reg("adsrMcuRate", "Env MCU Speed", "ADSR", "ms", "Internal refresh rate of the envelope microprocessor (original 8031 was ~3ms).", 3.0f, 0.5f, 10.0f, 0.1f);
     reg("adsrDacSteps", "Env DAC Resolution", "ADSR", "steps", "Quantization of the envelope DAC (approximates the discrete R-2R ladder steps).", 1024.0f, 16.0f, 16384.0f, 1.0f, true);
     reg("adsrOvershoot", "Attack Overshoot", "ADSR", "V", "Voltage spike at the end of the attack phase due to capacitor charging inertia.", 1.08f, 1.0f, 1.25f, 0.01f);
+    reg("adsrCurveExponent", "ADSR Curve Exponent", "ADSR", "", "Non-linear scaling of ADSR sliders (factory/2.2 is recommended).", 2.2f, 1.0f, 4.0f, 0.1f);
     
     // --- CHORUS ---
     reg("chorusMix", "Chorus Dry/Wet Mix", "CHORUS", "%", "Balance between dry signal and the analog BBD chorus output.", 1.0f, 0.0f, 1.0f, 0.01f);
@@ -74,6 +75,7 @@ void CalibrationSettings::buildParameterList()
     reg("chorusDelayI", "Chorus I Base Delay", "CHORUS", "ms", "Base delay for Chorus I mode (Factory 3.2ms).", 3.2f, 1.0f, 10.0f, 0.1f);
     reg("chorusDelayII", "Chorus II Base Delay", "CHORUS", "ms", "Base delay for Chorus II mode (Factory 6.4ms).", 6.4f, 2.0f, 20.0f, 0.1f);
     reg("chorusLfoRate", "Chorus LFO Frequency", "CHORUS", "Hz", "Internal hardware LFO rate for chorus modulation (Factory 0.513Hz).", 0.513f, 0.1f, 2.0f, 0.01f);
+    reg("chorusBothRate", "Chorus I+II Frequency", "CHORUS", "Hz", "Accelerated LFO rate when both I and II are pressed (Factory 7.7Hz).", 7.7f, 1.0f, 15.0f, 0.1f);
     reg("chorusModDepth", "Chorus Mod Depth", "CHORUS", "ms", "Maximum LFO sweep width in milliseconds.", 1.5f, 0.1f, 5.0f, 0.1f);
     reg("chorusSatBoost", "Chorus Saturation", "CHORUS", "", "Analog warmth boost and subtle clipping (1.0 = clean).", 1.2f, 0.5f, 2.0f, 0.05f);
     reg("chorusFilterCutoff", "Chorus Filter Cutoff", "CHORUS", "Hz", "Post-BBD reconstruction filter frequency range.", 8000.0f, 2000.0f, 15000.0f, 100.0f);
@@ -91,6 +93,7 @@ void CalibrationSettings::buildParameterList()
     reg("vcfSelfOscThreshold", "VCF Self-Osc Point", "VCF", "", "Resonance level where self-oscillation begins.", 0.95f, 0.85f, 1.0f, 0.01f);
     reg("vcfSaturation", "VCF OTA Saturation", "VCF", "", "Amount of non-linear drive in the filter stages.", 1.0f, 0.1f, 4.0f, 0.05f);
     reg("vcfResoComp", "VCF Resonance Comp", "VCF", "", "Gain compensation when resonance is high.", 0.5f, 0.0f, 1.5f, 0.05f);
+    reg("vcfResoCompBoost", "Reso Comp Global Boost", "VCF", "", "Additional multiplier for resonance compensation (useful for Organ patches).", 1.5f, 1.0f, 3.0f, 0.1f);
     reg("vcfLfoDepth", "LFO Filter Depth", "VCF", "", "Sensitivity of the VCF cutoff to the master LFO modulation.", 0.3f, 0.05f, 1.0f, 0.05f);
     reg("vcfEnvRange", "Env Filter Range", "VCF", "", "Maximum sweep range of the envelope generator on the VCF cutoff.", 2.0f, 0.5f, 4.0f, 0.1f);
     reg("vcfSelfOscInt", "Self-Osc Intensity", "VCF", "", "Intensity of the self-oscillating feedback loop at maximum resonance.", 0.5f, 0.1f, 2.0f, 0.05f);

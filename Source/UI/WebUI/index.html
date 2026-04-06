@@ -81,6 +81,10 @@
                     </div>
                 </div>
             </div>
+            <div id="protect-zone">
+                <div class="zone-label-mini">PROTECT</div>
+                <button class="sq beige tiny-util" id="protect-btn" data-param="memoryProtect" data-active="true"></button>
+            </div>
 
             <div id="lcd-bezel">
                 <div id="lcd-screen">
@@ -170,7 +174,7 @@
                         </div>
                         <div class="util-unit">
                             <div class="util-lbl-mini top">WRITE</div>
-                            <button class="sq orange" id="write-btn" data-action="handleSave"></button>
+                            <button class="sq orange" id="write-btn" data-action="handleWriteArm"></button>
                         </div>
                         <div class="util-unit">
                             <div class="util-lbl-mini top">SAVE</div>
@@ -606,6 +610,16 @@
                     <div id="general-params-list" class="service-param-list styled-scroll"></div>
                     
                     <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>User Identity</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px; display: flex; flex-direction: column; align-items: flex-start;">
+                                <label style="font-size: 10px; color: #888; margin-bottom: 5px;">AUTHOR NAME (DEFAULT)</label>
+                                <input type="text" id="setting-userName" maxlength="20" placeholder="Your Name..." style="width: 100%; background: #111; border: 1px solid #333; color: #eee; padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
                         <div class="service-cat-header"><span>Microtuning (SCL)</span></div>
                         <div class="service-param-grid" style="grid-template-columns: 1fr;">
                             <div class="service-param-row" style="padding: 10px;">
@@ -805,6 +819,35 @@
             </div>
         </div>
     </div>
+    <!-- SAVE PATCH METADATA MODAL -->
+    <div id="modal-savePatch" class="modal-overlay">
+        <div class="about-modal">
+            <div class="about-header">
+                <span class="about-title">WRITE TO INTERNAL RAM</span>
+                <button class="close-btn" onclick="hideSaveModal()">&times;</button>
+            </div>
+            <div id="save-modal-body" class="about-content" style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="font-size: 0.9rem; font-weight: bold; color: #fa0; background: rgba(255,170,0,0.1); padding: 5px 10px; border-radius: 4px; text-align: center;">TARGET: <span id="save-target-display">BANK 1 - PATCH 1</span></div>
+                
+                <div class="save-field" style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.7rem; color: #888; font-weight: bold;">PATCH NAME</label>
+                    <input type="text" id="save-patch-name" maxlength="16" style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 1rem;">
+                </div>
+                
+                <div class="save-field" style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.7rem; color: #888; font-weight: bold;">AUTHOR</label>
+                    <input type="text" id="save-patch-author" maxlength="16" style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 1rem;">
+                </div>
+
+                <p style="font-size: 0.65rem; color: #666; font-style: italic; margin: 0;">This operation will permanently overwrite the memory slot with current settings.</p>
+            </div>
+            <div class="about-footer" style="justify-content: flex-end; gap: 10px;">
+                <button class="footer-btn" onclick="hideSaveModal()">CANCEL</button>
+                <button class="footer-btn primary" onclick="commitInternalSave()">COMMIT</button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="script.js"></script>
     <script src="service.js"></script>

@@ -341,8 +341,36 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                         }
                     }
                 }
+                else if (action == "handleWriteArm") {
+                    if (auto* pm = audioProcessor.getPresetManager()) {
+                        pm->setWriteArmed(!pm->isWriteArmed());
+                    }
+                }
                 else if (action == "showBrowser") {
                     dispatchToJS("showModal", "browser");
+                }
+                else if (action == "setUserName") {
+                    if (args.size() >= 2) audioProcessor.setUserName(args[1].toString());
+                }
+                else if (action == "getUserName") {
+                    completion(audioProcessor.getUserName());
+                    return;
+                }
+                else if (action == "writeToInternalSlot") {
+                    if (args.size() >= 2) {
+                        int slot = (int)args[1];
+                        juce::String name = args.size() >= 3 ? args[2].toString() : "";
+                        juce::String author = args.size() >= 4 ? args[3].toString() : "";
+                        
+                        int group = slot / 64;
+                        int rem = slot % 64;
+                        int bank = (rem / 8) + 1;
+                        int patch = (rem % 8) + 1;
+                        if (auto* pm = audioProcessor.getPresetManager()) {
+                            pm->writeToInternalSlot(group, bank, patch, audioProcessor.getAPVTS().copyState(), name, author);
+                            sendPresetListUpdate(); // Refresh browser immediately after saving to RAM
+                        }
+                    }
                 }
             }
             completion({});

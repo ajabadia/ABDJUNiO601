@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath>
@@ -140,25 +140,20 @@ public:
 
         // --- Block Parsing and Checksum Validation ---
         std::vector<uint8_t> validatedPatches;
-        const uint8_t blockHeader = 0xA5;
-        const uint8_t blockEnd = 0xAC;
 
         for (size_t i = 0; i < decodedBytes.size(); ++i) {
-            if (decodedBytes[i] == blockHeader) {
-                // Ensure we can read up to decodedBytes[i + 20]
-                if (i + 20 < decodedBytes.size()) {
-                    if (decodedBytes[i + 20] == blockEnd) {
-                        uint8_t checksum = 0;
-                        for (int j = 0; j < 18; ++j) {
-                            checksum += decodedBytes[i + 1 + j];
-                        }
-                        checksum &= 0x7F;
+            // Juno-106 patches are 18 bytes + 1 checksum byte.
+            // We scan for valid 19-byte blocks (18 data + 1 check).
+            if (i + 19 <= decodedBytes.size()) {
+                uint8_t checksum = 0;
+                for (int j = 0; j < 18; ++j) {
+                    checksum += decodedBytes[i + j];
+                }
+                checksum &= 0x7F;
 
-                        if (checksum == decodedBytes[i + 19]) {
-                            validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i + 1, decodedBytes.begin() + i + 19);
-                            i += 20;
-                        }
-                    }
+                if (checksum == decodedBytes[i + 18]) {
+                    validatedPatches.insert(validatedPatches.end(), decodedBytes.begin() + i, decodedBytes.begin() + i + 18);
+                    i += 18; // Skip the data and checksum we just processed
                 }
             }
         }
