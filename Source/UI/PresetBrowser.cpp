@@ -8,11 +8,9 @@ PresetBrowser::PresetBrowser(PresetManager& pm) : presetManager(pm)
     searchField.onTextChange = [this] { updateFilters(); };
     
     addAndMakeVisible(librarySelector);
-    librarySelector.addItem("All Libraries", 1);
-    librarySelector.addItem("Factory", 2);
-    librarySelector.addItem("User", 3);
-    librarySelector.setSelectedId(1, juce::dontSendNotification);
     librarySelector.onChange = [this] { updateFilters(); };
+    
+    // Initial population will be done in refresh()
     
     addAndMakeVisible(categoryFilter);
     categoryFilter.addItem("All Categories", 1);
@@ -116,6 +114,20 @@ void PresetBrowser::listBoxItemClicked(int row, const juce::MouseEvent&)
 
 void PresetBrowser::refresh() 
 {
+    // Re-populate library selector
+    auto lastSelectedId = librarySelector.getSelectedId();
+    librarySelector.clear(juce::dontSendNotification);
+    librarySelector.addItem("All Libraries", 1);
+    
+    for (int i = 0; i < (int)presetManager.libraries_.size(); ++i) {
+        librarySelector.addItem(presetManager.libraries_[i].name, i + 2);
+    }
+    
+    if (lastSelectedId > 0)
+        librarySelector.setSelectedId(lastSelectedId, juce::dontSendNotification);
+    else
+        librarySelector.setSelectedId(1, juce::dontSendNotification);
+
     updateFilters();
 }
 

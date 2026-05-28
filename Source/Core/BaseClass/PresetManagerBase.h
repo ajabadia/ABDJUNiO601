@@ -68,11 +68,22 @@ struct Preset
 
         auto paramsTree = vt.getChildWithName ("Parameters");
         if (paramsTree.isValid())
+        {
             state = paramsTree.createCopy();
-        else if (vt.hasType("Parameters"))
-            state = vt.createCopy();
-        else if (vt.getNumChildren() > 0)
-            state = vt.getChild(0).createCopy();
+        }
+        else 
+        {
+            // If no "Parameters" child exists, we use the node's properties as the state.
+            // Metadata (name, author) will be filtered out by the load loop in the engine.
+            if (vt.getNumProperties() > 0)
+            {
+                state = vt.createCopy();
+            }
+            else if (vt.getNumChildren() > 0)
+            {
+                state = vt.getChild(0).createCopy();
+            }
+        }
     }
 };
 
@@ -134,8 +145,14 @@ public:
         return -1;
     }
 
-    void setCurrentPreset(int index) noexcept { currentPresetIdx_ = index; }
+    virtual void setCurrentPreset(int index) noexcept { currentPresetIdx_ = index; }
     int getCurrentPresetIndex() const noexcept { return currentPresetIdx_; }
+
+    virtual void selectPreset(int libraryIndex, int presetIndex)
+    {
+        selectLibrary(libraryIndex);
+        setCurrentPreset(presetIndex);
+    }
 
     juce::String getCurrentPresetName() const
     {
@@ -195,7 +212,7 @@ public:
 
     void writeUserPresets() { saveUserPresets(); }
 
-    void loadBrowserData()
+    virtual void loadBrowserData()
     {
         auto dir = getUserPresetsDirectory();
         if (!dir.exists()) return;
@@ -220,7 +237,7 @@ public:
         }
     }
 
-    void saveBrowserData() {}
+    virtual void saveBrowserData() {}
     void setLastPath(const juce::String& path) { lastPath_ = path; }
     juce::String getLastPath() const { return lastPath_; }
 

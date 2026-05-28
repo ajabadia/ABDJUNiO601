@@ -1,0 +1,27 @@
+** Visual Studio 2026 Developer Command Prompt v18.4.1
+** Copyright (c) 2026 Microsoft Corporation
+[vcvarsall.bat] Environment initialized for: 'x64'
+[INFO] Configuring...
+-- Using JUCE from: D:/desarrollos/ABDJUNiO601/JUCE
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/
+-- Configuring done (5.3s)
+Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
+  Checking File Globs
+  ABDSimpleJuno106_rc_lib.vcxproj -> D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106_rc_lib.dir\Release\ABDSimpleJuno106_rc_lib.lib
+  ABDSimpleJuno106_WebUI.vcxproj -> D:\desarrollos\ABDJUNiO601\build\Release\ABDSimpleJuno106_WebUI.lib
+  PluginProcessor.cpp
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(352,25): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(352,39): error C3861: 'encodeSW1': no se encontró el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(353,26): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(353,40): error C3861: 'encodeSW1': no se encontró el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(358,25): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(358,39): error C3861: 'encodeSW2': no se encontró el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(359,26): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(359,40): error C3861: 'encodeSW2': no se encontró el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(1157,78): warning C4996: 'juce::AudioFormat::createWriterFor': Use the function taking an AudioFormatWriterOptions instead. [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+[ERROR] Standalone build failed

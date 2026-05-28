@@ -1,4 +1,4 @@
-﻿// ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
+// ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
 #pragma once
 #include <JuceHeader.h>
 #include <cmath>
@@ -83,11 +83,11 @@ private:
     double sr_    { 44100.0 };
 
     float attackInc()  const noexcept
-    { return (float)(1.0 / (params_.attackSecs  * sr_)); }
+    { return (float)(1.0 / (juce::jmax(0.0025f, params_.attackSecs)  * sr_)); }
     float decayInc()   const noexcept
-    { return (float)((1.f - params_.sustainLevel) / (juce::jmax(0.001f, params_.decaySecs) * sr_)); }
+    { return (float)((1.f - params_.sustainLevel) / (juce::jmax(0.0025f, params_.decaySecs) * sr_)); }
     float releaseInc() const noexcept
-    { return (float)(params_.sustainLevel / (juce::jmax(0.001f, params_.releaseSecs) * sr_)); }
+    { return (float)(params_.sustainLevel / (juce::jmax(0.0025f, params_.releaseSecs) * sr_)); }
 };
 
 } // namespace ABD

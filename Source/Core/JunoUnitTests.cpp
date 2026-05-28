@@ -7,7 +7,7 @@
 #include "../Synth/ChorusBBD.h"
 #include "../Synth/JunoVoice.h"
 #include "JunoConstants.h"
-#include "../ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h"
+#include "BaseClass/ADSRGeneric.h"
 #include "JunoSysExEngine.h"
 #include "JunoTapeEncoder.h"
 #include "JunoTapeDecoder.h"

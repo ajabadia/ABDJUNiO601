@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include <atomic>
@@ -57,6 +57,8 @@ private:
     std::atomic<bool> testScaleActive;
     std::atomic<float> scaleTimer;
     std::atomic<int> currentScaleNoteIdx;
+    std::atomic<int> currentScaleStage; // 0=Notes, 1=Major, 2=Minor
+    std::atomic<int> currentOctaveCycle; // 0=Orig, 1=-1, 2=+1
     
     // HPF Cycle State
     std::atomic<bool> hpfCycleActive {false};

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include "SynthParams.h"
@@ -15,6 +15,9 @@ public:
 
     // Construye un 0x30 (patch dump) a partir del estado actual.
     juce::MidiMessage makePatchDump  (int channel, const SynthParams& params);
+    
+    // [Fidelidad] Deserializa un dump completo en SynthParams (Public for testing)
+    static void applyPatchDump (const uint8_t* dumpData, SynthParams& params);
 
     void setDeviceId (int id) { deviceId = id; }
     int getDeviceId() const { return deviceId; }
@@ -23,5 +26,4 @@ private:
     int deviceId = 0x18; // [Fidelidad] Default Device ID
     // Helpers internos
     void applyParamChange (int paramId, int value7bit, SynthParams& params);
-    void applyPatchDump   (const uint8_t* dumpData, SynthParams& params);
 };

@@ -9,6 +9,26 @@
         html, body { background-color: #111 !important; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
         .hidden { display: none !important; }
         #modal-saveas { z-index: 20000 !important; }
+        .record-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #f00;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 5px #f00;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .recording .record-dot {
+            opacity: 1;
+            animation: record-blink 1s infinite linear;
+        }
+        @keyframes record-blink {
+            0% { opacity: 1; box-shadow: 0 0 8px #f00; }
+            50% { opacity: 0.1; box-shadow: 0 0 2px #f00; }
+            100% { opacity: 1; box-shadow: 0 0 8px #f00; }
+        }
     </style>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="service.css">
@@ -76,8 +96,9 @@
                 <div class="display-with-telemetry" style="display: flex; align-items: center; gap: 10px;">
                     <div class="front-midi-badge" id="front-midi-badge"></div>
                     <div id="seven-segment-display">
-                        <div class="digit" id="bank-digit">8</div>
-                        <div class="digit" id="patch-digit">8</div>
+                        <div class="digit" id="bank-digit">A</div>
+                        <div class="digit" id="patch-digit-1">1</div>
+                        <div class="digit" id="patch-digit-2">1</div>
                     </div>
                 </div>
             </div>
@@ -635,9 +656,79 @@
 
                 <!-- TAB 2: CALIBRATION PARAMS -->
                 <div id="tab-calibration" class="settings-content single-col">
-                    <div id="service-params-list" class="styled-scroll" style="max-height: 440px; overflow-y: auto; padding-right: 15px;"></div>
+                    <div id="service-params-list" style="padding-right: 15px;"></div>
                     <div class="service-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                          <button class="tuning-btn primary" id="btn-auto-tune-cal" onclick="ServiceMode.startAutoTune()" style="background: #a50; color: white;">RUN AUTO-VCF TUNE</button>
+                    </div>
+
+                    <!-- DAC Hz Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>DAC Hz Table (J106DACHzTable)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-dac" onclick="handleDacTableClick('import')">IMPORT DAC TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-dac" onclick="handleDacTableClick('export')">EXPORT DAC TABLE (.CSV)</button>
+                                </div>
+                                <div id="dac-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (4096 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VCA Gain Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>VCA Gain Table (J106VCAGainTable)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-vca" onclick="handleVcaTableClick('import')">IMPORT VCA TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-vca" onclick="handleVcaTableClick('export')">EXPORT VCA TABLE (.CSV)</button>
+                                </div>
+                                <div id="vca-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (256 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LFO Speed Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>LFO Speed Table</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-speed" onclick="handleLfoSpeedTableClick('import')">IMPORT LFO SPEED TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-speed" onclick="handleLfoSpeedTableClick('export')">EXPORT LFO SPEED TABLE (.CSV)</button>
+                                </div>
+                                <div id="lfo-speed-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (128 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LFO Ramp Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>LFO Ramp Table</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-ramp" onclick="handleLfoRampTableClick('import')">IMPORT LFO RAMP TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-ramp" onclick="handleLfoRampTableClick('export')">EXPORT LFO RAMP TABLE (.CSV)</button>
+                                </div>
+                                <div id="lfo-ramp-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (8 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Osc Level Curve CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>Sub-Osc Level Curve</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-sub-level" onclick="handleSubLevelTableClick('import')">IMPORT SUB-OSC LEVEL TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-sub-level" onclick="handleSubLevelTableClick('export')">EXPORT SUB-OSC LEVEL TABLE (.CSV)</button>
+                                </div>
+                                <div id="sub-level-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (11 values)</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -648,7 +739,12 @@
                         <div id="voice-test-grid" class="voice-test-grid"></div>
                     </div>
                     <div class="service-section" style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
-                         <button class="tuning-btn" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
+                         <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="tuning-btn" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
+                            <button class="tuning-btn" id="btn-record-audio" onclick="ServiceMode.toggleRecord()">
+                                <span class="record-dot"></span><span id="record-text">RECORD AUDIO</span>
+                            </button>
+                         </div>
                           <button class="tuning-btn" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
                          <button class="tuning-btn" onclick="ServiceMode.exportCalibration()">EXPORT CALIBRATION JSON</button>
                          <button class="tuning-btn" onclick="ServiceMode.importCalibration()">IMPORT CALIBRATION JSON</button>
@@ -714,7 +810,7 @@
                     </div>
                     <ul class="pane-list styled-scroll" id="lib-list" tabindex="0"></ul>
                     <div class="pane-footer-actions bank-ops-grid">
-                        <button class="footer-action-btn" onclick="juce.menuAction('handleImportSysex')">IMPORT .SYX</button>
+                        <button class="footer-action-btn" onclick="juce.menuAction('handleImportSysex')">IMPORT PRESET/S</button>
                         <button class="footer-action-btn" onclick="PresetBrowser.importLibrary()">IMPORT .JSON</button>
                         <button class="footer-action-btn" onclick="PresetBrowser.exportLibrary()">EXPORT .JSON</button>
                         <button class="footer-action-btn" id="btn-save-tape" onclick="PresetBrowser.saveTape()">SAVE TAPE (.WAV)</button>
@@ -848,6 +944,11 @@
         </div>
     </div>
 
+
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="notification-toast" class="notification-toast">
+        <span id="notification-message"></span>
+    </div>
 
     <script src="script.js"></script>
     <script src="service.js"></script>

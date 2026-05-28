@@ -1,11 +1,11 @@
 #include "PluginEditor.h"
 #include "PresetManager.h"
-#include "../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
+#include "BaseClass/PresetManagerBase.h"
 #include "BuildVersion.h"
 #include "../Core/JunoTapeEncoder.h" 
 
 ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDSimpleJuno106AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
+    : juce::AudioProcessorEditor (&p), audioProcessor (p),
       lookAndFeel(),
       menuBar(this),
       bankSection(*p.getPresetManager(), p.getAPVTS()),
@@ -103,70 +103,57 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
         };
     }
     
-    // NAVIGATION LOGIC
-    auto navPatch = [this](int delta) {
+    // CONNECT NAVIGATION TO PRESET MANAGER
+    bankSection.prevPatchButton.onClick = [this] { 
+        if (isWriteArmed) {
+            writeBankTarget--;
+            if (writeBankTarget < 1) writeBankTarget = 32; // Allow 32 virtual banks (4 groups)
+            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
+            return;
+        }
         auto& pm = *audioProcessor.getPresetManager();
-        int newIdx = pm.getCurrentPresetIndex() + delta;
-        newIdx = juce::jlimit(0, 127, newIdx); 
-        pm.setCurrentPreset(newIdx);
+        pm.prevPatch();
         bankSection.presetBrowser.refresh();
-        audioProcessor.loadPreset(newIdx);
-    };
-    
-    auto navBank = [this](int delta) {
-        auto& pm = *audioProcessor.getPresetManager();
-        int current = pm.getCurrentPresetIndex();
-        int bank = (current % 64) / 8; // 0-7
-        int group = current / 64; // 0-1
-        int patch = current % 8; // 0-7
-        
-        bank += delta;
-        if (bank > 7) { bank = 0; group = 1 - group; } 
-        if (bank < 0) { bank = 7; group = 1 - group; }
-        
-        int newIdx = (group * 64) + (bank * 8) + patch;
-        newIdx = juce::jlimit(0, 127, newIdx);
-        
-        pm.setCurrentPreset(newIdx);
-        bankSection.presetBrowser.refresh();
-        audioProcessor.loadPreset(newIdx);
+        audioProcessor.loadPreset(pm.getCurrentPresetIndex());
     };
 
-    bankSection.prevPatchButton.onClick = [this, navPatch] { 
-        if (isWriteArmed) {
-            writeBankTarget--;
-            if (writeBankTarget < 1) writeBankTarget = 16;
-            lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
-            return;
-        }
-        navPatch(-1); 
-    };
-    bankSection.nextPatchButton.onClick   = [this, navPatch] { 
+    bankSection.nextPatchButton.onClick = [this] { 
         if (isWriteArmed) {
             writeBankTarget++;
-            if (writeBankTarget > 16) writeBankTarget = 1;
+            if (writeBankTarget > 32) writeBankTarget = 1;
             lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
             return;
         }
-        navPatch(1); 
+        auto& pm = *audioProcessor.getPresetManager();
+        pm.nextPatch();
+        bankSection.presetBrowser.refresh();
+        audioProcessor.loadPreset(pm.getCurrentPresetIndex());
     };
-    bankSection.decBankButton.onClick  = [this, navBank] { 
+
+    bankSection.decBankButton.onClick = [this] { 
         if (isWriteArmed) {
             writeBankTarget--;
-            if (writeBankTarget < 1) writeBankTarget = 16;
+            if (writeBankTarget < 1) writeBankTarget = 32;
             lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
             return;
         }
-        navBank(-1); 
+        auto& pm = *audioProcessor.getPresetManager();
+        pm.prevBank();
+        bankSection.presetBrowser.refresh();
+        audioProcessor.loadPreset(pm.getCurrentPresetIndex());
     };
-    bankSection.incBankButton.onClick     = [this, navBank] { 
+
+    bankSection.incBankButton.onClick = [this] { 
         if (isWriteArmed) {
             writeBankTarget++;
-            if (writeBankTarget > 16) writeBankTarget = 1;
+            if (writeBankTarget > 32) writeBankTarget = 1;
             lcd.setText("WRITE TO? " + juce::String(writeBankTarget) + "-" + juce::String(writePatchTarget));
             return;
         }
-        navBank(1); 
+        auto& pm = *audioProcessor.getPresetManager();
+        pm.nextBank();
+        bankSection.presetBrowser.refresh();
+        audioProcessor.loadPreset(pm.getCurrentPresetIndex());
     };
 
     // Function Buttons
@@ -247,8 +234,6 @@ void ABDSimpleJuno106AudioProcessorEditor::timerCallback()
         if (lcdDisplayTimer == 0) {
             lcd.setText(lastPresetName);
         }
-        
-        // Update SysEx Display when patch changes
     }
     
     // Always update SysEx Display (real-time feedback for all param changes)
@@ -266,25 +251,35 @@ void ABDSimpleJuno106AudioProcessorEditor::timerCallback()
         }
     }
 
-    // 3. Update Procedural 7-Segment Display (Alphanumeric Context)
-    auto libName = pm.getCurrentLibraryName();
-    int idx = pm.getCurrentPresetIndex();
+    // 3. Update MIDI Activity LED
+    if (audioProcessor.popMidiTrafficFlag()) {
+        bankSection.setMidiActivity(true);
+        midiActivityTimer = 5; // Blink for ~150ms
+    } else if (midiActivityTimer > 0) {
+        midiActivityTimer--;
+        if (midiActivityTimer == 0) {
+            bankSection.setMidiActivity(false);
+        }
+    }
+
+    // 4. Update 7x3 Alphanumeric Display
     const auto& p = pm.getCurrentPreset();
     
-    juce::String bS, pS;
-    if (libName == "Factory") {
-        bS = juce::String(p.originBank);
-        pS = juce::String(p.originPatch);
-    } else {
-        // Show Library Initial (U, L, etc.) and Patch Index (0-9, A-F in Hex)
-        bS = libName.substring(0, 1).toUpperCase();
-        int wrappedIdx = idx % 16;
-        if (wrappedIdx < 10) pS = juce::String (wrappedIdx);
-        else pS = juce::String (static_cast<juce::juce_wchar> ('A' + (wrappedIdx - 10)));
-    }
+    char bC = ' ';
+    char p1C = ' ';
+    char p2C = ' ';
+
+    // Logic: 
+    // Bank: originGroup (0=A, 1=B, etc.) -> A-Z
+    // Patch: 11-88 (Bank-Patch format)
     
-    bankSection.updateDisplay(bS, pS);
+    bC = (char)('A' + p.originGroup); // 0 -> A, 1 -> B ...
+    p1C = (char)('0' + p.originBank);
+    p2C = (char)('0' + p.originPatch);
+    
+    bankSection.updateDisplay(bC, p1C, p2C);
 }
+
 
 void ABDSimpleJuno106AudioProcessorEditor::parameterChanged (const juce::String& parameterID, float newValue)
 {
@@ -385,7 +380,7 @@ void ABDSimpleJuno106AudioProcessorEditor::resized()
 
 juce::StringArray ABDSimpleJuno106AudioProcessorEditor::getMenuBarNames()
 {
-    return { "File", "Edit", "View", "Help" };
+    return { "File", "Edit", "View", "Debug", "Help" };
 }
 
 juce::PopupMenu ABDSimpleJuno106AudioProcessorEditor::getMenuForIndex (int menuIndex, const juce::String& /*menuName*/)
@@ -420,7 +415,12 @@ juce::PopupMenu ABDSimpleJuno106AudioProcessorEditor::getMenuForIndex (int menuI
     else if (menuIndex == 2) { // View
         menu.addItem(20, "Show/Hide Sidebar", true, true);
     }
-    else if (menuIndex == 3) { // Help
+    else if (menuIndex == 3) { // Debug
+        menu.addItem(100, "Run Patch 18-byte Roundtrip", true);
+        menu.addItem(101, "Run SysEx Dump Roundtrip", true);
+        menu.addItem(102, "Run JSON Library Roundtrip", true);
+    }
+    else if (menuIndex == 4) { // Help
         menu.addItem(30, "About JUNiO 601...", true);
     }
     
@@ -444,6 +444,10 @@ void ABDSimpleJuno106AudioProcessorEditor::menuItemSelected (int menuItemID, int
         case 13: audioProcessor.redo(); break;
         case 14: audioProcessor.toggleMidiOut(); break; 
         case 15: /* handleOptions */ break;
+        
+        case 100: audioProcessor.triggerTestProgram(99); break;
+        case 101: audioProcessor.triggerTestProgram(98); break;
+        case 102: audioProcessor.triggerTestProgram(97); break;
         
         case 30: handleAbout(); break;
     }
@@ -492,11 +496,11 @@ void ABDSimpleJuno106AudioProcessorEditor::handleImportSysex()
             if (file.existsAsFile()) {
                 audioProcessor.getPresetManager()->setLastPath(file.getParentDirectory().getFullPathName());
                 auto res = audioProcessor.getPresetManager()->importPresetsFromFile(file);
-                if (res.wasOk()) {
+                if (res.success) {
                     bankSection.presetBrowser.refresh();
                     lcd.setText("IMPORT SUCCESSFUL");
                 } else {
-                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Import Error", res.getErrorMessage());
+                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Import Error", res.message);
                 }
             }
         });
@@ -513,11 +517,11 @@ void ABDSimpleJuno106AudioProcessorEditor::handleLoadTape()
             if (file.existsAsFile()) {
                 audioProcessor.getPresetManager()->setLastPath(file.getParentDirectory().getFullPathName());
                 auto res = audioProcessor.getPresetManager()->loadTape(file);
-                if (res.wasOk()) {
+                if (res.success) {
                     bankSection.presetBrowser.refresh();
                     lcd.setText("TAPE LOADED");
                 } else {
-                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Tape Error", res.getErrorMessage());
+                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Tape Error", res.message);
                 }
             }
         });

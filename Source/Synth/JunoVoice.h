@@ -1,15 +1,17 @@
-﻿#pragma once
+#pragma once
 
 #include <JuceHeader.h>
 #include <cmath>
 #include <algorithm>
 #include "JunoDCO.h"
 #include "JunoLFO.h"
-#include "../ABD-SynthEngine/Core/Voices/VoiceBase.h"
+#include "../Core/BaseClass/VoiceBase.h"
 #include "JunoADSR.h"
-#include "../ABD-SynthEngine/Core/LFO/LFOGeneric.h"
+#include "../Core/BaseClass/LFOGeneric.h"
 #include "../Core/SynthParams.h"
 #include "JunoVCF.h"
+
+class CalibrationSettings;  // Forward declaration for DAC table access
 
 /**
  * Voice - A single 106 voice instance.
@@ -65,6 +67,7 @@ public:
     void setPortamentoLegato(bool b);
     void setVoiceIndex(int i) { voiceIndex = i; }
     void setTuningTable(const float* table) { tuningTable = table; }
+    void setCalibrationSettings(CalibrationSettings* cal) { calibrationPtr = cal; }
 
 private:
     float updatePitch(int numSamples);
@@ -90,9 +93,17 @@ private:
     juce::LinearSmoothedValue<float> smoothedCutoff;
     juce::LinearSmoothedValue<float> smoothedResonance;
     juce::LinearSmoothedValue<float> smoothedVCALevel;
+    juce::LinearSmoothedValue<float> smoothedGate;
+
+    // [Fidelity] Staggered CV update — simulates MCU round-robin DAC multiplexing.
+    // Each voice's CV target (cutoff & VCA level) is committed with a fixed delay
+    // proportional to its index, replicating the hardware's per-voice update phase.
+    int staggerDelaySamples = 0;    // Computed once in onPrepare()
+    int staggerCountdown    = 0;    // Counts down each render block
+    float pendingCutoffTarget = 0.5f;
+    float pendingVCATarget    = 0.5f;
 
     // State
-    double sampleRate = 44100.0;
     int currentNote = -1;
     float velocity = 0.0f;
     float currentFrequency = 440.0f;
@@ -118,6 +129,7 @@ private:
 
     int voiceIndex = 0;
     const float* tuningTable = nullptr;
+    CalibrationSettings* calibrationPtr = nullptr;
 
     SynthParams params;
     juce::AudioBuffer<float> tempBuffer;

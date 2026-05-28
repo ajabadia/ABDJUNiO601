@@ -1,0 +1,50 @@
+========================================
+JUNiO 601 Automated Build
+========================================
+
+[INFO] CMake LOCAL localizado en: D:\desarrollos\ABDJUNiO601\CMake\CMake\bin\cmake.exe
+
+1. Configurando proyecto...
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- Using JUCE from: D:/desarrollos/ABDJUNiO601/JUCE
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/
+-- Configuring done (6.3s)
+-- Generating done (1.2s)
+-- Build files have been written to: D:/desarrollos/ABDJUNiO601/build
+
+2. Compilando JUNiO 601 (Release)...
+Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
+
+  Checking File Globs
+  ABDSimpleJuno106_rc_lib.vcxproj -> D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106_rc_lib.dir\Release\ABDSimpleJuno106_rc_lib.lib
+  ABDSimpleJuno106_WebUI.vcxproj -> D:\desarrollos\ABDJUNiO601\build\Release\ABDSimpleJuno106_WebUI.lib
+  PluginProcessor.cpp
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  PresetManager.cpp
+  (compilando archivo de origen "../Source/Core/PluginProcessor.cpp")
+  
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  (compilando archivo de origen "../Source/Core/PresetManager.cpp")
+  
+  WebViewEditor.cpp
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  (compilando archivo de origen "../Source/UI/WebView/WebViewEditor.cpp")
+  
+  PluginEditor.cpp
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  (compilando archivo de origen "../Source/Core/PluginEditor.cpp")
+  
+  PresetBrowser.cpp
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  (compilando archivo de origen "../Source/UI/PresetBrowser.cpp")
+  
+  JunoBankSection.cpp
+D:\desarrollos\ABDJUNiO601\Source\ABD-SynthEngine\Protocol\Presets\PresetManagerBase.h(1,1): error C1060: espacio de montón insuficiente en el compilador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
+  (compilando archivo de origen "../Source/UI/Sections/JunoBankSection.cpp")
+  
+[ERROR] La compilacion ha fallado.

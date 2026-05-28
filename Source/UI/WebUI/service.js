@@ -200,6 +200,26 @@ const ServiceMode = {
         juce.serviceAction({ action: 'playTestScale' });
     },
 
+    isRecordingAudio: false,
+    toggleRecord() {
+        this.isRecordingAudio = !this.isRecordingAudio;
+        const btn = document.getElementById('btn-record-audio');
+        const txt = document.getElementById('record-text');
+        
+        if (btn && txt) {
+            if (this.isRecordingAudio) {
+                btn.classList.add('recording');
+                btn.style.background = '#600';
+                txt.innerText = 'STOP RECORDING';
+            } else {
+                btn.classList.remove('recording');
+                btn.style.background = '';
+                txt.innerText = 'RECORD AUDIO';
+            }
+        }
+        juce.serviceAction({ action: 'toggleRecord' });
+    },
+
     exportCalibration() {
         juce.serviceAction({ action: 'exportCalibration' });
     },

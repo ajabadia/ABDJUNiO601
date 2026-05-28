@@ -1,4 +1,5 @@
 #include "JunoSysExEngine.h"
+#include "JunoProtocol.h"
 
 using namespace JunoSysEx;
 
@@ -48,7 +49,7 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[0]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.lfoRate * 127.0f));
     body[1]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.lfoDelay * 127.0f));
     body[2]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.lfoToDCO * 127.0f));
-    body[3]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.pwmAmount * 127.0f));
+    body[3]  = (uint8_t) juce::jlimit (0, 105, (int) std::round (params.pwmAmount * 105.0f));
     body[4]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.noiseLevel * 127.0f));
     body[5]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.vcfFreq * 127.0f));
     body[6]  = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.resonance * 127.0f));
@@ -62,36 +63,8 @@ juce::MidiMessage JunoSysExEngine::makePatchDump (int channel,
     body[14] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.release * 127.0f));
     body[15] = (uint8_t) juce::jlimit (0, 127, (int) std::round (params.subOscLevel * 127.0f));
 
-    // [Hardware Authenticity] SW1 (Byte 20): Footage, Waves, Chorus
-    uint8_t sw1 = 0;
-    // Bits 0-2: Range (16', 8', 4' - mutually exclusive)
-    int hwRange = juce::jlimit(0, 2, params.dcoRange);
-    if (hwRange == 0) sw1 |= (1 << 0); // 16'
-    if (hwRange == 1) sw1 |= (1 << 1); // 8'
-    if (hwRange == 2) sw1 |= (1 << 2); // 4'
-    
-    // Bit 3: Pulse
-    if (params.pulseOn) sw1 |= (1 << 3);
-    // Bit 4: Saw
-    if (params.sawOn)   sw1 |= (1 << 4);
-    
-    // Bit 5: Chorus Enable (0=ON, 1=OFF according to Roland 106 protocol)
-    if (params.chorus1 || params.chorus2) sw1 &= ~(1 << 5); else sw1 |= (1 << 5);
-    // Bit 6: Chorus Type (1=I, 0=II)
-    if (params.chorus1) sw1 |= (1 << 6);
-    // Note: for Chorus Both, we follow hardware and set it to Level 2 (0) or try both bits if used elsewhere.
-
-    // [Hardware Authenticity] SW2 (Byte 21): PWM Mode, VCA Mode, Polarity, HPF
-    uint8_t sw2 = 0;
-    if (params.pwmMode == 1)     sw2 |= (1 << 0);
-    // Bit 1: VCA Mode (0=ENV, 1=GATE according to Roland protocol)
-    if (params.vcaMode == 0) sw2 |= (1 << 1); // Internal 0: GATE (Roland bit 1)
-    
-    if (params.vcfPolarity == 1) sw2 |= (1 << 2);
-
-    // HPF: Descending logic (3=Boost, 2=Flat, 1=225Hz, 0=450Hz)
-    int hwHpf = 3 - juce::jlimit(0, 3, params.hpfFreq);
-    sw2 |= (uint8_t)((hwHpf & 0x03) << 3);
+    uint8_t sw1 = JunoProtocol::encodeSW1(params);
+    uint8_t sw2 = JunoProtocol::encodeSW2(params);
 
     return JunoSysEx::createPatchDump (channel, body, sw1, sw2);
 }
@@ -107,7 +80,7 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case LFO_RATE:   params.lfoRate = norm; break;
         case LFO_DELAY:  params.lfoDelay = norm; break;
         case DCO_LFO:    params.lfoToDCO = norm; break;
-        case DCO_PWM:    params.pwmAmount = norm; break;
+        case DCO_PWM:    params.pwmAmount = juce::jlimit(0.0f, 1.0f, std::min(value7bit, 105) / 105.0f); break;
         case DCO_NOISE:  params.noiseLevel = norm; break;
         case VCF_FREQ:   params.vcfFreq = norm; break;
         case VCF_RES:    params.resonance = norm; break;
@@ -122,28 +95,12 @@ void JunoSysExEngine::applyParamChange (int paramId,
         case DCO_SUB:    params.subOscLevel = norm; break;
 
         case SWITCHES_1:
-             {
-                 params.dcoRange = (value7bit & (1 << 0)) ? 0 : 
-                                   (value7bit & (1 << 1)) ? 1 : 
-                                   (value7bit & (1 << 2)) ? 2 : params.dcoRange;
-                 
-                 params.pulseOn = (value7bit & (1 << 3)) != 0;
-                 params.sawOn   = (value7bit & (1 << 4)) != 0;
-
-                 bool cOn     = (value7bit & (1 << 5)) == 0; // 0 = ON
-                 bool cI      = (value7bit & (1 << 6)) != 0; // 1 = I
-                 params.chorus1 = cOn && cI;
-                 params.chorus2 = cOn && !cI;
-             }
+             JunoProtocol::decodeSW1((uint8_t)value7bit, params);
              break;
 
         case SWITCHES_2:
-             params.pwmMode     = (value7bit & (1 << 0)) ? 1 : 0;
-             params.vcaMode     = (value7bit & (1 << 1)) ? 0 : 1; // Roland 1=GATE(0), 0=ENV(1)
-             params.vcfPolarity = (value7bit & (1 << 2)) ? 1 : 0;
-             // HPF: EngineVal = 3 - SysExVal
-             params.hpfFreq     = 3 - ((value7bit >> 3) & 0x03);
-            break;
+             JunoProtocol::decodeSW2((uint8_t)value7bit, params);
+             break;
 
         default:
             break;
@@ -155,6 +112,8 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
 {
     auto v = [&dumpData] (int idx) -> float
     {
+        if (idx == 3) // PWM
+            return juce::jlimit (0.0f, 1.0f, std::min((int)dumpData[idx], 105) / 105.0f);
         return juce::jlimit (0.0f, 1.0f, dumpData[idx] / 127.0f);
     };
 
@@ -179,27 +138,6 @@ void JunoSysExEngine::applyPatchDump (const uint8_t* dumpData,
     // We force modern velocity scaling to 0 for incoming 18-byte dumps.
     params.velocitySens = 0.0f;
 
-    const uint8_t sw1 = dumpData[16];
-    const uint8_t sw2 = dumpData[17];
-
-    // SW1 Parsing
-    {
-        params.dcoRange = (sw1 & (1 << 0)) ? 0 : 
-                          (sw1 & (1 << 1)) ? 1 : 
-                          (sw1 & (1 << 2)) ? 2 : params.dcoRange;
-        
-        params.pulseOn = (sw1 & (1 << 3)) != 0;
-        params.sawOn   = (sw1 & (1 << 4)) != 0;
-
-        bool cOn    = (sw1 & (1 << 5)) == 0; // 0 = ON
-        bool cI     = (sw1 & (1 << 6)) != 0; // 1 = I
-        params.chorus1 = cOn && cI;
-        params.chorus2 = cOn && !cI;
-    }
-
-    // SW2 Parsing
-    params.pwmMode     = (sw2 & (1 << 0)) ? 1 : 0;
-    params.vcaMode     = (sw2 & (1 << 1)) ? 0 : 1; // Roland 1=GATE(0), 0=ENV(1)
-    params.vcfPolarity = (sw2 & (1 << 2)) ? 1 : 0;
-    params.hpfFreq     = 3 - ((sw2 >> 3) & 0x03);
+    JunoProtocol::decodeSW1(dumpData[16], params);
+    JunoProtocol::decodeSW2(dumpData[17], params);
 }

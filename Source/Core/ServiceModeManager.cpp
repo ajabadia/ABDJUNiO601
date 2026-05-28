@@ -1,4 +1,4 @@
-﻿#include "ServiceModeManager.h"
+#include "ServiceModeManager.h"
 #include "ABDSimpleJuno106AudioProcessor.h"
 
 ServiceModeManager::ServiceModeManager(ABDSimpleJuno106AudioProcessor& p)
@@ -11,6 +11,8 @@ ServiceModeManager::ServiceModeManager(ABDSimpleJuno106AudioProcessor& p)
     testScaleActive.store(false);
     scaleTimer.store(0.0f);
     currentScaleNoteIdx.store(0);
+    currentScaleStage.store(0);
+    currentOctaveCycle.store(0);
     autoVcfTuneActive.store(false);
 }
 
@@ -48,7 +50,11 @@ void ServiceModeManager::startTestScale()
     testScaleActive.store(next);
     scaleTimer.store(0.0f);
     currentScaleNoteIdx.store(-1);
-    if (!next) processor.keyboardState.allNotesOff(1);
+    currentScaleStage.store(0);
+    if (!next) {
+        currentOctaveCycle.store(0);
+        processor.keyboardState.allNotesOff(1);
+    }
 }
 
 void ServiceModeManager::startAutoVcfTune()
@@ -118,18 +124,57 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
         float currentTimer = scaleTimer.load() + (float)dt;
         scaleTimer.store(currentTimer);
 
-        const int scale[] = { 36, 40, 43, 48, 52, 55, 60, 64 }; // C Major Arp
+        const int scalePins[] = { 0, 2, 4, 5, 7, 9, 11, 12 }; // C Major Intervals
         const float noteDuration = 0.5f;
 
         int idx = currentScaleNoteIdx.load();
+        int stage = currentScaleStage.load();
+        int octaveCycle = currentOctaveCycle.load();
+        
+        int octaveOffset = 0;
+        if (octaveCycle == 1) octaveOffset = -12;
+        else if (octaveCycle == 2) octaveOffset = 12;
+
+        auto sendNoteOff = [&](int noteBase) {
+            processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset, 0.0f);
+            if (stage == 1) { // Major Chord
+                processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 4, 0.0f);
+                processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 7, 0.0f);
+            } else if (stage == 2) { // Minor Chord
+                processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 3, 0.0f);
+                processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 7, 0.0f);
+            }
+        };
+
+        auto sendNoteOn = [&](int noteBase) {
+            processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset, 0.8f);
+            if (stage == 1) { // Major Chord
+                processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 4, 0.8f);
+                processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 7, 0.8f);
+            } else if (stage == 2) { // Minor Chord
+                processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 3, 0.8f);
+                processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 7, 0.8f);
+            }
+        };
+
         if (idx == -1 || currentTimer >= noteDuration)
         {
-            if (idx >= 0)
-                processor.keyboardState.noteOff(1, scale[idx], 0.0f);
+            if (idx >= 0) sendNoteOff(scalePins[idx]);
             
-            idx = (idx + 1) % 8;
+            idx++;
+            if (idx >= 8) {
+                idx = 0;
+                stage++;
+                if (stage >= 3) {
+                    stage = 0;
+                    octaveCycle = (octaveCycle + 1) % 3;
+                    currentOctaveCycle.store(octaveCycle);
+                }
+                currentScaleStage.store(stage);
+            }
+            
             currentScaleNoteIdx.store(idx);
-            processor.keyboardState.noteOn(1, scale[idx], 0.8f);
+            sendNoteOn(scalePins[idx]);
             scaleTimer.store(0.0f);
         }
     }

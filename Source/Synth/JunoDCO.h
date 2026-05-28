@@ -1,6 +1,7 @@
-﻿// Source/Synth/JunoDCO.h
+// Source/Synth/JunoDCO.h
 #pragma once
 
+#include "../Core/CalibrationSettings.h"
 #include <JuceHeader.h>
 
 /**
@@ -12,6 +13,8 @@
  * - Software-calibrated pitch drift and voice variance.
  * - Hardware-accurate PWM and Sub-oscillator logic.
  */
+class CalibrationSettings;
+
 class JunoDCO {
 public:
     enum class Range {
@@ -49,12 +52,13 @@ public:
     // LFO to DCO
     void setLFODepth(float depth);      // 0-1 (LFO slider)
     
-    // Character
+    // character
     void setDrift(float amount);        // 0-1 (analog drift)
     void setDriftRate(float rate) { driftRate = rate; }
     void setLfoPitchDepth(float depth) { dcoLfoPitchDepth = depth; }
     
     // [Calibration]
+    void setCalibration(CalibrationSettings* c) { cal = c; }
     void setMixerGain(float gain);      // Master DCO gain (default 0.7)
     void setSubAmpScale(float scale);   // Sub weight (default 1.0)
     void setPWMOffset(float offset) { pwmOffset = offset; }
@@ -63,6 +67,12 @@ public:
     void setGlobalDriftScale(float cents) { globalDriftScale = cents; }
     void setVoiceDriftScale(float cents) { voiceDriftScale = cents; }
     void setMasterClock(float hz) { masterClockHz = hz; }
+    
+    void setPwmCalibration(float min, float max, float center, float threshold) {
+        pwmMinDuty = min; pwmMaxDuty = max; pwmCenterDuty = center; pwmOffThreshold = threshold;
+    }
+    void setPwmSlew(float manual, float lfo) { pwmSlewRateManual = manual; pwmSlewRateLFO = lfo; }
+    void setNoiseAmpScale(float scale) { noiseAmpScale = scale; }
     
     /**
      * Processes the next audio sample for this DCO.
@@ -73,6 +83,12 @@ public:
     float getNextSample(float lfoValue);
     
 private:
+    CalibrationSettings* cal = nullptr;
+    float mSawGain = 0.0f;
+    float mPulseGain = 0.0f;
+    float mSubGain = 0.0f;
+    float mSwitchRamp = 0.0001f;
+    
     float globalDriftPhase = 0.0f; // [Fix] Thread-safe per-instance drift phase
     // JUCE Components
     juce::Random noiseGen;
@@ -111,6 +127,13 @@ private:
     PWMMode pwmMode = PWMMode::Manual;
     float lfoDepth = 0.0f;
     float currentPWM = 0.5f;      // Slewed
+    float pwmMinDuty = 0.05f;
+    float pwmMaxDuty = 0.95f;
+    float pwmCenterDuty = 0.5f;
+    float pwmOffThreshold = 0.05f;
+    float pwmSlewRateManual = 0.05f;
+    float pwmSlewRateLFO = 0.1f;
+    float noiseAmpScale = 0.5f;
     
     // Drift (Multi-level authenticity)
     float driftAmount = 0.0f;
@@ -123,7 +146,6 @@ private:
     // Sub-osc flip-flop (authentic)
     bool subFlipFlop = false;
     // JUCE DSP
-    juce::dsp::Oscillator<float> sawOsc;
     juce::dsp::IIR::Filter<float> noiseFilter;
     // noiseGen removed (duplicate)
     

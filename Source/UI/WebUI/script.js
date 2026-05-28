@@ -7,8 +7,9 @@ let lcdTimer = null;
 let promiseId = 0;
 let octaveShift = 0;
 let lastSysExHex = "";
-let currentBankGlobal = 1;
-let currentPatchGlobal = 1;
+let currentGroupGlobal = 0; // 0-25 (A-Z)
+let currentBankGlobal = 1;  // 1-8
+let currentPatchGlobal = 1; // 1-8
 let isWriteArmed = false;
 let targetBank = 1;
 let targetPatch = 1;
@@ -113,6 +114,13 @@ window.juce = {
 // =============================
 function initApp() {
     listenEvent("onParameterChanged", (data) => syncUI(data.id, data.value));
+    listenEvent("parameterSetUpdate", (data) => {
+        if (data) {
+            for (let id in data) {
+                syncUI(id, data[id]);
+            }
+        }
+    });
     listenEvent("showModal", (data) => {
         if (data === "preferences") showGlobalSettings('general');
         else if (data === "about") showAbout();
@@ -125,6 +133,20 @@ function initApp() {
         const info = document.getElementById('tuning-info');
         if (info) info.innerText = name.toUpperCase();
     });
+    listenEvent("sysexLog", (hex) => updateSysExLog(hex));
+    
+    function updateSysExLog(hex) {
+        const log = document.getElementById('sysex-log');
+        if (!log) return;
+        const parts = hex.split(' ');
+        let formatted = '';
+        parts.forEach((p, i) => {
+            if (i === 0 || i === parts.length - 1) formatted += `<span style="color: #fa0">${p}</span> `;
+            else formatted += p + ' ';
+        });
+        log.innerHTML = formatted;
+        log.scrollTop = log.scrollHeight;
+    }
 
     const updateDigit = (elementId, char) => {
         const el = document.getElementById(elementId);
@@ -160,23 +182,19 @@ function initApp() {
 
     const handleBankPatch = (data) => {
         if (!data) return;
-        const absoluteIdx = (data.bank - 1) * 8 + (data.patch - 1);
         
-        let displayB, displayP;
-        if (absoluteIdx < 64) {
-            displayB = Math.floor(absoluteIdx / 8) + 1;
-            displayP = (absoluteIdx % 8) + 1;
-        } else {
-            const userIdx = absoluteIdx - 64;
-            displayB = (Math.floor(userIdx / 10) < 26) ? String.fromCharCode(65 + Math.floor(userIdx / 10)) : "?";
-            displayP = userIdx % 10;
-        }
-
-        updateDigit('bank-digit', displayB);
-        updateDigit('patch-digit', displayP);
+        // A-Z Bank (data.group: 0-25)
+        currentGroupGlobal = data.group || 0;
+        const groupChar = String.fromCharCode(65 + currentGroupGlobal);
+        updateDigit('bank-digit', groupChar);
         
-        currentBankGlobal = data.bank;
-        currentPatchGlobal = data.patch;
+        // Patch Ten (data.bank: 1-8)
+        currentBankGlobal = data.bank || 1;
+        updateDigit('patch-digit-1', currentBankGlobal);
+        
+        // Patch Unit (data.patch: 1-8)
+        currentPatchGlobal = data.patch || 1;
+        updateDigit('patch-digit-2', currentPatchGlobal);
     };
     listenEvent("onBankPatchUpdate", handleBankPatch);
 
@@ -184,19 +202,8 @@ function initApp() {
         // 1. Update the LCD text bezel
         updateLCD(text, false);
         
-        // 2. Fallback: Parse "P: 1" for Bank/Patch individual updates if onBankPatchUpdate was missed
-        if (text && text.startsWith("P: ")) {
-            const parts = text.split(" ");
-            if (parts.length >= 2) {
-                const num = parseInt(parts[1]);
-                if (!isNaN(num)) {
-                    const b = Math.floor((num - 1) / 8) + 1;
-                    const p = ((num - 1) % 8) + 1;
-                    updateDigit('bank-digit', b);
-                    updateDigit('patch-digit', p);
-                }
-            }
-        }
+        // 2. Fallback: Parse "P: 1-11" for Bank/Patch individual updates
+        // This is legacy but kept for safety. Modern is onBankPatchUpdate.
     });
 
     listenEvent("onMidiTraffic", (active) => {
@@ -579,19 +586,25 @@ function setupButtons() {
             }
 
             if (btn.classList.contains('num-btn')) {
-                const idx = parseInt(btn.getAttribute('data-bank'));
+                const idx = parseInt(btn.getAttribute('data-bank')) + 1; // 1-8
                 
                 if (isWriteArmed) {
-                    targetPatch = idx + 1;
-                    updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                    targetPatch = idx;
+                    updateLCD("WRITE TO? " + String.fromCharCode(65 + currentGroupGlobal) + targetBank + "-" + targetPatch, false);
                     return;
                 }
 
-                const testBtn = document.getElementById('test-btn');
-                if (testBtn && testBtn.getAttribute('data-active') === 'true') {
-                    callNative("menuAction", "handleTestProgram", idx);
+                const isPatchButton = btn.classList.contains('patch-btn');
+                const isBankButton = btn.classList.contains('bank-btn');
+
+                if (isPatchButton) {
+                    const absIdx = (currentGroupGlobal * 64) + ((currentBankGlobal - 1) * 8) + (idx - 1);
+                    callNative("loadPreset", absIdx);
+                } else if (isBankButton) {
+                    const absIdx = (currentGroupGlobal * 64) + ((idx - 1) * 8) + (currentPatchGlobal - 1);
+                    callNative("loadPreset", absIdx);
                 } else {
-                    const presetToLoad = (typeof currentBankGlobal !== 'undefined' ? currentBankGlobal - 1 : 0) * 8 + idx;
+                    const presetToLoad = (currentGroupGlobal * 64) + (currentBankGlobal - 1) * 8 + (idx - 1);
                     callNative("loadPreset", presetToLoad);
                 }
             } else if (btn.id === 'random-btn') {
@@ -931,6 +944,102 @@ function handleTuningClick(type) {
     }
 }
 
+function handleDacTableClick(type) {
+    const info = document.getElementById('dac-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importDacTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportDacTable' });
+    }
+}
+
+function handleVcaTableClick(type) {
+    const info = document.getElementById('vca-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importVcaTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportVcaTable' });
+    }
+}
+
+function handleLfoSpeedTableClick(type) {
+    const info = document.getElementById('lfo-speed-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importLfoSpeedTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportLfoSpeedTable' });
+    }
+}
+
+function handleLfoRampTableClick(type) {
+    const info = document.getElementById('lfo-ramp-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importLfoRampTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportLfoRampTable' });
+    }
+}
+
+function handleSubLevelTableClick(type) {
+    const info = document.getElementById('sub-level-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importSubLevelTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportSubLevelTable' });
+    }
+}
+
+// Handle tuning load result from C++
+listenEvent('onTuningLoaded', (data) => {
+    const info = document.getElementById('tuning-info');
+    if (!info) return;
+    if (data === 'reset' || (typeof data === 'string' && data === 'reset')) {
+        info.innerText = 'Standard Tuning';
+    } else if (data && typeof data === 'object') {
+        info.innerText = data.ok ? ('Loaded: ' + data.name) : 'ERROR loading .scl';
+    }
+});
+
+// Handle DAC table import result
+listenEvent('onDacTableImport', (ok) => {
+    const info = document.getElementById('dac-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (4096 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle VCA table import result
+listenEvent('onVcaTableImport', (ok) => {
+    const info = document.getElementById('vca-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (256 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle LFO Speed table import result
+listenEvent('onLfoSpeedTableImport', (ok) => {
+    const info = document.getElementById('lfo-speed-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (128 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle LFO Ramp table import result
+listenEvent('onLfoRampTableImport', (ok) => {
+    const info = document.getElementById('lfo-ramp-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (8 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle Sub Level table import result
+listenEvent('onSubLevelTableImport', (ok) => {
+    const info = document.getElementById('sub-level-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (11 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
 // --- SAVE MODAL LOGIC ---
 let pendingSaveSlot = -1;
 
@@ -994,6 +1103,20 @@ function initUserSettingsSync() {
             callNative("menuAction", "setUserName", globalUserName);
         });
     }
+}
+
+// --- GLOBAL NOTIFICATIONS ---
+function showNotification(message, type = 'success') {
+    const toast = document.getElementById('notification-toast');
+    const msg = document.getElementById('notification-message');
+    if (!toast || !msg) return;
+
+    msg.innerText = message;
+    toast.className = `notification-toast active ${type}`;
+
+    setTimeout(() => {
+        toast.className = 'notification-toast';
+    }, 4000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

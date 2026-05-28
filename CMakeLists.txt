@@ -58,16 +58,30 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/JunoSysEx.h
     Source/Core/JunoSysExEngine.h
     Source/Core/JunoSysExEngine.cpp
+    Source/Core/JunoProtocol.h
+    Source/Core/JunoTests.h
+    Source/Core/JunoTests.cpp
     Source/Core/PerformanceState.h
     Source/Core/PerformanceState.cpp
     Source/Core/ServiceModeManager.cpp
     Source/Core/CalibrationSettings.cpp
 
-    Source/ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h
-    Source/ABD-SynthEngine/Core/Voices/VoiceBase.h
-    Source/ABD-SynthEngine/Core/Voices/VoiceAllocator.h
-    Source/ABD-SynthEngine/Core/Envelopes/ADSRGeneric.h
-    Source/ABD-SynthEngine/Core/LFO/LFOGeneric.h
+    Source/Core/Importers/TalImporter.h
+    Source/Core/Importers/TalImporter.cpp
+    Source/Core/Importers/JunoTapeImporter.h
+    Source/Core/Importers/JunoTapeImporter.cpp
+    Source/Core/Importers/JunoSysexImporter.h
+    Source/Core/Importers/JunoSysexImporter.cpp
+    Source/Core/Importers/JunoFormatConverter.h
+    Source/Core/Importers/JunoFormatConverter.cpp
+    Source/Core/Importers/JunoCsvImporter.h
+    Source/Core/Importers/JunoCsvImporter.cpp
+
+    Source/Core/BaseClass/PresetManagerBase.h
+    Source/Core/BaseClass/VoiceBase.h
+    Source/Core/BaseClass/VoiceAllocator.h
+    Source/Core/BaseClass/ADSRGeneric.h
+    Source/Core/BaseClass/LFOGeneric.h
 
     Source/UI/WebView/WebViewEditor.h
     Source/UI/WebView/WebViewEditor.cpp
@@ -202,9 +216,11 @@ message(STATUS "Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/
 target_include_directories(ABDSimpleJuno106 PRIVATE 
     Source
     Source/Core
-    Source/ABD-SynthEngine
+    Source/Core/BaseClass
     Source/UI
     Source/UI/WebView
+    Source/Core/Importers
+    "${CMAKE_CURRENT_BINARY_DIR}/ABDSimpleJuno106_artefacts/JuceLibraryCode"
 )
 
 juce_generate_juce_header(ABDSimpleJuno106)
@@ -251,6 +267,7 @@ target_link_libraries(ABDSimpleJuno106
 juce_add_console_app(JunoUnitTests
     PRODUCT_NAME "JunoUnitTests"
 )
+juce_generate_juce_header(JunoUnitTests)
 
 target_sources(JunoUnitTests PRIVATE
     Source/Core/JunoUnitTests.cpp
@@ -265,6 +282,11 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/PresetManager.cpp
     Source/Core/JunoVoiceManager.cpp
     Source/Core/PerformanceState.cpp
+    Source/Core/Importers/TalImporter.cpp
+    Source/Core/Importers/JunoTapeImporter.cpp
+    Source/Core/Importers/JunoSysexImporter.cpp
+    Source/Core/Importers/JunoFormatConverter.cpp
+    Source/Core/Importers/JunoCsvImporter.cpp
 )
 
 target_link_libraries(JunoUnitTests PRIVATE
@@ -280,5 +302,11 @@ target_link_libraries(JunoUnitTests PRIVATE
     juce::juce_recommended_warning_flags
 )
 
-target_include_directories(JunoUnitTests PRIVATE Source)
+target_include_directories(JunoUnitTests PRIVATE
+    Source
+    Source/Core
+    Source/Core/BaseClass
+    Source/Core/Importers
+    "${CMAKE_CURRENT_BINARY_DIR}/JunoUnitTests_artefacts/JuceLibraryCode"
+)
 juce_generate_juce_header(JunoUnitTests)

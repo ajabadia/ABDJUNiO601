@@ -8,8 +8,9 @@
 #include "PresetManager.h"
 #include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
+#include "JunoProtocol.h"
 #include "../Synth/ChorusBBD.h"
-#include "JunoConstants.h"
+#include "JunoTests.h"
 
 using namespace JunoConstants;
 
@@ -135,13 +136,19 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     // [Build 13] Ensure initial parameters are reflected in DSP and UI
     updateParamsFromAPVTS();
     requestPatchDump();
+
+    // [Build 103] Recording Setup
+    formatManager.registerBasicFormats();
+    backgroundThread.startThread();
 }
 
 ABDSimpleJuno106AudioProcessor::~ABDSimpleJuno106AudioProcessor() {
+    stopRecording();
+    backgroundThread.stopThread(500);
     juce::Logger::setCurrentLogger (nullptr); 
 }
 
-const juce::String ABDSimpleJuno106AudioProcessor::getName() const { return JucePlugin_Name; }
+const juce::String ABDSimpleJuno106AudioProcessor::getName() const { return "JUNiO 601"; }
 bool ABDSimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
 bool ABDSimpleJuno106AudioProcessor::producesMidi() const { return true; }
 bool ABDSimpleJuno106AudioProcessor::isMidiEffect() const { return false; }
@@ -169,8 +176,10 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     juce::dsp::ProcessSpec spec { sr, (juce::uint32)samplesPerBlock, 2 };
     chorus.prepare(sr, samplesPerBlock);
     
-    dcBlocker.prepare(spec); 
-    *dcBlocker.state = *new juce::dsp::IIR::Coefficients<float>(1.0f, -1.0f, 1.0f, -0.995f);
+    // [Fideltiy Fix] Safe DC Blocker Initialization
+    dcBlocker.state = new juce::dsp::IIR::Coefficients<float>(1.0f, -1.0f, 1.0f, -0.995f);
+    dcBlocker.prepare(spec);
+    dcBlocker.reset();
     
     chorusNoiseBuffer.setSize(2, samplesPerBlock);
 
@@ -179,8 +188,8 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     smoothedSagGain.reset(sr, 0.02);
     smoothedSagGain.setCurrentAndTargetValue(1.0f);
 
-    masterLfoPhase = 0.0f; 
-    masterLfoDelayEnvelope = 0.0f; 
+    masterLFO.prepare(sr, samplesPerBlock);
+    masterLFO.setCalibrationSettings(calibrationSettings.get());
     wasAnyNoteHeld = false;
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
 }
@@ -342,34 +351,15 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
             checkSendLocal(currentParams.release, lastParams.release, JunoSysEx::ENV_R);
             checkSendLocal(currentParams.subOscLevel, lastParams.subOscLevel, JunoSysEx::DCO_SUB);
 
-            // Handle switches (Sw1/Sw2) as before...
-            auto packSw1 = [](const SynthParams& p) -> int {
-                int val = 0;
-                if (p.chorus1 || p.chorus2) val |= (1 << 0);
-                if (p.chorus2) val |= (1 << 1);
-                int hwRange = juce::jlimit(0, 2, (int)p.dcoRange);
-                val |= (hwRange & 0x03) << 3;
-                if (p.pulseOn) val |= (1 << 5);
-                if (p.sawOn)   val |= (1 << 6);
-                return val;
-            };
-            int s1cur = packSw1(currentParams);
-            int s1last = packSw1(lastParams);
+            // [Canonical Protocol] Use centralized JunoProtocol for bit-packing
+            int s1cur = JunoProtocol::encodeSW1(currentParams);
+            int s1last = JunoProtocol::encodeSW1(lastParams);
             if (s1cur != s1last) {
                 sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_1, s1cur));
             }
 
-            auto packSw2 = [](const SynthParams& p) -> int {
-                int val = 0;
-                if (p.pwmMode == 1)     val |= (1 << 0);
-                if (p.vcaMode == 1)     val |= (1 << 1);
-                if (p.vcfPolarity == 1) val |= (1 << 2);
-                int hwHpf = juce::jlimit(0, 3, (int)p.hpfFreq);
-                val |= (hwHpf & 0x03) << 3;
-                return val;
-            };
-            int s2cur = packSw2(currentParams);
-            int s2last = packSw2(lastParams);
+            int s2cur = JunoProtocol::encodeSW2(currentParams);
+            int s2last = JunoProtocol::encodeSW2(lastParams);
             if (s2cur != s2last) {
                 sendSysEx(JunoSysEx::createParamChange(currentParams.midiChannel - 1, JunoSysEx::SWITCHES_2, s2cur));
             }
@@ -394,11 +384,11 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         currentParams.chorusCycleMode = serviceModeManager->getChorusCycleMode();
     }
     
-    if (++thermalCounter > kThermalInertia) {
+    if (++thermalCounter > currentParams.thermalInertia) {
         thermalCounter = 0;
-        thermalTarget = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * kGlobalThermalDriftScale;
+        thermalTarget = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * currentParams.thermalIntensity;
     }
-    globalDriftAudible += (thermalTarget - globalDriftAudible) * kThermalMigration;
+    globalDriftAudible += (thermalTarget - globalDriftAudible) * currentParams.thermalMigration;
     currentParams.thermalDrift = globalDriftAudible;
 
     voiceManager.updateParams(currentParams);
@@ -414,44 +404,58 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     renderAudio(buffer, numSamples);
     applyChorus(buffer, numSamples);
     processMasterEffects(buffer, numSamples);
+
+    // [Build 103] Recording Capture (Post-Process)
+    {
+        const juce::ScopedLock sl(writerLock);
+        if (threadedWriter != nullptr) {
+            threadedWriter->write(buffer.getArrayOfReadPointers(), numSamples);
+        }
+    }
 }
 
 void ABDSimpleJuno106AudioProcessor::renderAudio(juce::AudioBuffer<float>& buffer, int numSamples) {
     using namespace JunoConstants;
     const double sr = getSampleRate();
 
-    float ratio = currentParams.lfoMaxRate / currentParams.lfoMinRate;
-    float lfoRateHz = currentParams.lfoMinRate * std::pow(ratio, (float)currentParams.lfoRate);
-    float lfoDelaySeconds = currentParams.lfoDelay * currentParams.lfoDelayMax;
-    float delayIncrement = (lfoDelaySeconds > 0.001f) ? (1.0f / (lfoDelaySeconds * (float)sr)) : 1.0f;
-    
     bool lfoTrigRequested = fmtLfoTrig->load() > 0.5f;
-    if (lfoTrigRequested) {
-        masterLfoPhase = 0.0f;
-        masterLfoDelayEnvelope = 1.0f; 
-        fmtLfoTrig->store(0.0f); 
-    }
-
     bool anyHeld = voiceManager.isAnyNoteHeld();
-    if (anyHeld && !wasAnyNoteHeld) masterLfoDelayEnvelope = 0.0f;
-    wasAnyNoteHeld = anyHeld;
+    
+    masterLFO.setDepth(1.0f);
+    masterLFO.setDelay(currentParams.lfoDelay * currentParams.lfoDelayMax);
+    masterLFO.updateGateState(anyHeld, lfoTrigRequested);
+    
+    if (lfoTrigRequested) {
+        fmtLfoTrig->store(0.0f);
+    }
+    
+    // Ticking the digital LFO at tick rate
+    // mcuRateFactor is in ms (default 4.2335ms)
+    float tickRateMs = 4.2335f;
+    if (calibrationSettings != nullptr) {
+        tickRateMs = calibrationSettings->getValue("lfoTickRateMs");
+    }
+    double tickRateHz = 1000.0 / (double)tickRateMs;
+    double samplesPerTick = sr / tickRateHz;
+    
+    static double lfoTimeAccumulator = 0.0;
     
     for (int i = 0; i < numSamples; ++i) {
-        masterLfoPhase += (lfoRateHz / (float)sr);
-        if (masterLfoPhase >= 1.0f) masterLfoPhase -= 1.0f;
-        
-        if (anyHeld) {
-            masterLfoDelayEnvelope += delayIncrement;
-            if (masterLfoDelayEnvelope > 1.0f) masterLfoDelayEnvelope = 1.0f;
-        } else {
-            masterLfoDelayEnvelope = 0.0f;
+        lfoTimeAccumulator += 1.0;
+        if (lfoTimeAccumulator >= samplesPerTick) {
+            lfoTimeAccumulator -= samplesPerTick;
+            masterLFO.tick106();
         }
-
-        float lfoTri = 1.0f - 4.0f * std::abs(masterLfoPhase - 0.5f); 
-        // [Fidelity] Center-biased stepping (7.5 = hardware 4-bit resolution)
+        
+        float lfoVal = masterLFO.process(currentParams.lfoRate);
+        
+        // Apply LFO Resolution stepping if configured
         float res = currentParams.lfoResolution;
-        float lfoTriStepped = std::round(lfoTri * res) / res; 
-        lfoBuffer[i] = lfoTriStepped * masterLfoDelayEnvelope;
+        if (res > 1.0f) {
+            lfoVal = std::round(lfoVal * res) / res;
+        }
+        
+        lfoBuffer[i] = lfoVal;
     }
 
     voiceManager.renderNextBlock(buffer, 0, numSamples, lfoBuffer);
@@ -478,9 +482,9 @@ void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buff
                                 currentParams.chorusFilterCutoff,
                                 currentParams.chorusBothRate);
 
-    // Map hardware-authentic rates
-    float rate = (mode == ChorusBBD::Mode::ChorusII) ? JunoConstants::Chorus::kRateII : JunoConstants::Chorus::kRateI;
-    if (mode == ChorusBBD::Mode::ChorusBoth) rate *= 1.2f; 
+    // Map hardware-authentic rates (I=0.47Hz, II=0.78Hz)
+    float rate = (mode == ChorusBBD::Mode::ChorusII) ? currentParams.chorusLfoRateII : currentParams.chorusLfoRate;
+    if (mode == ChorusBBD::Mode::ChorusBoth) rate = currentParams.chorusBothRate; 
     
     chorus.setRate(rate);
     chorus.setDepth(1.0f); 
@@ -490,7 +494,7 @@ void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buff
 }
 
 void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples) {
-    float masterVol = fmtMasterVolume->load();
+    float masterVol = currentParams.masterVolume * currentParams.masterOutputGain;
     float envSum = voiceManager.getTotalEnvelopeLevel();
     float finalSag = 1.0f - (envSum * currentParams.vcaSagAmt);
     finalSag = juce::jlimit(0.7f, 1.0f, finalSag);
@@ -551,6 +555,21 @@ void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<floa
 void ABDSimpleJuno106AudioProcessor::enterTestMode(bool enter) { isTestMode = enter; }
 #include "TestPrograms.h"
 void ABDSimpleJuno106AudioProcessor::triggerTestProgram(int bankIndex) {
+    #if JUCE_DEBUG
+    if (bankIndex == 99) {
+        if (presetManager) JunoTests::runJunoPatchRoundtripTest(*presetManager);
+        return;
+    }
+    if (bankIndex == 98) {
+        JunoTests::runSysExPatchDumpRoundtripTest();
+        return;
+    }
+    if (bankIndex == 97) {
+        if (presetManager) JunoTests::runPresetJsonRoundtripTest(*presetManager);
+        return;
+    }
+    #endif
+
     if (!isTestMode || bankIndex < 0 || bankIndex >= 8) return;
     const auto prog = getTestProgram(bankIndex);
     auto setVal = [&](juce::String id, float val) { if (auto* p = apvts.getParameter(id)) p->setValueNotifyingHost(val); };
@@ -611,6 +630,9 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.tune = fmtTune->load(); 
     p.midiOut = fmtMidiOut->load() > 0.5f;
 
+    // [New] SNAPSHOT-consistent master volume
+    p.masterVolume = (fmtMasterVolume != nullptr) ? fmtMasterVolume->load() : 1.0f;
+
     p.midiChannel = (int)std::lround(fmtMidiChannel->load());
     p.benderRange = (int)std::lround(fmtBenderRange->load());
     p.velocitySens = fmtVelocitySens->load();
@@ -626,26 +648,52 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     // --- Inject Calibration Overrides ---
     p.dcoMixerGain = calibrationSettings->getValue("dcoMixerGain");
     p.subAmpScale = calibrationSettings->getValue("subAmpScale");
+    p.subGainScale = calibrationSettings->getValue("subGainScale");
+    p.noiseGainScale = calibrationSettings->getValue("noiseGainScale");
     p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
-    p.thermalDrift = calibrationSettings->getValue("thermalDrift"); 
+    // [BUG FIX] thermalDrift is a COMPUTED DSP value (see processBlock loop).
+    // DO NOT overwrite it from calibration here — that caused 100-cent constant drift ("toy tremolo").
+    // thermalIntensity/thermalInertia/thermalMigration are the calibration controls for the thermal engine.
+
+    p.thermalIntensity = calibrationSettings->getValue("thermalIntensity");
+    p.thermalInertia = calibrationSettings->getValue("thermalInertia");
+    p.thermalMigration = calibrationSettings->getValue("thermalMigration");
     p.vcaSagAmt = calibrationSettings->getValue("vcaSagAmt");
     p.vcaCrosstalk = calibrationSettings->getValue("vcaCrosstalk");
     p.masterNoise = calibrationSettings->getValue("masterNoise");
     p.stereoBleed = calibrationSettings->getValue("stereoBleed");
-    p.noiseGain = calibrationSettings->getValue("noiseGain");
-    p.pwmOffset = calibrationSettings->getValue("pwmOffset") / 100.0f; // UI is %
+    p.sliderHysteresis = calibrationSettings->getValue("sliderHysteresis");
+    p.paramSlewRate = calibrationSettings->getValue("paramSlewRate");
+    p.staggeredUpdateMaxMs = calibrationSettings->getValue("staggeredUpdateMaxMs");
+    
+    // Load Voice Variables
     p.voiceVariance = calibrationSettings->getValue("voiceVariance");
     p.unisonSpread = calibrationSettings->getValue("unisonSpread");
     p.dcoDriftComplexity = calibrationSettings->getValue("dcoDriftComplexity");
+    p.pwmCenterDuty = calibrationSettings->getValue("pwmCenterDuty");
+    p.pwmMaxDuty = calibrationSettings->getValue("pwmMaxDuty");
+    p.pwmMinDuty = calibrationSettings->getValue("pwmMinDuty");
+    p.pwmOffThreshold = calibrationSettings->getValue("pwmOffThreshold");
+    p.pwmSlewRateManual = calibrationSettings->getValue("pwmSlewRateManual");
+    p.pwmSlewRateLFO = calibrationSettings->getValue("pwmSlewRateLFO");
+    p.noiseAmpScale = calibrationSettings->getValue("noiseAmpScale");
+    p.dcoVoiceDrift = calibrationSettings->getValue("dcoVoiceDrift");
+    p.dcoGlobalDrift = calibrationSettings->getValue("dcoGlobalDrift");
 
     // [Build 25/29] Filter Calibration
     p.vcfMinHz = calibrationSettings->getValue("vcfMinHz");
     p.vcfMaxHz = calibrationSettings->getValue("vcfMaxHz");
     p.vcfSelfOscThreshold = calibrationSettings->getValue("vcfSelfOscThreshold");
-    p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
     p.vcfSaturation = calibrationSettings->getValue("vcfSaturation");
-    p.vcfWidth = calibrationSettings->getValue("vcfWidth");
+    p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
     p.vcfResoCompBoost = calibrationSettings->getValue("vcfResoCompBoost");
+    p.vcfLfoDepth = calibrationSettings->getValue("vcfLfoDepth");
+    p.vcfEnvRange = calibrationSettings->getValue("vcfEnvRange");
+    p.vcfSelfOscInt = calibrationSettings->getValue("vcfSelfOscInt");
+    p.vcfTrackCenter = calibrationSettings->getValue("vcfTrackCenter");
+    p.vcfResoSpread = calibrationSettings->getValue("vcfResoSpread");
+    p.vcfWidth = calibrationSettings->getValue("vcfWidth");
+    p.vcfSlewMs = calibrationSettings->getValue("vcfSlewMs");
 
     // [Build 28] HPF Calibration
     p.hpfFreq2 = calibrationSettings->getValue("hpfFreq2");
@@ -655,14 +703,29 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.hpfQ = calibrationSettings->getValue("hpfQ");
 
     // [Build 29] VCA Calibration
-    p.vcaMasterGain = calibrationSettings->getValue("vcaMasterGain");
+    p.vcaMasterGain = juce::jmax(0.01f, calibrationSettings->getValue("vcaMasterGain")); // Safe minimum
     p.vcaVelSensScale = calibrationSettings->getValue("vcaVelSensScale");
+    p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
+    p.vcaKillThreshold = calibrationSettings->getValue("vcaKillThreshold");
+    p.vcaBleed = calibrationSettings->getValue("vcaBleed");
+    p.vcaDcOffset = calibrationSettings->getValue("vcaDcOffset");
     p.vcaOffset = calibrationSettings->getValue("vcaOffset");
-    
-    // [Build 29] Envelope Calibration
+    p.vcaSlewMs = calibrationSettings->getValue("vcaSlewMs");
+
+    // [Fidelity Sync] Master & Global Offsets
+    p.masterOutputGain = std::pow(10.0f, calibrationSettings->getValue("masterOutputGain") / 20.0f);
+    p.masterPitchCents = calibrationSettings->getValue("masterPitchCents");
+
+    // [Build 29] Envelope Calibration (Full Sync)
     p.adsrSlewMs = calibrationSettings->getValue("adsrSlewMs");
     p.adsrAttackFactor = calibrationSettings->getValue("adsrAttackFactor");
     p.adsrCurveExponent = calibrationSettings->getValue("adsrCurveExponent");
+    p.adsrMcuRate = calibrationSettings->getValue("adsrMcuRate");
+    p.adsrDacSteps = calibrationSettings->getValue("adsrDacSteps");
+    p.adsrOvershoot = calibrationSettings->getValue("adsrOvershoot");
+    p.adsrVariance = calibrationSettings->getValue("adsrVariance");
+    p.vcaCurveType = calibrationSettings->getValue("vcaCurveType");
+
 
     // [Build 29] Chorus Calibration
     p.chorusHissLvl = calibrationSettings->getValue("chorusHissLvl");
@@ -671,13 +734,41 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.chorusModDepth = calibrationSettings->getValue("chorusModDepth");
     p.chorusSatBoost = calibrationSettings->getValue("chorusSatBoost");
     p.chorusFilterCutoff = calibrationSettings->getValue("chorusFilterCutoff");
+    p.chorusLfoRate = calibrationSettings->getValue("chorusLfoRate");
+    p.chorusLfoRateII = calibrationSettings->getValue("chorusLfoRateII");
     p.chorusBothRate = calibrationSettings->getValue("chorusBothRate");
+
+    // [BUG FIX] Resolve chorusMode from panel buttons (chorus1, chorus2).
+    // Without this, chorusMode stayed at 0 (Off) regardless of the panel state.
+    if (p.chorus1 && p.chorus2)
+        p.chorusMode = 3; // ChorusBoth
+    else if (p.chorus2)
+        p.chorusMode = 2; // ChorusII
+    else if (p.chorus1)
+        p.chorusMode = 1; // ChorusI
+    else
+        p.chorusMode = 0; // Off
 
     // [Build 25] LFO Calibration
     p.lfoMaxRate = calibrationSettings->getValue("lfoMaxRate");
     p.lfoMinRate = calibrationSettings->getValue("lfoMinRate");
     p.lfoDelayMax = calibrationSettings->getValue("lfoDelayMax");
     p.lfoResolution = calibrationSettings->getValue("lfoResolution");
+    
+    // New DCO Mix Levels and Switch Ramp ms
+    p.sawMixAmp = calibrationSettings->getValue("sawMixAmp");
+    p.pulseMixAmp = calibrationSettings->getValue("pulseMixAmp");
+    p.subMixAmp = calibrationSettings->getValue("subMixAmp");
+    p.noiseMixAmp = calibrationSettings->getValue("noiseMixAmp");
+    p.audioTaperScale = calibrationSettings->getValue("audioTaperScale");
+    p.dcoLfoShuntK = calibrationSettings->getValue("dcoLfoShuntK");
+    p.dcoLfoMaxSemitones = calibrationSettings->getValue("dcoLfoMaxSemitones");
+    p.oscSwitchRampMs = calibrationSettings->getValue("oscSwitchRampMs");
+    
+    // New LFO Calibration Params
+    p.lfoTickRateMs = calibrationSettings->getValue("lfoTickRateMs");
+    p.lfoAccumMax = calibrationSettings->getValue("lfoAccumMax");
+    p.lfoHoldoffThresh = calibrationSettings->getValue("lfoHoldoffThresh");
 
     // [Build 29] Diagnostic Cycle States
     p.hpfCyclePos = serviceModeManager->getHpfCyclePos();
@@ -706,6 +797,45 @@ void ABDSimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p)
     p.lfoToDCO = juce::jlimit<float>(0.0f, 1.0f, p.lfoToDCO + modWheel * 0.3f);
     p.vcfLFOAmount = juce::jlimit<float>(0.0f, 1.0f, p.lfoToVCF + modWheel);
     p.envAmount = juce::jlimit<float>(0.0f, 1.0f, p.envAmount + currentAftertouch.load() * p.aftertouchToVCF);
+
+    // 1. Portamento Rate 3-segment calculation
+    float portTimeSlider = p.portamentoTime;
+    float coeff = 0.0f;
+    if (portTimeSlider > 0.0f) {
+        float i = portTimeSlider * 127.f;
+        if (i <= 25.f) {
+            coeff = 255.f - 8.f * (i - 1.f);
+        } else if (i <= 47.f) {
+            coeff = 63.f - 2.f * (i - 25.f);
+        } else {
+            coeff = std::round(18.f * std::pow(0.9625f, i - 48.f));
+        }
+    }
+    // Rate in semitones/second
+    p.portamentoRateST = coeff * (1000.f / p.lfoTickRateMs) / 256.f;
+
+    // 2. DCO LFO Depth Taper with shunt: t = t / (1 + k*t - k*t^2)
+    float lfoToDcoRaw = p.lfoToDCO;
+    float shuntK = p.dcoLfoShuntK;
+    float lfoTaper = lfoToDcoRaw / (1.0f + shuntK * lfoToDcoRaw - shuntK * lfoToDcoRaw * lfoToDcoRaw);
+    
+    // Scale to max semitones
+    p.dcoLfoPitchDepth = lfoTaper * p.dcoLfoMaxSemitones;
+}
+
+void ABDSimpleJuno106AudioProcessor::sendSysEx(const juce::MidiMessage& msg) {
+    if (currentParams.midiOut) {
+        midiOutBuffer.addEvent(msg, 0);
+        lastSentSysExMessage = msg;
+    }
+    lastSysExMessage = msg; // Update for UI display
+
+    // Notify WebUI for real-time stream display
+    if (editor != nullptr) {
+        if (auto* wv = dynamic_cast<WebViewEditor*>(editor)) {
+            wv->dispatchToJS("sysexLog", juce::String::toHexString(msg.getRawData(), msg.getRawDataSize()));
+        }
+    }
 }
 
 void ABDSimpleJuno106AudioProcessor::sendPatchDump() { sendSysEx(sysExEngine.makePatchDump(currentParams.midiChannel - 1, currentParams)); }
@@ -727,22 +857,79 @@ void ABDSimpleJuno106AudioProcessor::triggerPanic() {
 void ABDSimpleJuno106AudioProcessor::triggerLFO() {
     if (fmtLfoTrig) fmtLfoTrig->store(1.0f);
 }
+void ABDSimpleJuno106AudioProcessor::applyPresetState(const juce::ValueTree& vt) {
+    if (!vt.isValid()) return;
+
+    // 1. Process all children recursively
+    // This handles nested structures regardless of tag names ("Parameters", "Preset", etc.)
+    for (int i = 0; i < vt.getNumChildren(); ++i) {
+        applyPresetState(vt.getChild(i));
+    }
+
+    // 2. Iterate properties of the current node
+    for (int i = 0; i < vt.getNumProperties(); ++i) {
+        auto propName = vt.getPropertyName(i).toString();
+        
+        // [Fidelity] Systematic Calibration Hardening
+        // We skip all parameters that belong to the "Hardware/Calibration" layer.
+        // This ensures the user's calibration (Drift, Noise levels, Master Gain) 
+        // survives preset loading.
+        static const juce::StringArray calibrationParams = {
+            "midiChannel", "numVoices", "benderRange", "velocitySens", "aftertouchToVCF", 
+            "lcdBrightness", "sustainPedalInvert", "masterOutputGain", "masterPitchCents", 
+            "midiFunction", "unisonWidth", "unisonDetune", "sustainMode", "enableLogging",
+            "dcoMixerGain", "subGainScale", "noiseGainScale", "masterClockHz", "mixerSaturation", 
+            "subAmpScale", "noiseGain", "pwmCenterDuty", "pwmMaxDuty", "pwmMinDuty", "pwmOffset",
+            "vcaMasterGain", "vcaBleed", "vcaVelSensScale", "vcaSagAmt", "vcaKillThreshold", "vcaDcOffset", "vcaOffset",
+            "adsrSlewMs", "adsrAttackFactor", "adsrMcuRate", "adsrDacSteps", "adsrOvershoot", "adsrCurveExponent",
+            "chorusMix", "chorusHiss", "chorusDelayI", "chorusDelayII", "chorusLfoRate", "chorusLfoRateII", "chorusBothRate", "chorusModDepth", "chorusSatBoost", "chorusFilterCutoff", "chorusHissColor",
+            "lfoMaxRate", "lfoMinRate", "lfoDelayMax", "lfoResolution",
+            "vcfMinHz", "vcfMaxHz", "vcfSelfOscThreshold", "vcfSaturation", "vcfResoComp", "vcfResoCompBoost", "vcfLfoDepth", "vcfEnvRange", "vcfSelfOscInt", "vcfTrackCenter", "vcfResoSpread", "vcfWidth",
+            "hpfFreq2", "hpfFreq3", "hpfShelfFreq", "hpfShelfGain", "hpfQ",
+            "thermalIntensity", "thermalDrift", "thermalInertia", "thermalMigration",
+            "vcaCrosstalk", "masterNoise", "stereoBleed", "voiceVariance", "unisonSpread", 
+            "dcoGlobalDrift", "dcoVoiceDrift", "dcoDriftComplexity", "vcaRippleDepth", 
+            "lfoDelayCurve", "dcoDriftRate", "dcoLfoPitchDepth", "pwmOffThreshold", 
+            "pwmSlewRateManual", "pwmSlewRateLFO", "noiseAmpScale",
+            "a4Reference", "oversampling", "sliderHysteresis", "paramSlewRate", "masterVolume",
+            "name", "author", "category", "tags", "notes", "favorite", "date", 
+            "originGroup", "originBank", "originPatch", "version", "currentBank", 
+            "currentPreset", "activeABSlot"
+        };
+        
+        if (calibrationParams.contains(propName)) continue;
+
+        if (auto* p = apvts.getParameter(propName)) {
+            float val = (float)(double)vt.getProperty(propName);
+            auto range = p->getNormalisableRange();
+
+            // [Safety] Adaptive Normalization
+            // Only divide if val is significantly outside 0-1 range
+            // and the parameter is a continuous slider (range.end > 3.1).
+            // Discrete switches (0-1) and HPF (0-3) should never be normalized as floats.
+            if (range.end > 3.1f && val > 1.001f) {
+                val /= range.end;
+            } else if (propName == "tune" && (val < -1.0f || val > 1.0f)) {
+                val = range.convertTo0to1(val);
+            }
+            
+            // [Audit] Log suspicious values that might cause silence
+            if (val < 0.001f && (propName == "vcfFreq" || propName == "vcaLevel")) {
+                juce::Logger::writeToLog("[JUNiO] Ingestion Warning: " + propName + " is virtually zero for patch data.");
+            }
+            
+            p->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, val));
+        }
+    }
+}
 
 void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
     if (presetManager) {
         presetManager->setCurrentPreset(index);
         auto state = presetManager->getCurrentPresetState();
         if (state.isValid()) {
-            for (int i = 0; i < state.getNumProperties(); ++i) {
-                auto propName = state.getPropertyName(i).toString();
-                if (auto* p = apvts.getParameter(propName)) {
-                    auto prop = state.getProperty(propName);
-                    if (prop.isDouble() || prop.isInt() || prop.isBool()) {
-                         float val = (float)(double)prop;
-                         p->setValueNotifyingHost(val);
-                    }
-                }
-            }
+            applyPresetState(state);
+            
             updateParamsFromAPVTS(); 
             voiceManager.updateParams(currentParams);
             voiceManager.forceUpdate(); 
@@ -750,9 +937,11 @@ void ABDSimpleJuno106AudioProcessor::loadPreset(int index) {
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
         }
+        sendParamUpdateToUI();
         notifyUIOfStateChange();
     }
 }
+
 
 void ABDSimpleJuno106AudioProcessor::randomizeSound() {
     if (presetManager) {
@@ -772,19 +961,16 @@ void ABDSimpleJuno106AudioProcessor::randomizeSound() {
 
 void ABDSimpleJuno106AudioProcessor::loadLibraryPreset(int libIdx, int presetIdx) {
     if (presetManager) {
-        presetManager->selectPreset(libIdx, presetIdx);
+        // [Safety] Calculate absolute index for the 26-bank global space
+        int absoluteIdx = (libIdx * 64) + presetIdx;
+        
+        presetManager->selectLibrary(libIdx);
+        presetManager->setCurrentPreset(absoluteIdx);
+        
         auto state = presetManager->getCurrentPresetState();
         if (state.isValid()) {
-            for (int i = 0; i < state.getNumProperties(); ++i) {
-                auto propName = state.getPropertyName(i).toString();
-                if (auto* p = apvts.getParameter(propName)) {
-                    auto prop = state.getProperty(propName);
-                    if (prop.isDouble() || prop.isInt() || prop.isBool()) {
-                         float val = (float)(double)prop;
-                         p->setValueNotifyingHost(val);
-                    }
-                }
-            }
+            applyPresetState(state);
+            
             updateParamsFromAPVTS();
             voiceManager.updateParams(currentParams);
             voiceManager.forceUpdate();
@@ -792,6 +978,7 @@ void ABDSimpleJuno106AudioProcessor::loadLibraryPreset(int libIdx, int presetIdx
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
         }
+        sendParamUpdateToUI();
         notifyUIOfStateChange();
     }
 }
@@ -940,7 +1127,7 @@ void ABDSimpleJuno106AudioProcessor::loadTuningFile() {
             if (tuningManager.parseSCL(file)) {
                 voiceManager.setTuningTable(tuningManager.getTuningTable());
                 currentTuningName = file.getFileName();
-                DBG("Custom Tuning Loaded: " << currentTuningName);
+                juce::Logger::writeToLog("[JUNiO] Custom Tuning Loaded: " + currentTuningName);
             }
         }
     });
@@ -952,6 +1139,17 @@ void ABDSimpleJuno106AudioProcessor::resetTuning() {
     voiceManager.setTuningTable(tuningManager.getTuningTable());
     currentTuningName = "Standard Tuning";
     DBG("Standard Tuning Restored");
+}
+
+bool ABDSimpleJuno106AudioProcessor::loadScalaTuning(const juce::File& file) {
+    if (file.existsAsFile() && tuningManager.parseSCL(file)) {
+        voiceManager.setTuningTable(tuningManager.getTuningTable());
+        currentTuningName = file.getFileName();
+        juce::Logger::writeToLog("[JUNiO] SCL loaded via WebView: " + currentTuningName);
+        return true;
+    }
+    juce::Logger::writeToLog("[JUNiO] SCL parse failed: " + file.getFullPathName());
+    return false;
 }
 
 juce::MidiMessage ABDSimpleJuno106AudioProcessor::getCurrentSysExData() {
@@ -1065,7 +1263,18 @@ void ABDSimpleJuno106AudioProcessor::notifyUIOfStateChange()
 
 void ABDSimpleJuno106AudioProcessor::sendParamUpdateToUI()
 {
-    // Trigger any specific refresh logic in the editor
+    if (editor != nullptr) {
+        if (auto* wv = dynamic_cast<WebViewEditor*>(editor)) {
+            juce::DynamicObject::Ptr state = new juce::DynamicObject();
+            for (auto* param : getParameters()) {
+                if (auto* p = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
+                    state->setProperty(juce::Identifier(p->getParameterID()), (double)p->getValue());
+                }
+            }
+            wv->dispatchToJS("parameterSetUpdate", juce::var(state.get()));
+            juce::Logger::writeToLog("[JUNiO] Parameter Set Update dispatched to UI");
+        }
+    }
 }
 void ABDSimpleJuno106AudioProcessor::loadUserSettings() {
     auto file = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
@@ -1094,4 +1303,99 @@ void ABDSimpleJuno106AudioProcessor::saveUserSettings() {
     vt.setProperty("userName", userName, nullptr);
     auto xml = vt.createXml();
     if (xml != nullptr) xml->writeTo(file);
+}
+
+// [Build 103] Recording Implementation
+void ABDSimpleJuno106AudioProcessor::toggleRecording() {
+    if (isRecording()) stopRecording();
+    else startRecording();
+}
+
+void ABDSimpleJuno106AudioProcessor::startRecording() {
+    stopRecording();
+    
+    // 1. Create temporary file
+    tempRecordingFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                        .getNonexistentChildFile("junio_rec_tmp", ".wav");
+    
+    auto options = juce::AudioFormatWriterOptions()
+                   .withSampleRate (getSampleRate())
+                   .withNumChannels (2)
+                   .withBitsPerSample (32);
+
+    std::unique_ptr<juce::OutputStream> fileStream (tempRecordingFile.createOutputStream());
+    if (fileStream != nullptr) {
+        juce::WavAudioFormat wavFormat;
+        if (auto writer = wavFormat.createWriterFor(fileStream, options)) {
+            const juce::ScopedLock sl(writerLock);
+            threadedWriter.reset (new juce::AudioFormatWriter::ThreadedWriter (writer.release(), backgroundThread, 32768));
+            juce::Logger::writeToLog("[JUNiO] Recording started (32-bit float): " + tempRecordingFile.getFullPathName());
+        }
+    }
+}
+
+void ABDSimpleJuno106AudioProcessor::stopRecording() {
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> writerToDestroy;
+    {
+        const juce::ScopedLock sl(writerLock);
+        writerToDestroy.reset(threadedWriter.release());
+    }
+    
+    if (writerToDestroy != nullptr) {
+        // Wait for background thread to flush and destroy
+        writerToDestroy.reset(); 
+        juce::Logger::writeToLog("[JUNiO] Recording stopped. Finalizing file...");
+
+        // Trigger File Chooser for official save
+        juce::String timestamp = juce::Time::getCurrentTime().formatted("%Y%m%d_%H%M%S");
+        juce::String defaultName = "junio601_" + timestamp + ".wav";
+        
+        fileChooser = std::make_unique<juce::FileChooser>("Save Synthesizer Recording",
+                                                          juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile(defaultName),
+                                                          "*.wav");
+        
+        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+                                 [this](const juce::FileChooser& fc) {
+            auto result = fc.getResult();
+            if (result.getFullPathName().isNotEmpty()) {
+                if (result.existsAsFile()) result.deleteFile();
+                tempRecordingFile.moveFileTo(result);
+                juce::Logger::writeToLog("[JUNiO] Recording saved to: " + result.getFullPathName());
+            } else {
+                tempRecordingFile.deleteFile();
+                juce::Logger::writeToLog("[JUNiO] Recording discarded by user.");
+            }
+        });
+    }
+}
+
+ABDSimpleJuno106AudioProcessor::SelfTestResult ABDSimpleJuno106AudioProcessor::runSelfTest()
+{
+    SelfTestResult result;
+    result.hasRun = true;
+    
+    // Test 1: 128 Factory Patches Roundtrip
+    if (presetManager) {
+        JunoTests::runJunoPatchRoundtripTest(*presetManager, result.presetFailures, result.failedPresets);
+    } else {
+        result.presetFailures = 128; // Si no hay manager, falla todo
+    }
+
+    // Test 2: SysEx Dump Protocol
+    JunoTests::runSysExPatchDumpRoundtripTest(result.sysExOk);
+
+    // Test 3: ValueTree/JSON Serialization
+    if (presetManager) {
+        JunoTests::runPresetJsonRoundtripTest(*presetManager, result.jsonOk);
+    } else {
+        result.jsonOk = false;
+    }
+
+    // Overall Certification Logic
+    result.ok = (result.presetFailures == 0) && result.sysExOk && result.jsonOk;
+    
+    lastSelfTestResult = result;
+    
+    juce::Logger::writeToLog("[JUNiO] Fidelity Self-Test completed. Certified: " + juce::String(result.ok ? "YES" : "NO"));
+    return result;
 }

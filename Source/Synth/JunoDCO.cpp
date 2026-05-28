@@ -89,13 +89,13 @@ float JunoDCO::getNextSample(float lfoValue) {
     voicePhase += juce::MathConstants<float>::twoPi * voiceRate / (float)sampleRate;
     if (voicePhase > juce::MathConstants<float>::twoPi) voicePhase -= juce::MathConstants<float>::twoPi;
     
-    voiceDriftCents = std::sin(voicePhase) * (kDcoDriftMaxVoiceCents * 0.5f) * driftAmount;
+    voiceDriftCents = std::sin(voicePhase) * (voiceDriftScale * 0.5f) * driftAmount;
     
     // 3. (Global drift for this voice would be set externally or simulated here)
     // For simplicity, we'll simulate a slow global drift (rate calibrated)
     globalDriftPhase += juce::MathConstants<float>::twoPi * driftRate / (float)sampleRate;
     if (globalDriftPhase > juce::MathConstants<float>::twoPi) globalDriftPhase -= juce::MathConstants<float>::twoPi;
-    globalDriftCents = std::sin(globalDriftPhase) * (kDcoDriftMaxGlobalCents * 0.5f) * driftAmount;
+    globalDriftCents = std::sin(globalDriftPhase) * (globalDriftScale * 0.5f) * driftAmount;
 
     float totalDriftCents = staticSpreadCents * driftAmount + globalDriftCents + voiceDriftCents;
     
@@ -129,7 +129,6 @@ float JunoDCO::getNextSample(float lfoValue) {
         freq = timerClock / (float)quantizedTicks;
     }
     
-    // updateRangeMultiplier() handles the range. baseFrequency is bended.
     // DCO phase update happens below using current freq.
     
     // === UPDATE PHASE ===
@@ -143,81 +142,117 @@ float JunoDCO::getNextSample(float lfoValue) {
         subFlipFlop = !subFlipFlop; // Always toggle (Authentic Aliasing/Divider behavior)
     }
     
-    float output = 0.0f;
-    // PolyBLEP for all waves (Kill metallic aliasing)
-    auto polyBlep = [](float t, float dt_param) -> float {
-        if (t < dt_param) { // Near start 0
-            float x = t / dt_param;
-            return 2.0f * x - x * x - 1.0f;
+    // Switch Ramp TC 1.45ms: coeff = 1 - exp(-1 / (0.00145 * sampleRate))
+    float switchRampTime = 0.00145f;
+    if (cal != nullptr) {
+        float msVal = cal->getValue("oscSwitchRampMs");
+        if (msVal > 0.0f) {
+            switchRampTime = msVal * 0.001f;
         }
-        else if (t > 1.0f - dt_param) { // Near end 1
-            float x = (t - 1.0f) / dt_param;
-            return x * x + 2.0f * x + 1.0f;
+    }
+    mSwitchRamp = 1.0f - std::exp(-1.0f / (switchRampTime * (float)sampleRate));
+
+    mSawGain   += (((sawLevel > 0.0f)   ? 1.0f : 0.0f) - mSawGain)   * mSwitchRamp;
+    mPulseGain += (((pulseLevel > 0.0f) ? 1.0f : 0.0f) - mPulseGain) * mSwitchRamp;
+    mSubGain   += (((subLevel > 0.0f)   ? 1.0f : 0.0f) - mSubGain)   * mSwitchRamp;
+
+    // PolyBLEP 4º orden (from KR106Oscillators.h)
+    auto polyBlep4 = [](float t, float dt_param) -> float {
+        float dt2 = dt_param + dt_param;
+        if (t < dt_param) {
+            float n = t / dt_param;
+            float n2 = n * n;
+            return 0.25f * n2 * n2 - 0.66666667f * n2 * n + 1.33333333f * n - 1.0f;
+        } else if (t < dt2) {
+            float u = 1.0f - (t - dt_param) / dt_param;
+            float u2 = u * u;
+            return -0.08333333f * u2 * u2;
+        } else if (t > 1.0f - dt_param) {
+            float n = (t - 1.0f) / dt_param;
+            float n2 = n * n;
+            return -0.25f * n2 * n2 - 0.66666667f * n2 * n + 1.33333333f * n + 1.0f;
+        } else if (t > 1.0f - dt2) {
+            float u = 1.0f + (t - 1.0f + dt_param) / dt_param;
+            float u2 = u * u;
+            return 0.08333333f * u2 * u2;
         }
         return 0.0f;
     };
 
-    if (sawLevel > 0.0f) {
-        // Falling saw: jumps from -1.0 to 1.0 at phase 0.0 (Magnitude +2.0)
-        float saw = 1.0f - 2.0f * (float)pulsePhase;
-        // Corrected Sign & Magnitude: Subtracting 2x the BLEP residue for -2.0 jump
-        saw -= 2.0f * polyBlep((float)pulsePhase, (float)dt);
-        output += saw * sawLevel;
+    const float blepAtReset = polyBlep4((float)pulsePhase, (float)dt);
+
+    float output = 0.0f;
+
+    // 1. SAW
+    if (mSawGain > 1e-4f) {
+        float sawAmp = (cal != nullptr) ? cal->getValue("sawMixAmp") : 0.6f;
+        float saw = 2.0f * (float)pulsePhase - 1.0f;
+        saw -= blepAtReset; // step at reset is 2.0 (saw -= blepAtReset, NOT +=)
+        output += saw * sawAmp * mSawGain;
     }
     
-    // === 2. PULSE with PWM (PolyBLEP) ===
-    if (pulseLevel > 0.0f) {
-        float targetPWM = kPwmCenterDuty;
+    // 2. PULSE
+    if (mPulseGain > 1e-4f) {
+        float pulseAmp = (cal != nullptr) ? cal->getValue("pulseMixAmp") : 0.5f;
+        float targetPWM = pwmCenterDuty;
         if (pwmMode == PWMMode::Manual) {
-            // [Fidelity] Juno-106: 50% at center, 95% at max. [Build 29] Added Calibration Offset
-            targetPWM = kPwmCenterDuty + pwmOffset + (pwmValue - 0.5f) * 2.0f * (kPwmMaxDuty - kPwmCenterDuty);
+            targetPWM = pwmCenterDuty + pwmOffset + (pwmValue - 0.5f) * 2.0f * (pwmMaxDuty - pwmCenterDuty);
         } else {
-            // LFO depth applies to the 50% center. [Build 29] Added Calibration Offset
-            targetPWM = juce::jlimit(kPwmMinDuty, kPwmMaxDuty, kPwmCenterDuty + pwmOffset + lfoValue * pwmValue * 0.45f);
+            targetPWM = juce::jlimit(pwmMinDuty, pwmMaxDuty, pwmCenterDuty + pwmOffset + lfoValue * pwmValue * 0.45f);
         }
         
-        // PWM "Off" mode: force waveform level if too narrow
-        if (targetPWM > kPwmOffThreshold) targetPWM = 1.0f;
-        if (targetPWM < (1.0f - kPwmOffThreshold)) targetPWM = 0.0f;
+        if (targetPWM > (1.0f - pwmOffThreshold)) targetPWM = 1.0f;
+        if (targetPWM < pwmOffThreshold) targetPWM = 0.0f;
         
-        // [Fidelity] PWM Slew Calibrated
-        float slewRate = (pwmMode == PWMMode::Manual) ? kPwmSlewRateManual : kPwmSlewRateLFO;
+        float slewRate = (pwmMode == PWMMode::Manual) ? pwmSlewRateManual : pwmSlewRateLFO;
         currentPWM += (targetPWM - currentPWM) * slewRate;
-        
-        float pulse = (pulsePhase < currentPWM) ? 1.0f : -1.0f;
-        
-        // Rising edge at 0 (Jump +2.0)
-        pulse += 2.0f * polyBlep((float)pulsePhase, (float)dt);
-        
-        // Falling edge at currentPWM (Jump -2.0)
-        float relativePhase = (float)pulsePhase - currentPWM;
-        if (relativePhase < 0.0f) relativePhase += 1.0f;
-        pulse -= 2.0f * polyBlep(relativePhase, (float)dt);
-        
-        output += pulse * pulseLevel;
+
+        // J106: pulse width invert
+        float effPW = currentPWM;
+        effPW = 1.0f - effPW;
+        effPW = std::clamp(effPW, 0.01f, 0.99f);
+
+        float pulse = (pulsePhase < effPW) ? -1.0f : 1.0f;
+        pulse -= blepAtReset;
+        float pw2 = (float)pulsePhase - effPW;
+        if (pw2 < 0.0f) pw2 += 1.0f;
+        pulse += polyBlep4(pw2, (float)dt);
+
+        output += pulse * pulseAmp * mPulseGain;
     }
     
-    // === 3. SUB-OSCILLATOR (PolyBLEP) ===
-    if (subLevel > 0.0f) {
-        // [Fidelity] Sub-Osc is a square wave from 8253 divider.
-        // It toggles only at the DCO reset point (pulsePhase >= 1.0).
-        // Since it only jumps at the start of the DCO cycle, we apply 
-        // PolyBLEP at the 0.0 transition.
-        float sub = subFlipFlop ? 1.0f : -1.0f;
-        
-        // PolyBLEP at the 0.0 reset point (matches Sawtooth reset)
-        sub += 2.0f * (subFlipFlop ? -1.0f : 1.0f) * polyBlep((float)pulsePhase, (float)dt);
-        
-        output += sub * subLevel * subAmpScale;
+    // 3. SUB
+    if (mSubGain > 1e-4f) {
+        float subAmp = (cal != nullptr) ? cal->getValue("subMixAmp") : 0.75f;
+        float subLevelVal = subLevel;
+        // Interpolación en tabla de 11 puntos
+        if (cal != nullptr) {
+            float subIdx = subLevel * 10.0f;
+            int subI0 = static_cast<int>(subIdx);
+            subI0 = std::clamp(subI0, 0, 9);
+            float subFrac = subIdx - subI0;
+            subLevelVal = cal->getSubLevel(subI0) + subFrac * (cal->getSubLevel(subI0 + 1) - cal->getSubLevel(subI0));
+        }
+
+        const float subSign = subFlipFlop ? -1.0f : 1.0f;
+        float sub = subSign * (1.0f - std::abs(blepAtReset));
+        output += sub * subAmp * subLevelVal * mSubGain;
     }
     
-    // === 4. NOISE ===
+    // 4. NOISE
     if (noiseLevel > 0.0f) {
+        float noiseAmp = (cal != nullptr) ? cal->getValue("noiseMixAmp") : 1.2f;
         float noise = (noiseGen.nextFloat() * 2.0f - 1.0f);
-        // [Fidelity] Noise color (LowPass roll-off at 12kHz)
         noise = noiseFilter.processSample(noise);
-        // [Build 29] Apply calibrated noise gain
-        output += noise * noiseLevel * kNoiseAmpScale * noiseGain;
+
+        // AudioTaper for Noise: (exp(k*x)-1)/(exp(k)-1)
+        float taperScale = 3.0f;
+        if (cal != nullptr) {
+            taperScale = cal->getValue("audioTaperScale");
+        }
+        float expTaper = (std::exp(taperScale * noiseLevel) - 1.0f) / (std::exp(taperScale) - 1.0f);
+
+        output += noise * expTaper * noiseAmp * noiseAmpScale * noiseGain;
     }
     
     // [Fidelity] Output Gain scaled to prevent VCF saturation

@@ -1,6 +1,6 @@
 #include "JunoBankSection.h"
 #include "../../Core/PresetManager.h"
-#include "../../ABD-SynthEngine/Protocol/Presets/PresetManagerBase.h"
+#include "../../Core/BaseClass/PresetManagerBase.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
 
 JunoBankSection::JunoBankSection(PresetManager& pm, juce::AudioProcessorValueTreeState& apvts) 
@@ -10,6 +10,12 @@ JunoBankSection::JunoBankSection(PresetManager& pm, juce::AudioProcessorValueTre
     // Setup Preset Browser
     addAndMakeVisible(presetBrowser);
     
+    // Setup Components
+    addAndMakeVisible(bankDigit);
+    addAndMakeVisible(patchDigit1);
+    addAndMakeVisible(patchDigit2);
+    addAndMakeVisible(midiActivityLed);
+
     // Setup Bank Buttons
     auto setupBtn = [&](JunoUI::JunoButton& b, const juce::String& txt) {
         b.setButtonText(txt);
@@ -48,9 +54,17 @@ JunoBankSection::JunoBankSection(PresetManager& pm, juce::AudioProcessorValueTre
 
 JunoBankSection::~JunoBankSection() {}
 
-void JunoBankSection::updateDisplay(const juce::String& bank, const juce::String& patch) {
-    if (bank.isNotEmpty())  bankDigit.setCharacter(static_cast<char>(bank[0]));
-    if (patch.isNotEmpty()) patchDigit.setCharacter(static_cast<char>(patch[0]));
+void JunoBankSection::updateDisplay(char bank, char patch1, char patch2) {
+    bankDigit.setCharacter(bank);
+    patchDigit1.setCharacter(patch1);
+    patchDigit2.setCharacter(patch2);
+}
+
+void JunoBankSection::setMidiActivity(bool active) {
+    if (midiActivityLed.active != active) {
+        midiActivityLed.active = active;
+        midiActivityLed.repaint();
+    }
 }
 
 void JunoBankSection::updateBankLeds(int bankIdx) {
@@ -72,13 +86,21 @@ void JunoBankSection::resized() {
     int gap = 4;
     int rowH = 26;
     
-    // 1. LCD Area (Bank/Patch display)
-    auto rLcd = r.removeFromTop(30);
+    // 1. LCD Area (7x3 Display)
+    auto rLcd = r.removeFromTop(32);
     int digitsCenter = rLcd.getCentreX();
-    int pairW = 54;
-    int digitsX = digitsCenter - pairW/2;
-    bankDigit.setBounds(digitsX, rLcd.getY() + 6, 24, 18);
-    patchDigit.setBounds(digitsX + 26, rLcd.getY() + 6, 24, 18);
+    int digitW = 28;
+    int digitH = 22;
+    int totalW = (digitW * 3) + 4; // 3 digits + gaps
+    int x = digitsCenter - totalW/2;
+    int y = rLcd.getY() + 4;
+
+    bankDigit.setBounds(x, y, digitW, digitH);
+    patchDigit1.setBounds(x + digitW + 2, y, digitW, digitH);
+    patchDigit2.setBounds(x + (digitW + 2) * 2, y, digitW, digitH);
+
+    // MIDI LED placement (top right of LCD area)
+    midiActivityLed.setBounds(rLcd.getRight() - 15, rLcd.getY() + 8, 8, 8);
 
     r.removeFromTop(5);
 
@@ -118,3 +140,4 @@ void JunoBankSection::resized() {
     powerButton.setBounds(uRow3.removeFromLeft(uRow3.getWidth()/2).reduced(1));
     panicButton.setBounds(uRow3.reduced(1));
 }
+

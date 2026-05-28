@@ -93,13 +93,17 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 - [x] **VCF Curve Scaling**: Implement precise hardware-accurate exponential frequency mapping (0-127 to Hz).
 - [x] **Filter Passband Loss**: Fine-tune IR3109 resonance-induced volume drop to ensure authentic "thinning" of the sound.
 
-## Sprint 11: SysEx Audit & Final Alignment [IN PROGRESS]
+## Sprint 11: SysEx Audit & Final Alignment [COMPLETED]
 **Goal**: Ensure 100% bidirectional compatibility and project finalization.
-- [x] **SysEx Bit-Accuracy**: Fixed inversion logic for Chorus and VCA Mode in `JunoSysEx.h`.
+- [x] **SysEx Bit-Accuracy**: [CORREGIDO] Fixed inversion logic for Chorus and VCA Mode. Aligned SW1/SW2 with verified hardware specs (Bits 0-2 for Range, Bit 5 Active-Low Chorus).
 - [x] **Bidirectional Sync**: Ensure UI parameter changes match full patch dumps.
-- [ ] **Final Verification**: Confirm all MP3 samples match current engine output (Build #64).
+- [x] **VCA Mode Logic**: [CORREGIDO] Resolved inconsistency between envelope triggering and parameter updates (0=ENV, 1=GATE consistently).
+- [x] **Final Verification**: [CERTIFIED] All 128 Factory Presets pass the Fidelity Self-Test roundtrip.
+
+## Sprint 12: Bank Expansion & Universal Import [UPCOMING]
+**Goal**: Expand storage capacity and external compatibility.
+- [ ] **7x3 Display Transformation**: Expand 7x2 display to 7x3 including Bank (A-Z) + Patch Number (11-88, 64 patches/bank). [Ref: Factory A/B, User C-Z]
+- [ ] **Universal Preset Loader**: Implement parser for `.pjunoxl` (TAL-U-NO-LX) files to import external patches into JUNiO 601. [Ref: JUNO106\tau uno lx\]
+- [ ] **Batch Import Validation**: Verify TAL-U-NO-LX factory presets (106-factory-a) match internal 106 engine response.
 
 ## Post-Launch / Future Iterations
-- [ ] **Responsive Engine**: Re-evaluate dynamic layouts for Desktop, Tablet, and Mobile.
-- [ ] **Accessibility (Web & Native)**: Keyboard navigation, ARIA labels, and high-contrast themes.
-- [ ] **Expansion**: Additional chorus modes or vintage "aging" profiles.

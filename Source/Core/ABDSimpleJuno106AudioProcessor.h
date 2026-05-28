@@ -35,6 +35,18 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
+    // [Fidelidad] Fidelity Certification System
+    struct SelfTestResult {
+        bool ok = false;
+        int presetFailures = 0;
+        bool sysExOk = false;
+        bool jsonOk = false;
+        bool hasRun = false;
+        juce::StringArray failedPresets; // Names + indices of failed patches
+    };
+    SelfTestResult runSelfTest();
+    SelfTestResult getLastSelfTestResult() const { return lastSelfTestResult; }
+
     const juce::String getName() const override;
     
     // [Fidelidad] TailTime: Release max 12s + Chorus 25ms => ~14s safety margin
@@ -75,6 +87,7 @@ public:
     void setSustainPolarity(bool inverted) { sustainInverted = inverted; }
     void triggerLFO();
     void loadTuningFile();
+    bool loadScalaTuning(const juce::File& file);  // [Fix] Load SCL from an already-selected file
     void resetTuning();
     juce::String getCurrentTuningName() const { return currentTuningName; }
 
@@ -123,12 +136,19 @@ public:
     int getWipCount() const;
     int getActiveABSlot() const { return activeSlot; }
     void sendParamUpdateToUI();
+    
+    // [Build 103] Recording Support
+    void toggleRecording();
+    bool isRecording() const { return threadedWriter != nullptr; }
+
 
 private:
     juce::UndoManager undoManager;
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
+    void applyPresetState(const juce::ValueTree& vt);
+
     ABD::JunoVoiceManager voiceManager;
     SynthParams currentParams;
     SynthParams lastParams;
@@ -148,6 +168,17 @@ private:
     juce::String currentTuningName { "Standard Tuning" };
     
     JunoSysExEngine sysExEngine;
+
+    // [Build 103] Recording Infrastructure
+    juce::AudioFormatManager formatManager;
+    juce::TimeSliceThread backgroundThread { "Audio Recording Thread" };
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
+    juce::CriticalSection writerLock;
+    juce::File tempRecordingFile;
+    
+    void startRecording();
+    void stopRecording();
+
     ABD::PerformanceState performanceState;
     bool sustainInverted = false;
     
@@ -155,14 +186,7 @@ private:
     juce::MidiMessage lastSysExMessage;
     juce::MidiMessage lastSentSysExMessage;
     
-    // Helper to send and store
-    void sendSysEx(const juce::MidiMessage& msg) {
-        if (currentParams.midiOut) {
-            midiOutBuffer.addEvent(msg, 0);
-            lastSentSysExMessage = msg;
-        }
-        lastSysExMessage = msg; // Update for UI display
-    }
+    void sendSysEx(const juce::MidiMessage& msg);
 
     // [Fidelidad] Authentic MN3009 BBD Emulation
     ChorusBBD chorus; 
@@ -174,8 +198,9 @@ private:
     // [VCA/Chorus Audit] Dynamic noise buffer
     juce::AudioBuffer<float> chorusNoiseBuffer;
 
-    float masterLfoPhase = 0.0f;
-    float masterLfoDelayEnvelope = 0.0f;
+#include "../Synth/JunoLFO.h"
+
+    JunoLFO masterLFO;
     
     // [Fidelidad] Chorus LFOs para Leakage y LED
     float chorusLfoPhaseI = 0.0f;
@@ -261,6 +286,7 @@ private:
     std::atomic<float>* fmtMidiFunction = nullptr;
     std::atomic<float>* fmtLowCpuMode = nullptr;
     std::atomic<float>* fmtMemoryProtect = nullptr;
+    SelfTestResult lastSelfTestResult;
 
 public:
     // User Settings

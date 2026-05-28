@@ -95,6 +95,7 @@ private:
     bool isWriteArmed = false;
     int writeBankTarget = 0;
     int writePatchTarget = 0;
+    int midiActivityTimer = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ABDSimpleJuno106AudioProcessorEditor)
 };

@@ -7,11 +7,11 @@
  * SynthParams - Parameter definitions for JUNiO 601
  */
 struct SynthParams {
-    int dcoRange = 1;           
+    int dcoRange = 1;           // 0=16', 1=8', 2=4'
     bool sawOn = true;          
-    bool pulseOn = true;        
-    float pwmAmount = 0.5f;     
-    int pwmMode = 0;            
+    bool pulseOn = false;       
+    float pwmAmount = 0.0f;     
+    int pwmMode = 0;            // 0=LFO, 1=Manual
 
     float subOscLevel = 0.0f;   
     float noiseLevel = 0.0f;    
@@ -94,8 +94,8 @@ struct SynthParams {
     float hpfQ = 0.707f;
 
     // [Build 29] VCF Calibration
-    float vcfMinHz = JunoConstants::Curves::kVcfMinHz;
-    float vcfMaxHz = JunoConstants::Curves::kVcfMaxHz;
+    float vcfMinHz = 8.0f;
+    float vcfMaxHz = 16000.0f;
     float vcfSelfOscThreshold = 0.95f; // [Renamed from vcfSelfOscPoint for consistency]
     float vcfResoComp = 0.5f;
     float vcfSaturation = 1.0f;
@@ -146,6 +146,7 @@ struct SynthParams {
     float thermalInertia = 1024.0f;
     float thermalMigration = 0.0005f;
     float masterOutputGain = 1.0f;
+    float masterVolume = 1.0f;      // [New] SNAPSHOT-consistent volume
     float masterPitchCents = 0.0f;
     float masterClockHz = 8000000.0f;
     float a4Reference = 440.0f;     // [New] Master tuning ref
@@ -160,8 +161,36 @@ struct SynthParams {
     float pwmMaxDuty = 0.95f;
     float pwmMinDuty = 0.05f;
     float vcfWidth = 1.0f;          // [New] V/oct scaling
+    float vcfSlewMs = 0.522f;       // [New] Analog slew filter time constant for VCF CV
+    float vcaSlewMs = 0.687f;       // [New] Analog slew filter time constant for VCA CV
+    float staggeredUpdateMaxMs = 2.0f; // [New] Maximum micro-delay across all voices (staggered CV update)
     float dcoDriftComplexity = 0.5f; // [New] Fractal noise depth
     float vcaOffset = 0.0f;         // [New] Per-voice hardware bias
+    float vcaBleed = -85.0f;        // [New] Constant leakage from DCO/Noise
+    float chorusLfoRateII = 0.78f;  // [New] BBD LFO speed (Mode II)
+    float subGainScale = 1.25f;     // [New] Master sub-oscillator multiplier
+    float noiseGainScale = 0.45f;   // [New] Master noise generator multiplier
+    float thermalIntensity = 1.5f;  // [New] Global scale for thermal drift
+    float pwmOffThreshold = 0.05f;  // [New] PWM cut-off
+    float pwmSlewRateManual = 0.05f;
+    float pwmSlewRateLFO = 0.1f;
+    float noiseAmpScale = 0.5f;
+    float vcaCurveType = 0.0f;      // [New] VCA Curve Type: 0=Juno-106 HW, 1=Juno-6/60 Shockley, 2=Linear
+    float adsrVariance = 0.05f;     // [New] ADSR Voice-to-voice variance
+
+    // DCO and LFO calibration parameters
+    float sawMixAmp = 0.6f;
+    float pulseMixAmp = 0.5f;
+    float subMixAmp = 0.75f;
+    float noiseMixAmp = 1.2f;
+    float audioTaperScale = 3.0f;
+    float dcoLfoShuntK = 5.0f;
+    float dcoLfoMaxSemitones = 4.0f;
+    float oscSwitchRampMs = 1.45f;
+    float lfoTickRateMs = 4.2335f;
+    float lfoAccumMax = 8191.0f;
+    float lfoHoldoffThresh = 16384.0f;
+    float portamentoRateST = 0.0f;
 
     // --- Metadata ---
     juce::String patchName = "INITIAL PATCH";
@@ -247,6 +276,6 @@ struct JunoTimeCurves {
     static constexpr float kReleaseMax = 12.0f;  
 
     static constexpr float kLfoMinHz = 0.1f;
-    static constexpr float kLfoMaxHz = JunoConstants::Curves::kLfoMaxHz;
-    static constexpr float kLfoDelayMax = JunoConstants::Curves::kLfoDelayMax;
+    static constexpr float kLfoMaxHz = 30.0f;
+    static constexpr float kLfoDelayMax = 3.0f;
 };

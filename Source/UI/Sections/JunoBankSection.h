@@ -2,12 +2,13 @@
 #include <JuceHeader.h>
 #include "../JunoUIHelpers.h"
 #include "../../UI/PresetBrowser.h"
-#include "../Components/SevenSegmentDisplay.h"
+#include "../Components/JunoLEDDigit.h"
 
 class PresetManager;
 
 /**
- * JunoBankSection (Sidebar)
+ * [Aesthetic Upgrade] JunoBankSection (Sidebar)
+ * Now features 7x3 Display (Bank A-Z, Patch 11-88) and MIDI Activity LED.
  */
 class JunoBankSection : public juce::Component
 {
@@ -18,7 +19,17 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     
-    void updateDisplay(const juce::String& bank, const juce::String& patch);
+    /**
+     * Updates the 3-digit display.
+     * @param bank Alphanumeric bank (A-Z)
+     * @param patch1 First patch digit (1-8)
+     * @param patch2 Second patch digit (1-8)
+     */
+    void updateDisplay(char bank, char patch1, char patch2);
+    
+    /** Sets the MIDI activity LED state */
+    void setMidiActivity(bool active);
+
     void updateBankLeds(int bankIdx);
 
     // Public Listeners
@@ -50,6 +61,21 @@ public:
     JunoUI::JunoKnob portSlider;
     JunoUI::JunoKnob masterTuneKnob;
     
-    SevenSegmentDisplay bankDigit;
-    SevenSegmentDisplay patchDigit;
+    JunoLEDDigit bankDigit;
+    JunoLEDDigit patchDigit1;
+    JunoLEDDigit patchDigit2;
+
+    struct MidiLed : public juce::Component {
+        bool active = false;
+        void paint(juce::Graphics& g) override {
+            auto b = getLocalBounds().toFloat().reduced(1.0f);
+            g.setColour(active ? juce::Colour(0xff00ff00) : juce::Colours::darkgrey.darker());
+            g.fillEllipse(b);
+            if (active) {
+                g.setColour(juce::Colours::white.withAlpha(0.4f));
+                g.fillEllipse(b.reduced(b.getWidth() * 0.3f));
+            }
+        }
+    } midiActivityLed;
 };
+

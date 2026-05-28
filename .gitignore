@@ -38,6 +38,7 @@ JUNO106/
 !Source/**/*.md
 !roadmap.md
 !rules.md
+temp_utramaster/
 
 # Root level excludes
 /JUNiO_601.exe

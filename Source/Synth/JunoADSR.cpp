@@ -22,33 +22,93 @@ void JunoADSR::setSampleRate(double sr)
     }
 }
 
+static constexpr std::array<uint16_t, 128> GenerateDecRelTable()
+{
+  constexpr int kCounts[] = {  4,      1,      10,     28,     22,     58,     4     };
+  constexpr uint16_t kSteps[] = { 0x2000, 0x1000, 0x0800, 0x0080, 0x000C, 0x0004, 0x0001 };
+  std::array<uint16_t, 128> t{};
+  uint16_t val = 0x1000;
+  int i = 0;
+  t[i++] = val;
+  for (int seg = 0; seg < 7; ++seg)
+    for (int n = 0; n < kCounts[seg]; ++n)
+      t[i++] = (val = static_cast<uint16_t>(val + kSteps[seg]));
+  return t;
+}
+static constexpr auto kDecRelTable = GenerateDecRelTable();
+
+static uint16_t AttackIncFromSlider(float slider)
+{
+    float s = std::clamp(slider, 0.f, 1.f);
+    if (s < 0.003937f) return 0x3FFF;
+    if (s <= 0.500000f)
+        return static_cast<uint16_t>(8192.f / (s * 127.f) + 0.5f);
+    if (s <= 0.681102f)
+        return static_cast<uint16_t>(305.03f - 352.26f * s + 0.5f);
+    if (s <= 0.846457f)
+        return static_cast<uint16_t>(194.74f - 190.50f * s + 0.5f);
+    if (s <= 0.956693f)
+        return static_cast<uint16_t>(86.37f - 62.52f * s + 0.5f);
+    return static_cast<uint16_t>(std::max(
+        static_cast<int>(148.f - 127.f * s + 0.5f), 1));
+}
+
 void JunoADSR::reset()
 {
     stage = Stage::Idle;
     currentValue = 0.0f;
+    mEnvInt = 0;
+    mTickAccum = 0.0f;
+    mEnvPrev = 0.0f;
+    mEnvNext = 0.0f;
+    smoothedValue = 0.0f;
+}
+
+void JunoADSR::setAttackRaw(float slider)
+{
+    mAtkInc = AttackIncFromSlider(slider);
+}
+
+void JunoADSR::setDecayRaw(float slider)
+{
+    int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
+    mDecMul = kDecRelTable[index];
+}
+
+void JunoADSR::setReleaseRaw(float slider)
+{
+    int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
+    mRelMul = kDecRelTable[index];
 }
 
 void JunoADSR::setAttack(float seconds)
 {
-    attackTime = juce::jlimit(JunoConstants::Curves::kAttackMin, JunoConstants::Curves::kAttackMax, seconds);
-    calculateRates();
+    attackTime = juce::jlimit(0.0015f, 3.0f, seconds);
+    float raw = (attackTime - 0.0015f) / (3.0f - 0.0015f);
+    raw = std::pow(std::max(0.0f, raw), 1.0f / 2.2f);
+    setAttackRaw(raw);
 }
 
 void JunoADSR::setDecay(float seconds)
 {
-    decayTime = juce::jlimit(JunoConstants::Curves::kDecayMin, JunoConstants::Curves::kDecayMax, seconds);
-    calculateRates();
+    decayTime = juce::jlimit(0.0015f, 12.0f, seconds);
+    float raw = (decayTime - 0.0015f) / (12.0f - 0.0015f);
+    raw = std::pow(std::max(0.0f, raw), 1.0f / 2.2f);
+    setDecayRaw(raw);
 }
 
 void JunoADSR::setSustain(float level)
 {
     sustainLevel = juce::jlimit(0.0f, 1.0f, level);
+    mSusInt = static_cast<uint16_t>(sustainLevel * 0x3F80);
 }
 
 void JunoADSR::setRelease(float seconds)
 {
-    releaseTime = juce::jlimit(JunoConstants::Curves::kReleaseMin, JunoConstants::Curves::kReleaseMax, seconds);
-    calculateRates();
+    releaseTime = juce::jlimit(0.0015f, 12.0f, seconds);
+    float raw = (releaseTime - 0.0015f) / (12.0f - 0.0015f);
+    raw = std::pow(std::max(0.0f, raw), 1.0f / 2.2f);
+    setReleaseRaw(raw);
 }
 
 void JunoADSR::setGateMode(bool enabled) { gateMode = enabled; }
@@ -58,7 +118,9 @@ void JunoADSR::setAttackFactor(float factor) { attackFactor = juce::jlimit(0.1f,
 void JunoADSR::noteOn()
 {
     stage = Stage::Attack;
-    mcuUpdateCounter = 0; // [Fix] Start MCU update cycle immediately on Note On
+    mEnvPrev = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
+    tick106();
+    mEnvNext = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
 }
 
 void JunoADSR::noteOff()
@@ -68,114 +130,94 @@ void JunoADSR::noteOff()
     }
 }
 
+uint16_t JunoADSR::calcDecay(uint16_t value, uint16_t coeff)
+{
+    uint8_t vh = value >> 8;
+    uint8_t vl = value & 0xFF;
+    uint8_t ch = coeff >> 8;
+    uint8_t cl = coeff & 0xFF;
+    return static_cast<uint16_t>(vh * ch)
+         + static_cast<uint16_t>((vh * cl) >> 8)
+         + static_cast<uint16_t>((vl * ch) >> 8);
+}
+
+void JunoADSR::tick106()
+{
+    switch (stage)
+    {
+        case Stage::Attack: {
+            uint32_t sum = static_cast<uint32_t>(mEnvInt) + mAtkInc;
+            if (sum >= JunoADSR::kEnvMax)
+            {
+                mEnvInt = JunoADSR::kEnvMax;
+                stage = Stage::Decay;
+            }
+            else
+                mEnvInt = static_cast<uint16_t>(sum);
+            break;
+        }
+        case Stage::Decay:
+            if (mEnvInt > mSusInt)
+            {
+                uint16_t diff = mEnvInt - mSusInt;
+                diff = calcDecay(diff, mDecMul);
+                mEnvInt = diff + mSusInt;
+            }
+            else
+                mEnvInt = mSusInt;
+            break;
+        case Stage::Release:
+            mEnvInt = calcDecay(mEnvInt, mRelMul);
+            if (mEnvInt == 0)
+                stage = Stage::Idle;
+            break;
+        case Stage::Idle:
+        default:
+            break;
+    }
+}
+
 float JunoADSR::getNextSample()
 {
     if (gateMode) {
          float target = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
-         // [Fidelity] Fast analog-style slew (~2ms) to prevent digital clicks
          currentValue += (target - currentValue) * 0.03f;
-
-         // [Fix] Gate mode must also terminate to Stage::Idle to allow voice reuse
          if (stage == Stage::Release && currentValue < 0.0001f) {
              currentValue = 0.0f;
              stage = Stage::Idle;
          }
+         return currentValue;
     } else {
-        // [Fidelidad] MCU Update Cycle (3ms ~ 132 samples @ 44.1k)
-        if (--mcuUpdateCounter <= 0) {
-        mcuUpdateCounter = mcuUpdateRateSamples;
-
-        switch (stage)
+        mTickAccum += mTickStep;
+        while (mTickAccum >= 1.f)
         {
-            case Stage::Attack:
-            {
-                // [Audit Compliance] VCF Overshoot emulation (Target > 1.0)
-                // We target 'overshoot' (default 1.08f) to simulate the analog overshoot behavior commanded by the 8031.
-                currentValue += attackRate * (overshoot - currentValue); 
-                if (currentValue >= 1.0f) {
-                    currentValue = 1.0f;
-                    stage = Stage::Decay;
-                }
-                break;
-            }
-            
-            case Stage::Decay:
-            {
-                // [Fidelity] Juno-106 "Shifted Space" logic:
-                // Decay happens towards 0.0 in a space shifted by sustainLevel.
-                float x = currentValue - sustainLevel;
-                x *= decayRate; 
-                currentValue = x + sustainLevel;
-
-                if (std::abs(currentValue - sustainLevel) <= 0.001f) {
-                    currentValue = sustainLevel;
-                    stage = Stage::Sustain;
-                }
-                break;
-            }
-            
-            case Stage::Sustain:
-                // [Fidelity] In the Juno-106, Sustain changes are instantaneous 
-                // but since we are digital, we ensure currentValue follows sustainLevel.
-                currentValue = sustainLevel; 
-                break;
-            
-            case Stage::Release:
-            {
-                // [Fidelity] Juno-106 "Shifted Space" logic:
-                // Release happens towards 0.0 in a space shifted by 0.0.
-                // This is effectively a decay towards 0.0.
-                float x = currentValue; // No shift needed for target 0.0
-                x *= releaseRate; 
-                currentValue = x;
-
-                if (currentValue < 0.0001f) { // [Fix] Lower threshold for high-precision release
-                    currentValue = 0.0f;
-                    stage = Stage::Idle;
-                }
-                break;
-            }
-            
-            case Stage::Idle:
-            default:
-                break;
+            mTickAccum -= 1.f;
+            mEnvPrev = mEnvNext;
+            tick106();
+            mEnvNext = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
         }
-    }
+        currentValue = mEnvPrev + (mEnvNext - mEnvPrev) * mTickAccum;
     }
     
-    // [Fidelity Improvement] DYNAMIC DAC EMULATION
-    float quantized = std::floor(currentValue * (dacSteps - 0.01f)) / (dacSteps - 1.0f);
+    float quantized = currentValue;
+    if (dacSteps > 0.0f) {
+        quantized = std::floor(currentValue * (dacSteps - 0.01f)) / (dacSteps - 1.0f);
+    }
     
-    // [Fix] Analog-style Slew (dynamic via calibration) to kill 3ms digital stairs
-    float alpha = 1.0f - std::exp(-1.0f / (std::max(0.1f, slewMs) * 0.001f * (float)sampleRate));
-    smoothedValue += (quantized - smoothedValue) * alpha;
-    return smoothedValue;
+    if (slewMs > 0.1f) {
+        float alpha = 1.0f - std::exp(-1.0f / (slewMs * 0.001f * (float)sampleRate));
+        smoothedValue += (quantized - smoothedValue) * alpha;
+        return smoothedValue;
+    }
+    
+    smoothedValue = quantized;
+    return quantized;
 }
 
 void JunoADSR::calculateRates()
 {
     if (sampleRate <= 0.0) return;
     
-    // Recalculate MCU samples
-    mcuUpdateRateSamples = (int)(mcuRateFactor * 0.001 * sampleRate); 
-    if (mcuUpdateRateSamples < 1) mcuUpdateRateSamples = 1;
-
-    auto getAuthenticRate = [&](float tau, bool isAttack) -> float {
-        float updateInterval = (float)mcuUpdateRateSamples;
-        float sr = (float)sampleRate;
-        
-        if (isAttack) {
-              // Attack: Logarithmic approach to target (Target > 1.0 for overshoot)
-              // Rate is adjusted so it reaches 1.0 in approx 'tau' seconds
-              return 1.0f - std::exp(-updateInterval / (tau * sr * attackFactor));
-        } else {
-             // Decay/Release: Exponential to target
-             // Rate is adjusted so it reaches 37% in approx 'tau' seconds
-             return std::exp(-updateInterval / (tau * sr));
-        }
-    };
-
-    attackRate = getAuthenticRate(attackTime, true); 
-    decayRate = getAuthenticRate(decayTime, false);
-    releaseRate = getAuthenticRate(releaseTime, false);
+    float tickRate = 1000.0f / mcuRateFactor;
+    mTickStep = (tickRate * mTimeScale) / (float)sampleRate;
 }

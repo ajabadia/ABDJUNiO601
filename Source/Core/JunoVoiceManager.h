@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../Synth/JunoVoice.h"
-#include "../ABD-SynthEngine/Core/Voices/VoiceAllocator.h"
+#include "BaseClass/VoiceAllocator.h"
 #include "SynthParams.h"
 #include <array>
 #include <atomic>
@@ -38,6 +38,9 @@ public:
     void setPortamentoLegato(bool b);
     void setTuningTable(const float* table) {
         for (auto& v : allocator.getVoices()) v.setTuningTable(table);
+    }
+    void setCalibrationSettings(CalibrationSettings* cal) {
+        for (auto& v : allocator.getVoices()) v.setCalibrationSettings(cal);
     }
     
     void resetAllVoices() {
