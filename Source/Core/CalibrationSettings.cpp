@@ -44,6 +44,7 @@ void CalibrationSettings::buildParameterList()
     reg("unisonDetune", "Unison Detune Amt", "GENERAL", "%", "Pitch micro-detuning intensity in UNISON mode.", 0.35f, 0.0f, 1.0f, 0.01f);
     reg("sustainMode", "Sustain Pedal Mode", "GENERAL", "", "Behavior of the sustain pedal (0=Normal, 1=SOS, 2=Toggle).", 0.0f, 0.0f, 2.0f, 1.0f, true);
     reg("enableLogging", "System Logging", "GENERAL", "", "Enables/Disables diagnostic logging in the console (OFF by default).", 0.0f, 0.0f, 1.0f, 1.0f, true);
+    reg("skinType", "UI Skin Theme", "GENERAL", "", "Selects the UI theme (0 = Classic Blue, 1 = Juno-106S Dark, 2 = TR-808, 3 = DeepMind, 4 = Space Echo, 5 = ARP 2600).", 0.0f, 0.0f, 5.0f, 1.0f, true);
 
     // --- DCO ---
     reg("dcoMixerGain", "DCO Mixer Gain", "DCO", "", "Level of DCO output before VCF.", 0.70f, 0.1f, 1.5f, 0.05f);

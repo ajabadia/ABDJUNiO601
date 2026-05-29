@@ -48,3 +48,143 @@
     --soft-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     --panel-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
 }
+
+/* JUNO-106S DARK THEME OVERRIDES */
+body[data-theme="dark-106s"] {
+    --juno-red: #3a3b40;      /* Dark metal grey bars */
+    --juno-blue: #22252a;     /* Darker charcoal bars */
+    --juno-grey: #888888;     /* Muted grey labels */
+    --juno-orange: #d35400;   /* Muted orange */
+    
+    /* OLED/Green Mod display & LEDs */
+    --led-red: #00ff55;
+    --lcd-red: #00ff55;
+    --led-glow: 0 0 12px rgba(0, 255, 85, 0.8), 0 0 4px #fff;
+    --bg-synth: #050608;
+    --metal-dark: #101114;
+    --metal-highlight: #18191d;
+}
+
+/* CSS Filters to map red asset sprites to green for the dark theme */
+body[data-theme="dark-106s"] .led.active,
+body[data-theme="dark-106s"] img.led-sprite {
+    filter: hue-rotate(120deg) saturate(1.8) brightness(1.1) !important;
+}
+
+body[data-theme="dark-106s"] #lcd-text {
+    color: #00ff55 !important;
+    text-shadow: 0 0 15px rgba(0, 255, 85, 0.8) !important;
+}
+
+body[data-theme="dark-106s"] .front-midi-badge.active {
+    background: #00ff55 !important;
+    box-shadow: 0 0 10px #00ff55 !important;
+}
+
+/* ROLAND TR-808 THEME */
+body[data-theme="tr-808"] {
+    --led-red: #ff3b30;
+    --lcd-red: #ff3b30;
+    --led-glow: 0 0 12px rgba(255, 59, 48, 0.8), 0 0 4px #fff;
+    --bg-synth: #08080a;
+    --metal-dark: #121215;
+    --metal-highlight: #1a1a1f;
+    --juno-grey: #a0a0a0;
+}
+body[data-theme="tr-808"] #lfo .module-bar { background: #ff3c3c !important; }
+body[data-theme="tr-808"] #dco .module-bar { background: #ffa200 !important; }
+body[data-theme="tr-808"] #hpf .module-bar { background: #ffd200 !important; }
+body[data-theme="tr-808"] #vcf .module-bar { background: #e0e0e0 !important; color: #222 !important; }
+body[data-theme="tr-808"] #vca .module-bar { background: #ff3c3c !important; }
+body[data-theme="tr-808"] #env .module-bar { background: #ffa200 !important; }
+body[data-theme="tr-808"] #chorus .module-bar { background: #ffd200 !important; }
+
+/* BEHRINGER DEEPMIND THEME */
+body[data-theme="deepmind"] {
+    --juno-red: #e67e22;      /* Amber/orange bars */
+    --juno-blue: #d35400;     /* Deeper orange bars */
+    --juno-grey: #a0a5b0;     /* Cool grey/blue labels */
+    --led-red: #ff9900;       /* Amber LEDs */
+    --lcd-red: #ff9900;       /* Amber screen */
+    --led-glow: 0 0 12px rgba(255, 153, 0, 0.8), 0 0 4px #fff;
+    --bg-synth: #0a0b0e;
+    --metal-dark: #14161d;
+    --metal-highlight: #1b1e28;
+}
+body[data-theme="deepmind"] #synth-app {
+    border: 4px solid #5c3a21 !important; /* Walnut wood end cheeks look */
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.9), 0 0 20px rgba(230, 126, 34, 0.1) !important;
+}
+body[data-theme="deepmind"] .led.active,
+body[data-theme="deepmind"] img.led-sprite {
+    filter: hue-rotate(35deg) saturate(2.5) brightness(1.2) !important;
+}
+body[data-theme="deepmind"] #lcd-text {
+    color: #ff9900 !important;
+    text-shadow: 0 0 15px rgba(255, 153, 0, 0.8) !important;
+}
+body[data-theme="deepmind"] .front-midi-badge.active {
+    background: #ff9900 !important;
+    box-shadow: 0 0 10px #ff9900 !important;
+}
+
+/* ROLAND SPACE ECHO RE-201 THEME */
+body[data-theme="space-echo"] {
+    --juno-red: #16a085;      /* Forest/Teal bars */
+    --juno-blue: #1abc9c;     /* Bright green/teal bars */
+    --juno-grey: #95a5a6;     /* Silver/grey labels */
+    --led-red: #2ecc71;       /* Cool green LEDs */
+    --lcd-red: #2ecc71;       /* Cool green display */
+    --led-glow: 0 0 12px rgba(46, 204, 113, 0.8), 0 0 4px #fff;
+    --bg-synth: #090e0c;
+    --metal-dark: #121c18;
+    --metal-highlight: #192822;
+}
+body[data-theme="space-echo"] .led.active,
+body[data-theme="space-echo"] img.led-sprite {
+    filter: hue-rotate(120deg) saturate(1.8) brightness(1.1) !important;
+}
+body[data-theme="space-echo"] #lcd-text {
+    color: #2ecc71 !important;
+    text-shadow: 0 0 15px rgba(46, 204, 113, 0.8) !important;
+}
+body[data-theme="space-echo"] .front-midi-badge.active {
+    background: #2ecc71 !important;
+    box-shadow: 0 0 10px #2ecc71 !important;
+}
+
+/* ARP 2600 RETRO THEME */
+body[data-theme="arp-2600"] {
+    --juno-red: #ffffff;      /* Minimalist white bars */
+    --juno-blue: #ffffff;     /* White bars */
+    --juno-grey: #ffffff;     /* White labels */
+    --led-red: #ffaa00;       /* Orange LEDs */
+    --lcd-red: #ffaa00;       /* Orange screen */
+    --led-glow: 0 0 12px rgba(255, 170, 0, 0.8), 0 0 4px #fff;
+    --bg-synth: #040405;
+    --metal-dark: #0b0b0c;
+    --metal-highlight: #121214;
+}
+body[data-theme="arp-2600"] .module-bar {
+    color: #000000 !important; /* Black text on white bars */
+    border-bottom: 2px solid #000000 !important;
+}
+body[data-theme="arp-2600"] .led.active,
+body[data-theme="arp-2600"] img.led-sprite {
+    filter: hue-rotate(45deg) saturate(2.5) brightness(1.2) !important;
+}
+body[data-theme="arp-2600"] #lcd-text {
+    color: #ffaa00 !important;
+    text-shadow: 0 0 15px rgba(255, 170, 0, 0.8) !important;
+}
+body[data-theme="arp-2600"] .front-midi-badge.active {
+    background: #ffaa00 !important;
+    box-shadow: 0 0 10px #ffaa00 !important;
+}
+/* Grouped colored slider caps */
+body[data-theme="arp-2600"] #dco .handle { filter: hue-rotate(35deg) saturate(2) brightness(1.1); }
+body[data-theme="arp-2600"] #vcf .handle { filter: hue-rotate(320deg) saturate(2.5) brightness(1.1); }
+body[data-theme="arp-2600"] #env .handle { filter: hue-rotate(60deg) saturate(2) brightness(1.1); }
+body[data-theme="arp-2600"] #lfo .handle { filter: hue-rotate(120deg) saturate(2) brightness(1.1); }
+body[data-theme="arp-2600"] #vca .handle { filter: hue-rotate(200deg) saturate(2) brightness(1.1); }
+

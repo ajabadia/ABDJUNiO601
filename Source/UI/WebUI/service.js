@@ -1,4 +1,19 @@
 // service.js - Service Mode Logic for JUNiO 601
+function applySkinTheme(skinVal) {
+    console.log("Applying UI Skin Theme:", skinVal);
+    const themes = {
+        0: 'classic',
+        1: 'dark-106s',
+        2: 'tr-808',
+        3: 'deepmind',
+        4: 'space-echo',
+        5: 'arp-2600'
+    };
+    const themeName = themes[Math.round(skinVal)] || 'classic';
+    document.body.setAttribute('data-theme', themeName);
+}
+window.applySkinTheme = applySkinTheme;
+
 const ServiceMode = {
     params: [],
 
@@ -22,6 +37,12 @@ const ServiceMode = {
             if (!this.params) this.params = [];
             console.log(`ServiceMode: Loaded ${this.params.length} params`);
             this.renderParams();
+            
+            // Apply skin theme on load
+            const skinParam = this.params.find(p => p.id === 'skinType');
+            if (skinParam) {
+                applySkinTheme(skinParam.currentValue);
+            }
         } catch (e) {
             console.error("Failed to get calibration params:", e);
             this.params = [];
@@ -87,9 +108,9 @@ const ServiceMode = {
                     "numVoices": { 1: "1 (MONO)", 2: "2", 4: "4", 6: "6 (CLASSIC)", 8: "8", 12: "12", 16: "16 (MAX)" },
                     "benderRange": { 1: "1 SEMI", 2: "2 SEMIS", 3: "3 SEMIS", 4: "4 SEMIS", 7: "5th", 12: "OCTAVE" },
                     "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
-                    "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
                     "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
-                    "enableLogging": { 0: "OFF", 1: "ON" }
+                    "enableLogging": { 0: "OFF", 1: "ON" },
+                    "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-106S DARK", 2: "TR-808 SEQUENCER", 3: "DEEPMIND AMBER", 4: "SPACE ECHO RE-201", 5: "ARP 2600 RETRO" }
                 };
 
                 if (choiceParams[p.id]) {
@@ -141,9 +162,31 @@ const ServiceMode = {
         const val = parseFloat(value);
         const p = this.params.find(x => x.id === id);
         const display = document.getElementById(`val-${id}`);
+        
+        const choiceParams = {
+            "midiChannel": { 0: "OMNI", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11", 12: "12", 13: "13", 14: "14", 15: "15", 16: "16" },
+            "numVoices": { 1: "1 (MONO)", 2: "2", 4: "4", 6: "6 (CLASSIC)", 8: "8", 12: "12", 16: "16 (MAX)" },
+            "benderRange": { 1: "1 SEMI", 2: "2 SEMIS", 3: "3 SEMIS", 4: "4 SEMIS", 7: "5th", 12: "OCTAVE" },
+            "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
+            "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
+            "enableLogging": { 0: "OFF", 1: "ON" },
+            "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-106S DARK", 2: "TR-808 SEQUENCER", 3: "DEEPMIND AMBER", 4: "SPACE ECHO RE-201", 5: "ARP 2600 RETRO" }
+        };
+
         if (p && display) {
-            display.innerText = val.toFixed(2) + (p.unit || '');
+            if (choiceParams[id]) {
+                display.innerText = choiceParams[id][Math.round(val)] || val.toString();
+            } else {
+                display.innerText = val.toFixed(2) + (p.unit || '');
+            }
         }
+        
+        if (p) p.currentValue = val;
+        
+        if (id === 'skinType') {
+            applySkinTheme(val);
+        }
+        
         juce.setCalibrationParam(id, val);
     },
 

@@ -50,6 +50,17 @@ A dual-tier management system for factory and user content:
 - **Tape Simulation**: Authentic FSK encoding/decoding for .wav-based patch backups, replicating original 1980s data storage.
 - **Musical Randomization**: Context-aware parameter generation for quick sound design.
 
+## Modern UI, Custom Skins & DAW Integration
+- **Dynamic Skin Manager:** Includes multiple selectable themes in General Settings:
+  - **Classic Blue**: The iconic blue and grey hardware appearance.
+  - **Juno-106S Dark**: Stealth black panel with neon green OLED/LED mod styling.
+  - **TR-808**: Step-sequencer color-coded module headers (Red, Orange, Yellow, Grey).
+  - **DeepMind**: Dark slate panel with walnut wood end cheeks and amber display.
+  - **Space Echo**: Textured forest green layout with retro silver-grey and emerald green indicators.
+  - **ARP 2600**: Solid black panel, white lines, and color-coded grouped slider caps.
+- **DAW-Integrated Undo/Redo:** Native C++ parameter gestures (`beginChangeGesture` / `endChangeGesture`) are mapped to the WebUI faders and knobs, grouping drags into single history events in the DAW.
+- **Global Keyboard Shortcuts:** Real-time `Ctrl+Z`, `Ctrl+Y`, and `Ctrl+Shift+Z` support for fast undo/redo actions.
+
 ## Standard MIDI Support
 - **CC 1 (Modulation)**: Mapped to the LFO depth lever (Mod Wheel).
 - **CC 64 (Sustain)**: Implements intelligent note-off queuing for authentic pedal behavior.

@@ -32,8 +32,8 @@ Este documento detalla el estado actual del proyecto tras la sesión de refinami
 - [x] **Sub-oscillator**: Verificado. Implementado mediante PolyBLEP y filtro pasivo RC Lowpass sintonizado a 4.2 kHz para el rolloff real.
 
 ### 4. Skin Manager y Personalización
-- [ ] **Desarrollar `SkinManager.h`**: Se ha creado un esqueleto para alternar entre el look "Classic Blue/Grey" y el "Juno-106S" (negro). 
-- [ ] **Tokens de Diseño**: Conectar los colores de `DesignTokens.h` con el `SkinManager` para cambios en caliente.
+- [x] **Desarrollar Skin Manager**: Implementado dinámicamente mediante el parámetro `skinType` en `CalibrationSettings` y controlado mediante clases/atributos en la WebUI.
+- [x] **Tokens de Diseño**: Sincronización de colores en caliente mediante variables CSS raíz redefinidas dinámicamente.
 
 ### 5. Manual Mode Logic
 - [x] **Snapshot Inicial**: Al activar "MANUAL", el motor debe capturar inmediatamente el estado físico de TODOS los sliders de la interfaz y enviarlos al DSP de una vez (verificado y validado síncronamente en el procesador).
