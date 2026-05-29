@@ -26,6 +26,7 @@ JunoLFO::JunoLFO() {
 }
 
 void JunoLFO::prepare(double sr, int maxBlockSize) {
+    juce::ignoreUnused(maxBlockSize);
     sampleRate = sr;
     reset();
 }

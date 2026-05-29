@@ -20,16 +20,16 @@ void ChorusBBD::prepare(double sampleRate, int /*maxBlockSize*/)
     filterII_L.prepare(sr, calFilterCutoff);
     filterII_R.prepare(sr, calFilterCutoff);
 
-    wetNoiseL.Init(sr);
+    wetNoiseL.Init((float)sr);
     wetNoiseL.mPinkEnabled = true;
-    wetNoiseR.Init(sr);
+    wetNoiseR.Init((float)sr);
     wetNoiseR.mPinkEnabled = true;
     wetNoiseL.mSeed = 0x12345678u;
     wetNoiseR.mSeed = 0x87654321u;
-    wetNoiseL.SetHighShelf(3000.0f, 6.0f, sr);
-    wetNoiseR.SetHighShelf(3000.0f, 6.0f, sr);
+    wetNoiseL.SetHighShelf(3000.0f, 6.0f, (float)sr);
+    wetNoiseR.SetHighShelf(3000.0f, 6.0f, (float)sr);
 
-    wetRipple.SetMainsHz(60.0f, sr);
+    wetRipple.SetMainsHz(60.0f, (float)sr);
     wetRipple.SetAmplitudes(7.9e-5f, 2.2e-5f, 9.8e-6f);
 
     reset();

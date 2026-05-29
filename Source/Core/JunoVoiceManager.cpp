@@ -133,8 +133,6 @@ void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*veloci
     const juce::ScopedLock sl(lock);
     auto& voices = allocator.getVoices();
 
-    auto& allocatorRef = allocator; // alias to avoid warnings
-
     if (polyMode == 3) { // UNISON
         for (int i = 0; i < currentActiveVoices; ++i) {
              if (voices[i].getCurrentNote() == midiNote) voices[i].noteOff();

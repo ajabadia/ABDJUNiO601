@@ -180,8 +180,8 @@ float JunoVCF::processSample (float input,
     float resPolK = cal != nullptr ? cal->getValue("vcfResPolK") : 1.24f;
     float fbScaleVal = cal != nullptr ? cal->getValue("vcfFbScale") : 4.20f;
 
-    // 3. Feedback de resonancia usando hardware ResK_J106 polinómico
-    float k = resPolK * ResK_J106(resonance);
+    // 3. Feedback de resonancia usando hardware ResK_J106 polinómico y calibración dinámica
+    float k = resPolK * computeResonanceFeedback (resonance, selfOscThreshold, selfOscInt);
     
     // Limitar resonancia a frecuencias altas para evitar inestabilidad
     if (frq > 0.5f) {

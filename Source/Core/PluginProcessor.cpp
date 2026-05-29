@@ -193,10 +193,10 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     wasAnyNoteHeld = false;
 
     // Initialize dry noise & mains ripple
-    dryNoise.Init(sr);
+    dryNoise.Init((float)sr);
     dryNoise.mPinkEnabled = true;
-    dryNoise.SetHighShelf(500.0f, -16.0f, sr);
-    dryRipple.SetMainsHz(60.0f, sr);
+    dryNoise.SetHighShelf(500.0f, -16.0f, (float)sr);
+    dryRipple.SetMainsHz(60.0f, (float)sr);
     dryRipple.SetAmplitudes(1.8e-5f, 8.9e-6f, 6.3e-6f);
 
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");

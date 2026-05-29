@@ -356,6 +356,7 @@ float Voice::updatePitch(int numSamples) {
 }
 
 void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk) {
+    juce::ignoreUnused(lfoBuffer);
     const float bleedLin = std::pow(10.0f, params.vcaBleed / 20.0f);
 
     float tickRateMs = std::max(0.5f, params.adsrMcuRate);
@@ -417,7 +418,7 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         float activeCutoff = smoothedCutoff.getNextValue();
         signal = filter.processSample(signal, activeCutoff, params.resonance,
-                                   params.envAmount * params.vcfEnvRange, envVal, envInverted,
+                                   envMod, envVal, envInverted,
                                    lfoVCF, voiceLfoValue,
                                    params.kybdTracking, currentFrequency,
                                    params.benderValue, params.benderToVCF,
@@ -429,7 +430,7 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         
         // Update VCA CV slew (runs at audio rate)
         float vcaRaw = (params.vcaMode == 1) ? (isGateOn ? 1.0f : 0.0f) : envVal;
-        float vcaSlewCoeff = 1.0f - std::exp(-1.0f / (params.vcaSlewMs * 0.001f * sr));
+        float vcaSlewCoeff = 1.0f - std::exp(-1.0f / (params.vcaSlewMs * 0.001f * (float)sr));
         mVcaSlew += vcaSlewCoeff * (vcaRaw - mVcaSlew);
 
         // VCA Mode branching: exponential mapping of slewed CV
