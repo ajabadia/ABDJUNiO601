@@ -191,6 +191,14 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     masterLFO.prepare(sr, samplesPerBlock);
     masterLFO.setCalibrationSettings(calibrationSettings.get());
     wasAnyNoteHeld = false;
+
+    // Initialize dry noise & mains ripple
+    dryNoise.Init(sr);
+    dryNoise.mPinkEnabled = true;
+    dryNoise.SetHighShelf(500.0f, -16.0f, sr);
+    dryRipple.SetMainsHz(60.0f, sr);
+    dryRipple.SetAmplitudes(1.8e-5f, 8.9e-6f, 6.3e-6f);
+
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
 }
 
@@ -255,7 +263,7 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
 
         if (message.isController()) {
             if (message.getControllerNumber() == 1) { 
-                if (auto* p = apvts.getParameter("benderToLFO")) p->setValueNotifyingHost(message.getControllerValue() / 127.0f); 
+                modWheelValue.store(message.getControllerValue() / 127.0f, std::memory_order_relaxed);
             }
             else if (message.getControllerNumber() == 64) {
                  int val = message.getControllerValue();
@@ -477,6 +485,8 @@ void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buff
     // [Build 29] Dynamic Calibration Overrides
     chorus.setCalibrationParams(currentParams.chorusDelayI, 
                                 currentParams.chorusDelayII, 
+                                currentParams.chorusGainDry,
+                                currentParams.chorusGainWet,
                                 currentParams.chorusModDepth, 
                                 currentParams.chorusSatBoost, 
                                 currentParams.chorusFilterCutoff,
@@ -502,15 +512,17 @@ void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<floa
     
     buffer.applyGain(smoothedSagGain.getNextValue() * masterVol);
 
-    // [Fidelity] Master Noise Floor (Global background hiss)
-    const float noiseLin = std::pow(10.0f, currentParams.masterNoise / 20.0f);
-    if (noiseLin > 1e-7f) {
+    // [Fidelity] Master Noise Floor (Pink floor noise) and Mains Ripple
+    float dbScale = std::pow(10.0f, (currentParams.masterNoise + 80.0f) / 20.0f);
+    float dryNoiseVol = 0.0015f * currentParams.noiseFloorMul * dbScale;
+    float rippleVol = currentParams.mainsRippleMul;
+
+    for (int i = 0; i < numSamples; ++i) {
+        float n = dryNoise.Process() * dryNoiseVol;
+        n += dryRipple.Process() * rippleVol;
+        
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-            float* d = buffer.getWritePointer(ch);
-            for (int i = 0; i < numSamples; ++i) {
-                float n = (masterNoiseGen.nextFloat() * 2.0f - 1.0f) * noiseLin;
-                d[i] += n;
-            }
+            buffer.getWritePointer(ch)[i] += n;
         }
     }
 
@@ -647,7 +659,6 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     
     // --- Inject Calibration Overrides ---
     p.dcoMixerGain = calibrationSettings->getValue("dcoMixerGain");
-    p.subAmpScale = calibrationSettings->getValue("subAmpScale");
     p.subGainScale = calibrationSettings->getValue("subGainScale");
     p.noiseGainScale = calibrationSettings->getValue("noiseGainScale");
     p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
@@ -676,7 +687,6 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.pwmOffThreshold = calibrationSettings->getValue("pwmOffThreshold");
     p.pwmSlewRateManual = calibrationSettings->getValue("pwmSlewRateManual");
     p.pwmSlewRateLFO = calibrationSettings->getValue("pwmSlewRateLFO");
-    p.noiseAmpScale = calibrationSettings->getValue("noiseAmpScale");
     p.dcoVoiceDrift = calibrationSettings->getValue("dcoVoiceDrift");
     p.dcoGlobalDrift = calibrationSettings->getValue("dcoGlobalDrift");
 
@@ -696,11 +706,12 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.vcfSlewMs = calibrationSettings->getValue("vcfSlewMs");
 
     // [Build 28] HPF Calibration
-    p.hpfFreq2 = calibrationSettings->getValue("hpfFreq2");
-    p.hpfFreq3 = calibrationSettings->getValue("hpfFreq3");
-    p.hpfShelfFreq = calibrationSettings->getValue("hpfShelfFreq");
-    p.hpfShelfGain = calibrationSettings->getValue("hpfShelfGain");
-    p.hpfQ = calibrationSettings->getValue("hpfQ");
+    p.hpfFreq2         = calibrationSettings->getValue("hpfFreq2");
+    p.hpfFreq3         = calibrationSettings->getValue("hpfFreq3");
+    p.hpfShelfFreq     = calibrationSettings->getValue("hpfShelfFreq");
+    p.hpfShelfGain     = calibrationSettings->getValue("hpfShelfGain");
+    p.hpfQ             = calibrationSettings->getValue("hpfQ");
+    p.hpfBassBoostGain = calibrationSettings->getValue("hpfBassBoostGain");
 
     // [Build 29] VCA Calibration
     p.vcaMasterGain = juce::jmax(0.01f, calibrationSettings->getValue("vcaMasterGain")); // Safe minimum
@@ -770,6 +781,14 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.lfoAccumMax = calibrationSettings->getValue("lfoAccumMax");
     p.lfoHoldoffThresh = calibrationSettings->getValue("lfoHoldoffThresh");
 
+    // [New Phase 3 Calibration]
+    p.noiseFloorMul = calibrationSettings->getValue("noiseFloorMul");
+    p.mainsRippleMul = calibrationSettings->getValue("mainsRippleMul");
+    p.voiceVcfFrqSpread = calibrationSettings->getValue("voiceVcfFrqSpread");
+    p.voiceVcfWidthSpread = calibrationSettings->getValue("voiceVcfWidthSpread");
+    p.voiceVcaGainSpread = calibrationSettings->getValue("voiceVcaGainSpread");
+    p.driftWalkIntensity = calibrationSettings->getValue("driftWalkIntensity");
+
     // [Build 29] Diagnostic Cycle States
     p.hpfCyclePos = serviceModeManager->getHpfCyclePos();
     p.chorusCycleMode = serviceModeManager->getChorusCycleMode();
@@ -793,9 +812,9 @@ void ABDSimpleJuno106AudioProcessor::updateParamsFromAPVTS() {
 }
 
 void ABDSimpleJuno106AudioProcessor::applyPerformanceModulations(SynthParams& p) {
-    float modWheel = p.benderToLFO;
-    p.lfoToDCO = juce::jlimit<float>(0.0f, 1.0f, p.lfoToDCO + modWheel * 0.3f);
-    p.vcfLFOAmount = juce::jlimit<float>(0.0f, 1.0f, p.lfoToVCF + modWheel);
+    float mw = modWheelValue.load(std::memory_order_relaxed);
+    p.lfoToDCO = juce::jlimit<float>(0.0f, 1.0f, p.lfoToDCO + mw * p.benderToLFO);
+    p.vcfLFOAmount = p.lfoToVCF;
     p.envAmount = juce::jlimit<float>(0.0f, 1.0f, p.envAmount + currentAftertouch.load() * p.aftertouchToVCF);
 
     // 1. Portamento Rate 3-segment calculation
@@ -878,19 +897,19 @@ void ABDSimpleJuno106AudioProcessor::applyPresetState(const juce::ValueTree& vt)
             "midiChannel", "numVoices", "benderRange", "velocitySens", "aftertouchToVCF", 
             "lcdBrightness", "sustainPedalInvert", "masterOutputGain", "masterPitchCents", 
             "midiFunction", "unisonWidth", "unisonDetune", "sustainMode", "enableLogging",
-            "dcoMixerGain", "subGainScale", "noiseGainScale", "masterClockHz", "mixerSaturation", 
-            "subAmpScale", "noiseGain", "pwmCenterDuty", "pwmMaxDuty", "pwmMinDuty", "pwmOffset",
+            "dcoMixerGain", "subGainScale", "noiseGainScale", "masterClockHz", "mixerSaturation", "dcoSawCurvature", 
+            "noiseGain", "pwmCenterDuty", "pwmMaxDuty", "pwmMinDuty", "pwmOffset",
             "vcaMasterGain", "vcaBleed", "vcaVelSensScale", "vcaSagAmt", "vcaKillThreshold", "vcaDcOffset", "vcaOffset",
             "adsrSlewMs", "adsrAttackFactor", "adsrMcuRate", "adsrDacSteps", "adsrOvershoot", "adsrCurveExponent",
-            "chorusMix", "chorusHiss", "chorusDelayI", "chorusDelayII", "chorusLfoRate", "chorusLfoRateII", "chorusBothRate", "chorusModDepth", "chorusSatBoost", "chorusFilterCutoff", "chorusHissColor",
+            "chorusMix", "chorusHiss", "chorusDelayI", "chorusDelayII", "chorusGainDry", "chorusGainWet", "chorusLfoRate", "chorusLfoRateII", "chorusBothRate", "chorusModDepth", "chorusSatBoost", "chorusFilterCutoff", "chorusHissColor",
             "lfoMaxRate", "lfoMinRate", "lfoDelayMax", "lfoResolution",
-            "vcfMinHz", "vcfMaxHz", "vcfSelfOscThreshold", "vcfSaturation", "vcfResoComp", "vcfResoCompBoost", "vcfLfoDepth", "vcfEnvRange", "vcfSelfOscInt", "vcfTrackCenter", "vcfResoSpread", "vcfWidth",
-            "hpfFreq2", "hpfFreq3", "hpfShelfFreq", "hpfShelfGain", "hpfQ",
+            "vcfMinHz", "vcfMaxHz", "vcfSelfOscThreshold", "vcfSaturation", "vcfResoComp", "vcfResoCompBoost", "vcfResPolK", "vcfFbScale", "vcfLfoDepth", "vcfEnvRange", "vcfSelfOscInt", "vcfTrackCenter", "vcfResoSpread", "vcfWidth",
+            "hpfFreq2", "hpfFreq3", "hpfBassBoostGain", "hpfShelfFreq", "hpfShelfGain", "hpfQ",
             "thermalIntensity", "thermalDrift", "thermalInertia", "thermalMigration",
             "vcaCrosstalk", "masterNoise", "stereoBleed", "voiceVariance", "unisonSpread", 
             "dcoGlobalDrift", "dcoVoiceDrift", "dcoDriftComplexity", "vcaRippleDepth", 
             "lfoDelayCurve", "dcoDriftRate", "dcoLfoPitchDepth", "pwmOffThreshold", 
-            "pwmSlewRateManual", "pwmSlewRateLFO", "noiseAmpScale",
+            "pwmSlewRateManual", "pwmSlewRateLFO",
             "a4Reference", "oversampling", "sliderHysteresis", "paramSlewRate", "masterVolume",
             "name", "author", "category", "tags", "notes", "favorite", "date", 
             "originGroup", "originBank", "originPatch", "version", "currentBank", 

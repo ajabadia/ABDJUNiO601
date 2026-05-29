@@ -522,3 +522,333 @@ La siguiente hoja de ruta estructura la integración de todos estos algoritmos e
 - [ ] **Afinación de Tiempos Analógicos:** Centrar los retrasos de los buffers a `3.30ms` e igualar la modulación LFO a los swings asimétricos exactos (I: $\pm2.13ms$, II: $\pm1.71ms$).
 - [ ] **Pérdida de Eficiencia (CTE):** Incorporar la pérdida de carga del capacitor emulada según se ensancha el reloj del BBD (`CTE_Loss`).
 - [ ] **Tratamiento de Señal BBD:** Sumar los transitorios eléctricos de rebote (`ClickRing` SVF a 30 Hz) y los filtros activos Biquad Butterworth (Lowpass de pre-énfasis a 9.6 kHz).
+
+---
+
+## 9. Auditoría Comparativa: ABDJUNiO601 vs temp_ultramaster (Mayo 2026)
+
+Esta sección documenta el análisis módulo a módulo realizado comparando el estado actual del codebase con la referencia `temp_ultramaster`. Para cada módulo se indica el estado de fidelidad y las diferencias auditivas detectadas.
+
+---
+
+### 9.A HPF (High-Pass Filter) — ✅ IMPLEMENTADO (Build #29)
+
+El HPF ha sido completamente migrado al modelo hardware-accurate de la referencia.
+
+| Aspecto | Antes (JUCE IIR) | Ahora (`JunoHPF.h`) |
+|---|---|---|
+| Bass Boost (pos 0) | `makeLowShelf` +2 dB | `BassBoostFilter` biquad exacto del esquemático M5218L (+10.5 dB DC) |
+| HPF pos 2 | 225 Hz, biquad −12 dB/oct | 236 Hz, 1-polo TPT −6 dB/oct (condensador real 0.015 µF) |
+| HPF pos 3 | 700 Hz, biquad −12 dB/oct | 754 Hz, 1-polo TPT −6 dB/oct (condensador real 0.0047 µF) |
+| Calibración | Parcial | `hpfBassBoostGain` añadido en General Settings > Calibration |
+
+---
+
+### 9.B VCF (Filtro Pasa-Bajo IR3109) — ⚠️ PENDIENTE DE MEJORAS
+
+El VCF activo es musicalmente funcional pero presenta diferencias técnicas respecto al hardware real.
+
+#### Núcleo del filtro
+
+| Aspecto | Activo (`JunoVCF.cpp`) | Referencia (`KR106VCF.h`) | Impacto |
+|---|---|---|---|
+| Topología | 4-polo TPT ✅ | 4-polo TPT ✅ | — |
+| Saturación por etapa | Padé 3/3 | Newton-Raphson sobre Padé 3/3 | Medio |
+| Feedback BA662 | Lineal: `k * lastOutput` | `OTASat(S * kFbScale) / kFbScale` — tanh con divisor 100K:1.5K real | **Alto** |
+| Oversampling | 1x (sin oversampling) | 2x/4x polyphase IIR (Laurent de Soras) | **Medio-Alto** |
+| Compensación de frecuencia | No existe | `FreqCompensationClamped()` power law calibrada desde hardware | Medio |
+| Compensación de input | `vcfResoComp` post-VCA | `InputComp(k, frq)` pre-VCF calibrado | Medio |
+| Ruido térmico | No | Adaptativo: alta energía → baja, permite seed autooscilación | Bajo |
+| DC blockers | No | 3 capas: post-osc (1.59Hz), post-VCF (1.59Hz), pre-HPF (0.35Hz) | Medio |
+| Output scaling | Sin escalar | `lp4 * 3.22f * outputScale` calibrado desde hardware | Bajo |
+
+#### Curva de resonancia
+
+La diferencia más audible. El activo usa una rampa lineal simple; la referencia usa una curva polinómica de 4º grado ajustada a medidas físicas del hardware (SN#193284):
+
+$$\text{ResK}_{J106}(r) = 1.24 \cdot (4.7116r - 6.5743r^2 + 13.4633r^3 - 8.2197r^4)$$
+
+A resonancia media, la diferencia puede ser de 3-5 dB en el pico del filtro.
+
+#### Cadena de modulación VCF
+
+- **Pipeline MCU 14-bits** (cutoff, LFO, bender, env, kbd tracking): correcto ✅
+- **Curva LFO→VCF**: activo es lineal; referencia usa `vcfLfoDepth106(t)` — lineal × 42 semitones máx (ROM $01B3)
+- **Curva ENV→VCF**: activo escala por `vcfEnvRange`; referencia usa tabla PCHIP calibrada (10.6 octavas máx)
+- **Slew VCF**: el activo tiene slew global; la referencia tiene `mVcfSlewCoeff` per-voice + timing DAC staggered por voz
+
+#### Prioridades de mejora VCF
+
+| Fix | Impacto | Complejidad |
+|---|---|---|
+| Curva de resonancia calibrada (`ResK_J106`) | **Alto** | Baja |
+| Feedback BA662 (tanh con divisor 100K:1.5K) | **Alto** | Media |
+| Post-VCF DC blocker (1.59 Hz) | Medio | Baja |
+| Oversampling 4x polyphase | Medio-Alto | Alta |
+| `FreqCompensationClamped()` | Medio | Media |
+| Curvas LFO/ENV calibradas desde hardware | Medio | Baja |
+
+---
+
+### 9.C ADSR + Interacción con VCF — ✅ NÚCLEO CORRECTO, ⚠️ PIPELINE TIMING PENDIENTE
+
+#### Núcleo D7811G (✅ equivalente)
+
+| Aspecto | Activo | Referencia |
+|---|---|---|
+| `kDecRelTable` (128 entradas, 7 segmentos) | ✅ idéntico | ✅ |
+| `calcDecay` (3-parciales, VH×CH, VH×CL, VL×CH) | ✅ idéntico | ✅ |
+| Attack linear ramp con `AttackIncFromSlider` | ✅ idéntico | ✅ |
+| Decay → sustain con snap (`mSusInt = sustain * 0x3F80`) | ✅ | ✅ |
+| Release → cero por truncado integer | ✅ | ✅ |
+| Interpolación lineal entre ticks | ✅ | ✅ |
+| `kLoopPeriodMs = 4.2335 ms` | ✅ | ✅ |
+
+#### Diferencias ADSR
+
+| Diferencia | Activo | Referencia | Impacto |
+|---|---|---|---|
+| Gate mode | RC con `coeff=0.03` fijo | Ramp lineal 1/32 (~0.7ms, BA662 slew real) | Medio |
+| Timing VCF por voz (staggered) | `staggerDelaySamples` sólo para pitch | VCF DAC staggered per-voice (0.28ms gap) — "shimmer" de acordes | **Medio** |
+| Idle voice VCF tick | No | `FirmwareTickIdleVcfJ106()` — VCF sigue actualizándose sin nota | Bajo |
+| LFO onset envelope en VCF | No | `mLfoEnvAmp` modula profundidad LFO→VCF con delay envelope | Medio |
+| Pipeline ADSR→VCF | Per-sample, sin desfase | `FirmwareTick()`: ADSR tick → VCF DAC en el mismo loop D7811G | Medio |
+| Cuantización envolvente | 1024 pasos (10-bit) | 16383 pasos (14-bit real) | Muy bajo |
+
+#### El "shimmer" de acordes (staggered VCF timing)
+
+En el hardware real, el D7811G actualiza el DAC VCF de cada voz en momentos distintos dentro del tick de 4.2ms. Las fases exactas son:
+
+| Voz | Desfase VCF (ms) | Desfase VCA (ms) |
+|---|---|---|
+| 0 | 0.000 | 0.125 |
+| 1 | 0.287 | 0.413 |
+| 2 | 0.575 | 0.700 |
+| 3 | 0.862 | 0.988 |
+| 4 | 1.150 | 1.275 |
+| 5 | 1.437 | 1.840 |
+
+Este desfase hace que en acordes el filtro de cada voz abra en momentos ligeramente distintos, creando el "shimmer" característico de los Junos. El activo tiene `staggerDelaySamples` para el pitch pero no para el CV del VCF.
+
+---
+
+### 9.D DCO (Oscilador) — ✅ MAYORMENTE CORRECTO, ⚠️ DETALLES
+
+#### Estado actual
+
+| Aspecto | Activo (`JunoDCO.cpp`) | Referencia (`KR106Oscillators.h`) | Estado |
+|---|---|---|---|
+| Cuantización 8253 (Intel timer) | ✅ `timerClock / round(timerClock/freq)` | `round(clock/freq)` | ✅ |
+| Polaridad sierra | Ascendente ✅ (corregida en Fase 4) | Ascendente ✅ | ✅ |
+| PWM invertido (`1 - duty`) | ✅ | ✅ | ✅ |
+| Sub-oscilador flip-flop | ✅ | ✅ | ✅ |
+| Amplitudes de mezcla | `kSawAmp=0.6, kSubAmp=0.75` calibrables | `kSawAmp=0.6, kPulseAmp=0.5, kSubAmp=0.75, kNoiseAmp=1.2` | ✅ |
+| PolyBLEP anti-aliasing | BLEP básico | PolyBLEP 4º orden (B-spline cúbico) | ⚠️ parcial |
+| Curvatura de carga (charge curve) | No | `saw = pos * (1 + 0.15 * (1 - pos))` | ⚠️ pendiente |
+| Discharge blip (undershoot) | No | Modelado | ⚠️ pendiente |
+| Tolerancias por voz | `voiceVariance` como cents | LCG determinista por voz: `mVcfFrqTrim`, `mVcfWidthTrim`, `mVcaGainScale`, `mPwMinOffset`, `mPwMaxOffset` | ⚠️ diferente granularidad |
+| Curva DCO sub (`dcoSubLevel_j106`) | Tabla 11 puntos calibrada ✅ | Idéntica ✅ | ✅ |
+| Curva Noise (`dcoNoiseLevel_j106`) | Implementado ✅ | Derivado de ngspice (SPICE) | ✅ |
+| Drift estático + walk | 3 senos independientes ✅ | LCG + 3 senos (0.07/0.13/0.31 Hz) | ✅ comparable |
+
+#### Diferencias pendientes en DCO
+
+**Charge curve** (curvatura de la rampa del diente de sierra):
+$$\text{saw} = \text{pos} \cdot (1 + 0.15 \cdot (1 - \text{pos}))$$
+Produce el carácter "cálido" del saw analógico. Actualmente nuestra sierra es perfectamente lineal.
+
+**Discharge blip**: pequeño undershoot al resetear el condensador del DCO. Impacto auditivo en graves (notas bajas) donde el blip es perceptible como parte del carácter "crujiente".
+
+**PolyBLEP 4º orden**: nuestro BLEP actual puede introducir más aliasing en registros agudos. La referencia usa B-splines cúbicos para mayor precisión.
+
+---
+
+### 9.E LFO — ✅ CORRECTO EN ESENCIA, ⚠️ MODO GLOBAL VS PER-VOICE
+
+| Aspecto | Activo (`JunoLFO.cpp`) | Referencia (`KR106LFO.h`) | Estado |
+|---|---|---|---|
+| Acumulador 14-bit triangular (`0x0000–0x1FFF`) | ✅ | ✅ | ✅ |
+| Tabla de velocidad ROM 128 entradas | ✅ (vía calibración) | ✅ `kLfoSpeedTbl` | ✅ |
+| Discretización de velocidad (coeff steps) | ✅ | ✅ | ✅ |
+| Holdoff (etapa 1 delay: acumulador ataque) | ✅ `mHoldoffAccum` | ✅ | ✅ |
+| Ramp (etapa 2 delay: fade-in lineal) | ✅ `mRampAccum` | ✅ `kLfoRampTable` | ✅ |
+| **Modo global vs per-voice** | **Global** (compartido entre voces) | Per-voice: cada voz tiene su propio delay onset | ⚠️ |
+| Raw triangle buffer separado | No | Sí (`mLFORawBuffer`) — para aritmética integer VCF | ⚠️ |
+| Onset envelope para VCF | No aplicado al VCF | `mLfoEnvAmp` modula profundidad LFO→VCF | ⚠️ |
+
+#### Impacto del LFO global
+
+El LFO activo es **global**: todas las voces comparten el mismo valor de LFO y el mismo onset delay. Esto significa:
+- Al tocar notas en legato, el delay del LFO no se resetea por voz
+- En acordes, todas las voces modulan al mismo tiempo (no hay shimmer independiente por LFO)
+
+La referencia implementa un LFO per-voice con onset envelope individual, lo que produce el efecto característico de que notas arpeggiadas en el Juno tienen cada una su propio fade-in de vibrato.
+
+Nota: el header `JunoLFO.h` ya dice explícitamente: *"NOTE: Currently not used. [...] This class is preserved for future restoration of per-voice delay behaviour"*.
+
+---
+
+### 9.F Chorus BBD (MN3009) — ⚠️ FUNCIONAL PERO INCOMPLETO
+
+| Aspecto | Activo (`ChorusBBD.cpp`) | Referencia (`KR106Chorus.h`) | Estado |
+|---|---|---|---|
+| Delay central Chorus I | 3.2 ms (calibrable) | **3.30 ms** (medido en hardware) | ⚠️ 100µs off |
+| Delay central Chorus II | 6.4 ms (calibrable) | **3.30 ms** (ambos modos usan el mismo centro) | ⚠️ erróneo |
+| Swing Chorus I | `calModDepth * 1.0` | **±2.13 ms** | ⚠️ sin verificar |
+| Swing Chorus II | `calModDepth * 0.8028` | **±1.71 ms** | ⚠️ sin verificar |
+| LFO Chorus I | 0.514 Hz (seno) | **0.514 Hz triangular** | ⚠️ forma de onda incorrecta |
+| LFO Chorus II | 0.842 Hz (seno) | **0.842 Hz triangular** | ⚠️ forma de onda incorrecta |
+| Interpolación de delay | Hermite cúbico ✅ | Lineal (el hardware es lineal) | ⚠️ exceso de suavidad |
+| Mezcla (`dry + wet`) | `outL += wetMix * (wet - dry)` | **`0.863 * dry + 1.257 * wet`** (sumador inversor IC6) | ⚠️ ganancias incorrectas |
+| Filtro post-BBD | 1-polo LP ~8 kHz | Biquad Butterworth 2-polo 9.6 kHz (medido en hardware) | ⚠️ orden y frecuencia |
+| Filtro pre-BBD | No | Biquad Butterworth 2-polo 9.6 kHz | ⚠️ ausente |
+| CTE Loss (pérdida de carga) | No | Modulación de ganancia wet según reloj BBD | ⚠️ ausente |
+| BBD Click transitorios | No | `BBDClick` bifásico en turnaround | ⚠️ ausente |
+| ClickRing (30 Hz, Q=18) | No | SVF Chamberlin resonante | ⚠️ ausente |
+| Saturación | `tanh(x * calSatBoost)` | Soft-knee compressor calibrado | ⚠️ diferente modelo |
+
+#### Problema más importante: LFO triangular vs sinusoidal
+
+El hardware usa **LFO triangular**, no sinusoidal. El seno produce un vibrato con aceleración en el centro y pausa en los extremos. El triángulo produce una velocidad de modulación constante, que es el carácter de riff del Juno. Esto afecta directamente al timbre del chorus a profundidades altas.
+
+#### Delay central Chorus II: el error más crítico
+
+El Chorus II **no duplica el retardo** respecto al Chorus I. Ambos modos usan el mismo retardo central de 3.30 ms, pero con diferente frecuencia LFO y swing. Nuestro valor de 6.4 ms es históricamente incorrecto y probablemente la fuente del sonido más "húmedo" y diferente de lo esperado en Chorus II.
+
+---
+
+### 9.G Resumen Ejecutivo de Prioridades
+
+| Prioridad | Módulo | Fix | Impacto auditivo |
+|---|---|---|---|
+| 🔴 1 | Chorus | Corregir delay Chorus II a 3.30 ms | **Muy alto** |
+| 🔴 2 | Chorus | Cambiar LFO de seno a triángulo | **Alto** |
+| 🔴 3 | VCF | Curva de resonancia `ResK_J106` (polinómica calibrada) | **Alto** |
+| 🔴 4 | VCF | Feedback BA662 (tanh con divisor 100K:1.5K) | **Alto** |
+| 🟠 5 | Chorus | Ganancias correctas `0.863 * dry + 1.257 * wet` | Medio-Alto |
+| 🟠 6 | Chorus | Filtro post-BBD: biquad Butterworth 9.6 kHz (2 polos) | Medio |
+| 🟠 7 | VCF | Post-VCF DC blocker (1.59 Hz, cap 1µF/100K) | Medio |
+| 🟠 8 | ADSR | Staggered VCF timing per-voice (shimmer de acordes) | Medio |
+| 🟠 9 | LFO | Per-voice onset delay (shimmer individual en arpegios) | Medio |
+| 🟡 10 | DCO | Charge curve del diente de sierra | Bajo-Medio |
+| 🟡 11 | VCF | `FreqCompensationClamped()` | Medio |
+| 🟡 12 | Chorus | CTE Loss (pérdida de eficiencia BBD) | Bajo-Medio |
+| 🟢 13 | VCF | Oversampling 4x polyphase IIR | Bajo (técnico) |
+| 🟢 14 | Chorus | BBDClick + ClickRing SVF 30Hz | Bajo |
+
+---
+
+### 9.H Estado de Implementación (Actualizado Build #33)
+
+Se han implementado con éxito las siguientes prioridades:
+* **Prioridad 1 (Chorus II Delay corrected) [Build #30]**: Corregido el retardo por defecto del modo Chorus II de `6.4 ms` a `3.30 ms`.
+* **Prioridad 2 (Triangle LFO) [Build #30]**: Se ha reemplazado el LFO sinusoidal del Chorus I y II por un LFO triangular simétrico y lineal de rango `[-1, +1]`, manteniendo el seno exclusivamente en el modo Chorus Both (I+II).
+* **Prioridad 5 (IC6 Summer Gains) [Build #30]**: Se han registrado las ganancias del sumador inversor IC6 (`0.863` para señal directa y `1.257` para señal procesada) como parámetros de calibración ajustables en `General Settings > Calibration` (`chorusGainDry` y `chorusGainWet`). La ecuación de mezcla del Chorus ha sido actualizada para coincidir con el comportamiento de atenuación/realce y coloración del hardware original.
+* **Prioridad 3 (Curva polinómica ResK_J106) [Build #33]**: Integrada la curva de resonancia medida en hardware `ResK_J106` para el feedback del filtro. Se ha registrado el parámetro de ajuste `vcfResPolK` (por defecto `1.24f`) en la calibración global.
+* **Prioridad 4 (Saturación BA662 y resolvedor no lineal) [Build #33]**: Implementado el resolvedor no lineal Newton-Raphson (`NLStage`) por etapa para simular los OTAs del circuito analógico real. Integrada la saturación del sumador BA662 en el bucle de realimentación (`OTASat` escalado con `fbScale` configurable a través de `vcfFbScale` con valor por defecto `4.20f` en la calibración).
+* **Mejora adicional (Compensaciones) [Build #33]**: Integradas las curvas de compensación de factor de calidad/volumen de banda de paso (`InputComp`) y la compensación de corrimiento de frecuencia por amortiguamiento (`FreqCompensationClamped`) directo de las medidas de hardware.
+* **Prioridad 8 y 9 (ADSR/VCF Staggered voice updates) [Build #34]**: Implementada la lógica de ticks de firmware y las tablas de fases multiplexadas de hardware (`kVcfPhaseTable` y `kVcaPhaseTable`) para VCF y VCA. Cada voz ahora aplica sus cambios de envolvente y frecuencia de corte con el desfase de fase sub-tick real del Juno-106, escalado dinámicamente según `staggeredUpdateMaxMs` y `adsrMcuRate` desde la calibración.
+* **Prioridad 10 (Curvatura de DCO Sawtooth) [Build #35]**: Implementada la curvatura de carga del diente de sierra analógico (`saw = pos * (1 + curvature * (1 - pos))`) y expuesto el parámetro de ajuste `dcoSawCurvature` en la página de calibración (`General Settings > Calibration`) con valor por defecto de `0.15f`.
+
+
+
+---
+
+757: ### 9.I Análisis de ADSR y Actualizaciones Staggered por Voz (Próxima Fase)
+758: 
+759: Para la siguiente fase del desarrollo, abordaremos la fidelidad temporal del sintetizador enfocándonos en las envolventes y la sincronización de control.
+760: 
+761: #### 1. Aritmética de Ticks de 4.2ms (D7811G)
+762: En el hardware real del Juno-106, la CPU de control calcula las envolventes una vez cada iteración de su bucle de programa principal, lo que define una tasa de actualización (tick) de aproximadamente **~4.23ms** (~234.2 Hz).
+763: * La envolvente se calcula usando lógica de enteros de 14 bits (`0..16383`).
+764: * El ataque es un incremento lineal (`mAtkInc`).
+765: * El decaimiento y la relajación son exponenciales mediante multiplicación truncada (`CalcDecay`).
+766: * Aunque el cálculo ocurre por ticks, las voces interpolan linealmente entre los límites del tick actual y el siguiente para evitar escalones perceptibles (clics) en las señales CV del VCA y VCF.
+767: 
+768: #### 2. Actualización Secuencial Desfasada (Staggered updates)
+769: El multiplexor DAC del Juno-106 actualiza los voltajes de control de las 6 voces físicas secuencialmente en lugar de todas a la vez. Esto crea pequeños desfases de tiempo (fases relativas en ms) por cada slot de voz:
+770: * **Fases del VCF** (desde el inicio del tick):
+771:   * Voz 0 (slot 0): 0.0000 ms
+772:   * Voz 1 (slot 1): 0.2874 ms
+773:   * Voz 2 (slot 2): 0.5748 ms
+774:   * Voz 3 (slot 3): 0.8622 ms
+775:   * Voz 4 (slot 4): 1.1497 ms
+776:   * Voz 5 (slot 5): 1.4371 ms
+777: * **Fases del VCA**:
+778:   * Voz 0 (slot 0): 0.1253 ms
+779:   * Voz 1 (slot 1): 0.4127 ms
+780:   * Voz 2 (slot 2): 0.7002 ms
+781:   * Voz 3 (slot 3): 0.9876 ms
+782:   * Voz 4 (slot 4): 1.2750 ms
+783:   * Voz 5 (slot 5): 1.8396 ms
+784: 
+785: En la implementación, el acumulador de ticks de firmware por muestra (`mFwTickAccum`) comparará su nivel contra la fase asignada a cada voz (`mVcfPhase` y `mVcaPhase`) para disparar el cambio de valor interpolado de corte y envolvente en el instante exacto del sub-tick físico. Esto emula el shimmer temporal en los acordes y arpegios propio de la CPU NEC uPD7811G original.
+786: 
+787: ---
+788: 
+789: ### 9.J Auditoría Detallada: VCA, Ruido Analógico/Mains Ripple y Portamento/Voice Variance
+790: 
+791: Se ha completado la auditoría de los tres módulos finales de emulación del Juno-106 frente a la referencia `temp_ultramaster`:
+792: 
+793: #### 1. Módulo VCA (Amplificador Controlado por Voltaje)
+794: * **Slew de Voltaje de Control en Cascada (CV Slew):** En el Juno-106 real, la constante de tiempo RC pasiva del circuito del VCA ($\tau = 687\ \mu\text{s}$) se aplica a la señal de control de la envolvente o puerta **antes** de alimentar al convertidor exponencial no lineal (transistor TR17). El motor previo aplicaba el slew de forma lineal sobre la ganancia resultante, lo cual es físicamente incorrecto.
+795: * **Modelo de Control en Compuerta (Gate Mode):** En modo GATE, la puerta es un valor binario discreto (1.f cuando el gate está activo, 0.f en note-off o release). Esta señal se filtra con el slew del VCA y luego se mapea a través de la tabla de hardware.
+796: * **Ecuación del Slew del VCA:**
+797:   $$vcaRaw = \begin{cases} (isGateOn ? 1.0 : 0.0) & \text{si } vcaMode = \text{GATE} \\ envVal & \text{si } vcaMode = \text{ENV} \end{cases}$$
+798:   $$mVcaSlew \leftarrow mVcaSlew + c_{\text{slewVca}} \cdot (vcaRaw - mVcaSlew)$$
+799:   $$vcaGain = \text{getVCAMappedGain}(mVcaSlew, \text{vcaCurveType}) \cdot vcaLevelNorm \cdot \text{velScale} \cdot \text{vcaGainScale}$$
+800: * **Valores de Calibración a Publicar:**
+801:   * `vcaSlewMs` (Default: `0.687` ms)
+802:   * `vcaCurveType` (Default: `0` para Juno-106 HW Boaris)
+803:   * Tabla `kVCATableHW` (256 valores) accesible desde la interfaz de calibración.
+804: 
+805: #### 2. Módulo de Ruido Analógico & Mains Ripple
+806: El ruido de fondo físico del Juno-106 se divide en dos componentes: ruido rosa térmico y zumbido de red rectificado (Mains Ripple a 120Hz/240Hz/360Hz).
+807: * **Inyección de Ruido Seco (Pre-VCA & Pre-Chorus):**
+808:   * Se inyecta ruido rosa filtrado por el método de Kellet a un nivel base de $-76.3\text{ dBFS}$ (`kDryBroadbandGain = 0.0015f`).
+809:   * Se añade zumbido de fuente (Rail Ripple) con armónicos a 120Hz, 240Hz y 360Hz con amplitudes calibradas:
+810:     $$\text{DryRipple}_{120} = 1.8 \times 10^{-5}$$
+811:     $$\text{DryRipple}_{240} = 8.9 \times 10^{-6}$$
+812:     $$\text{DryRipple}_{360} = 6.3 \times 10^{-6}$$
+813:   * Esta señal de ruido y zumbido seco se añade al bus mono de mezcla antes de pasar por el atenuador de volumen del patch `mVcaLevelSmooth` y el filtro post-VCA.
+814: * **Inyección de Ruido Húmedo (Wet Chorus Noise):**
+815:   * Inyectado directamente en el procesador del Chorus BBD.
+816:   * Ruido rosa base (`kWetBroadbandGain = 0.0018f`) pasado por un filtro High Shelf a 3.0 kHz con $+6.0\text{ dB}$ de realce para imitar el "tilt" de alta frecuencia del hardware.
+817:   * Zumbido húmedo post-BBD inyectado en modo común en ambos canales (L y R):
+818:     $$\text{WetRipple}_{120} = 7.9 \times 10^{-5}$$
+819:     $$\text{WetRipple}_{240} = 2.2 \times 10^{-5}$$
+820:     $$\text{WetRipple}_{360} = 9.8 \times 10^{-6}$$
+821: * **Valores de Calibración a Publicar:**
+822:   * `kDryBroadbandGain` (Default: `0.0015f`)
+823:   * `kWetBroadbandGain` (Default: `0.0018f`)
+824:   * `kWetShelfCornerHz` (Default: `3000.0f`)
+825:   * `kWetShelfBoostDb` (Default: `6.0f`)
+826:   * Armónicos de rizado seco/húmedo configurables como multiplicadores de calibración globales.
+827: 
+828: #### 3. Módulo Portamento & Voice Variance (Desviación Analógica)
+829: * **Curva del Portamento uPD7811G:**
+830:   Recreada mediante tres segmentos matemáticos continuos basados en el firmware original de Roland para el slider mapeado a un delta de octavas por muestra (`mPortaStep`):
+831:   * Si $i \le 25$: $\text{coeff} = 255 - 8(i - 1)$
+832:   * Si $i \le 47$: $\text{coeff} = 63 - 2(i - 25)$
+833:   * Si $i \ge 48$: $\text{coeff} = \text{round}(18 \times 0.9625^{i - 48})$
+834:   * Conversión a velocidad:
+     $$\text{semiPerSec} = \frac{\text{coeff} \cdot 234.2}{256.0}$$
+     $$mPortaStep = \frac{\text{semiPerSec}}{12.0 \cdot f_s}\text{ (octavas por muestra)}$$
+835: * **Varianza Tolerancia de Componentes (Voice Variance):**
+836:   Offsets deterministas sembrados por LCG en función del índice de la voz para modelar componentes fijos:
+837:   * VCF Cutoff trim offset (`mVcfFrqTrim`): $\pm 10$ DAC counts.
+838:   * VCF V/Oct width trim offset (`mVcfWidthTrim`): $\pm 10$ cents/octava.
+839:   * VCA Voice Gain scale (`mVcaGainScale`): $\pm 2.4\%$ de ganancia.
+840: * **Deriva Dinámica Aleatoria (Drift Walk):**
+841:   Tres LFOs lentos por voz con frecuencias fijas no armónicas ($0.07\text{ Hz}$, $0.13\text{ Hz}$, $0.31\text{ Hz}$) sumados para modelar fluctuaciones de temperatura de $\pm 3\text{ cents}$ en pitch a máxima intensidad (`driftAmount`).
+842: * **Valores de Calibración a Publicar:**
+843:   * `voiceVcfFrqSpread` (Default: `10.0` DAC counts)
+844:   * `voiceVcfWidthSpread` (Default: `10.0` cents/oct)
+845:   * `voiceVcaGainSpread` (Default: `0.024` gain)
+846:   * Frecuencias y profundidades del Drift Walk expuestas en General Settings > Calibration.
+
+
+
+
+
+

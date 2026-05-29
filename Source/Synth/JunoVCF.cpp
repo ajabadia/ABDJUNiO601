@@ -23,18 +23,6 @@ void JunoVCF::setSampleRate (double sr)
 }
 
 // ------------------------------------------------------------
-// Saturación Padé 3/3
-// Aproxima tanh sin llamadas a libm; simétrica, suave, estable
-// Error < 0.5% en [-2, 2]
-// ------------------------------------------------------------
-inline float JunoVCF::stageSaturate (float x, float scale) noexcept
-{
-    x = juce::jlimit (-4.0f, 4.0f, x * scale);
-    const float x2 = x * x;
-    return (x * (27.0f + x2) / (27.0f + 9.0f * x2)) / std::max(0.001f, scale);
-}
-
-// ------------------------------------------------------------
 // Curva de cutoff: MCU Aritmética 14-bits y tabla J106DACHzTable
 // ------------------------------------------------------------
 float JunoVCF::computeCutoffHz (float cutoff01,
@@ -48,6 +36,7 @@ float JunoVCF::computeCutoffHz (float cutoff01,
                                  float benderValue,
                                  float benderToVCF,
                                  float vcfWidth,
+                                 float vcfFrqTrim,
                                  CalibrationSettings* cal) const
 {
     // Escalar parámetros a los rangos de la MCU
@@ -58,13 +47,16 @@ float JunoVCF::computeCutoffHz (float cutoff01,
     bool lfoPolarity = lfoMod < 0.0f;
     uint16_t vcfLfoSignal = static_cast<uint16_t>(std::abs(lfoMod) * 16383.0f);
     
-    // Bender
-    float bendMod = benderValue * benderToVCF;
-    bool bendPolarity = bendMod < 0.0f;
-    uint16_t vcfBendAmt = static_cast<uint16_t>(std::abs(bendMod) * 16383.0f);
+    // Bender: Emulando la CPU/firmware de 16 bits del Juno-106 con limitación del ~25% del DAC (máx 4064 en ea).
+    uint8_t vcfBendSens = static_cast<uint8_t>(juce::jlimit(0.0f, 1.0f, benderToVCF) * 255.0f);
+    uint8_t bendVal = static_cast<uint8_t>(std::abs(benderValue) * 255.0f);
+    uint16_t vcfBendAmt = static_cast<uint16_t>((static_cast<uint16_t>(vcfBendSens) * bendVal) >> 4);
+    bool bendPolarity = benderValue < 0.0f;
 
-    // Env
-    uint8_t vcfEnvMod = static_cast<uint8_t>(juce::jlimit(0.0f, 1.0f, envAmount) * 254.0f);
+    // Env: Recuperar el valor real del slider de la UI dividiendo por el rango de calibración
+    float envRange = cal != nullptr ? cal->getValue("vcfEnvRange") : 2.0f;
+    float sliderEnvAmount = envAmount / (envRange > 0.0f ? envRange : 2.0f);
+    uint8_t vcfEnvMod = static_cast<uint8_t>(juce::jlimit(0.0f, 1.0f, sliderEnvAmount) * 254.0f);
     uint16_t envelope = static_cast<uint16_t>(juce::jlimit(0.0f, 1.0f, envVal) * 16383.0f);
 
     // Keytracking
@@ -86,6 +78,7 @@ float JunoVCF::computeCutoffHz (float cutoff01,
 
     // -- Paso 2: Envelope
     uint16_t scaledEnv = mul8x16_hi(vcfEnvMod, envelope);
+    scaledEnv = static_cast<uint16_t>(juce::jlimit(0.0f, 65535.0f, (float)scaledEnv * envRange));
     if (!envInverted) ea = vcf_add(ea, scaledEnv, overflow);
     else              ea = vcf_sub(ea, scaledEnv, overflow);
 
@@ -106,8 +99,7 @@ float JunoVCF::computeCutoffHz (float cutoff01,
 
     // -- Paso 5: DAC To Hz con J106DACHzTable
     // Aplicar width trim y frequency trim (C2 Fix)
-    float frqTrim = 0.0f;
-    float cv_lin = static_cast<float>(ea) * vcfWidth + frqTrim;
+    float cv_lin = static_cast<float>(ea) * vcfWidth + vcfFrqTrim;
     int internal_cv = static_cast<int>(cv_lin + 0.5f);
     if (internal_cv < 0) internal_cv = 0;
     if (internal_cv > 16383) internal_cv = 16383;
@@ -170,54 +162,88 @@ float JunoVCF::processSample (float input,
                               float saturationScale,
                               float selfOscInt,
                               float vcfWidth,
+                              float vcfFrqTrim,
                               CalibrationSettings* cal)
 {
     // 1. Frecuencia de corte modulada usando MCU aritmética
     float cutoffHz = computeCutoffHz (cutoff01, envAmount, envVal, envInverted, lfoAmount, lfoVal,
-                                      kybdTrack, currentFreqHz, benderValue, benderToVCF, vcfWidth, cal);
+                                      kybdTrack, currentFreqHz, benderValue, benderToVCF, vcfWidth, vcfFrqTrim, cal);
     
     // Limitar para evitar aliasing masivo o inestabilidad
     float safeMaxHz = (float)sampleRate * 0.45f;
     cutoffHz = juce::jlimit(10.0f, safeMaxHz, cutoffHz);
 
-    // 2. Coeficiente G (TPT: tan(pi*fc/fs) / (1 + tan(pi*fc/fs)))
-    float g = std::tan (juce::MathConstants<float>::pi * cutoffHz * invSampleRate);
-    g = juce::jlimit (0.0001f, 0.999f, g); 
-    const float G = g / (1.0f + g);
+    // 2. Coeficiente de frecuencia normalizado a Nyquist
+    float frq = cutoffHz / (sampleRate * 0.5f);
 
-    // 3. Coeficiente de resonancia (feedback)
-    const float k = computeResonanceFeedback (resonance, selfOscThreshold, selfOscInt);
+    // Recuperar parámetros de calibración personalizados
+    float resPolK = cal != nullptr ? cal->getValue("vcfResPolK") : 1.24f;
+    float fbScaleVal = cal != nullptr ? cal->getValue("vcfFbScale") : 4.20f;
 
-    // 4. Zero-Delay Feedback (ZDF) Resolution
-    // Calculamos la "señal proyectada" (S) a través de las 4 etapas de integración
-    float S = (G * G * G * s[0]) + (G * G * s[1]) + (G * s[2]) + s[3];
+    // 3. Feedback de resonancia usando hardware ResK_J106 polinómico
+    float k = resPolK * ResK_J106(resonance);
     
-    // Resolución de la realimentación: y = (G^4 * x + S) / (1 + k * G^4)
-    const float G2 = G * G;
-    const float G3 = G2 * G;
-    const float G4 = G3 * G;
-    
-    // Entrada saturada (modelando clipping del BA662 OTA)
-    float inputSat = stageSaturate(input, saturationScale);
-    float y3 = (G4 * inputSat + S) / (1.0f + k * G4);
+    // Limitar resonancia a frecuencias altas para evitar inestabilidad
+    if (frq > 0.5f) {
+        k *= std::max(1.f - (frq - 0.5f) * 1.f, 0.5f);
+    }
 
-    // 5. Actualización de estados del integrador TPT (4 etapas saturadas)
-    // [Fidelity] Every stage MUST saturate to keep k > 4.0 stable!
-    float u = inputSat - k * y3;
-    
-    auto updateStage = [&] (float x, float& state) -> float {
-        float v = (x - state) * G;
-        float y = v + state;
-        float ySat = stageSaturate(y, saturationScale);
-        state = ySat + v;
-        return ySat;
-    };
+    // 4. FreqCompensationClamped
+    float freqComp = FreqCompensationClamped(k, frq * 0.25f);
 
-    float y0 = updateStage (u,  s[0]);
-    float y1 = updateStage (y0, s[1]);
-    float y2 = updateStage (y1, s[2]);
-    float y3_final = updateStage (y2, s[3]);
+    // 5. Coeficiente g (bilinear transform pre-warping)
+    float frqClamped = std::min(frq, 0.85f);
+    float g = std::tan(frqClamped * juce::MathConstants<float>::pi * 0.5f);
+    g *= freqComp;
 
-    lastOutput = y3_final;
+    float g1 = g / (1.f + g);
+    float G = g1 * g1 * g1 * g1;
+
+    // 6. Zero-Delay Feedback (ZDF) Resolution
+    // Señal proyectada (S) a través de las 4 etapas de integración
+    float S = s[0] * g1 * g1 * g1 + s[1] * g1 * g1 + s[2] * g1 + s[3];
+
+    // Q/input compensation
+    float comp = InputComp(k, frq);
+
+    // BA662 feedback saturation
+    float kFbScale = fbScaleVal * std::clamp((k - 2.5f) * 1.0f, 0.3f, 1.f);
+    float fbSig = OTASat(S * kFbScale) / kFbScale;
+
+    // Solve loop para la entrada de la etapa 0 (u)
+    float u = (input * comp - k * fbSig) / (1.f + k * G);
+
+    // 7. Resolver etapas no lineales usando Newton-Raphson
+    float stateAmp = std::abs(s[3]);
+    float dfGain = 1.f / std::sqrt(1.f + 0.6f * stateAmp * stateAmp);
+    dfGain = std::max(dfGain, 0.65f);
+
+    float hfFade = juce::jlimit(0.f, 1.f, (0.12f - frq) * 25.f);
+    dfGain = 1.f - hfFade * (1.f - dfGain);
+
+    float g1NL = g1 / dfGain;
+    g1NL = std::min(g1NL, 0.98f);
+    float gNL = g1NL / (1.f - g1NL);
+
+    float otaScale = OTAScaleForFreq(frq, resonance);
+
+    float lp1 = NLStage(s[0], u, gNL, g1NL, otaScale);
+    float lp2 = NLStage(s[1], lp1, gNL, g1NL, otaScale);
+    float lp3 = NLStage(s[2], lp2, gNL, g1NL, otaScale);
+    float lp4 = NLStage(s[3], lp3, gNL, g1NL, otaScale);
+
+    // Eliminar denormales de los estados integradores
+    for (auto& st : s) {
+        if (std::abs(st) < 1e-15f) {
+            st = 0.f;
+        }
+    }
+
+    // Compensación de ganancia de salida
+    float frqFactor = juce::jlimit(0.f, 1.f, (frq - 0.02f) * 20.f);
+    float resFactor = juce::jlimit(0.f, 1.f, (k - 2.f) * 0.5f);
+    float outputScale = 1.f - frqFactor * resFactor * 0.5f;
+
+    lastOutput = lp4 * 3.22f * outputScale * (saturationScale > 0.0f ? saturationScale : 1.0f);
     return lastOutput;
 }

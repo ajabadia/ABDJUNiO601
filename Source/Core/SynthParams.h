@@ -78,7 +78,6 @@ struct SynthParams {
     float adsrSlewMs = 1.5f;
     float adsrAttackFactor = 0.35f;
     float dcoMixerGain = 0.7f;
-    float subAmpScale = 1.0f;
     
     // [Build 25/27] LFO Calibration
     float lfoMaxRate = 30.0f;
@@ -86,12 +85,13 @@ struct SynthParams {
     float lfoDelayMax = 3.0f;
     float lfoResolution = 7.5f; 
 
-    // [Build 28] HPF Calibration
-    float hpfFreq2 = 225.0f;
-    float hpfFreq3 = 700.0f;
-    float hpfShelfFreq = 70.0f;
-    float hpfShelfGain = 3.0f;
-    float hpfQ = 0.707f;
+    // [Build 28] HPF Calibration — values from ngspice AC simulation + schematic
+    float hpfFreq2          = 236.0f;  // Hardware: C=.015µF, R_eff=44.9K → 236 Hz
+    float hpfFreq3          = 754.0f;  // Hardware: C=.0047µF, R_eff=44.9K → 754 Hz
+    float hpfShelfFreq      = 70.0f;   // Legacy (unused by BassBoostFilter, kept for UI compat)
+    float hpfShelfGain      = 3.0f;    // Legacy shelf gain (unused by BassBoostFilter)
+    float hpfQ              = 0.707f;  // Legacy Q (unused by 1-pole TPT, kept for UI compat)
+    float hpfBassBoostGain  = 1.0f;   // Post-gain scale for Bass Boost (1.0 = hardware accurate)
 
     // [Build 29] VCF Calibration
     float vcfMinHz = 8.0f;
@@ -99,6 +99,8 @@ struct SynthParams {
     float vcfSelfOscThreshold = 0.95f; // [Renamed from vcfSelfOscPoint for consistency]
     float vcfResoComp = 0.5f;
     float vcfSaturation = 1.0f;
+    float vcfResPolK = 1.24f;
+    float vcfFbScale = 4.20f;
 
     // [Build 29] VCA & Mixer Calibration
     float vcaMasterGain = 1.0f;
@@ -107,7 +109,9 @@ struct SynthParams {
 
     // [Build 29] Chorus Calibration
     float chorusDelayI = 3.2f;
-    float chorusDelayII = 6.4f;
+    float chorusDelayII = 3.3f;
+    float chorusGainDry = 0.863f;
+    float chorusGainWet = 1.257f;
     float chorusModDepth = 1.5f;
     float chorusSatBoost = 1.2f;
     float chorusFilterCutoff = 8000.0f;
@@ -174,9 +178,16 @@ struct SynthParams {
     float pwmOffThreshold = 0.05f;  // [New] PWM cut-off
     float pwmSlewRateManual = 0.05f;
     float pwmSlewRateLFO = 0.1f;
-    float noiseAmpScale = 0.5f;
     float vcaCurveType = 0.0f;      // [New] VCA Curve Type: 0=Juno-106 HW, 1=Juno-6/60 Shockley, 2=Linear
     float adsrVariance = 0.05f;     // [New] ADSR Voice-to-voice variance
+    
+    // [New Phase 3 Calibration]
+    float noiseFloorMul = 1.0f;
+    float mainsRippleMul = 1.0f;
+    float voiceVcfFrqSpread = 10.0f;
+    float voiceVcfWidthSpread = 10.0f;
+    float voiceVcaGainSpread = 0.024f;
+    float driftWalkIntensity = 3.0f;
 
     // DCO and LFO calibration parameters
     float sawMixAmp = 0.6f;
@@ -187,6 +198,7 @@ struct SynthParams {
     float dcoLfoShuntK = 5.0f;
     float dcoLfoMaxSemitones = 4.0f;
     float oscSwitchRampMs = 1.45f;
+    float dcoSawCurvature = 0.15f;
     float lfoTickRateMs = 4.2335f;
     float lfoAccumMax = 8191.0f;
     float lfoHoldoffThresh = 16384.0f;

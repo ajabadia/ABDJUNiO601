@@ -102,8 +102,22 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
     // 2. Buscar una voz libre
     int voiceIndex = findFreeVoiceIndex();
 
-    // 3. Si no hay libres, robar la más antigua
+    // 3. Si no hay libres, robar la más antigua (solo si no están todas ocupadas físicamente en Poly 1/2)
     if (voiceIndex == -1) {
+        bool allGatesActive = true;
+        for (int i = 0; i < currentActiveVoices; ++i) {
+            if (!voices[i].isGateOnActive()) {
+                allGatesActive = false;
+                break;
+            }
+        }
+        
+        if (allGatesActive && (polyMode == 1 || polyMode == 2)) {
+            // No-steal policy: todas las voces activas configuradas tienen teclas sostenidas.
+            // La nueva nota se descarta.
+            return;
+        }
+        
         voiceIndex = findVoiceToSteal();
         if (voiceIndex != -1) voices[voiceIndex].prepareForStealing();
     }
@@ -118,6 +132,8 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
 void JunoVoiceManager::noteOff(int /*midiChannel*/, int midiNote, float /*velocity*/) {
     const juce::ScopedLock sl(lock);
     auto& voices = allocator.getVoices();
+
+    auto& allocatorRef = allocator; // alias to avoid warnings
 
     if (polyMode == 3) { // UNISON
         for (int i = 0; i < currentActiveVoices; ++i) {
@@ -141,14 +157,14 @@ int JunoVoiceManager::findFreeVoiceIndex() {
         for (int i = 0; i < currentActiveVoices; ++i) {
             int currentPatternIdx = (startIndex + i) % currentActiveVoices;
             int voiceIdx = voiceOrder[currentPatternIdx];
-            if (!voices[voiceIdx].isActive()) {
+            if (!voices[voiceIdx].isGateOnActive()) {
                 nextPoly1Index = (currentPatternIdx + 1) % currentActiveVoices; 
                 return voiceIdx;
             }
         }
     } else if (polyMode == 2 || polyMode == 3) {
          for (int i = 0; i < currentActiveVoices; ++i) {
-            if (!voices[i].isActive()) return i;
+            if (!voices[i].isGateOnActive()) return i;
         }
     }
     return -1;

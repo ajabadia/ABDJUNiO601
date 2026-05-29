@@ -766,7 +766,11 @@ function syncUI(id, val) {
 
         const peg = pod.querySelector('.sw-peg');
         if (peg) {
-            peg.style.bottom = (val > 0.5) ? '0px' : '38px';
+            if (id === 'vcaMode') {
+                peg.style.bottom = (val > 0.5) ? '38px' : '0px';
+            } else {
+                peg.style.bottom = (val > 0.5) ? '0px' : '38px';
+            }
             pod.setAttribute('data-state', val > 0.5 ? "1" : "0");
         }
 

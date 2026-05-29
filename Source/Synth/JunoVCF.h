@@ -59,6 +59,7 @@ public:
                          float saturationScale,
                          float selfOscInt,
                          float vcfWidth,
+                         float vcfFrqTrim,
                          class CalibrationSettings* cal);
 
 private:
@@ -76,6 +77,7 @@ private:
                            float benderValue,
                            float benderToVCF,
                            float vcfWidth,
+                           float vcfFrqTrim,
                            class CalibrationSettings* cal) const;
 
     float computeResonanceFeedback (float res01, float selfOscThreshold, float selfOscInt) const;
@@ -98,8 +100,86 @@ private:
         return ea;
     }
 
-    // Padé 3/3 Saturation: Approximates tanh characteristics of OTA stages.
-    static inline float stageSaturate (float x, float scale = 1.0f) noexcept;
+    // OTASat - Pade 3/3 approximation of tanh(x)
+    static inline float OTASat (float x) noexcept
+    {
+        if (x > 3.f) return 1.f;
+        if (x < -3.f) return -1.f;
+        float x2 = x * x;
+        return x * (27.f + x2) / (27.f + 9.f * x2);
+    }
+
+    // OTASatDeriv - Derivative of OTASat for Newton-Raphson solver
+    static inline float OTASatDeriv (float x) noexcept
+    {
+        if (x > 3.f || x < -3.f) return 0.f;
+        float x2 = x * x;
+        float d = 27.f + 9.f * x2;
+        return 27.f * (27.f - 3.f * x2) / (d * d);
+    }
+
+    // NLStage - Non-linear stage solver via Newton-Raphson
+    static inline float NLStage (float& s, float x, float g, float g1, float otaScale) noexcept
+    {
+        float y = s + g1 * (x - s);
+        float diff = x - y;
+        float sd = diff * otaScale;
+        float t = OTASat(sd) / otaScale;
+        float f = y - s - g * t;
+        float df = 1.f + g * OTASatDeriv(sd);
+        y -= f / df;
+        s = 2.f * y - s;
+        return y;
+    }
+
+    // ResK_J106 - Polynomial resonance curve fit from hardware measurements
+    static inline float ResK_J106 (float res) noexcept
+    {
+        float r = res;
+        float r2 = r * r;
+        float r3 = r2 * r;
+        float r4 = r2 * r2;
+        return 1.24f * (4.7116f * r - 6.5743f * r2 + 13.4633f * r3 - 8.2197f * r4);
+    }
+
+    // FreqCompensationClamped - Cutoff compensation
+    static inline float FreqCompensationClamped (float k, float frq) noexcept
+    {
+        float lowQ = std::max(1.0f, 0.42f * std::pow(std::max(frq, 1e-6f), -0.12f));
+        float logdist = std::log(std::max(frq, 1e-6f) / 0.012f);
+        lowQ += 0.20f * std::exp(-logdist * logdist / 1.0f);
+        float blend = std::min(k * k * 0.0625f, 1.f);
+        return lowQ + blend * (1.f - lowQ);
+    }
+
+    // InputComp - Q compensation counteracting passband drop
+    static inline float InputComp (float k, float frq) noexcept
+    {
+        float qComp = 0.379f + 0.087f * k;
+        float freqGain = std::pow(std::max(frq, 1e-6f) * (1.f / 0.00445f), -0.10f);
+        freqGain = juce::jlimit(0.65f, 1.2f, freqGain);
+        return qComp * freqGain;
+    }
+
+    static constexpr float kOTAScaleBase = 0.35f;
+
+    // OTAScaleForFreq - Scaling factor for OTA saturation based on frequency/resonance
+    static inline float OTAScaleForFreq (float frq, float res = 0.f) noexcept
+    {
+        float scale = kOTAScaleBase;
+        if (frq < 0.005f)
+        {
+            float blend = std::max(frq / 0.005f, 0.15f);
+            scale *= blend;
+        }
+        if (res > 0.f)
+        {
+            float resK = ResK_J106(res);
+            float resBlend = std::min(resK * resK * 0.0625f, 1.f);
+            scale = scale + resBlend * (kOTAScaleBase - scale);
+        }
+        return scale;
+    }
 
     // Estado de las 4 etapas TPT
     std::array<float, 4> s {};   // integrador por etapa

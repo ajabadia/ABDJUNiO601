@@ -10,6 +10,7 @@
 #include "../Core/BaseClass/LFOGeneric.h"
 #include "../Core/SynthParams.h"
 #include "JunoVCF.h"
+#include "JunoHPF.h"
 
 class CalibrationSettings;  // Forward declaration for DAC table access
 
@@ -65,11 +66,12 @@ public:
     void setPortamentoEnabled(bool b);
     void setPortamentoTime(float v);
     void setPortamentoLegato(bool b);
-    void setVoiceIndex(int i) { voiceIndex = i; }
+    void setVoiceIndex(int i);
     void setTuningTable(const float* table) { tuningTable = table; }
     void setCalibrationSettings(CalibrationSettings* cal) { calibrationPtr = cal; }
 
 private:
+    void initVoiceVariance();
     float updatePitch(int numSamples);
     void renderVoiceCycles(float* voiceData, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk);
     void processFinalOutput(juce::AudioBuffer<float>& buffer, int startSample, int numSamples, float* voiceData, int numVoicesInUnison);
@@ -84,9 +86,8 @@ private:
     JunoLFO voiceLFO;
     
     JunoVCF filter;
-    juce::dsp::IIR::Filter<float> hpFilter;
+    JunoHPF hpf;                                      // Hardware-accurate HPF (pos 0-3)
     juce::dsp::IIR::Filter<float> resCompFilter;
-    juce::dsp::IIR::Filter<float> hpfShelfFilter;
     juce::dsp::IIR::Filter<float> noiseColorFilter;
     
     // Smoothing
@@ -96,12 +97,27 @@ private:
     juce::LinearSmoothedValue<float> smoothedGate;
 
     // [Fidelity] Staggered CV update — simulates MCU round-robin DAC multiplexing.
-    // Each voice's CV target (cutoff & VCA level) is committed with a fixed delay
-    // proportional to its index, replicating the hardware's per-voice update phase.
-    int staggerDelaySamples = 0;    // Computed once in onPrepare()
-    int staggerCountdown    = 0;    // Counts down each render block
-    float pendingCutoffTarget = 0.5f;
-    float pendingVCATarget    = 0.5f;
+    float mVcfPhase = 0.0f;          // Normalized phase within tick (0.0 to 1.0)
+    float mVcaPhase = 0.0f;
+    float mFwTickAccum = 0.0f;       // Tick accumulator [0.0, 1.0]
+    
+    float mVcfDacPending = 0.0f;     // Calculated VCF target at tick boundary
+    float mVcfDacNext = 0.5f;        // Latched VCF target (after passing mVcfPhase)
+    
+    float mVcaDacPending = 0.0f;     // Calculated VCA target at tick boundary
+    float mVcaDacNext = 0.0f;        // Latched VCA target (after passing mVcaPhase)
+    
+    bool mVcfDacUpdated = false;     // Trigger flags per tick
+    bool mVcaDacUpdated = false;
+
+    // [New Phase 3 Calibration State]
+    float mVcaSlew = 0.0f;
+    float mVcaGainScale = 1.0f;
+    float mVcfFrqTrim = 0.0f;
+    float mVcfWidthTrim = 1.0f;
+    float mStaticOffsetUnit = 0.0f;
+    float mWalkPhase[3] = { 0.0f, 0.0f, 0.0f };
+    float mWalkValue = 0.0f;
 
     // State
     int currentNote = -1;

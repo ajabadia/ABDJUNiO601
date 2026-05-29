@@ -52,17 +52,12 @@ void Voice::onPrepare() {
     smoothedVCALevel.reset(sr, 0.005);
     smoothedGate.reset(sr, 32.0f / (float)sr); // [Fidelity] 32-sample linear ramp (approx 0.7ms) to prevent clicks
     
-    hpFilter.prepare(spec);
-    hpFilter.reset();
-    updateHPF();
-    
+    hpf.prepare((float)sr);
+    hpf.setPosition(params.hpfFreq, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
+
     resCompFilter.prepare(spec);
     resCompFilter.reset();
 
-    hpfShelfFilter.prepare(spec);
-    hpfShelfFilter.reset(); 
-    hpfShelfFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(sr, 100.0f, 0.707f, 1.25f);
-    
     noiseColorFilter.prepare(spec);
     noiseColorFilter.reset();
     noiseColorFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sr, 4000.0f, 0.707f, 0.707f); 
@@ -73,18 +68,11 @@ void Voice::onPrepare() {
     smoothedVCALevel.reset(sr, params.vcaSlewMs * 0.001);
     smoothedVCALevel.setCurrentAndTargetValue(0.5f);
 
-    // [Fidelity] Staggered CV update: voice i sees its DAC write delayed by
-    //   (i / kMaxVoices) × staggeredUpdateMaxMs
-    // This replicates the Juno-106 MCU's round-robin multiplexed CV update pattern.
-    // When staggeredUpdateMaxMs == 0, staggerDelaySamples is 0 (no delay).
-    constexpr int kMaxVoices = 6;
-    staggerDelaySamples = static_cast<int>(
-        (static_cast<float>(voiceIndex) / kMaxVoices)
-        * params.staggeredUpdateMaxMs * 0.001f * static_cast<float>(sr)
-    );
-    staggerCountdown    = 0; // Will be reset on first updateParams() call
-    pendingCutoffTarget = params.vcfFreq;
-    pendingVCATarget    = params.vcaLevel;
+    mVcfPhase = 0.0f;
+    mVcaPhase = 0.0f;
+    mFwTickAccum = 0.0f;
+    mVcfDacUpdated = false;
+    mVcaDacUpdated = false;
     
     tempBuffer.setSize(1, maxBlockSize);
 }
@@ -133,7 +121,7 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
         dco.reset(); 
         if (wasIdle) {
             filter.reset();
-            hpFilter.reset();
+            hpf.reset();
         }
     }
     
@@ -178,21 +166,40 @@ void Voice::prepareForStealing() {
 void Voice::updateParams(const SynthParams& p) {
     params = p;
 
-    // [Fidelity] Staggered CV update: buffer VCF/VCA targets; they will be
-    // committed to the smoothers after staggerDelaySamples have elapsed.
-    // Resonance is not staggered (it shares the VCF DAC line but is less
-    // timing-critical and not separately multiplexed on the hardware).
-    if (params.staggeredUpdateMaxMs > 0.0f) {
-        pendingCutoffTarget = params.vcfFreq;
-        pendingVCATarget    = params.vcaLevel;
-        // Reset countdown only if it has already expired, so each new param
-        // update re-arms the delay from zero (mirrors MCU write scheduling).
-        if (staggerCountdown <= 0)
-            staggerCountdown = staggerDelaySamples;
+    // Compute dynamic voice variance offsets from LCG seed
+    uint32_t seed = static_cast<uint32_t>(voiceIndex) * 2654435761u + 0x46756E6Bu;
+    auto rng = [&seed]() -> float {
+        seed = seed * 196314165u + 907633515u;
+        return static_cast<float>(seed) / static_cast<float>(0xFFFFFFFF) * 2.0f - 1.0f;
+    };
+    float uFrq = rng();
+    float uWidth = rng();
+    float uGain = rng();
+
+    mVcfFrqTrim = uFrq * p.voiceVcfFrqSpread;
+    mVcfWidthTrim = 1.0f + uWidth * (p.voiceVcfWidthSpread / 1200.0f);
+    mVcaGainScale = 1.0f + uGain * p.voiceVcaGainSpread;
+
+    // [Fidelity] Staggered CV update: compute phase offsets based on voice slot
+    if (params.staggeredUpdateMaxMs == 0.0f) {
+        mVcfPhase = 0.0f;
+        mVcaPhase = 0.0f;
+        mVcfDacPending = params.vcfFreq;
+        mVcaDacPending = params.vcaLevel;
+        mVcfDacNext = params.vcfFreq;
+        mVcaDacNext = params.vcaLevel;
     } else {
-        // Bypass stagger entirely when parameter is zero.
-        smoothedCutoff.setTargetValue(params.vcfFreq);
-        smoothedVCALevel.setTargetValue(params.vcaLevel);
+        int slot = voiceIndex % 6;
+        float tickPeriodMs = std::max(0.5f, params.adsrMcuRate);
+        float staggerScale = params.staggeredUpdateMaxMs / 1.4371f;
+        float vcfDelayMs = slot * 0.2874f * staggerScale;
+        float vcaDelayMs = (slot * 0.2874f + 0.1253f) * staggerScale;
+
+        mVcfPhase = juce::jlimit(0.0f, 1.0f, vcfDelayMs / tickPeriodMs);
+        mVcaPhase = juce::jlimit(0.0f, 1.0f, vcaDelayMs / tickPeriodMs);
+        
+        mVcfDacPending = params.vcfFreq;
+        mVcaDacPending = params.vcaLevel;
     }
     smoothedResonance.setTargetValue(params.resonance);
     
@@ -226,7 +233,6 @@ void Voice::updateParams(const SynthParams& p) {
     
     dco.setCalibration(calibrationPtr);
     dco.setMixerGain(p.dcoMixerGain);
-    dco.setSubAmpScale(p.subAmpScale);
     dco.setPWMOffset(p.pwmOffset);
     dco.setNoiseGain(p.noiseGain);
     dco.setVoiceVariance(p.voiceVariance);
@@ -236,7 +242,7 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setLfoPitchDepth(p.dcoLfoPitchDepth);
     dco.setPwmCalibration(p.pwmMinDuty, p.pwmMaxDuty, p.pwmCenterDuty, p.pwmOffThreshold);
     dco.setPwmSlew(p.pwmSlewRateManual, p.pwmSlewRateLFO);
-    dco.setNoiseAmpScale(p.noiseAmpScale);
+    dco.setNoiseGainScale(p.noiseGainScale);
     
     voiceLFO.setCalibrationSettings(calibrationPtr);
     voiceLFO.setDepth(1.0f);
@@ -246,15 +252,7 @@ void Voice::updateParams(const SynthParams& p) {
 
 void Voice::updateHPF(int position) {
     int activePos = (position >= 0) ? position : params.hpfFreq;
-    switch (activePos) {
-        case 0: // Bass Boost mode: the main hpf is bypass, shelving is handled in render loop
-        case 1: // Flat mode: bypass
-            hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sr, 1000.0f); 
-            break;
-        case 2: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, params.hpfFreq2, params.hpfQ); break;
-        case 3: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(sr, params.hpfFreq3, params.hpfQ); break;
-        default: hpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sr, 1000.0f); break;
-    }
+    hpf.setPosition(activePos, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
 }
 
 void Voice::forceUpdate() {
@@ -262,8 +260,12 @@ void Voice::forceUpdate() {
     smoothedCutoff.setCurrentAndTargetValue(params.vcfFreq);
     smoothedResonance.setCurrentAndTargetValue(params.resonance);
     smoothedVCALevel.setCurrentAndTargetValue(params.vcaLevel);
+    mVcfDacPending = params.vcfFreq;
+    mVcfDacNext = params.vcfFreq;
+    mVcaDacPending = params.vcaLevel;
+    mVcaDacNext = params.vcaLevel;
     filter.reset();
-    hpFilter.reset();
+    hpf.reset();
 }
 
 void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples) {
@@ -289,15 +291,31 @@ void Voice::renderNextBlock(juce::AudioBuffer<float>& buffer, int startSample, i
 }
 
 float Voice::updatePitch(int numSamples) {
+    float targetPitch = 12.0f * std::log2(targetFrequency / 440.0f);
+    float currentPitch = 12.0f * std::log2(currentFrequency / 440.0f);
+    
     if (params.portamentoOn && std::abs(currentFrequency - targetFrequency) > 0.1f) {
-        // [Fidelity Bugfix C7] Linear glide in semitones using portamentoRateST calculated in PluginProcessor
-        float currentST = 12.0f * std::log2(currentFrequency / 440.0f);
-        float targetST = 12.0f * std::log2(targetFrequency / 440.0f);
-        float diffST = targetST - currentST;
-        float glideStep = (params.portamentoRateST / (float)sr) * numSamples;
-        if (std::abs(diffST) > glideStep) {
-            currentST += (diffST > 0.f) ? glideStep : -glideStep;
-            currentFrequency = 440.0f * std::pow(2.0f, currentST / 12.0f);
+        float t = params.portamentoTime; // 0..1 slider
+        float i_idx = t * 127.0f;
+        float coeff = 0.0f;
+        if (i_idx > 0.0f) {
+            if (i_idx <= 25.0f) {
+                coeff = 255.0f - 8.0f * (i_idx - 1.0f);
+            } else if (i_idx <= 47.0f) {
+                coeff = 63.0f - 2.0f * (i_idx - 25.0f);
+            } else {
+                coeff = std::round(18.0f * std::pow(0.9625f, i_idx - 48.0f));
+            }
+        }
+        
+        float tickRate = 1000.0f / std::max(0.5f, params.adsrMcuRate);
+        float semiPerSec = coeff * tickRate / 256.0f;
+        float glideStep = (semiPerSec / (float)sr) * numSamples;
+        
+        float diff = targetPitch - currentPitch;
+        if (glideStep > 0.0f && std::abs(diff) > glideStep) {
+            currentPitch += (diff > 0.0f) ? glideStep : -glideStep;
+            currentFrequency = 440.0f * std::pow(2.0f, currentPitch / 12.0f);
         } else {
             currentFrequency = targetFrequency;
         }
@@ -305,15 +323,24 @@ float Voice::updatePitch(int numSamples) {
         currentFrequency = targetFrequency;
     }
 
-    // [Fidelity] Update independent voice thermal drift
-    // This creates the organic pitch 'wandering' over time
-    thermalCounter -= numSamples;
-    if (thermalCounter <= 0) {
-        thermalCounter = (int)std::max(64.0f, params.thermalInertia);
-        thermalTarget = (noiseGen.nextFloat() * 2.0f - 1.0f); // Pitch target wander
+    // Update drift walk LFOs
+    float dtSeconds = (float)numSamples / (float)sr;
+    constexpr float kWalkRateHz[3] = { 0.07f, 0.13f, 0.31f };
+    float walkSum = 0.0f;
+    for (int i = 0; i < 3; ++i) {
+        mWalkPhase[i] += juce::MathConstants<float>::twoPi * kWalkRateHz[i] * dtSeconds;
+        if (mWalkPhase[i] > juce::MathConstants<float>::twoPi) {
+            mWalkPhase[i] -= juce::MathConstants<float>::twoPi;
+        }
+        walkSum += std::sin(mWalkPhase[i]);
     }
-    float migration = juce::jlimit(0.00001f, 0.1f, params.thermalMigration * (numSamples / 128.0f));
-    thermalDrift += (thermalTarget - thermalDrift) * migration;
+    
+    // Scale LFOs to driftWalkIntensity cents (driftAmt is global thermalDrift * intensity)
+    float driftAmt = params.thermalDrift * 0.01f * params.thermalIntensity;
+    mWalkValue = (walkSum / 3.0f) * driftAmt * params.driftWalkIntensity;
+    
+    float staticCents = mStaticOffsetUnit * driftAmt * 12.0f; // static spread is ±12 cents at max
+    float totalDriftCents = staticCents + mWalkValue;
     
     float bendedFrequency = currentFrequency * std::pow(2.0f, (params.tune + params.masterPitchCents) / 1200.0f);
     if (params.a4Reference != 440.0f) bendedFrequency *= (params.a4Reference / 440.0f);
@@ -323,40 +350,46 @@ float Voice::updatePitch(int numSamples) {
     }
 
     float driftFactor = 1.0f - (params.polyMode == 3 ? params.unisonDetune : 0.0f);
-    // Combine Global Drift param + Independent Voice Wander member
-    float thermalAmount = (params.thermalDrift * 0.01f + thermalDrift) * 0.1f * driftFactor * params.thermalIntensity;
-    bendedFrequency *= std::pow(2.0f, thermalAmount / 12.0f);
+    float thermalAmount = totalDriftCents * driftFactor;
+    bendedFrequency *= std::pow(2.0f, thermalAmount / 1200.0f); // bendedFrequency is scaled by cents
     return bendedFrequency;
 }
 
 void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vector<float>& lfoBuffer, float neighborCrosstalk) {
     const float bleedLin = std::pow(10.0f, params.vcaBleed / 20.0f);
 
-    // [Fidelity] Staggered CV update: commit pending targets when countdown expires.
-    if (params.staggeredUpdateMaxMs > 0.0f) {
-        if (staggerCountdown > 0) {
-            staggerCountdown -= numSamples;
-        }
-        if (staggerCountdown <= 0) {
-            smoothedCutoff.setTargetValue(pendingCutoffTarget);
-            smoothedVCALevel.setTargetValue(pendingVCATarget);
-        }
-    }
+    float tickRateMs = std::max(0.5f, params.adsrMcuRate);
+    double tickRateHz = 1000.0 / (double)tickRateMs;
+    float tickStep = (float)(tickRateHz / sr);
 
     // Update LFO gate state at block level
     voiceLFO.updateGateState(isGateOn, stealPending);
 
     // Tick voiceLFO at tick rate (~234.2 Hz) inside the sample processing loop
-    // TickPeriod = 4.2335ms
-    float tickRateMs = 4.2335f;
-    if (calibrationPtr != nullptr) {
-        tickRateMs = calibrationPtr->getValue("lfoTickRateMs");
-    }
-    double tickRateHz = 1000.0 / (double)tickRateMs;
     double samplesPerTick = sr / tickRateHz;
     static double voiceLfoTimeAccumulator = 0.0;
 
     for (int i = 0; i < numSamples; ++i) {
+        // [Fidelity] Staggered CV Update logic
+        mFwTickAccum += tickStep;
+        if (mFwTickAccum >= 1.0f) {
+            mFwTickAccum -= 1.0f;
+            mVcfDacUpdated = false;
+            mVcaDacUpdated = false;
+        }
+
+        if (!mVcfDacUpdated && mFwTickAccum >= mVcfPhase) {
+            mVcfDacNext = mVcfDacPending;
+            mVcfDacUpdated = true;
+            smoothedCutoff.setTargetValue(mVcfDacNext);
+        }
+
+        if (!mVcaDacUpdated && mFwTickAccum >= mVcaPhase) {
+            mVcaDacNext = mVcaDacPending;
+            mVcaDacUpdated = true;
+            smoothedVCALevel.setTargetValue(mVcaDacNext);
+        }
+
         voiceLfoTimeAccumulator += 1.0;
         if (voiceLfoTimeAccumulator >= samplesPerTick) {
             voiceLfoTimeAccumulator -= samplesPerTick;
@@ -369,49 +402,43 @@ void Voice::renderVoiceCycles(float* voiceData, int numSamples, const std::vecto
         // [Fidelity Build 101] Scaled Mixer with Sub & Noise multipliers
         dco.setSubLevel(params.subOscLevel * params.subGainScale);
         float dcoSample = dco.getNextSample(voiceLfoValue);
-        float noiseSample = (noiseGen.nextFloat() * 2.0f - 1.0f) * params.noiseLevel * params.noiseGainScale;
         
         float rippleNoise = (noiseGen.nextFloat() - 0.5f) * params.vcaRippleDepth * envVal;
         
         // [Fidelity Build 101] Oscillators + Bleed + Crosstalk
-        float signal = dcoSample + noiseSample + (bleedLin * 0.1f) + neighborCrosstalk * params.vcaCrosstalk + rippleNoise;
+        float signal = dcoSample + (bleedLin * 0.1f) + neighborCrosstalk * params.vcaCrosstalk + rippleNoise;
         
-        int activeHpfPos = (params.hpfCyclePos >= 0) ? params.hpfCyclePos : params.hpfFreq;
-        if (activeHpfPos == 0) {
-            signal = hpfShelfFilter.processSample(signal); // Apply +3dB Bass Boost shelving
-        } else {
-            signal = hpFilter.processSample(signal); // Apply 225Hz/700Hz HPF or AllPass
-        }
+        // HPF: hardware-accurate (pos 0=BassBoost, 1=Flat, 2=236Hz, 3=754Hz)
+        signal = hpf.process(signal);
         
         float envMod = params.envAmount * envVal * params.vcfEnvRange;
         bool envInverted = (params.vcfPolarity == 1);
         float lfoVCF = params.lfoToVCF * params.vcfLfoDepth;
         
-        signal = filter.processSample(signal, params.vcfFreq, params.resonance,
+        float activeCutoff = smoothedCutoff.getNextValue();
+        signal = filter.processSample(signal, activeCutoff, params.resonance,
                                    params.envAmount * params.vcfEnvRange, envVal, envInverted,
                                    lfoVCF, voiceLfoValue,
                                    params.kybdTracking, currentFrequency,
                                    params.benderValue, params.benderToVCF,
                                    params.vcfSelfOscThreshold,
                                    params.vcfSaturation, params.vcfSelfOscInt,
-                                   params.vcfWidth, calibrationPtr);
+                                   params.vcfWidth * mVcfWidthTrim, mVcfFrqTrim, calibrationPtr);
         
         juce::dsp::util::snapToZero(signal);
         
-        // [Fidelity Bugfix] VCA Mode branching: 0 = ENV (ADSR), 1 = GATE (Steady)
-        float vcaLevelNorm = std::max(smoothedVCALevel.getNextValue(), 0.0001f); 
-        float vcaGain = vcaLevelNorm;
+        // Update VCA CV slew (runs at audio rate)
+        float vcaRaw = (params.vcaMode == 1) ? (isGateOn ? 1.0f : 0.0f) : envVal;
+        float vcaSlewCoeff = 1.0f - std::exp(-1.0f / (params.vcaSlewMs * 0.001f * sr));
+        mVcaSlew += vcaSlewCoeff * (vcaRaw - mVcaSlew);
 
-        if (params.vcaMode == 0) { // ENV (ADSR)
-             float mappedEnv = getVCAMappedGain(envVal, static_cast<int>(params.vcaCurveType), calibrationPtr);
-             vcaGain *= std::max(mappedEnv, 0.0001f);
-        } else { // GATE (Steady while note is held)
-             // Use smoothed gate to prevent digital clicks (2ms ramp)
-             vcaGain *= std::max(smoothedGate.getNextValue(), 0.0001f);
-        }
+        // VCA Mode branching: exponential mapping of slewed CV
+        float vcaLevelNorm = std::max(smoothedVCALevel.getNextValue(), 0.0001f); 
+        float mappedVca = getVCAMappedGain(mVcaSlew, static_cast<int>(params.vcaCurveType), calibrationPtr);
+        float vcaGain = vcaLevelNorm * std::max(mappedVca, 0.0001f);
         
         float velScale = std::pow(1.0f - params.velocitySens + (params.velocitySens * velocity), params.vcaVelSensScale);
-        vcaGain *= velScale * params.vcaMasterGain;
+        vcaGain *= velScale * params.vcaMasterGain * mVcaGainScale;
         
         // [Sprint 10 Fidelity] Accurate IR3109 Passband Loss Compensation.
         // Resonance in IR3109 reduces passband gain. We COMPENSATE (+) instead of SUBTRACT (-).
@@ -453,3 +480,23 @@ void Voice::setBender(float v) { params.benderValue = v; }
 void Voice::setPortamentoEnabled(bool b) { params.portamentoOn = b; }
 void Voice::setPortamentoTime(float v) { params.portamentoTime = v; }
 void Voice::setPortamentoLegato(bool b) { params.portamentoLegato = b; }
+
+void Voice::setVoiceIndex(int i) {
+    voiceIndex = i;
+    initVoiceVariance();
+}
+
+void Voice::initVoiceVariance() {
+    uint32_t seed = static_cast<uint32_t>(voiceIndex) * 2654435761u + 0x46756E6Bu;
+    auto rng = [&seed]() -> float {
+        seed = seed * 196314165u + 907633515u;
+        return static_cast<float>(seed) / static_cast<float>(0xFFFFFFFF) * 2.0f - 1.0f;
+    };
+    rng(); // skip uFrq
+    rng(); // skip uWidth
+    rng(); // skip uGain
+    mStaticOffsetUnit = rng() + rng() + rng();
+    for (int i = 0; i < 3; ++i) {
+        mWalkPhase[i] = (rng() + 1.0f) * juce::MathConstants<float>::pi;
+    }
+}

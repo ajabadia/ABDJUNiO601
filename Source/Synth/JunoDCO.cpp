@@ -79,7 +79,6 @@ void JunoDCO::setLFODepth(float depth) {
 
 void JunoDCO::setDrift(float amount) { driftAmount = amount; }
 void JunoDCO::setMixerGain(float gain) { mixerGain = gain; }
-void JunoDCO::setSubAmpScale(float scale) { subAmpScale = scale; }
 
 float JunoDCO::getNextSample(float lfoValue) {
     // === ANALOG DRIFT (Multi-level authenticity) ===
@@ -186,7 +185,10 @@ float JunoDCO::getNextSample(float lfoValue) {
     // 1. SAW
     if (mSawGain > 1e-4f) {
         float sawAmp = (cal != nullptr) ? cal->getValue("sawMixAmp") : 0.6f;
-        float saw = 2.0f * (float)pulsePhase - 1.0f;
+        float curvature = (cal != nullptr) ? cal->getValue("dcoSawCurvature") : 0.15f;
+        float pos = (float)pulsePhase;
+        float saw = pos * (1.0f + curvature * (1.0f - pos));
+        saw = 2.0f * saw - 1.0f;
         saw -= blepAtReset; // step at reset is 2.0 (saw -= blepAtReset, NOT +=)
         output += saw * sawAmp * mSawGain;
     }
@@ -252,7 +254,7 @@ float JunoDCO::getNextSample(float lfoValue) {
         }
         float expTaper = (std::exp(taperScale * noiseLevel) - 1.0f) / (std::exp(taperScale) - 1.0f);
 
-        output += noise * expTaper * noiseAmp * noiseAmpScale * noiseGain;
+        output += noise * expTaper * noiseAmp * noiseGainScale * noiseGain;
     }
     
     // [Fidelity] Output Gain scaled to prevent VCF saturation

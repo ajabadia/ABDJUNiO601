@@ -60,7 +60,6 @@ public:
     // [Calibration]
     void setCalibration(CalibrationSettings* c) { cal = c; }
     void setMixerGain(float gain);      // Master DCO gain (default 0.7)
-    void setSubAmpScale(float scale);   // Sub weight (default 1.0)
     void setPWMOffset(float offset) { pwmOffset = offset; }
     void setNoiseGain(float gain) { noiseGain = gain; }
     void setVoiceVariance(float cents) { voiceVariance = cents; }
@@ -72,7 +71,7 @@ public:
         pwmMinDuty = min; pwmMaxDuty = max; pwmCenterDuty = center; pwmOffThreshold = threshold;
     }
     void setPwmSlew(float manual, float lfo) { pwmSlewRateManual = manual; pwmSlewRateLFO = lfo; }
-    void setNoiseAmpScale(float scale) { noiseAmpScale = scale; }
+    void setNoiseGainScale(float scale) { noiseGainScale = scale; }
     
     /**
      * Processes the next audio sample for this DCO.
@@ -112,7 +111,6 @@ private:
     
     // [Calibration]
     float mixerGain = 0.7f;
-    float subAmpScale = 1.0f;
     float pwmOffset = 0.0f;
     float noiseGain = 1.0f;
     float voiceVariance = 2.0f;
@@ -133,7 +131,7 @@ private:
     float pwmOffThreshold = 0.05f;
     float pwmSlewRateManual = 0.05f;
     float pwmSlewRateLFO = 0.1f;
-    float noiseAmpScale = 0.5f;
+    float noiseGainScale = 0.45f;
     
     // Drift (Multi-level authenticity)
     float driftAmount = 0.0f;

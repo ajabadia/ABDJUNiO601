@@ -192,6 +192,8 @@ private:
     ChorusBBD chorus; 
     juce::Random chorusNoiseGen; 
     juce::Random masterNoiseGen; 
+    AnalogFloorNoise dryNoise;
+    RailRipple dryRipple; 
     
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker; 
     
@@ -211,6 +213,7 @@ private:
     
     float currentPowerSag = 0.0f;
     std::atomic<float> currentAftertouch { 0.0f };
+    std::atomic<float> modWheelValue { 0.0f };
     float chorusFade = 0.0f;
     int midiFunction = 2; // [New] 0=I, 1=II, 2=III
     float unisonStereoWidth = 0.0f; // [New] Modern stereo spreading

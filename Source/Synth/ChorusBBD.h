@@ -4,6 +4,99 @@
 #include <cmath>
 #include <vector>
 
+struct RailRipple
+{
+    float mPhase = 0.f;
+    float mInc = 0.f;
+    float mA1 = 0.f, mA2 = 0.f, mA3 = 0.f;
+
+    void SetMainsHz(float mainsHz, float sampleRate)
+    {
+        mInc = (2.f * mainsHz) / sampleRate; // full-wave = 2× mains
+    }
+
+    void SetAmplitudes(float a1, float a2, float a3)
+    {
+        mA1 = a1;
+        mA2 = a2;
+        mA3 = a3;
+    }
+
+    void Reset() { mPhase = 0.f; }
+
+    float Process()
+    {
+        mPhase += mInc;
+        if (mPhase >= 1.f) mPhase -= 1.f;
+        const float tp = 2.f * juce::MathConstants<float>::pi * mPhase;
+        return mA1 * std::sin(tp) + mA2 * std::sin(2.f * tp) + mA3 * std::sin(3.f * tp);
+    }
+};
+
+struct AnalogFloorNoise
+{
+    uint32_t mSeed = 0x12345678u;
+    float mLpState = 0.f;
+    float mLpCoeff = 0.f;
+    float mShelfState = 0.f;
+    float mShelfCoeff = 0.f;
+    float mShelfGain = 0.f;
+    float mPink0=0, mPink1=0, mPink2=0, mPink3=0, mPink4=0, mPink5=0, mPink6=0;
+    bool mPinkEnabled = false;
+
+    void Init(float sampleRate, float cutoffHz = 20000.f)
+    {
+        const float fc = std::min(cutoffHz, sampleRate * 0.45f);
+        mLpCoeff = 1.f - std::exp(-2.f * juce::MathConstants<float>::pi * fc / sampleRate);
+        mShelfCoeff = 0.f;
+        mShelfGain = 0.f;
+    }
+
+    void SetHighShelf(float shelfFcHz, float hfBoostDb, float sampleRate)
+    {
+        const float fc = std::min(shelfFcHz, sampleRate * 0.45f);
+        mShelfCoeff = 1.f - std::exp(-2.f * juce::MathConstants<float>::pi * fc / sampleRate);
+        mShelfGain  = std::pow(10.f, hfBoostDb / 20.f) - 1.f;
+    }
+
+    float Process()
+    {
+        mSeed = mSeed * 196314165u + 907633515u;
+        float white = (2.f * static_cast<float>(mSeed) / static_cast<float>(0xFFFFFFFFu)) - 1.f;
+
+        if (mPinkEnabled)
+        {
+            mPink0 = 0.99886f * mPink0 + white * 0.0555179f;
+            mPink1 = 0.99332f * mPink1 + white * 0.0750759f;
+            mPink2 = 0.96900f * mPink2 + white * 0.1538520f;
+            mPink3 = 0.86650f * mPink3 + white * 0.3104856f;
+            mPink4 = 0.55000f * mPink4 + white * 0.5329522f;
+            mPink5 = -0.7616f * mPink5 - white * 0.0168980f;
+            float pink = mPink0 + mPink1 + mPink2 + mPink3 + mPink4 + mPink5 + mPink6 + white * 0.5362f;
+            mPink6 = white * 0.115926f;
+
+            float pinkOut = pink * 0.11f;
+
+            if (mShelfGain != 0.f)
+            {
+                mShelfState += mShelfCoeff * (pinkOut - mShelfState);
+                return pinkOut + mShelfGain * (pinkOut - mShelfState);
+            }
+            return pinkOut;
+        }
+        else
+        {
+            mLpState += mLpCoeff * (white - mLpState);
+            if (mShelfGain != 0.f)
+            {
+                mShelfState += mShelfCoeff * (mLpState - mShelfState);
+                return mLpState + mShelfGain * (mLpState - mShelfState);
+            }
+            return mLpState;
+        }
+    }
+};
+
 /**
  *  JUNiO 601 — Chorus BBD
  *
@@ -38,9 +131,11 @@ public:
     void setHissColor(float color) { calHissColor = color; }
     
     // [Build 29] Calibration Overrides
-    void setCalibrationParams(float dI, float dII, float depth, float sat, float cutoff, float bothRate) {
+    void setCalibrationParams(float dI, float dII, float dryGain, float wetGain, float depth, float sat, float cutoff, float bothRate) {
         calDelayI = dI;
         calDelayII = dII;
+        calGainDry = dryGain;
+        calGainWet = wetGain;
         calModDepth = depth;
         calSatBoost = sat;
         calFilterCutoff = cutoff;
@@ -63,7 +158,9 @@ private:
 
     // [Build 29] Calibration Values
     float calDelayI { 3.2f };
-    float calDelayII { 6.4f };
+    float calDelayII { 3.3f };
+    float calGainDry { 0.863f };
+    float calGainWet { 1.257f };
     float calModDepth { 1.5f };
     float calSatBoost { 1.2f };
     float calFilterCutoff { 8000.0f };
@@ -146,8 +243,9 @@ private:
     //── Saturation & Noise ────────────────────────────────────────────────
     inline float saturate(float x) const { return std::tanh(x * calSatBoost); }
 
-    juce::Random random;
+    //── Wet Noise & Ripple ────────────────────────────────────────────────
+    AnalogFloorNoise wetNoiseL, wetNoiseR;
+    RailRipple wetRipple;
     float hissMultiplier { 1.0f };
     float calHissColor { 0.4f };
-    float noiseFilterL { 0.0f }, noiseFilterR { 0.0f };
 };

@@ -60,8 +60,8 @@ public:
         
         modeSwitch.setBounds(cxMode - switchW/2, centerY - switchH/2, switchW, switchH);
         
-        lblEnv.setBounds(cxMode - 40, centerY - switchH/2 - 20, 80, 20);
-        lblGate.setBounds(cxMode - 40, centerY + switchH/2, 80, 20);
+        lblGate.setBounds(cxMode - 40, centerY - switchH/2 - 20, 80, 20); // GATE (1.0) is at the top of JUCE slider
+        lblEnv.setBounds(cxMode - 40, centerY + switchH/2, 80, 20);      // ENV (0.0) is at the bottom of JUCE slider
     }
 
 private:

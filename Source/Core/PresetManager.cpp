@@ -198,6 +198,7 @@ PresetManager::ImportResult PresetManager::loadTape(const juce::File &wavFile) {
 }
 
 void PresetManager::addLibraryFromSysEx(const uint8_t *data, int size) {
+    juce::ignoreUnused(data, size);
     // This is for live SysEx reception, but we use the File Importer for .syx files
 }
 
@@ -827,6 +828,7 @@ juce::Result PresetManager::writeToInternalSlot(int group, int bank, int patch,
                                                  const juce::ValueTree& state,
                                                  const juce::String& name,
                                                  const juce::String& author) {
+    juce::ignoreUnused(group);
     int ramIdx = getLibraryIndex("INTERNAL RAM");
     if (ramIdx < 0) return juce::Result::fail("Internal RAM not found");
     

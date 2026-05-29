@@ -145,8 +145,10 @@ public:
         // --- Inject Calibration Overrides ---
         if (calibration) {
             p.dcoMixerGain = calibration->getValue("dcoMixerGain");
-            p.subAmpScale = calibration->getValue("subAmpScale");
+            p.subGainScale = calibration->getValue("subGainScale");
+            p.noiseGainScale = calibration->getValue("noiseGainScale");
             p.mixerSaturation = calibration->getValue("mixerSaturation");
+            p.dcoSawCurvature = calibration->getValue("dcoSawCurvature");
             p.vcaSagAmt = calibration->getValue("vcaSagAmt");
             p.vcaCrosstalk = calibration->getValue("vcaCrosstalk");
             p.masterNoise = calibration->getValue("masterNoise");
@@ -161,6 +163,8 @@ public:
             p.vcfSelfOscThreshold = calibration->getValue("vcfSelfOscThreshold");
             p.vcfResoComp = calibration->getValue("vcfResoComp");
             p.vcfSaturation = calibration->getValue("vcfSaturation");
+            p.vcfResPolK = calibration->getValue("vcfResPolK");
+            p.vcfFbScale = calibration->getValue("vcfFbScale");
             p.vcfWidth = calibration->getValue("vcfWidth");
             p.hpfFreq2 = calibration->getValue("hpfFreq2");
             p.hpfFreq3 = calibration->getValue("hpfFreq3");
@@ -175,6 +179,8 @@ public:
             p.chorusHissLvl = calibration->getValue("chorusHissLvl");
             p.chorusDelayI = calibration->getValue("chorusDelayI");
             p.chorusDelayII = calibration->getValue("chorusDelayII");
+            p.chorusGainDry = calibration->getValue("chorusGainDry");
+            p.chorusGainWet = calibration->getValue("chorusGainWet");
             p.chorusModDepth = calibration->getValue("chorusModDepth");
             p.chorusSatBoost = calibration->getValue("chorusSatBoost");
             p.chorusFilterCutoff = calibration->getValue("chorusFilterCutoff");
@@ -182,6 +188,13 @@ public:
             p.lfoMinRate = calibration->getValue("lfoMinRate");
             p.lfoDelayMax = calibration->getValue("lfoDelayMax");
             p.lfoResolution = calibration->getValue("lfoResolution");
+            
+            p.noiseFloorMul = calibration->getValue("noiseFloorMul");
+            p.mainsRippleMul = calibration->getValue("mainsRippleMul");
+            p.voiceVcfFrqSpread = calibration->getValue("voiceVcfFrqSpread");
+            p.voiceVcfWidthSpread = calibration->getValue("voiceVcfWidthSpread");
+            p.voiceVcaGainSpread = calibration->getValue("voiceVcaGainSpread");
+            p.driftWalkIntensity = calibration->getValue("driftWalkIntensity");
         }
 
         // --- Inject Service Mode Overrides ---

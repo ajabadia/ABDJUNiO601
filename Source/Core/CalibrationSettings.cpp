@@ -51,7 +51,6 @@ void CalibrationSettings::buildParameterList()
     reg("noiseGainScale", "Noise Gain Scale", "DCO", "x", "Master gain multiplier for the white noise generator.", 0.45f, 0.1f, 1.5f, 0.01f);
     reg("masterClockHz", "Oscillator Master Clock", "DCO", "Hz", "Frequency of the master high-speed clock used for DCO dividers (factory=8MHz).", 8000000.0f, 7000000.0f, 9000000.0f, 1.0f);
     reg("mixerSaturation", "DCO Mixer Clipping", "DCO", "", "Threshold for DCO mixing stage saturation clipping.", 0.6f, 0.1f, 4.0f, 0.05f);
-    reg("subAmpScale", "Sub-Oscillator Gain", "DCO", "", "Level of the square sub-oscillator.", 0.707f, 0.1f, 1.5f, 0.05f);
     reg("noiseGain", "Noise Level Trim", "DCO", "", "Level of the white noise generator relative to DCOs.", 1.0f, 0.1f, 2.0f, 0.05f);
     reg("pwmCenterDuty", "PWM Center Duty", "DCO", "%", "Calibration of the 50% center point for pulse width.", 0.5f, 0.4f, 0.6f, 0.01f);
     reg("pwmMaxDuty", "PWM Maximum Duty", "DCO", "%", "Calibration of the maximum pulse width (factory=95%).", 0.95f, 0.9f, 0.99f, 0.01f);
@@ -65,6 +64,7 @@ void CalibrationSettings::buildParameterList()
     reg("dcoLfoShuntK",      "DCO-LFO Shunt Factor",   "DCO","","Taper denominator: k=Rpot/Rshunt (50K/10K=5, factory).", 5.0f, 1.0f, 10.0f, 0.5f);
     reg("dcoLfoMaxSemitones","DCO-LFO Max Depth",      "DCO","st","Max pitch mod depth at full slider (J106 factory: ±4 st).", 4.0f, 1.0f, 12.0f, 0.5f);
     reg("oscSwitchRampMs",   "Osc Switch Ramp Time",   "DCO","ms","Crossfade time for waveform on/off switching (factory: 1.45ms).", 1.45f, 0.1f, 10.0f, 0.1f);
+    reg("dcoSawCurvature",   "DCO Sawtooth Curvature", "DCO","",  "Non-linear charge curve of the analog integrators (Factory 0.15).",  0.15f, 0.0f, 0.5f, 0.01f);
     
     // --- VCA ---
     reg("vcaMasterGain", "VCA Master Gain", "VCA", "", "Overall gain trim for each voice.", 1.0f, 0.1f, 3.0f, 0.05f);
@@ -90,7 +90,9 @@ void CalibrationSettings::buildParameterList()
     reg("chorusMix", "Chorus Dry/Wet Mix", "CHORUS", "%", "Balance between dry signal and the analog BBD chorus output.", 1.0f, 0.0f, 1.0f, 0.01f);
     reg("chorusHiss", "Analog Hiss Level", "CHORUS", "dB", "Baseline analog noise level of the BBD delay lines.", -68.0f, -96.0f, -30.0f, 0.5f);
     reg("chorusDelayI", "Chorus I Base Delay", "CHORUS", "ms", "Base delay for Chorus I mode (Factory 3.2ms).", 3.2f, 1.0f, 10.0f, 0.1f);
-    reg("chorusDelayII", "Chorus II Base Delay", "CHORUS", "ms", "Base delay for Chorus II mode (Factory 6.4ms).", 6.4f, 2.0f, 20.0f, 0.1f);
+    reg("chorusDelayII", "Chorus II Base Delay", "CHORUS", "ms", "Base delay for Chorus II mode (Factory 3.3ms).", 3.3f, 2.0f, 20.0f, 0.1f);
+    reg("chorusGainDry", "Chorus Dry Gain (IC6)", "CHORUS", "x", "Dry signal gain multiplier at IC6 summing stage (Factory 0.863).", 0.863f, 0.5f, 1.5f, 0.001f);
+    reg("chorusGainWet", "Chorus Wet Gain (IC6)", "CHORUS", "x", "Wet/BBD signal gain multiplier at IC6 summing stage (Factory 1.257).", 1.257f, 0.5f, 2.0f, 0.001f);
     reg("chorusLfoRate", "Chorus I LFO Frequency", "CHORUS", "Hz", "Internal hardware LFO rate for chorus modulation (Factory 0.513Hz).", 0.513f, 0.1f, 2.0f, 0.01f);
     reg("chorusLfoRateII", "Chorus II LFO Frequency", "CHORUS", "Hz", "Second internal LFO rate for chorus modulation (Factory 0.78Hz).", 0.78f, 0.1f, 2.0f, 0.01f);
     reg("chorusBothRate", "Chorus I+II Frequency", "CHORUS", "Hz", "Accelerated LFO rate when both I and II are pressed (Factory 7.7Hz).", 7.7f, 1.0f, 15.0f, 0.1f);
@@ -122,13 +124,16 @@ void CalibrationSettings::buildParameterList()
     reg("vcfResoSpread", "VCF Resonance Spread", "VCF", "%", "Variance in filter resonance response between voices (simulates 80017A chip tolerances).", 0.05f, 0.0f, 0.2f, 0.01f);
     reg("vcfWidth", "VCF Tracking Width", "VCF", "", "V/oct scaling accuracy (simulates VCF Width trim pot).", 1.0f, 0.8f, 1.2f, 0.01f);
     reg("vcfSlewMs", "VCF Analog Slew", "VCF", "ms", "Analog slew filter time constant for VCF CV (Original: 0.522ms).", 0.522f, 0.0f, 20.0f, 0.1f);
+    reg("vcfResPolK", "VCF Res Polynomial K", "VCF", "", "Scale factor for ResK_J106 polynomial curve fitting (Factory 1.24).", 1.24f, 0.5f, 2.0f, 0.01f);
+    reg("vcfFbScale", "VCF BA662 Feedback Scale", "VCF", "", "Feedback scale factor for BA662 OTA differential pair emulation (Factory 4.20).", 4.20f, 1.0f, 10.0f, 0.05f);
 
-    // --- HPF ---
-    reg("hpfFreq2", "HPF Pos 2 Frequency", "HPF", "Hz", "Frequency at high-pass position 2.", 225.0f, 50.0f, 1000.0f, 1.0f);
-    reg("hpfFreq3", "HPF Pos 3 Frequency", "HPF", "Hz", "Frequency at high-pass position 3.", 700.0f, 300.0f, 2500.0f, 5.0f);
-    reg("hpfShelfFreq", "HPF Pos 0 Shelf Freq", "HPF", "Hz", "Low shelf frequency for bass boost (pos 0).", 70.0f, 20.0f, 300.0f, 1.0f);
-    reg("hpfShelfGain", "HPF Pos 0 Shelf Gain", "HPF", "dB", "Low shelf gain for bass boost (pos 0).", 3.0f, 0.0f, 12.0f, 0.1f);
-    reg("hpfQ", "HPF Filter Q", "HPF", "", "Resonance/bandwidth of the HPF circuit.", 0.707f, 0.1f, 2.0f, 0.01f);
+    // --- HPF --- (values from ngspice AC simulation on Juno-106 circuit)
+    reg("hpfFreq2",         "HPF Pos 2 Frequency",     "HPF", "Hz",  "HPF cutoff at pos 2 (C=.015µF, R_eff=44.9K). Hardware: 236 Hz.",     236.0f, 50.0f,  1000.0f, 1.0f);
+    reg("hpfFreq3",         "HPF Pos 3 Frequency",     "HPF", "Hz",  "HPF cutoff at pos 3 (C=.0047µF, R_eff=44.9K). Hardware: 754 Hz.",   754.0f, 300.0f, 2500.0f, 5.0f);
+    reg("hpfBassBoostGain", "Bass Boost Output Scale",  "HPF", "x",   "Post-gain scale for Bass Boost (pos 0). 1.0 = hardware (+10.5 dB DC, ~59 Hz shelf). Increase for more bass.", 1.0f, 0.1f, 3.0f, 0.05f);
+    reg("hpfShelfFreq",     "HPF Pos 0 Shelf Freq",    "HPF", "Hz",  "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.",   70.0f,  20.0f,  300.0f,  1.0f);
+    reg("hpfShelfGain",     "HPF Pos 0 Shelf Gain",    "HPF", "dB",  "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.",    3.0f,   0.0f,   12.0f,   0.1f);
+    reg("hpfQ",             "HPF Filter Q",             "HPF", "",    "[Legacy] Not used by 1-pole TPT. Kept for UI compatibility.",        0.707f, 0.1f,   2.0f,    0.01f);
 
     // --- THERMAL DRIFT ---
     reg("thermalIntensity", "Thermal Intensity Scale", "THERMAL", "x", "Global scale for thermal pitch drift instability.", 1.5f, 0.1f, 3.0f, 0.1f);
@@ -153,8 +158,15 @@ void CalibrationSettings::buildParameterList()
     reg("pwmOffThreshold", "PWM Cut-off Threshold", "DCO", "", "Point where pulse width becomes silent (Factory 0.05).", 0.05f, 0.0f, 0.15f, 0.01f);
     reg("pwmSlewRateManual", "PWM Manual Slew", "DCO", "", "Mechanical lag simulation for manual PWM.", 0.05f, 0.005f, 0.2f, 0.005f);
     reg("pwmSlewRateLFO", "PWM LFO Slew", "DCO", "", "Smoothing for LFO-driven PWM.", 0.1f, 0.01f, 0.5f, 0.01f);
-    reg("noiseAmpScale", "Noise Amplitude Scale", "DCO", "", "Master multiplier for noise generator intensity (Factory 0.5f).", 0.5f, 0.1f, 1.5f, 0.05f);
     
+    // --- ADDITIONAL REGISTRATIONS ---
+    reg("noiseFloorMul", "Analog Noise Floor Multiplier", "AGING", "x", "User-adjustable analog broadband noise floor multiplier.", 1.0f, 0.0f, 5.0f, 0.1f);
+    reg("mainsRippleMul", "Mains Ripple Multiplier", "AGING", "x", "User-adjustable mains ripple amplitude multiplier.", 1.0f, 0.0f, 5.0f, 0.1f);
+    reg("voiceVcfFrqSpread", "VCF Cutoff Voice Spread", "AGING", "counts", "VCF Cutoff frequency fixed trim offset spread (J106: ±10 DAC counts).", 10.0f, 0.0f, 100.0f, 1.0f);
+    reg("voiceVcfWidthSpread", "VCF Width Voice Spread", "AGING", "cents/oct", "VCF tracking width fixed trim offset spread (J106: ±10 cents/oct).", 10.0f, 0.0f, 100.0f, 1.0f);
+    reg("voiceVcaGainSpread", "VCA Gain Voice Spread", "AGING", "%", "VCA gain fixed voice tolerance spread (J106: ±2.4% gain).", 0.024f, 0.0f, 0.1f, 0.001f);
+    reg("driftWalkIntensity", "Drift Walk Intensity", "THERMAL", "cents", "Dynamic random drift walk max cents (J106: ±3 cents).", 3.0f, 0.0f, 10.0f, 0.1f);
+
     // --- SYSTEM ---
     reg("a4Reference", "A4 Reference Pitch", "SYSTEM", "Hz", "Master tuning reference frequency (Standard=440Hz).", 440.0f, 400.0f, 480.0f, 1.0f);
     reg("oversampling", "Internal Oversampling", "SYSTEM", "x", "Audio engine oversampling rate (1x=Normal, 2x=Hi-Fi, 4x=Extreme).", 1.0f, 1.0f, 4.0f, 1.0f, true);
