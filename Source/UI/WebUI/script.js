@@ -92,6 +92,8 @@ function listenEvent(eventName, callback) {
 window.juce = {
     menuAction: (action, ...args) => callNative("menuAction", action, ...args),
     setParameter: (id, val) => callNative("setParameter", id, val),
+    beginGesture: (id) => callNative("beginGesture", id),
+    endGesture: (id) => callNative("endGesture", id),
     loadPreset: (idx) => callNative("loadPreset", idx),
     getCalibrationParams: () => callNative("getCalibrationParams"),
     setCalibrationParam: (id, val) => callNative("setCalibrationParam", id, val),
@@ -427,11 +429,13 @@ function setupSliders() {
         container.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             container.setPointerCapture(e.pointerId);
+            callNative("beginGesture", paramID);
             move(e);
             const onMove = (ev) => move(ev);
             const onUp = () => {
                 container.removeEventListener('pointermove', onMove);
                 container.removeEventListener('pointerup', onUp);
+                callNative("endGesture", paramID);
             };
             container.addEventListener('pointermove', onMove);
             container.addEventListener('pointerup', onUp);
@@ -449,6 +453,7 @@ function setupSliders() {
             e.preventDefault();
             ring.setPointerCapture(e.pointerId);
             startY = e.clientY;
+            callNative("beginGesture", paramID);
 
             const knob = ring.querySelector('.knob');
             let currentRotation = 0;
@@ -475,6 +480,7 @@ function setupSliders() {
             const onUp = () => {
                 ring.removeEventListener('pointermove', onMove);
                 ring.removeEventListener('pointerup', onUp);
+                callNative("endGesture", paramID);
             };
             ring.addEventListener('pointermove', onMove);
             ring.addEventListener('pointerup', onUp);
@@ -1126,4 +1132,21 @@ function showNotification(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
     // initKeyboard(); // If it exists elsewhere, otherwise I'll just init settings
     initUserSettingsSync();
+});
+
+// --- GLOBAL KEYBOARD SHORTCUTS FOR UNDO / REDO ---
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        if (e.key === 'z' || e.key === 'Z') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                callNative("menuAction", "redo");
+            } else {
+                callNative("menuAction", "undo");
+            }
+        } else if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            callNative("menuAction", "redo");
+        }
+    }
 });

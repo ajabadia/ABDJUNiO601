@@ -16,8 +16,8 @@ Este documento detalla el estado actual del proyecto tras la sesión de refinami
 ## Tareas Pendientes Detalladas
 
 ### 1. Sistema de Undo/Redo (Integración Completa)
-- [ ] **Verificar Tracking**: Asegurar que el `juce::UndoManager` está capturando transacciones desde `APVTS` para cada cambio de parámetro.
-- [ ] **Sincronización de UI**: Al hacer Undo, los sliders/botones deben actualizar su posición visual (puede requerir llamadas a `component.sendLookAndFeelChange()` o listeners específicos).
+- [x] **Verificar Tracking**: Asegurar que el `juce::UndoManager` está capturando transacciones desde `APVTS` para cada cambio de parámetro.
+- [x] **Sincronización de UI**: Al hacer Undo, los sliders/botones deben actualizar su posición visual (mediante el puente de mensajería bidireccional en el WebUI).
 
 ### 2. Menú de Opciones
 - [ ] **Implementar Diálogo**: El ítem "Options..." en el menú Edit está creado pero no tiene acción asociada.
@@ -27,16 +27,16 @@ Este documento detalla el estado actual del proyecto tras la sesión de refinami
     - Rutas para la librería de presets.
 
 ### 3. Auditoría de Fidelidad de Audio
-- [ ] **VCF Self-oscillation**: Calibrar el filtro para que comience a oscilar exactamente donde lo hace el hardware original (Resonancia cerca del máximo).
-- [ ] **Curvas ADSR**: Comparar los tiempos de ataque y decaimiento con mediciones de un Juno-106 real (curvas exponenciales vs lineales).
-- [ ] **Sub-oscillator**: Verificar que la fase y el peso armónico de la onda cuadrada del sub-osc sean idénticos al original.
+- [ ] **VCF Self-oscillation**: Corregir e integrar los parámetros dinámicos `selfOscThreshold` y `selfOscInt` en `JunoVCF::processSample` (actualmente se pasan pero se ignoran, usando solo `ResK_J106`).
+- [x] **Curvas ADSR**: Verificado. Se emula la tasa de ticks de 4.23ms del uPD7811G, la atenuación del 6% en CalcDecay y curvas exponenciales realistas.
+- [x] **Sub-oscillator**: Verificado. Implementado mediante PolyBLEP y filtro pasivo RC Lowpass sintonizado a 4.2 kHz para el rolloff real.
 
 ### 4. Skin Manager y Personalización
 - [ ] **Desarrollar `SkinManager.h`**: Se ha creado un esqueleto para alternar entre el look "Classic Blue/Grey" y el "Juno-106S" (negro). 
 - [ ] **Tokens de Diseño**: Conectar los colores de `DesignTokens.h` con el `SkinManager` para cambios en caliente.
 
 ### 5. Manual Mode Logic
-- [ ] **Snapshot Inicial**: Al activar "MANUAL", el motor debe capturar inmediatamente el estado físico de TODOS los sliders de la interfaz y enviarlos al DSP de una vez (actualmente se hace vía APVTS pero falta verificar la totalidad de parámetros).
+- [x] **Snapshot Inicial**: Al activar "MANUAL", el motor debe capturar inmediatamente el estado físico de TODOS los sliders de la interfaz y enviarlos al DSP de una vez (verificado y validado síncronamente en el procesador).
 
 ## Archivos de Referencia Clave
 - `PluginProcessor.cpp`: Lógica de SysEx y gestión de parámetros.

@@ -847,6 +847,29 @@ Se han implementado con éxito las siguientes prioridades:
 845:   * `voiceVcaGainSpread` (Default: `0.024` gain)
 846:   * Frecuencias y profundidades del Drift Walk expuestas en General Settings > Calibration.
 
+---
+
+## 8. Integración de Deshacer/Rehacer (Undo/Redo) y Verificación de Modo Manual
+
+### A. Seguimiento de Gestos (Undo/Redo Gesture Tracking)
+Para posibilitar que el host DAW agrupe los movimientos continuos de controles deslizantes (sliders) y perillas (knobs) en transacciones únicas de deshacer:
+* Se implementaron los hooks de inicio y fin de gesto en la interfaz Javascript (`window.juce.beginGesture` / `window.juce.endGesture`).
+* Se mapearon funciones nativas C++ en `WebViewEditor.cpp` para recuperar el parámetro correspondiente vía APVTS y ejecutar:
+  * `param->beginChangeGesture();`
+  * `param->endChangeGesture();`
+* Se corrigieron los nombres de los métodos a la API exacta de JUCE (`beginChangeGesture` y `endChangeGesture`), resolviendo los errores de compilación con `juce::RangedAudioParameter`.
+
+### B. Atajos de Teclado Globales (Keyboard Shortcuts)
+* Se integraron escuchas de eventos `keydown` en `script.js` para detectar las combinaciones estándar:
+  * deshacer: `Ctrl+Z`
+  * rehacer: `Ctrl+Y` o `Ctrl+Shift+Z`
+* Las llamadas se enrutan directamente al gestor nativo de deshacer de JUCE, sincronizando instantáneamente los estados visuales en el navegador web del plugin.
+
+### C. Validación de Modo Manual (Manual Mode)
+* Se auditó y comprobó que `sendManualMode()` en `PluginProcessor.cpp` captura instantáneamente el estado completo de los 44+ controles de panel activos mapeados.
+* Al presionar "MANUAL", los valores del panel se vuelcan síncronamente al motor DSP y a las voces activas, ejecutando un reinicio de fase de osciladores/envolventes para sincronización inmediata del tono y timbre.
+
+
 
 
 

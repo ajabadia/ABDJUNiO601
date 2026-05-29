@@ -104,6 +104,24 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 completion({});
             }
         })
+        .withNativeFunction ("beginGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            if (args.size() >= 1) {
+                juce::String paramID = args[0].toString();
+                if (auto* param = audioProcessor.getAPVTS().getParameter(paramID)) {
+                    param->beginChangeGesture();
+                }
+            }
+            completion (juce::var::undefined());
+        })
+        .withNativeFunction ("endGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            if (args.size() >= 1) {
+                juce::String paramID = args[0].toString();
+                if (auto* param = audioProcessor.getAPVTS().getParameter(paramID)) {
+                    param->endChangeGesture();
+                }
+            }
+            completion (juce::var::undefined());
+        })
         .withNativeFunction ("getCalibrationParams", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
             juce::ignoreUnused(args);
             juce::Array<juce::var> result;
