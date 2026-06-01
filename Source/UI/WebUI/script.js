@@ -1602,7 +1602,11 @@ document.querySelectorAll('.painter-tape').forEach(tape => {
             document.querySelectorAll('.service-section').forEach(sec => {
                 const title = sec.querySelector('.service-cat-header span');
                 if (title) {
-                    const match = title.innerText.toLowerCase().includes(module);
+                    const catName = title.innerText.toLowerCase();
+                    let match = catName.includes(module);
+                    if (module === 'env' && catName.includes('adsr')) {
+                        match = true;
+                    }
                     sec.style.display = match ? 'block' : 'none';
                     if (match) {
                         const selectEl = sec.querySelector('.model-selector-row select, select');

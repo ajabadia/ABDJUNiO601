@@ -155,13 +155,17 @@ const ServiceMode = {
 
         if (catParams.length === 0 && cat !== "GENERAL" && !modelParamId) return;
 
+        const section = document.createElement('div');
+        section.className = 'service-section';
+        section.setAttribute('data-category', cat);
+
         const header = document.createElement('div');
         header.className = 'service-cat-header';
         header.innerHTML = `
             <span>${cat}</span>
             <button class="service-reset-btn cat-reset" onclick="ServiceMode.resetCategory('${cat}')" title="Reset this section to factory defaults">RESET SECTION</button>
         `;
-        container.appendChild(header);
+        section.appendChild(header);
 
         const grid = document.createElement('div');
         grid.className = 'service-param-grid';
@@ -207,7 +211,7 @@ const ServiceMode = {
             const empty = document.createElement('div');
             empty.className = 'service-param-empty';
             empty.innerText = 'No adjustable parameters';
-            container.appendChild(empty);
+            section.appendChild(empty);
         } else {
             catParams.forEach(p => {
                 const row = document.createElement('div');
@@ -290,8 +294,9 @@ const ServiceMode = {
                 grid.appendChild(row);
             });
             console.log(`ServiceMode: Rendered category ${cat} with ${catParams.length} params`);
-            container.appendChild(grid);
+            section.appendChild(grid);
         }
+        container.appendChild(section);
     },
 
     async updateParam(id, value) {

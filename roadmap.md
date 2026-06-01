@@ -123,6 +123,7 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
   - **Super Six**: Unrestricted (all 9 skins available), defaults to "CLASSIC BLUE".
 - [x] **Component Isolation**: Scoped `.module[data-model]` style overrides to apply only under the `classic` theme. This prevents custom themes (like `dark-106s` and `space-echo`) from having their dark/styled module background colors overridden by individual module models.
 - [x] **Side Cheek Layout Restoration**: Restored the missing absolute positioning, sizing, and rendering rules for `#synth-app::before` and `#synth-app::after` in [base.css](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/css/base.css) and the root synced CSS, displaying real wood/metal panels correctly.
+- [x] **Painter Tape Target Filtering**: Wrapped dynamic calibration categories inside `.service-section` containers, enabling the script to correctly filter and display only the relevant section (and focusing the model selector) when clicking on a painter tape. Handle special case of `env` matching the `ADSR` category.
 - [x] **CMake Packaging Resolution**: Cleaned up non-existent asset references (`wood_106_left.png` / `wood_106_right.png`) in [CMakeLists.txt](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt) to fix the `juceaide` crash (MSB8066).
 
 ## Post-Launch / Future Iterations
