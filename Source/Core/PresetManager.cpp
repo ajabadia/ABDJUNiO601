@@ -111,6 +111,25 @@ juce::ValueTree PresetManager::bytesToState(const uint8_t* data, int size) const
     vt.setProperty("vcfPolarity", p.vcfPolarity, nullptr);
     vt.setProperty("hpfFreq", p.hpfFreq, nullptr);
 
+    // Modular Model Routing Defaults (0 = J6, 1 = J60, 2 = J106)
+    vt.setProperty("modelDCO", 2, nullptr);
+    vt.setProperty("modelHPF", 2, nullptr);
+    vt.setProperty("modelVCF", 2, nullptr);
+    vt.setProperty("modelADSR", 2, nullptr);
+    vt.setProperty("modelChorus", 2, nullptr);
+    vt.setProperty("modelArp", 0, nullptr);
+    vt.setProperty("modelPoly", 2, nullptr);
+    vt.setProperty("modelPorta", 2, nullptr);
+    vt.setProperty("modelUnison", 2, nullptr);
+
+    // Arpeggiator Defaults
+    vt.setProperty("arpEnabled", false, nullptr);
+    vt.setProperty("arpMode", 0, nullptr);
+    vt.setProperty("arpRange", 0, nullptr);
+    vt.setProperty("arpRate", 0.5f, nullptr);
+    vt.setProperty("arpSync", false, nullptr);
+    vt.setProperty("arpDivision", 6, nullptr);
+
     // Performance Defaults
     vt.setProperty("benderToDCO", 0.0f, nullptr); 
     vt.setProperty("benderToVCF", 0.0f, nullptr);

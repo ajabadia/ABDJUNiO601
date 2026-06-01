@@ -27,7 +27,7 @@
     background: transparent;
     display: flex;
     flex-direction: column;
-    border-right: 2px solid var(--white);
+    border-right: 2px solid var(--panel-line-color, rgba(255, 255, 255, 0.2));
     backdrop-filter: var(--glass-blur);
     border-left: none;
     min-height: 180px; /* [Build 20] Prevent slider handle overflow */

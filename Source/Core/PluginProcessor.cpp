@@ -1,6 +1,7 @@
 #include "ABDSimpleJuno106AudioProcessor.h"
 #include <JuceHeader.h>
 #include <memory>
+#include "JunoModelConfig.h"
 #if !JUCE_HEADLESS_PLUGIN
  #include "PluginEditor.h"
  #include "../UI/WebView/WebViewEditor.h"
@@ -10,6 +11,7 @@
 #include "ServiceModeManager.h"
 #include "JunoProtocol.h"
 #include "../Synth/ChorusBBD.h"
+#include "../Synth/JunoArpeggiator.h"
 #include "JunoTests.h"
 
 using namespace JunoConstants;
@@ -97,6 +99,25 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     fmtNumVoices = getCachedParam("numVoices");
     // fmtUnisonWidth = getCachedParam("unisonWidth"); 
 
+    // Model Routing / Selección de Modelos
+    fmtModelDCO = getCachedParam("modelDCO");
+    fmtModelHPF = getCachedParam("modelHPF");
+    fmtModelVCF = getCachedParam("modelVCF");
+    fmtModelADSR = getCachedParam("modelADSR");
+    fmtModelChorus = getCachedParam("modelChorus");
+    fmtModelArp = getCachedParam("modelArp");
+    fmtModelPoly = getCachedParam("modelPoly");
+    fmtModelPorta = getCachedParam("modelPorta");
+    fmtModelUnison = getCachedParam("modelUnison");
+
+    // Arpeggiator Settings
+    fmtArpEnabled = getCachedParam("arpEnabled");
+    fmtArpMode = getCachedParam("arpMode");
+    fmtArpRange = getCachedParam("arpRange");
+    fmtArpRate = getCachedParam("arpRate");
+    fmtArpSync = getCachedParam("arpSync");
+    fmtArpDivision = getCachedParam("arpDivision");
+
     DBG("ABDSimpleJuno106AudioProcessor::Parameters cached DONE");
     loadUserSettings();
 
@@ -140,6 +161,7 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     // [Build 103] Recording Setup
     formatManager.registerBasicFormats();
     backgroundThread.startThread();
+    arpeggiator = std::make_unique<JunoArpeggiator>();
 }
 
 ABDSimpleJuno106AudioProcessor::~ABDSimpleJuno106AudioProcessor() {
@@ -148,7 +170,7 @@ ABDSimpleJuno106AudioProcessor::~ABDSimpleJuno106AudioProcessor() {
     juce::Logger::setCurrentLogger (nullptr); 
 }
 
-const juce::String ABDSimpleJuno106AudioProcessor::getName() const { return "JUNiO 601"; }
+const juce::String ABDSimpleJuno106AudioProcessor::getName() const { return getJunoModelName(); }
 bool ABDSimpleJuno106AudioProcessor::acceptsMidi() const { return true; }
 bool ABDSimpleJuno106AudioProcessor::producesMidi() const { return true; }
 bool ABDSimpleJuno106AudioProcessor::isMidiEffect() const { return false; }
@@ -172,6 +194,10 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     setLatencySamples(0);
 
     voiceManager.prepare(sr, samplesPerBlock);
+    if (arpeggiator != nullptr) {
+        arpeggiator->SetSampleRate((float)sr);
+        arpeggiator->Reset();
+    }
     voiceManager.setTuningTable(tuningManager.getTuningTable());
     juce::dsp::ProcessSpec spec { sr, (juce::uint32)samplesPerBlock, 2 };
     chorus.prepare(sr, samplesPerBlock);
@@ -291,10 +317,53 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
             }
         }
 
-        if (message.isNoteOn()) voiceManager.noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
-        else if (message.isNoteOff()) performanceState.handleNoteOff(message.getNoteNumber(), voiceManager);
+        if (message.isNoteOn()) {
+            if (arpeggiator != nullptr && currentParams.arpEnabled) {
+                arpeggiator->NoteOn(message.getNoteNumber());
+            } else {
+                voiceManager.noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
+            }
+        }
+        else if (message.isNoteOff()) {
+            if (arpeggiator != nullptr && currentParams.arpEnabled) {
+                arpeggiator->NoteOff(message.getNoteNumber());
+            } else {
+                performanceState.handleNoteOff(message.getNoteNumber(), voiceManager);
+            }
+        }
     }
     performanceState.flushSustain(voiceManager);
+
+    if (arpeggiator != nullptr) {
+        arpeggiator->mEnabled = currentParams.arpEnabled && (currentParams.modelArp != 2);
+        arpeggiator->mMode = currentParams.arpMode;
+        arpeggiator->mRange = currentParams.arpRange;
+        arpeggiator->mRate = JunoArpeggiator::arpRate(currentParams.arpRate);
+        
+        arpeggiator->mSyncToHost = currentParams.arpSync;
+        if (currentParams.arpSync) {
+            if (auto* playHead = getPlayHead()) {
+                juce::AudioPlayHead::CurrentPositionInfo posInfo;
+                if (playHead->getCurrentPosition(posInfo)) {
+                    arpeggiator->mHostPlaying = posInfo.isPlaying;
+                    arpeggiator->mHostBPM = posInfo.bpm;
+                    arpeggiator->mHostBeatPos = posInfo.ppqPosition;
+                    arpeggiator->mDivision = currentParams.arpDivision;
+                }
+            } else {
+                arpeggiator->mSyncToHost = false;
+            }
+        }
+        
+        arpeggiator->Process(numSamples,
+            [this](int note, int /*sampleOffset*/) {
+                voiceManager.noteOn(0, note, 0.8f);
+            },
+            [this](int note, int /*sampleOffset*/) {
+                voiceManager.noteOff(0, note, 0.0f);
+            }
+        );
+    }
 
     if (patchDumpRequested.exchange(false)) {
         sendPatchDump();
@@ -404,7 +473,8 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         voiceManager.forceUpdate();
     }
 
-    voiceManager.setPortamentoEnabled(currentParams.portamentoOn);
+    bool resolvedPortamentoOn = currentParams.portamentoOn;
+    voiceManager.setPortamentoEnabled(resolvedPortamentoOn);
     voiceManager.setPortamentoTime(currentParams.portamentoTime);
     voiceManager.setPortamentoLegato(currentParams.portamentoLegato);
     voiceManager.setBenderAmount(currentParams.benderValue); // Removed globalDriftAudible (applied in updatePitch)
@@ -656,21 +726,37 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.aftertouchToVCF = fmtAftertouchToVCF->load();
     p.lowCpuMode = fmtLowCpuMode->load() > 0.5f;
     p.memoryProtect = fmtMemoryProtect->load() > 0.5f;
+
+    // Model Routing / Selección de Modelos
+    p.modelDCO   = (int)std::lround(fmtModelDCO->load());
+    p.modelHPF   = (int)std::lround(fmtModelHPF->load());
+    p.modelVCF   = (int)std::lround(fmtModelVCF->load());
+    p.modelADSR  = (int)std::lround(fmtModelADSR->load());
+    p.modelChorus = (int)std::lround(fmtModelChorus->load());
+    p.modelArp   = (int)std::lround(fmtModelArp->load());
+    p.modelPoly  = (int)std::lround(fmtModelPoly->load());
+    p.modelPorta = (int)std::lround(fmtModelPorta->load());
+    p.modelUnison = (int)std::lround(fmtModelUnison->load());
+
+    // Arpeggiator Settings
+    p.arpEnabled = fmtArpEnabled->load() > 0.5f;
+    p.arpMode    = (int)std::lround(fmtArpMode->load());
+    p.arpRange   = (int)std::lround(fmtArpRange->load());
+    p.arpRate    = fmtArpRate->load();
+    p.arpSync    = fmtArpSync->load() > 0.5f;
+    p.arpDivision = (int)std::lround(fmtArpDivision->load());
     
     // --- Inject Calibration Overrides ---
-    p.dcoMixerGain = calibrationSettings->getValue("dcoMixerGain");
-    p.subGainScale = calibrationSettings->getValue("subGainScale");
-    p.noiseGainScale = calibrationSettings->getValue("noiseGainScale");
-    p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
-    // [BUG FIX] thermalDrift is a COMPUTED DSP value (see processBlock loop).
-    // DO NOT overwrite it from calibration here — that caused 100-cent constant drift ("toy tremolo").
-    // thermalIntensity/thermalInertia/thermalMigration are the calibration controls for the thermal engine.
+    p.dcoMixerGain = calibrationSettings->getValueForModel("dcoMixerGain", p.modelDCO);
+    p.subGainScale = calibrationSettings->getValueForModel("subGainScale", p.modelDCO);
+    p.noiseGainScale = calibrationSettings->getValueForModel("noiseGainScale", p.modelDCO);
+    p.mixerSaturation = calibrationSettings->getValueForModel("mixerSaturation", p.modelDCO);
 
     p.thermalIntensity = calibrationSettings->getValue("thermalIntensity");
     p.thermalInertia = calibrationSettings->getValue("thermalInertia");
     p.thermalMigration = calibrationSettings->getValue("thermalMigration");
-    p.vcaSagAmt = calibrationSettings->getValue("vcaSagAmt");
-    p.vcaCrosstalk = calibrationSettings->getValue("vcaCrosstalk");
+    p.vcaSagAmt = calibrationSettings->getValueForModel("vcaSagAmt", p.modelPoly);
+    p.vcaCrosstalk = calibrationSettings->getValueForModel("vcaCrosstalk", p.modelPoly);
     p.masterNoise = calibrationSettings->getValue("masterNoise");
     p.stereoBleed = calibrationSettings->getValue("stereoBleed");
     p.sliderHysteresis = calibrationSettings->getValue("sliderHysteresis");
@@ -678,87 +764,85 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.staggeredUpdateMaxMs = calibrationSettings->getValue("staggeredUpdateMaxMs");
     
     // Load Voice Variables
-    p.voiceVariance = calibrationSettings->getValue("voiceVariance");
-    p.unisonSpread = calibrationSettings->getValue("unisonSpread");
-    p.dcoDriftComplexity = calibrationSettings->getValue("dcoDriftComplexity");
-    p.pwmCenterDuty = calibrationSettings->getValue("pwmCenterDuty");
-    p.pwmMaxDuty = calibrationSettings->getValue("pwmMaxDuty");
-    p.pwmMinDuty = calibrationSettings->getValue("pwmMinDuty");
-    p.pwmOffThreshold = calibrationSettings->getValue("pwmOffThreshold");
-    p.pwmSlewRateManual = calibrationSettings->getValue("pwmSlewRateManual");
-    p.pwmSlewRateLFO = calibrationSettings->getValue("pwmSlewRateLFO");
-    p.dcoVoiceDrift = calibrationSettings->getValue("dcoVoiceDrift");
-    p.dcoGlobalDrift = calibrationSettings->getValue("dcoGlobalDrift");
+    p.voiceVariance = calibrationSettings->getValueForModel("voiceVariance", p.modelPoly);
+    p.unisonSpread = calibrationSettings->getValueForModel("unisonSpread", p.modelPoly);
+    p.dcoDriftComplexity = calibrationSettings->getValueForModel("dcoDriftComplexity", p.modelDCO);
+    p.pwmCenterDuty = calibrationSettings->getValueForModel("pwmCenterDuty", p.modelDCO);
+    p.pwmMaxDuty = calibrationSettings->getValueForModel("pwmMaxDuty", p.modelDCO);
+    p.pwmMinDuty = calibrationSettings->getValueForModel("pwmMinDuty", p.modelDCO);
+    p.pwmOffThreshold = calibrationSettings->getValueForModel("pwmOffThreshold", p.modelDCO);
+    p.pwmSlewRateManual = calibrationSettings->getValueForModel("pwmSlewRateManual", p.modelDCO);
+    p.pwmSlewRateLFO = calibrationSettings->getValueForModel("pwmSlewRateLFO", p.modelDCO);
+    p.dcoVoiceDrift = calibrationSettings->getValueForModel("dcoVoiceDrift", p.modelDCO);
+    p.dcoGlobalDrift = calibrationSettings->getValueForModel("dcoGlobalDrift", p.modelDCO);
 
     // [Build 25/29] Filter Calibration
-    p.vcfMinHz = calibrationSettings->getValue("vcfMinHz");
-    p.vcfMaxHz = calibrationSettings->getValue("vcfMaxHz");
-    p.vcfSelfOscThreshold = calibrationSettings->getValue("vcfSelfOscThreshold");
-    p.vcfSaturation = calibrationSettings->getValue("vcfSaturation");
-    p.vcfResoComp = calibrationSettings->getValue("vcfResoComp");
-    p.vcfResoCompBoost = calibrationSettings->getValue("vcfResoCompBoost");
-    p.vcfLfoDepth = calibrationSettings->getValue("vcfLfoDepth");
-    p.vcfEnvRange = calibrationSettings->getValue("vcfEnvRange");
-    p.vcfSelfOscInt = calibrationSettings->getValue("vcfSelfOscInt");
-    p.vcfTrackCenter = calibrationSettings->getValue("vcfTrackCenter");
-    p.vcfResoSpread = calibrationSettings->getValue("vcfResoSpread");
-    p.vcfWidth = calibrationSettings->getValue("vcfWidth");
-    p.vcfSlewMs = calibrationSettings->getValue("vcfSlewMs");
+    p.vcfMinHz = calibrationSettings->getValueForModel("vcfMinHz", p.modelVCF);
+    p.vcfMaxHz = calibrationSettings->getValueForModel("vcfMaxHz", p.modelVCF);
+    p.vcfSelfOscThreshold = calibrationSettings->getValueForModel("vcfSelfOscThreshold", p.modelVCF);
+    p.vcfSaturation = calibrationSettings->getValueForModel("vcfSaturation", p.modelVCF);
+    p.vcfResoComp = calibrationSettings->getValueForModel("vcfResoComp", p.modelVCF);
+    p.vcfResoCompBoost = calibrationSettings->getValueForModel("vcfResoCompBoost", p.modelVCF);
+    p.vcfLfoDepth = calibrationSettings->getValueForModel("vcfLfoDepth", p.modelVCF);
+    p.vcfEnvRange = calibrationSettings->getValueForModel("vcfEnvRange", p.modelVCF);
+    p.vcfSelfOscInt = calibrationSettings->getValueForModel("vcfSelfOscInt", p.modelVCF);
+    p.vcfTrackCenter = calibrationSettings->getValueForModel("vcfTrackCenter", p.modelVCF);
+    p.vcfResoSpread = calibrationSettings->getValueForModel("vcfResoSpread", p.modelVCF);
+    p.vcfWidth = calibrationSettings->getValueForModel("vcfWidth", p.modelVCF);
+    p.vcfSlewMs = calibrationSettings->getValueForModel("vcfSlewMs", p.modelVCF);
 
     // [Build 28] HPF Calibration
-    p.hpfFreq2         = calibrationSettings->getValue("hpfFreq2");
-    p.hpfFreq3         = calibrationSettings->getValue("hpfFreq3");
-    p.hpfShelfFreq     = calibrationSettings->getValue("hpfShelfFreq");
-    p.hpfShelfGain     = calibrationSettings->getValue("hpfShelfGain");
-    p.hpfQ             = calibrationSettings->getValue("hpfQ");
-    p.hpfBassBoostGain = calibrationSettings->getValue("hpfBassBoostGain");
+    p.hpfFreq1         = calibrationSettings->getValueForModel("hpfFreq1", p.modelHPF);
+    p.hpfFreq2         = calibrationSettings->getValueForModel("hpfFreq2", p.modelHPF);
+    p.hpfFreq3         = calibrationSettings->getValueForModel("hpfFreq3", p.modelHPF);
+    p.hpfShelfFreq     = calibrationSettings->getValueForModel("hpfShelfFreq", p.modelHPF);
+    p.hpfShelfGain     = calibrationSettings->getValueForModel("hpfShelfGain", p.modelHPF);
+    p.hpfQ             = calibrationSettings->getValueForModel("hpfQ", p.modelHPF);
+    p.hpfBassBoostGain = calibrationSettings->getValueForModel("hpfBassBoostGain", p.modelHPF);
 
     // [Build 29] VCA Calibration
-    p.vcaMasterGain = juce::jmax(0.01f, calibrationSettings->getValue("vcaMasterGain")); // Safe minimum
-    p.vcaVelSensScale = calibrationSettings->getValue("vcaVelSensScale");
-    p.mixerSaturation = calibrationSettings->getValue("mixerSaturation");
-    p.vcaKillThreshold = calibrationSettings->getValue("vcaKillThreshold");
-    p.vcaBleed = calibrationSettings->getValue("vcaBleed");
-    p.vcaDcOffset = calibrationSettings->getValue("vcaDcOffset");
-    p.vcaOffset = calibrationSettings->getValue("vcaOffset");
-    p.vcaSlewMs = calibrationSettings->getValue("vcaSlewMs");
+    p.vcaMasterGain = juce::jmax(0.01f, calibrationSettings->getValueForModel("vcaMasterGain", p.modelPoly));
+    p.vcaVelSensScale = calibrationSettings->getValueForModel("vcaVelSensScale", p.modelPoly);
+    p.vcaKillThreshold = calibrationSettings->getValueForModel("vcaKillThreshold", p.modelPoly);
+    p.vcaBleed = calibrationSettings->getValueForModel("vcaBleed", p.modelPoly);
+    p.vcaDcOffset = calibrationSettings->getValueForModel("vcaDcOffset", p.modelPoly);
+    p.vcaOffset = calibrationSettings->getValueForModel("vcaOffset", p.modelPoly);
+    p.vcaSlewMs = calibrationSettings->getValueForModel("vcaSlewMs", p.modelPoly);
 
     // [Fidelity Sync] Master & Global Offsets
     p.masterOutputGain = std::pow(10.0f, calibrationSettings->getValue("masterOutputGain") / 20.0f);
     p.masterPitchCents = calibrationSettings->getValue("masterPitchCents");
 
     // [Build 29] Envelope Calibration (Full Sync)
-    p.adsrSlewMs = calibrationSettings->getValue("adsrSlewMs");
-    p.adsrAttackFactor = calibrationSettings->getValue("adsrAttackFactor");
-    p.adsrCurveExponent = calibrationSettings->getValue("adsrCurveExponent");
-    p.adsrMcuRate = calibrationSettings->getValue("adsrMcuRate");
-    p.adsrDacSteps = calibrationSettings->getValue("adsrDacSteps");
-    p.adsrOvershoot = calibrationSettings->getValue("adsrOvershoot");
-    p.adsrVariance = calibrationSettings->getValue("adsrVariance");
-    p.vcaCurveType = calibrationSettings->getValue("vcaCurveType");
-
+    p.adsrSlewMs = calibrationSettings->getValueForModel("adsrSlewMs", p.modelADSR);
+    p.adsrAttackFactor = calibrationSettings->getValueForModel("adsrAttackFactor", p.modelADSR);
+    p.adsrCurveExponent = calibrationSettings->getValueForModel("adsrCurveExponent", p.modelADSR);
+    p.adsrMcuRate = calibrationSettings->getValueForModel("adsrMcuRate", p.modelADSR);
+    p.adsrDacSteps = calibrationSettings->getValueForModel("adsrDacSteps", p.modelADSR);
+    p.adsrOvershoot = calibrationSettings->getValueForModel("adsrOvershoot", p.modelADSR);
+    p.adsrVariance = calibrationSettings->getValueForModel("adsrVariance", p.modelADSR);
+    p.vcaCurveType = calibrationSettings->getValueForModel("vcaCurveType", p.modelPoly);
 
     // [Build 29] Chorus Calibration
-    p.chorusHissLvl = calibrationSettings->getValue("chorusHissLvl");
-    p.chorusDelayI = calibrationSettings->getValue("chorusDelayI");
-    p.chorusDelayII = calibrationSettings->getValue("chorusDelayII");
-    p.chorusModDepth = calibrationSettings->getValue("chorusModDepth");
-    p.chorusSatBoost = calibrationSettings->getValue("chorusSatBoost");
-    p.chorusFilterCutoff = calibrationSettings->getValue("chorusFilterCutoff");
-    p.chorusLfoRate = calibrationSettings->getValue("chorusLfoRate");
-    p.chorusLfoRateII = calibrationSettings->getValue("chorusLfoRateII");
-    p.chorusBothRate = calibrationSettings->getValue("chorusBothRate");
+    p.chorusHissLvl = calibrationSettings->getValueForModel("chorusHissLvl", p.modelChorus);
+    p.chorusDelayI = calibrationSettings->getValueForModel("chorusDelayI", p.modelChorus);
+    p.chorusDelayII = calibrationSettings->getValueForModel("chorusDelayII", p.modelChorus);
+    p.chorusModDepth = calibrationSettings->getValueForModel("chorusModDepth", p.modelChorus);
+    p.chorusSatBoost = calibrationSettings->getValueForModel("chorusSatBoost", p.modelChorus);
+    p.chorusFilterCutoff = calibrationSettings->getValueForModel("chorusFilterCutoff", p.modelChorus);
+    p.chorusLfoRate = calibrationSettings->getValueForModel("chorusLfoRate", p.modelChorus);
+    p.chorusLfoRateII = calibrationSettings->getValueForModel("chorusLfoRateII", p.modelChorus);
+    p.chorusBothRate = calibrationSettings->getValueForModel("chorusBothRate", p.modelChorus);
 
     // [BUG FIX] Resolve chorusMode from panel buttons (chorus1, chorus2).
-    // Without this, chorusMode stayed at 0 (Off) regardless of the panel state.
     if (p.chorus1 && p.chorus2)
-        p.chorusMode = 3; // ChorusBoth
+        p.chorusMode = 3;
     else if (p.chorus2)
-        p.chorusMode = 2; // ChorusII
+        p.chorusMode = 2;
     else if (p.chorus1)
-        p.chorusMode = 1; // ChorusI
+        p.chorusMode = 1;
     else
-        p.chorusMode = 0; // Off
+        p.chorusMode = 0;
 
     // [Build 25] LFO Calibration
     p.lfoMaxRate = calibrationSettings->getValue("lfoMaxRate");
@@ -767,14 +851,14 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.lfoResolution = calibrationSettings->getValue("lfoResolution");
     
     // New DCO Mix Levels and Switch Ramp ms
-    p.sawMixAmp = calibrationSettings->getValue("sawMixAmp");
-    p.pulseMixAmp = calibrationSettings->getValue("pulseMixAmp");
-    p.subMixAmp = calibrationSettings->getValue("subMixAmp");
-    p.noiseMixAmp = calibrationSettings->getValue("noiseMixAmp");
-    p.audioTaperScale = calibrationSettings->getValue("audioTaperScale");
-    p.dcoLfoShuntK = calibrationSettings->getValue("dcoLfoShuntK");
-    p.dcoLfoMaxSemitones = calibrationSettings->getValue("dcoLfoMaxSemitones");
-    p.oscSwitchRampMs = calibrationSettings->getValue("oscSwitchRampMs");
+    p.sawMixAmp = calibrationSettings->getValueForModel("sawMixAmp", p.modelDCO);
+    p.pulseMixAmp = calibrationSettings->getValueForModel("pulseMixAmp", p.modelDCO);
+    p.subMixAmp = calibrationSettings->getValueForModel("subMixAmp", p.modelDCO);
+    p.noiseMixAmp = calibrationSettings->getValueForModel("noiseMixAmp", p.modelDCO);
+    p.audioTaperScale = calibrationSettings->getValueForModel("audioTaperScale", p.modelDCO);
+    p.dcoLfoShuntK = calibrationSettings->getValueForModel("dcoLfoShuntK", p.modelDCO);
+    p.dcoLfoMaxSemitones = calibrationSettings->getValueForModel("dcoLfoMaxSemitones", p.modelDCO);
+    p.oscSwitchRampMs = calibrationSettings->getValueForModel("oscSwitchRampMs", p.modelDCO);
     
     // New LFO Calibration Params
     p.lfoTickRateMs = calibrationSettings->getValue("lfoTickRateMs");
@@ -787,7 +871,8 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters() {
     p.voiceVcfFrqSpread = calibrationSettings->getValue("voiceVcfFrqSpread");
     p.voiceVcfWidthSpread = calibrationSettings->getValue("voiceVcfWidthSpread");
     p.voiceVcaGainSpread = calibrationSettings->getValue("voiceVcaGainSpread");
-    p.driftWalkIntensity = calibrationSettings->getValue("driftWalkIntensity");
+    p.driftWalkIntensity = calibrationSettings->getValueForModel("driftWalkIntensity", p.modelPoly);
+    p.oversampling = (int)std::lround(calibrationSettings->getValue("oversampling"));
 
     // [Build 29] Diagnostic Cycle States
     p.hpfCyclePos = serviceModeManager->getHpfCyclePos();
@@ -904,7 +989,7 @@ void ABDSimpleJuno106AudioProcessor::applyPresetState(const juce::ValueTree& vt)
             "chorusMix", "chorusHiss", "chorusDelayI", "chorusDelayII", "chorusGainDry", "chorusGainWet", "chorusLfoRate", "chorusLfoRateII", "chorusBothRate", "chorusModDepth", "chorusSatBoost", "chorusFilterCutoff", "chorusHissColor",
             "lfoMaxRate", "lfoMinRate", "lfoDelayMax", "lfoResolution",
             "vcfMinHz", "vcfMaxHz", "vcfSelfOscThreshold", "vcfSaturation", "vcfResoComp", "vcfResoCompBoost", "vcfResPolK", "vcfFbScale", "vcfLfoDepth", "vcfEnvRange", "vcfSelfOscInt", "vcfTrackCenter", "vcfResoSpread", "vcfWidth",
-            "hpfFreq2", "hpfFreq3", "hpfBassBoostGain", "hpfShelfFreq", "hpfShelfGain", "hpfQ",
+            "hpfFreq1", "hpfFreq2", "hpfFreq3", "hpfBassBoostGain", "hpfShelfFreq", "hpfShelfGain", "hpfQ",
             "thermalIntensity", "thermalDrift", "thermalInertia", "thermalMigration",
             "vcaCrosstalk", "masterNoise", "stereoBleed", "voiceVariance", "unisonSpread", 
             "dcoGlobalDrift", "dcoVoiceDrift", "dcoDriftComplexity", "vcaRippleDepth", 
@@ -1063,6 +1148,26 @@ juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcess
     params.push_back(std::make_unique<juce::AudioParameterFloat>("aftertouchToVCF", "Aftertouch -> VCF", 0.0f, 1.0f, 0.5f));
     
     params.push_back(std::make_unique<juce::AudioParameterBool>("lowCpuMode", "Low CPU Mode", false));
+
+    // Model Routing / Selección de Modelos (0 = J6, 1 = J60, 2 = J106)
+    params.push_back(makeIntParam("modelDCO", "Model DCO", 0, 2, 2));
+    params.push_back(makeIntParam("modelHPF", "Model HPF", 0, 2, 2));
+    params.push_back(makeIntParam("modelVCF", "Model VCF", 0, 2, 2));
+    params.push_back(makeIntParam("modelADSR", "Model ADSR", 0, 2, 2));
+    params.push_back(makeIntParam("modelChorus", "Model Chorus", 0, 2, 2));
+    params.push_back(makeIntParam("modelArp", "Model Arp", 0, 2, 0));
+    params.push_back(makeIntParam("modelPoly", "Model Poly", 0, 2, 2));
+    params.push_back(makeIntParam("modelPorta", "Model Portamento", 0, 2, 2));
+    params.push_back(makeIntParam("modelUnison", "Model Unison", 0, 2, 2));
+
+    // Arpeggiator Settings
+    params.push_back(makeBool("arpEnabled", "Arpeggiator Enable", false));
+    params.push_back(makeIntParam("arpMode", "Arpeggiator Mode", 0, 2, 0));
+    params.push_back(makeIntParam("arpRange", "Arpeggiator Range", 0, 2, 0));
+    params.push_back(makeParam("arpRate", "Arpeggiator Rate", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeBool("arpSync", "Arpeggiator Sync", false));
+    params.push_back(makeIntParam("arpDivision", "Arpeggiator Division", 0, 8, 6));
+
     return { params.begin(), params.end() };
 }
 

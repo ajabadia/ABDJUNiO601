@@ -86,6 +86,7 @@ struct SynthParams {
     float lfoResolution = 7.5f; 
 
     // [Build 28] HPF Calibration — values from ngspice AC simulation + schematic
+    float hpfFreq1          = 122.0f;  // Hardware: C=.022µF, R_eff=59.4K → 122 Hz (Juno-60)
     float hpfFreq2          = 236.0f;  // Hardware: C=.015µF, R_eff=44.9K → 236 Hz
     float hpfFreq3          = 754.0f;  // Hardware: C=.0047µF, R_eff=44.9K → 754 Hz
     float hpfShelfFreq      = 70.0f;   // Legacy (unused by BassBoostFilter, kept for UI compat)
@@ -217,6 +218,71 @@ struct SynthParams {
     // Diagnostic Cycle States (Read-only for UI)
     int hpfCyclePos = -1; // -1 = Off, 0-3 = Active position
     int chorusCycleMode = -1; // -1 = Off, 0=Off, 1=I, 2=II, 3=Both
+
+    // ============================================================
+    // Selección de Modelos / Ruteo Modular por Preset
+    // 0 = J6, 1 = J60, 2 = J106
+    // ============================================================
+    int modelDCO   = 2;
+    int modelHPF   = 2;
+    int modelVCF   = 2;
+    int modelADSR  = 2;
+    int modelChorus = 2;
+    int modelArp    = 0;
+    int modelPoly   = 2;
+    int modelPorta  = 2;
+    int modelUnison = 2;
+
+    // Configuración del Arpegiador
+    bool arpEnabled = false;
+    int arpMode = 0;       // 0=Up, 1=Up/Down, 2=Down
+    int arpRange = 0;      // 0=1oct, 1=2oct, 2=3oct
+    float arpRate = 0.5f;  // Rate slider (0..1)
+    bool arpSync = false;
+    int arpDivision = 6;   // 1/16 note (kDiv16)
+
+#if defined(COMPILING_JUNO106)
+  #define GET_MODEL_DCO(p)    2
+  #define GET_MODEL_HPF(p)    2
+  #define GET_MODEL_VCF(p)    2
+  #define GET_MODEL_ADSR(p)   2
+  #define GET_MODEL_CHORUS(p) 2
+  #define GET_MODEL_ARP(p)    -1
+  #define GET_MODEL_POLY(p)   2
+  #define GET_MODEL_PORTA(p)  2
+  #define GET_MODEL_UNISON(p) 2
+#elif defined(COMPILING_JUNO60)
+  #define GET_MODEL_DCO(p)    1
+  #define GET_MODEL_HPF(p)    1
+  #define GET_MODEL_VCF(p)    1
+  #define GET_MODEL_ADSR(p)   1
+  #define GET_MODEL_CHORUS(p) 1
+  #define GET_MODEL_ARP(p)    1
+  #define GET_MODEL_POLY(p)   1
+  #define GET_MODEL_PORTA(p)  1
+  #define GET_MODEL_UNISON(p) 1
+#elif defined(COMPILING_JUNO6)
+  #define GET_MODEL_DCO(p)    0
+  #define GET_MODEL_HPF(p)    0
+  #define GET_MODEL_VCF(p)    0
+  #define GET_MODEL_ADSR(p)   0
+  #define GET_MODEL_CHORUS(p) 0
+  #define GET_MODEL_ARP(p)    0
+  #define GET_MODEL_POLY(p)   0
+  #define GET_MODEL_PORTA(p)  0
+  #define GET_MODEL_UNISON(p) 0
+#else
+  // Híbrido / Conmutable en caliente (Super Juno SIX)
+  #define GET_MODEL_DCO(p)    (p).modelDCO
+  #define GET_MODEL_HPF(p)    (p).modelHPF
+  #define GET_MODEL_VCF(p)    (p).modelVCF
+  #define GET_MODEL_ADSR(p)   (p).modelADSR
+  #define GET_MODEL_CHORUS(p) (p).modelChorus
+  #define GET_MODEL_ARP(p)    (p).modelArp
+  #define GET_MODEL_POLY(p)   (p).modelPoly
+  #define GET_MODEL_PORTA(p)  (p).modelPorta
+  #define GET_MODEL_UNISON(p) (p).modelUnison
+#endif
 
     bool isSamePatch(const SynthParams& other, bool includeMetadata = false) const {
         const float tol = 0.008f; // [Fix] Increased tolerance for 7-bit SysEx quantization (1/127 approx 0.0078)

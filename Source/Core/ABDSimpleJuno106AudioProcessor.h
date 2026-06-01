@@ -150,6 +150,8 @@ private:
     void applyPresetState(const juce::ValueTree& vt);
 
     ABD::JunoVoiceManager voiceManager;
+    class JunoArpeggiator* arpeggiatorPtr = nullptr; // Forward declared or included
+    std::unique_ptr<class JunoArpeggiator> arpeggiator;
     SynthParams currentParams;
     SynthParams lastParams;
     
@@ -289,6 +291,26 @@ private:
     std::atomic<float>* fmtMidiFunction = nullptr;
     std::atomic<float>* fmtLowCpuMode = nullptr;
     std::atomic<float>* fmtMemoryProtect = nullptr;
+
+    // Model Routing / Selección de Modelos
+    std::atomic<float>* fmtModelDCO = nullptr;
+    std::atomic<float>* fmtModelHPF = nullptr;
+    std::atomic<float>* fmtModelVCF = nullptr;
+    std::atomic<float>* fmtModelADSR = nullptr;
+    std::atomic<float>* fmtModelChorus = nullptr;
+    std::atomic<float>* fmtModelArp = nullptr;
+    std::atomic<float>* fmtModelPoly = nullptr;
+    std::atomic<float>* fmtModelPorta = nullptr;
+    std::atomic<float>* fmtModelUnison = nullptr;
+
+    // Arpeggiator Settings
+    std::atomic<float>* fmtArpEnabled = nullptr;
+    std::atomic<float>* fmtArpMode = nullptr;
+    std::atomic<float>* fmtArpRange = nullptr;
+    std::atomic<float>* fmtArpRate = nullptr;
+    std::atomic<float>* fmtArpSync = nullptr;
+    std::atomic<float>* fmtArpDivision = nullptr;
+
     SelfTestResult lastSelfTestResult;
 
 public:

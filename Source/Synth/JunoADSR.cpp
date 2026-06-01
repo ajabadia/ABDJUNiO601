@@ -6,7 +6,6 @@
 
 // ============================================================================
 // JunoADSR Implementation
-// Authentic Roland Juno-106 Envelope Reproduction
 // ============================================================================
 
 JunoADSR::JunoADSR()
@@ -22,18 +21,23 @@ void JunoADSR::setSampleRate(double sr)
     }
 }
 
+void JunoADSR::setMode(ADSRMode newMode)
+{
+    mode = newMode;
+}
+
 static constexpr std::array<uint16_t, 128> GenerateDecRelTable()
 {
-  constexpr int kCounts[] = {  4,      1,      10,     28,     22,     58,     4     };
-  constexpr uint16_t kSteps[] = { 0x2000, 0x1000, 0x0800, 0x0080, 0x000C, 0x0004, 0x0001 };
-  std::array<uint16_t, 128> t{};
-  uint16_t val = 0x1000;
-  int i = 0;
-  t[i++] = val;
-  for (int seg = 0; seg < 7; ++seg)
-    for (int n = 0; n < kCounts[seg]; ++n)
-      t[i++] = (val = static_cast<uint16_t>(val + kSteps[seg]));
-  return t;
+    constexpr int kCounts[] = {  4,      1,      10,     28,     22,     58,     4     };
+    constexpr uint16_t kSteps[] = { 0x2000, 0x1000, 0x0800, 0x0080, 0x000C, 0x0004, 0x0001 };
+    std::array<uint16_t, 128> t{};
+    uint16_t val = 0x1000;
+    int i = 0;
+    t[i++] = val;
+    for (int seg = 0; seg < 7; ++seg)
+        for (int n = 0; n < kCounts[seg]; ++n)
+            t[i++] = (val = static_cast<uint16_t>(val + kSteps[seg]));
+    return t;
 }
 static constexpr auto kDecRelTable = GenerateDecRelTable();
 
@@ -53,10 +57,31 @@ static uint16_t AttackIncFromSlider(float slider)
         static_cast<int>(148.f - 127.f * s + 0.5f), 1));
 }
 
+// J6 attack tau (seconds) from 11-point log-interpolated hardware measurement
+float JunoADSR::AttackTauJ6(float slider)
+{
+    static constexpr float kAttackTau[11] = {
+        0.000558f, 0.001674f, 0.008762f, 0.029468f, 0.064015f, 0.120998f,
+        0.238481f, 0.495993f, 0.607950f, 1.392486f, 1.674332f
+    };
+    float s = slider * 10.f;
+    int idx = std::min(static_cast<int>(s), 9);
+    float frac = s - idx;
+    return std::exp(std::log(kAttackTau[idx])
+          + frac * (std::log(kAttackTau[idx + 1]) - std::log(kAttackTau[idx])));
+}
+
+// J6 decay/release tau (seconds) from exponential fit of hardware measurements
+float JunoADSR::DecRelTauJ6(float slider)
+{
+    return 0.003577f * std::exp(12.9460f * slider - 5.0638f * slider * slider);
+}
+
 void JunoADSR::reset()
 {
     stage = Stage::Idle;
     currentValue = 0.0f;
+    gateEnv = 0.0f;
     mEnvInt = 0;
     mTickAccum = 0.0f;
     mEnvPrev = 0.0f;
@@ -66,19 +91,43 @@ void JunoADSR::reset()
 
 void JunoADSR::setAttackRaw(float slider)
 {
-    mAtkInc = AttackIncFromSlider(slider);
+    if (mode == ADSRMode::kJ106)
+    {
+        mAtkInc = AttackIncFromSlider(slider);
+    }
+    else // kJ6 or kJ60
+    {
+        float tau = AttackTauJ6(slider);
+        mAttackCoeff = 1.f - std::exp(-1.f / (tau * mTimeScale * sampleRate));
+    }
 }
 
 void JunoADSR::setDecayRaw(float slider)
 {
-    int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
-    mDecMul = kDecRelTable[index];
+    if (mode == ADSRMode::kJ106)
+    {
+        int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
+        mDecMul = kDecRelTable[index];
+    }
+    else // kJ6 or kJ60
+    {
+        float tau = DecRelTauJ6(slider);
+        mDecayCoeff = 1.f - std::exp(-1.f / (tau * mTimeScale * sampleRate));
+    }
 }
 
 void JunoADSR::setReleaseRaw(float slider)
 {
-    int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
-    mRelMul = kDecRelTable[index];
+    if (mode == ADSRMode::kJ106)
+    {
+        int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
+        mRelMul = kDecRelTable[index];
+    }
+    else // kJ6 or kJ60
+    {
+        float tau = DecRelTauJ6(slider);
+        mReleaseCoeff = 1.f - std::exp(-1.f / (tau * mTimeScale * sampleRate));
+    }
 }
 
 void JunoADSR::setAttack(float seconds)
@@ -118,9 +167,17 @@ void JunoADSR::setAttackFactor(float factor) { attackFactor = juce::jlimit(0.1f,
 void JunoADSR::noteOn()
 {
     stage = Stage::Attack;
-    mEnvPrev = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
-    tick106();
-    mEnvNext = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
+    if (mode == ADSRMode::kJ106)
+    {
+        mEnvPrev = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
+        tick106();
+        mEnvNext = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
+    }
+    else
+    {
+        // kJ6/kJ60: starts from current value for smooth retrigger
+        gateEnv = 0.0f;
+    }
 }
 
 void JunoADSR::noteOff()
@@ -180,14 +237,17 @@ void JunoADSR::tick106()
 float JunoADSR::getNextSample()
 {
     if (gateMode) {
-         float target = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
-         currentValue += (target - currentValue) * 0.03f;
-         if (stage == Stage::Release && currentValue < 0.0001f) {
-             currentValue = 0.0f;
-             stage = Stage::Idle;
-         }
-         return currentValue;
-    } else {
+        float target = (stage == Stage::Release || stage == Stage::Idle) ? 0.0f : 0.97f;
+        currentValue += (target - currentValue) * 0.03f;
+        if (stage == Stage::Release && currentValue < 0.0001f) {
+            currentValue = 0.0f;
+            stage = Stage::Idle;
+        }
+        return currentValue;
+    }
+
+    if (mode == ADSRMode::kJ106)
+    {
         mTickAccum += mTickStep;
         while (mTickAccum >= 1.f)
         {
@@ -197,6 +257,43 @@ float JunoADSR::getNextSample()
             mEnvNext = static_cast<float>(mEnvInt) / JunoADSR::kEnvMax;
         }
         currentValue = mEnvPrev + (mEnvNext - mEnvPrev) * mTickAccum;
+    }
+    else // kJ6 or kJ60
+    {
+        switch (stage)
+        {
+            case Stage::Attack:
+                currentValue += (kAttackTarget - currentValue) * mAttackCoeff;
+                gateEnv += kGateSlope;
+                if (currentValue >= 1.0f)
+                {
+                    currentValue = 1.0f;
+                    stage = Stage::Decay;
+                }
+                break;
+
+            case Stage::Decay:
+                currentValue += (sustainLevel - currentValue) * mDecayCoeff;
+                gateEnv += kGateSlope;
+                break;
+
+            case Stage::Release:
+                gateEnv -= kGateSlope;
+                currentValue += (kReleaseTarget - currentValue) * mReleaseCoeff;
+                if (currentValue < kSilence)
+                {
+                    currentValue = 0.0f;
+                    stage = Stage::Idle;
+                }
+                break;
+
+            case Stage::Idle:
+            default:
+                gateEnv -= kGateSlope;
+                currentValue = 0.0f;
+                break;
+        }
+        gateEnv = std::clamp(gateEnv, 0.0f, 1.0f);
     }
     
     float quantized = currentValue;

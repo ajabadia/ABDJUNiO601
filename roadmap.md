@@ -100,10 +100,30 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 - [x] **VCA Mode Logic**: [CORREGIDO] Resolved inconsistency between envelope triggering and parameter updates (0=ENV, 1=GATE consistently).
 - [x] **Final Verification**: [CERTIFIED] All 128 Factory Presets pass the Fidelity Self-Test roundtrip.
 
-## Sprint 12: Bank Expansion & Universal Import [UPCOMING]
+## Sprint 12: Bank Expansion & Universal Import [COMPLETED]
 **Goal**: Expand storage capacity and external compatibility.
-- [ ] **7x3 Display Transformation**: Expand 7x2 display to 7x3 including Bank (A-Z) + Patch Number (11-88, 64 patches/bank). [Ref: Factory A/B, User C-Z]
-- [ ] **Universal Preset Loader**: Implement parser for `.pjunoxl` (TAL-U-NO-LX) files to import external patches into JUNiO 601. [Ref: JUNO106\tau uno lx\]
-- [ ] **Batch Import Validation**: Verify TAL-U-NO-LX factory presets (106-factory-a) match internal 106 engine response.
+- [x] **7x3 Display Transformation**: Expand 7x2 display to 7x3 including Bank (A-Z) + Patch Number (11-88, 64 patches/bank). [Ref: Factory A/B, User C-Z]
+- [x] **Universal Preset Loader**: Implement parser for `.pjunoxl` (TAL-U-NO-LX) files to import external patches into JUNiO 601. [Ref: JUNO106\tau uno lx\]
+- [x] **Batch Import Validation**: Verify TAL-U-NO-LX factory presets (106-factory-a) match internal 106 engine response.
+
+## Sprint 13: JUNO-6/60 Integration & UI Polish [COMPLETED]
+**Goal**: Integrate Juno-6 and Juno-60 engine modules, dynamic themes, and UI enhancements.
+- [x] **Juno-6/60 Custom Themes**: Implemented four distinct themes (Classic Blue, Juno-60 Classic, Juno-6 Analog, Juno-106 Classic) utilizing the high-fidelity side panel PNG image assets (wood/metal).
+- [x] **Calibration Auto-Sync**: Slipped instant theme change triggers when Default Calibration Profile changes.
+- [x] **Taped Component Labels**: Placed dynamic model-routing tapes higher to avoid key overlaps, colored by model (beige J106, ocre J6, off-white J60).
+- [x] **Vintage Arpeggiator Knobs**: Option C discrete rotary knobs for Mode and Range with active illuminated labels around them.
+- [x] **Portamento Centering**: Re-aligned TIME knob and ON/OFF switch with balanced layout.
+
+## Sprint 14: Theme Constraints, Component Isolation & Side Panel Layout Fixes [COMPLETED]
+**Goal**: Enforce skin locking logic by profile, solve module model theme interference, restore wood/metal sides positioning, and resolve CMake build packaging issues.
+- [x] **Profile-Based Skin Constraints**: Locked skin selection options dynamically depending on the active profile:
+  - **Juno-6**: Only "JUNO-6 ANALOG" skin is selectable and selector is disabled.
+  - **Juno-60**: Only "JUNO-60 CLASSIC" skin is selectable and selector is disabled.
+  - **Juno-106**: Restricted to "JUNO-106 CLASSIC" and "JUNO-106S DARK" skins.
+  - **Super Six**: Unrestricted (all 9 skins available), defaults to "CLASSIC BLUE".
+- [x] **Component Isolation**: Scoped `.module[data-model]` style overrides to apply only under the `classic` theme. This prevents custom themes (like `dark-106s` and `space-echo`) from having their dark/styled module background colors overridden by individual module models.
+- [x] **Side Cheek Layout Restoration**: Restored the missing absolute positioning, sizing, and rendering rules for `#synth-app::before` and `#synth-app::after` in [base.css](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/css/base.css) and the root synced CSS, displaying real wood/metal panels correctly.
+- [x] **CMake Packaging Resolution**: Cleaned up non-existent asset references (`wood_106_left.png` / `wood_106_right.png`) in [CMakeLists.txt](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt) to fix the `juceaide` crash (MSB8066).
 
 ## Post-Launch / Future Iterations
+

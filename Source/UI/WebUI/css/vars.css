@@ -51,8 +51,8 @@
 
 /* JUNO-106S DARK THEME OVERRIDES */
 body[data-theme="dark-106s"] {
-    --juno-red: #3a3b40;      /* Dark metal grey bars */
-    --juno-blue: #22252a;     /* Darker charcoal bars */
+    --juno-red: #8a1210;      /* Dark red matching 106 color scheme */
+    --juno-blue: #345689;     /* Dark blue matching 106 color scheme */
     --juno-grey: #888888;     /* Muted grey labels */
     --juno-orange: #d35400;   /* Muted orange */
     
@@ -60,7 +60,7 @@ body[data-theme="dark-106s"] {
     --led-red: #00ff55;
     --lcd-red: #00ff55;
     --led-glow: 0 0 12px rgba(0, 255, 85, 0.8), 0 0 4px #fff;
-    --bg-synth: #050608;
+    --bg-synth: #101114;
     --metal-dark: #101114;
     --metal-highlight: #18191d;
 }
@@ -86,9 +86,11 @@ body[data-theme="tr-808"] {
     --led-red: #ff3b30;
     --lcd-red: #ff3b30;
     --led-glow: 0 0 12px rgba(255, 59, 48, 0.8), 0 0 4px #fff;
-    --bg-synth: #08080a;
-    --metal-dark: #121215;
-    --metal-highlight: #1a1a1f;
+    --bg-synth: #161616;
+    --juno-red: #161616;
+    --juno-blue: #161616;
+    --metal-dark: #161616;
+    --metal-highlight: #161616;
     --juno-grey: #a0a0a0;
 }
 body[data-theme="tr-808"] #lfo .module-bar { background: #ff3c3c !important; }
@@ -101,15 +103,15 @@ body[data-theme="tr-808"] #chorus .module-bar { background: #ffd200 !important; 
 
 /* BEHRINGER DEEPMIND THEME */
 body[data-theme="deepmind"] {
-    --juno-red: #e67e22;      /* Amber/orange bars */
-    --juno-blue: #d35400;     /* Deeper orange bars */
+    --juno-red: #161616;      /* Color scheme (60) */
+    --juno-blue: #161616;     /* Color scheme (60) */
     --juno-grey: #a0a5b0;     /* Cool grey/blue labels */
     --led-red: #ff9900;       /* Amber LEDs */
     --lcd-red: #ff9900;       /* Amber screen */
     --led-glow: 0 0 12px rgba(255, 153, 0, 0.8), 0 0 4px #fff;
-    --bg-synth: #0a0b0e;
-    --metal-dark: #14161d;
-    --metal-highlight: #1b1e28;
+    --bg-synth: #161616;      /* Color scheme (60) */
+    --metal-dark: #161616;
+    --metal-highlight: #161616;
 }
 body[data-theme="deepmind"] #synth-app {
     border: 4px solid #5c3a21 !important; /* Walnut wood end cheeks look */
@@ -130,15 +132,15 @@ body[data-theme="deepmind"] .front-midi-badge.active {
 
 /* ROLAND SPACE ECHO RE-201 THEME */
 body[data-theme="space-echo"] {
-    --juno-red: #16a085;      /* Forest/Teal bars */
-    --juno-blue: #1abc9c;     /* Bright green/teal bars */
+    --juno-red: #161616;      /* Color scheme (60) */
+    --juno-blue: #161616;     /* Color scheme (60) */
     --juno-grey: #95a5a6;     /* Silver/grey labels */
     --led-red: #2ecc71;       /* Cool green LEDs */
     --lcd-red: #2ecc71;       /* Cool green display */
     --led-glow: 0 0 12px rgba(46, 204, 113, 0.8), 0 0 4px #fff;
-    --bg-synth: #090e0c;
-    --metal-dark: #121c18;
-    --metal-highlight: #192822;
+    --bg-synth: #161616;      /* Color scheme (60) */
+    --metal-dark: #161616;
+    --metal-highlight: #161616;
 }
 body[data-theme="space-echo"] .led.active,
 body[data-theme="space-echo"] img.led-sprite {
@@ -155,15 +157,15 @@ body[data-theme="space-echo"] .front-midi-badge.active {
 
 /* ARP 2600 RETRO THEME */
 body[data-theme="arp-2600"] {
-    --juno-red: #ffffff;      /* Minimalist white bars */
-    --juno-blue: #ffffff;     /* White bars */
+    --juno-red: #8a1210;      /* Color scheme (106) */
+    --juno-blue: #345689;     /* Color scheme (106) */
     --juno-grey: #ffffff;     /* White labels */
     --led-red: #ffaa00;       /* Orange LEDs */
     --lcd-red: #ffaa00;       /* Orange screen */
     --led-glow: 0 0 12px rgba(255, 170, 0, 0.8), 0 0 4px #fff;
-    --bg-synth: #040405;
-    --metal-dark: #0b0b0c;
-    --metal-highlight: #121214;
+    --bg-synth: #404040;      /* Color scheme (106) */
+    --metal-dark: #404040;
+    --metal-highlight: #404040;
 }
 body[data-theme="arp-2600"] .module-bar {
     color: #000000 !important; /* Black text on white bars */
@@ -187,4 +189,429 @@ body[data-theme="arp-2600"] #vcf .handle { filter: hue-rotate(320deg) saturate(2
 body[data-theme="arp-2600"] #env .handle { filter: hue-rotate(60deg) saturate(2) brightness(1.1); }
 body[data-theme="arp-2600"] #lfo .handle { filter: hue-rotate(120deg) saturate(2) brightness(1.1); }
 body[data-theme="arp-2600"] #vca .handle { filter: hue-rotate(200deg) saturate(2) brightness(1.1); }
+
+/* CLASSIC BLUE THEME */
+body[data-theme="classic"] {
+    --juno-red: #8a1210;
+    --juno-blue: #345689;
+    --juno-grey: #b8b8b8;
+    --panel-line-color: rgba(255, 255, 255, 0.2);
+    --bg-synth: #404040;
+    --metal-dark: #1e1f24;
+    --metal-highlight: #2a2c32;
+}
+
+/* JUNO-60 CLASSIC THEME */
+body[data-theme="juno-60"] {
+    --juno-red: #161616;      /* Historically accurate matching chassis */
+    --juno-blue: #161616;
+    --juno-grey: #c2c2c2;
+    --panel-line-color: rgba(255, 255, 255, 0.35); /* Bright panel lines */
+    --bg-synth: #161616;      /* Slate grey chassis */
+    --metal-dark: #161616;
+    --metal-highlight: #161616;
+}
+body[data-theme="juno-60"] #synth-app {
+    box-shadow: 0 40px 80px rgba(0,0,0,0.9) !important;
+}
+
+/* JUNO-6 ANALOG THEME */
+body[data-theme="juno-6"] {
+    --juno-red: #c82d11;      /* Exact Warm red */
+    --juno-blue: #2b4b88;     /* Cobalt blue */
+    --juno-grey: #9ea3a8;
+    --panel-line-color: rgba(255, 255, 255, 0.12); /* Very subtle lines */
+    --bg-synth: #0f110e;      /* Pure matte dark charcoal */
+    --metal-dark: #0f110e;
+    --metal-highlight: #0f110e;
+}
+body[data-theme="juno-6"] #synth-app {
+    box-shadow: 0 40px 80px rgba(0,0,0,0.95) !important;
+}
+
+/* JUNO-106 THEME OVERRIDES (Classic Space-Blue) */
+body[data-theme="juno-106"] {
+    --juno-red: #8a1210;
+    --juno-blue: #345689;
+    --juno-grey: #b8b8b8;
+    --panel-line-color: rgba(255, 255, 255, 0.2);
+    --bg-synth: #404040;
+    --metal-dark: #1e1f24;
+    --metal-highlight: #2a2c32;
+}
+
+/* JUNO-106 CLASSIC THEME (Metal Side Panels) */
+body[data-theme="juno-106-metal"] {
+    --juno-red: #8a1210;
+    --juno-blue: #345689;
+    --juno-grey: #b8b8b8;
+    --panel-line-color: rgba(255, 255, 255, 0.2);
+    --bg-synth: #404040;
+    --metal-dark: #1e1f24;
+    --metal-highlight: #2a2c32;
+}
+
+/* Theme-specific side cheek images mapping */
+body[data-theme="classic"] #synth-app::before,
+body[data-theme="tr-808"] #synth-app::before {
+    background-image: url('../wood_left.png');
+}
+body[data-theme="classic"] #synth-app::after,
+body[data-theme="tr-808"] #synth-app::after {
+    background-image: url('../wood_right.png');
+}
+
+body[data-theme="juno-106"] #synth-app::before,
+body[data-theme="juno-106-metal"] #synth-app::before,
+body[data-theme="dark-106s"] #synth-app::before,
+body[data-theme="arp-2600"] #synth-app::before {
+    background-image: url('../metal_106_left.png');
+}
+body[data-theme="juno-106"] #synth-app::after,
+body[data-theme="juno-106-metal"] #synth-app::after,
+body[data-theme="dark-106s"] #synth-app::after,
+body[data-theme="arp-2600"] #synth-app::after {
+    background-image: url('../metal_106_right.png');
+}
+
+body[data-theme="juno-60"] #synth-app::before,
+body[data-theme="deepmind"] #synth-app::before {
+    background-image: url('../wood_60_left.png');
+}
+body[data-theme="juno-60"] #synth-app::after,
+body[data-theme="deepmind"] #synth-app::after {
+    background-image: url('../wood_60_right.png');
+}
+
+body[data-theme="juno-6"] #synth-app::before,
+body[data-theme="space-echo"] #synth-app::before {
+    background-image: url('../wood_6_left.png');
+}
+body[data-theme="juno-6"] #synth-app::after,
+body[data-theme="space-echo"] #synth-app::after {
+    background-image: url('../wood_6_right.png');
+}
+
+/* Scoped overrides per module model (only active in Super Six classic theme) */
+body[data-theme="classic"] .module[data-model="0"] {
+    --bg-synth: #0f110e !important;
+    --metal-dark: #0f110e !important;
+    --metal-highlight: #0f110e !important;
+    --juno-red: #c82d11 !important;
+    --juno-blue: #2b4b88 !important;
+    --panel-line-color: rgba(255, 255, 255, 0.12) !important;
+}
+body[data-theme="classic"] .module[data-model="0.5"] {
+    --bg-synth: #161616 !important;
+    --metal-dark: #161616 !important;
+    --metal-highlight: #161616 !important;
+    --juno-red: #161616 !important;
+    --juno-blue: #161616 !important;
+    --panel-line-color: rgba(255, 255, 255, 0.35) !important;
+}
+body[data-theme="classic"] .module[data-model="1"] {
+    --bg-synth: #404040 !important;
+    --metal-dark: #404040 !important;
+    --metal-highlight: #4a4a4a !important;
+    --juno-red: #8a1210 !important;
+    --juno-blue: #345689 !important;
+    --panel-line-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* PAINTER TAPE (Cinta Adhesiva Virtual) */
+.module {
+    position: relative !important;
+    overflow: visible !important;
+}
+.painter-tape {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-1.5deg);
+    padding: 2px 8px;
+    font-family: 'Fragment Mono', monospace;
+    font-size: 8px;
+    font-weight: bold;
+    border-radius: 1px;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    border-left: 3px solid rgba(0,0,0,0.1);
+    border-right: 3px solid rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    z-index: 101;
+    white-space: nowrap;
+}
+.painter-tape.tape-j106 {
+    background: #ffb3ba;
+    color: #4a1b21;
+}
+.painter-tape.tape-j6 {
+    background: #ffe97f;
+    color: #3d3408;
+}
+.painter-tape.tape-j60 {
+    background: #eae7df;
+    color: #2e2f30;
+}
+.painter-tape.tape-j106:hover {
+    background: #ffc2d1;
+    transform: translateX(-50%) rotate(0deg) scale(1.05);
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+}
+.painter-tape.tape-j6:hover {
+    background: #fff099;
+    transform: translateX(-50%) rotate(0deg) scale(1.05);
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+}
+.painter-tape.tape-j60:hover {
+    background: #f2efe7;
+    transform: translateX(-50%) rotate(0deg) scale(1.05);
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+}
+
+/* SUNKEN PERFORMANCE PANEL (dynamic left area) */
+.sunken-performance-panel {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.7);
+    padding: 8px;
+    margin-top: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    justify-content: space-between;
+}
+
+.performance-tabs {
+    display: flex;
+    gap: 3px;
+    background: rgba(0,0,0,0.3);
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #000;
+    margin-bottom: 8px;
+}
+
+.perf-tab-btn {
+    flex: 1;
+    background: #1e2025;
+    border: 1px solid #111;
+    color: #888;
+    padding: 12px 1px 4px 1px; /* Extra top padding to make room for LED */
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7.5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    border-radius: 2px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.perf-tab-btn:hover {
+    background: #2a2d34;
+    color: #ccc;
+}
+
+.perf-tab-btn.active {
+    background: var(--juno-blue);
+    color: #fff;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Selector LED indicators */
+.tab-led {
+    width: 5px;
+    height: 5px;
+    background: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+}
+
+.tab-led.active {
+    background: var(--led-red);
+    box-shadow: var(--led-glow);
+}
+
+/* Sub-panel content area */
+.perf-tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 0;
+}
+
+.perf-tab-content.hidden {
+    display: none !important;
+}
+
+/* Vintage selector slider */
+.h-slider-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 130px;
+    margin: 4px 0;
+    position: relative;
+}
+
+.h-slider-lbl {
+    font-family: 'Microgramma', sans-serif;
+    font-size: 8px;
+    font-weight: 900;
+    color: var(--juno-grey);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    letter-spacing: 1px;
+}
+
+.h-slider-container {
+    width: 100px;
+    height: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.h-slider-track {
+    width: 100%;
+    height: 6px;
+    background: #000;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8), 0 1px 0px rgba(255, 255, 255, 0.15);
+    border: 1px solid #1c1d22;
+}
+
+.h-slider-handle {
+    position: absolute;
+    width: 12px;
+    height: 16px;
+    background: linear-gradient(to right, #cfcfcf 0%, #ffffff 30%, #a8a8a8 70%, #7c7c7c 100%);
+    border: 1px solid #111;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+    left: 2px;
+    pointer-events: none;
+    transition: left 0.1s ease;
+}
+
+.h-slider-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 5px;
+    width: 2px;
+    height: 100%;
+    background: var(--led-red);
+    box-shadow: 0 0 4px var(--led-red);
+}
+
+.h-slider-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    z-index: 5;
+}
+
+.h-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 106px;
+    margin-top: 2px;
+    font-size: 7px;
+    font-family: 'Microgramma', sans-serif;
+    color: var(--white);
+    font-weight: bold;
+}
+
+.h-slider-labels span {
+    width: 33.3%;
+    text-align: center;
+    transition: color 0.1s ease;
+}
+
+.h-slider-labels span.active {
+    color: var(--juno-orange);
+    text-shadow: 0 0 4px rgba(255, 140, 0, 0.5);
+}
+
+/* Ticked rotary knob styling */
+.knob-tick-wrapper {
+    position: relative;
+    width: 66px;
+    height: 66px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.knob-tick-wrapper .knob-ring {
+    width: 44px;
+    height: 44px;
+    background: url('../knob.png') no-repeat center;
+    background-size: contain;
+    position: relative;
+    cursor: ns-resize;
+}
+
+.knob-tick-wrapper .knob {
+    position: absolute;
+    width: 2px;
+    height: 5px;
+    background: var(--white);
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    transform-origin: center 10px;
+    border-radius: 1px;
+}
+
+.knob-tick-lbl {
+    position: absolute;
+    font-size: 7px;
+    font-family: 'Microgramma', sans-serif;
+    color: #888;
+    font-weight: bold;
+    transition: color 0.1s ease;
+}
+
+.knob-tick-lbl.pos-left {
+    left: -4px;
+    bottom: 12px;
+}
+
+.knob-tick-lbl.pos-center {
+    left: 50%;
+    top: -5px;
+    transform: translateX(-50%);
+}
+
+.knob-tick-lbl.pos-right {
+    right: -4px;
+    bottom: 12px;
+}
+
+.knob-tick-lbl.active {
+    color: var(--juno-orange);
+    text-shadow: 0 0 4px rgba(255, 140, 0, 0.5);
+}
+
 

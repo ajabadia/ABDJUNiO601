@@ -166,6 +166,7 @@ public:
             p.vcfResPolK = calibration->getValue("vcfResPolK");
             p.vcfFbScale = calibration->getValue("vcfFbScale");
             p.vcfWidth = calibration->getValue("vcfWidth");
+            p.hpfFreq1 = calibration->getValue("hpfFreq1");
             p.hpfFreq2 = calibration->getValue("hpfFreq2");
             p.hpfFreq3 = calibration->getValue("hpfFreq3");
             p.hpfShelfFreq = calibration->getValue("hpfShelfFreq");

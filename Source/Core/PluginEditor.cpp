@@ -27,7 +27,7 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
     addAndMakeVisible(menuBar);
     setResizable(true, true);
     setResizeLimits(1000, 600, 2000, 1200);
-    setSize (1200, 750); 
+    setSize (1240, 750); 
     DBG("ABDSimpleJuno106AudioProcessorEditor::setSize DONE");
 
     addAndMakeVisible(bankSection); DBG("Editor: bankSection added");

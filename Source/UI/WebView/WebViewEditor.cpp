@@ -6,6 +6,7 @@
 #include "../../Core/PresetManager.h"
 #include "../../Core/BuildVersion.h"
 #include <optional>
+#include "JunoModelConfig.h"
 
 
 
@@ -16,6 +17,8 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
         .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
         .withInitialisationData ("buildVersion", juce::String(JUNO_BUILD_VERSION))
         .withInitialisationData ("buildTimestamp", juce::String(JUNO_BUILD_TIMESTAMP))
+        .withInitialisationData ("productName", juce::String(getJunoModelName()))
+        .withInitialisationData ("targetModel", (int) JUNO_TARGET_MODEL)
         .withNativeIntegrationEnabled (true)
         .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2()
             .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("ABD_JUNiO_601_WebView2")))
@@ -24,7 +27,14 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             if (path == "/" || path.isEmpty()) path = "/index.html";
             if (path.startsWith("/")) path = path.substring(1);
             
-            juce::File webUiDir = juce::File("d:\\desarrollos\\ABDJUNiO601\\Source\\UI\\WebUI");
+            juce::File currentFile (__FILE__);
+            juce::File webUiDir = currentFile.getParentDirectory().getParentDirectory().getChildFile("WebUI");
+            if (!webUiDir.exists()) {
+                webUiDir = juce::File("d:\\desarrollos\\ABDSynths\\ABDJUNiO601\\Source\\UI\\WebUI");
+            }
+            if (!webUiDir.exists()) {
+                webUiDir = juce::File("d:\\desarrollos\\ABDJUNiO601\\Source\\UI\\WebUI");
+            }
             if (!webUiDir.exists()) {
                 juce::File exeDir = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory();
                 webUiDir = exeDir.getChildFile("WebUI");
@@ -164,6 +174,10 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                         else smm.startTestScale();
                     }
                     else if (action == "resetToFactory") audioProcessor.getCalibrationSettings().resetToDefaults();
+                    else if (action == "hardResetToProfile") {
+                        int profile = (int)obj->getProperty("profile");
+                        audioProcessor.getCalibrationSettings().hardResetToProfile(profile);
+                    }
                     else if (action == "resetParam") audioProcessor.getCalibrationSettings().resetParam(obj->getProperty("id").toString().toStdString());
                     else if (action == "resetCategory") audioProcessor.getCalibrationSettings().resetCategory(obj->getProperty("category").toString().toStdString());
                     else if (action == "exportCalibration") {
@@ -819,6 +833,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 // 1. Version Info
                 juce::String versionStr = "1.2.0 (Build " + juce::String(JUNO_BUILD_VERSION) + ")";
                 dispatchToJS ("onVersionUpdate", versionStr);
+                dispatchToJS ("onProductNameUpdate", juce::String(getJunoModelName()));
                 
                 int prog = audioProcessor.getCurrentProgram();
                 int group = prog / 64;
@@ -859,14 +874,16 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
         "benderToDCO", "benderToVCF", "benderToLFO", "portamentoTime", "portamentoOn", "portamentoLegato",
         "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut",
         "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
-        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF"
+        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF",
+        "modelDCO", "modelHPF", "modelVCF", "modelADSR", "modelChorus", "modelArp", "modelPoly", "modelPorta", "modelUnison",
+        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision"
     };
     for (int i = 0; i < paramIDs.size(); ++i)
         audioProcessor.getAPVTS().addParameterListener (paramIDs[i], this);
 
     startTimerHz(30); 
     setColour (juce::ResizableWindow::backgroundColourId, juce::Colours::black);
-    setSize (1200, 750);
+    setSize (1240, 750);
 }
 
 WebViewEditor::~WebViewEditor()
@@ -879,7 +896,9 @@ WebViewEditor::~WebViewEditor()
         "benderToDCO", "benderToVCF", "benderToLFO", "portamentoTime", "portamentoOn", "portamentoLegato",
         "polyMode", "tune", "dcoRange", "sawOn", "pulseOn", "subOsc", "noise", "bender", "midiOut",
         "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
-        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF"
+        "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF",
+        "modelDCO", "modelHPF", "modelVCF", "modelADSR", "modelChorus", "modelArp", "modelPoly", "modelPorta", "modelUnison",
+        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision"
     };
     for (int i = 0; i < paramIDs.size(); ++i)
         audioProcessor.getAPVTS().removeParameterListener (paramIDs[i], this);

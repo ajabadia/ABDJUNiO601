@@ -53,7 +53,7 @@ void Voice::onPrepare() {
     smoothedGate.reset(sr, 32.0f / (float)sr); // [Fidelity] 32-sample linear ramp (approx 0.7ms) to prevent clicks
     
     hpf.prepare((float)sr);
-    hpf.setPosition(params.hpfFreq, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
+    hpf.setPosition(params.hpfFreq, params.hpfFreq1, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
 
     resCompFilter.prepare(spec);
     resCompFilter.reset();
@@ -93,14 +93,14 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
         targetFrequency = 440.0f * std::pow(2.0f, (midiNote - 69) / 12.0f);
     }
     
-    if (params.polyMode == 3 && numVoicesInUnison > 1) {
+    if (GET_MODEL_UNISON(params) == 2 && params.polyMode == 3 && numVoicesInUnison > 1) {
         float spreadAmt = params.unisonDetune * kUnisonDetuneMaxSemitones * params.unisonSpread; 
         float center = (numVoicesInUnison - 1) * 0.5f;
         float detuneSemitones = (voiceIndex - center) * spreadAmt;
         targetFrequency *= std::pow(2.0f, detuneSemitones / 12.0f);
     }
 
-    bool runGlide = params.portamentoOn;
+    bool runGlide = params.portamentoOn && (GET_MODEL_PORTA(params) == 2);
     if (params.portamentoLegato) runGlide = runGlide && isLegato;
     
     adsr.setAttackRaw(params.attack);
@@ -214,6 +214,14 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setMasterClock(p.masterClockHz);
     
     // [Fidelity] VCF always uses ADSR (VCA mode switch only affects VCA)
+    int adsrModel = GET_MODEL_ADSR(p);
+    if (adsrModel == 0) {
+        adsr.setMode(ADSRMode::kJ6);
+    } else if (adsrModel == 1) {
+        adsr.setMode(ADSRMode::kJ60);
+    } else {
+        adsr.setMode(ADSRMode::kJ106);
+    }
     adsr.setAttackRaw(p.attack);
     adsr.setDecayRaw(p.decay);
     adsr.setSustain(p.sustain);
@@ -230,6 +238,15 @@ void Voice::updateParams(const SynthParams& p) {
     adsr.setMcuRate(p.adsrMcuRate);
     adsr.setDacSteps(p.adsrDacSteps);
     adsr.setOvershoot(p.adsrOvershoot);
+
+    // VCF Model and Resonance Curve
+    int vcfModel = GET_MODEL_VCF(p);
+    if (vcfModel == 0 || vcfModel == 1) { // J6 or J60
+        filter.setModelAndResCurve(false, true); // J6/60 ResK curve, OTA Saturation on
+    } else {
+        filter.setModelAndResCurve(true, true); // J106 ResK curve
+    }
+    filter.setOversample(static_cast<int>(p.oversampling));
     
     dco.setCalibration(calibrationPtr);
     dco.setMixerGain(p.dcoMixerGain);
@@ -252,7 +269,15 @@ void Voice::updateParams(const SynthParams& p) {
 
 void Voice::updateHPF(int position) {
     int activePos = (position >= 0) ? position : params.hpfFreq;
-    hpf.setPosition(activePos, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
+    int hpfModel = GET_MODEL_HPF(params);
+    if (hpfModel == 0) {
+        hpf.setMode(HPFMode::J6Continuous);
+    } else if (hpfModel == 1) {
+        hpf.setMode(HPFMode::J60);
+    } else {
+        hpf.setMode(HPFMode::J106);
+    }
+    hpf.setPosition(activePos, params.hpfFreq1, params.hpfFreq2, params.hpfFreq3, params.hpfBassBoostGain);
 }
 
 void Voice::forceUpdate() {
@@ -294,7 +319,7 @@ float Voice::updatePitch(int numSamples) {
     float targetPitch = 12.0f * std::log2(targetFrequency / 440.0f);
     float currentPitch = 12.0f * std::log2(currentFrequency / 440.0f);
     
-    if (params.portamentoOn && std::abs(currentFrequency - targetFrequency) > 0.1f) {
+    if (params.portamentoOn && (GET_MODEL_PORTA(params) == 2) && std::abs(currentFrequency - targetFrequency) > 0.1f) {
         float t = params.portamentoTime; // 0..1 slider
         float i_idx = t * 127.0f;
         float coeff = 0.0f;

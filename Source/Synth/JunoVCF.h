@@ -1,16 +1,87 @@
 #pragma once
 #include <array>
+#include <cmath>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+#include <JuceHeader.h>
+
+// ============================================================
+// Inline polyphase IIR resampler (from Laurent de Soras)
+// ============================================================
+static constexpr int kNumResamplerCoefs = 12;
+
+struct JunoUpsampler2x
+{
+    float coef[kNumResamplerCoefs] = {};
+    float x[kNumResamplerCoefs] = {};
+    float y[kNumResamplerCoefs] = {};
+
+    void set_coefs(const double c[kNumResamplerCoefs])
+    {
+        for (int i = 0; i < kNumResamplerCoefs; i++)
+            coef[i] = static_cast<float>(c[i]);
+    }
+
+    void clear_buffers()
+    {
+        std::memset(x, 0, sizeof(x));
+        std::memset(y, 0, sizeof(y));
+    }
+
+    void process_sample(float& out_0, float& out_1, float input)
+    {
+        float even = input;
+        float odd = input;
+        for (int i = 0; i < kNumResamplerCoefs; i += 2)
+        {
+            float t0 = (even - y[i]) * coef[i] + x[i];
+            float t1 = (odd - y[i + 1]) * coef[i + 1] + x[i + 1];
+            x[i] = even;   x[i + 1] = odd;
+            y[i] = t0;     y[i + 1] = t1;
+            even = t0;     odd = t1;
+        }
+        out_0 = even;
+        out_1 = odd;
+    }
+};
+
+struct JunoDownsampler2x
+{
+    float coef[kNumResamplerCoefs] = {};
+    float x[kNumResamplerCoefs] = {};
+    float y[kNumResamplerCoefs] = {};
+
+    void set_coefs(const double c[kNumResamplerCoefs])
+    {
+        for (int i = 0; i < kNumResamplerCoefs; i++)
+            coef[i] = static_cast<float>(c[i]);
+    }
+
+    void clear_buffers()
+    {
+        std::memset(x, 0, sizeof(x));
+        std::memset(y, 0, sizeof(y));
+    }
+
+    float process_sample(const float in[2])
+    {
+        float spl_0 = in[1];
+        float spl_1 = in[0];
+        for (int i = 0; i < kNumResamplerCoefs; i += 2)
+        {
+            float t0 = (spl_0 - y[i]) * coef[i] + x[i];
+            float t1 = (spl_1 - y[i + 1]) * coef[i + 1] + x[i + 1];
+            x[i] = spl_0;   x[i + 1] = spl_1;
+            y[i] = t0;       y[i + 1] = t1;
+            spl_0 = t0;     spl_1 = t1;
+        }
+        return 0.5f * (spl_0 + spl_1);
+    }
+};
 
 /**
  * JunoVCF - OTA Ladder Filter (IR3109 / 80017A model)
- *
- * Topology: 4-pole OTA ladder, 24 dB/oct Low-Pass.
- * Saturation: Padé 3/3 approximation per stage (OTA character, non-BJT).
- * Pre-warping: tan(π·fc/fs) TPT trapezoidal integration per stage.
- * Self-oscillation: Natural oscillation when resonance feedback k > 4.0.
- * Keyboard tracking: Exponential V/oct scaling centered around A4 (440Hz).
- *
- * Hardware Reference: Roland 80017A (containing IR3109 and BA662 clones).
  */
 class JunoVCF
 {
@@ -19,29 +90,11 @@ public:
 
     void reset();
     void setSampleRate (double sr);
+    void setOversample (int factor);
+    void setModelAndResCurve(bool j106Res, bool otaSaturation);
 
     /**
      * Processes a single audio sample through the filter.
-     * [Phase 2] Now uses MCU 14-bit arithmetic and J106DACHzTable for cutoff.
-     * 
-     * @param input             Pre-VCF audio signal (mixed DCO, Sub, and Noise).
-     * @param cutoff01          Normalized cutoff frequency (0.0 to 1.0).
-     * @param resonance         Normalized resonance level (0.0 to 1.0).
-     * @param envAmount         Envelope modulation amount (0.0 to 1.0).
-     * @param envVal            Current envelope value (0.0 to 1.0).
-     * @param envInverted       True if envelope polarity is inverted.
-     * @param lfoAmount         LFO modulation amount (0.0 to 1.0).
-     * @param lfoVal            Current LFO value (-1.0 to 1.0).
-     * @param kybdTrack         Keyboard tracking intensity (0.0 to 1.0).
-     * @param currentFreqHz     The fundamental frequency of the currently playing note.
-     * @param benderValue       Pitch bender position (-1.0 to 1.0).
-     * @param benderToVCF       Bender to VCF modulation amount.
-     * @param selfOscThreshold  The resonance level where oscillation begins.
-     * @param saturationScale   Multiplier for the OTA stage saturation intensity.
-     * @param selfOscInt        Intensity of the self-oscillation feedback loop.
-     * @param vcfWidth          Scaling accuracy for V/oct tracking.
-     * @param cal               Pointer to CalibrationSettings for DAC table lookup.
-     * @return                  The filtered audio sample.
      */
     float processSample (float input,
                          float cutoff01,
@@ -63,9 +116,10 @@ public:
                          class CalibrationSettings* cal);
 
 private:
-    // ------------------------------------------------------------
-    // Curva de cutoff: MCU Aritmética 14-bits y tabla J106DACHzTable
-    // ------------------------------------------------------------
+    float processSampleInternal (float input, float frq, float res);
+    float process2x (float input, float frq, float res);
+    float process4x (float input, float frq, float res);
+
     float computeCutoffHz (float cutoff01,
                            float envAmount,
                            float envVal,
@@ -142,6 +196,25 @@ private:
         return 1.24f * (4.7116f * r - 6.5743f * r2 + 13.4633f * r3 - 8.2197f * r4);
     }
 
+    // ResK_J6 - Juno-6 hardware peak response
+    static inline float ResK_J6 (float res) noexcept
+    {
+        static constexpr float kShape = 2.128f;
+        static constexpr float kNorm = 0.811f;
+        return kNorm * (std::exp(kShape * res) - 1.f);
+    }
+
+    // Soft-clip resonance above k=3.0 (OTA gain compression)
+    static inline float SoftClipK (float k) noexcept
+    {
+        if (k > 3.0f)
+        {
+            float excess = k - 3.0f;
+            k = 3.0f + excess / (1.0f + excess * 0.2f);
+        }
+        return std::min(k, 6.6f);
+    }
+
     // FreqCompensationClamped - Cutoff compensation
     static inline float FreqCompensationClamped (float k, float frq) noexcept
     {
@@ -182,14 +255,24 @@ private:
     }
 
     // Estado de las 4 etapas TPT
-    std::array<float, 4> s {};   // integrador por etapa
+    std::array<float, 4> s {};
     float lastOutput = 0.0f;
 
     double sampleRate    = 44100.0;
     float  invSampleRate = 1.0f / 44100.0f;
 
-    // [Build 29] Ranges are now dynamic via CalibrationManager
+    // Config conmutable
+    bool mJ106Res = true;
+    bool mOTASaturation = true;
+    int mOversample = 4;
 
-    // Resonancia: umbral de autooscilación (HW: ~0.92)
-    // float kSelfOscThreshold = 0.92f; // Moved to dynamic parameter
+    // Seeding de ruido térmico adaptativo
+    uint32_t mNoiseSeed = 123456789u;
+    float mInputEnv = 0.f;
+    float mEnvDecay = 0.999f;
+    float mFreqComp = 1.f;
+
+    // Resamplers polifase
+    JunoUpsampler2x mUp1, mUp2;
+    JunoDownsampler2x mDown1, mDown2;
 };

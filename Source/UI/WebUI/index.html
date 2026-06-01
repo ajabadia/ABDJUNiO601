@@ -86,7 +86,10 @@
                 </div>
                 <div class="menu-item" onclick="showBrowser()" style="color: var(--juno-blue); font-weight: bold; margin-left: 20px;">[ BROWSER ]</div>
             </div>
-            <div id="app-title-mini">ABD JUNiO 601</div>
+            <div style="display: flex; align-items: center; gap: 15px; margin-right: 10px;">
+                <div id="active-model-spec" style="font-family: 'Fragment Mono', monospace; font-size: 10px; color: #fa0; letter-spacing: 1px; font-weight: bold; pointer-events: none; text-transform: uppercase;">SUPER SIX HYBRID</div>
+                <div id="app-title-mini">ABD JUNiO 601</div>
+            </div>
         </header>
 
         <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
@@ -224,56 +227,135 @@
                     </div>
                 </section>
 
-                <section class="performance-module">
-                    <!-- ROW 1: KNOBS -->
-                    <div class="perf-knobs">
-                        <div class="knob-pod" data-param="portamentoTime">
-                            <div class="knob-ring">
-                                <div class="knob"></div>
+                <!-- ROW 1: TABBED PERFORMANCE PANEL -->
+                <section class="performance-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <div class="sunken-performance-panel" style="margin-top: 0;">
+                        <div class="performance-tabs">
+                            <div class="perf-tab-btn active" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
+                                VOL/TUNE
                             </div>
-                            <div class="knob-lbl">PORT</div>
-                        </div>
-                        <div class="knob-pod" data-param="masterTune">
-                            <div class="knob-ring">
-                                <div class="knob"></div>
+                            <div class="perf-tab-btn" id="tab-btn-port" onclick="switchPerformanceTab('port')">
+                                <div class="tab-led" id="led-tab-port"></div>
+                                PORTA
                             </div>
-                            <div class="knob-lbl">TUNE</div>
-                        </div>
-                        <div class="knob-pod" data-param="masterVolume">
-                            <div class="knob-ring">
-                                <div class="knob"></div>
+                            <div class="perf-tab-btn" id="tab-btn-poly" onclick="switchPerformanceTab('poly')">
+                                <div class="tab-led" id="led-tab-poly1" style="left: 30%;"></div>
+                                <div class="tab-led" id="led-tab-poly2" style="left: 70%;"></div>
+                                POLY
                             </div>
-                            <div class="knob-lbl">VOLUME</div>
+                            <div class="perf-tab-btn" id="tab-btn-arp" onclick="switchPerformanceTab('arp')">
+                                <div class="tab-led" id="led-tab-arp"></div>
+                                ARP
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- ROW 2: SWITCHES & POLY -->
-                    <div class="perf-row">
-                        <div class="port-col">
-                            <div class="sw-lbl">ON/OFF</div>
-                            <div class="sw-unit" data-param="portamentoOn">
-                                <div class="sw-path">
-                                    <div class="sw-peg"></div>
+                        <!-- Sub Panels -->
+                        <div class="perf-tab-content" id="panel-voltune">
+                            <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
+                                <div class="knob-unit" data-param="masterVolume" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <span class="knob-lbl">VOLUME</span>
+                                    <div class="knob-ring">
+                                        <div class="knob"></div>
+                                    </div>
+                                </div>
+                                <div class="knob-unit" data-param="tune" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <span class="knob-lbl">TUNE</span>
+                                    <div class="knob-ring">
+                                        <div class="knob" style="transform: translateX(-50%) rotate(0deg);"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="poly-col">
-                            <div class="sw-lbl">POLY</div>
-                            <div class="poly-buttons">
-                                <div class="poly-unit">
-                                    <button class="sq beige poly-mode-btn" data-poly-val="0.5"></button>
-                                    <div class="poly-lit">I</div>
+
+                        <div class="perf-tab-content hidden" id="panel-port">
+                            <div style="display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; padding-top: 20px;">
+                                <div class="knob-unit" data-param="portamentoTime" style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none;">
+                                    <span class="knob-lbl">TIME</span>
+                                    <div class="knob-ring">
+                                        <div class="knob"></div>
+                                    </div>
                                 </div>
-                                <div class="poly-unit">
-                                    <button class="sq beige poly-mode-btn" data-poly-val="1.0"></button>
-                                    <div class="poly-lit">II</div>
+                                <div class="port-col" style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none;">
+                                    <div class="sw-lbl" style="margin-bottom: 0;">ON/OFF</div>
+                                    <div class="sw-unit" data-param="portamentoOn" style="height: 60px !important; margin-top: 0; width: 50px; display: flex; justify-content: center; align-items: center;">
+                                        <div class="sw-path" style="height: 54px; width: 30px;">
+                                            <div class="sw-peg" style="height: 54px; width: 30px;"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="perf-tab-content hidden" id="panel-poly">
+                            <div class="poly-col" style="align-items: center; justify-content: center; display: flex; flex-direction: column; width: 100%;">
+                                <div class="sw-lbl" style="font-size: 8px;">POLY MODE</div>
+                                <div class="poly-buttons" style="margin-top: 8px;">
+                                    <div class="poly-unit">
+                                        <button class="sq beige poly-mode-btn" data-poly-val="0.5"></button>
+                                        <div class="poly-lit">I</div>
+                                    </div>
+                                    <div class="poly-unit">
+                                        <button class="sq beige poly-mode-btn" data-poly-val="1.0"></button>
+                                        <div class="poly-lit">II</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perf-tab-content hidden" id="panel-arp" style="gap: 5px; padding-top: 10px;">
+                            <div style="display: flex; gap: 20px; align-items: center; justify-content: center; width: 100%;">
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
+                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">ON/OFF</div>
+                                    <div class="led" id="led-arpEnabled" style="margin-bottom: 2px;"></div>
+                                    <button class="sq orange" data-param="arpEnabled"></button>
+                                </div>
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
+                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">SYNC</div>
+                                    <div class="led" id="led-arpSync" style="margin-bottom: 2px;"></div>
+                                    <button class="sq orange" data-param="arpSync"></button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; justify-content: center; align-items: flex-start; width: 100%; margin-top: 15px;">
+                                <!-- MODE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">MODE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpMode">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                        <span class="knob-tick-lbl pos-left">UP</span>
+                                        <span class="knob-tick-lbl pos-center">DN</span>
+                                        <span class="knob-tick-lbl pos-right">U/D</span>
+                                    </div>
+                                </div>
+                                <!-- RANGE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">RANGE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpRange">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                        <span class="knob-tick-lbl pos-left">1</span>
+                                        <span class="knob-tick-lbl pos-center">2</span>
+                                        <span class="knob-tick-lbl pos-right">3</span>
+                                    </div>
+                                </div>
+                                <!-- RATE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">RATE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpRate" style="height: 52px;">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                    </div>
+                                    <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold; margin-top: -6px;">0.50</span>
+                                </div>
+                            </div>
+                    </div>
                     </div>
 
                     <!-- ROW 3: DEDICATED OCTAVE ZONE -->
-                    <div class="perf-octave-zone">
+                    <div class="perf-octave-zone" style="margin-top: auto;">
                         <span class="oct-lbl col-1">OCT -</span>
                         <button class="sq grey oct-btn down col-2" data-action="octaveDown"></button>
                         <button class="sq grey oct-btn up col-3" data-action="octaveUp"></button>
@@ -289,6 +371,7 @@
                     <div class="engine-row">
                         <section class="module" id="lfo">
                             <div class="module-bar">LFO</div>
+                            <div class="painter-tape" data-module="lfo" id="tape-lfo">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="lfoRate">
                                     <div class="lbl">RATE</div>
@@ -308,6 +391,7 @@
                         </section>
                         <section class="module" id="dco">
                             <div class="module-bar">DCO</div>
+                            <div class="painter-tape" data-module="dco" id="tape-dco">J106</div>
                             <div class="controls">
                                 <div class="ctrl-group" id="dco-range">
                                     <div class="lbl">RANGE</div>
@@ -402,6 +486,7 @@
                         </section>
                         <section class="module blue" id="hpf">
                             <div class="module-bar">HPF</div>
+                            <div class="painter-tape" data-module="hpf" id="tape-hpf">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="hpfFreq">
                                     <div class="lbl">FREQ</div>
@@ -417,6 +502,7 @@
                     <div class="engine-row">
                         <section class="module" id="vcf">
                             <div class="module-bar">VCF</div>
+                            <div class="painter-tape" data-module="vcf" id="tape-vcf">J106</div>
                             <div class="controls">
                                 <div class="ctrl-group" id="vcf-core">
                                     <div class="ctrl" data-param="vcfFreq">
@@ -475,6 +561,7 @@
                         </section>
                         <section class="module" id="vca">
                             <div class="module-bar">VCA</div>
+                            <div class="painter-tape" data-module="vca" id="tape-vca">J106</div>
                             <div class="controls">
                                 <div class="ctrl">
                                     <div class="lbl">MODE</div>
@@ -497,6 +584,7 @@
                         </section>
                         <section class="module" id="env">
                             <div class="module-bar">ENVELOPE</div>
+                            <div class="painter-tape" data-module="env" id="tape-env">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="attack">
                                     <div class="lbl">A</div>
@@ -530,16 +618,28 @@
                         </section>
                         <section class="module blue" id="chorus">
                             <div class="module-bar">CHORUS</div>
+                            <div class="painter-tape" data-module="chorus" id="tape-chorus">J106</div>
                             <div class="controls center">
-                                <div class="unit">
-                                    <div class="btn-lbl">I</div>
-                                    <div class="led" id="led-chorus1"></div>
-                                    <button class="sq orange" data-param="chorus1"></button>
-                                </div>
-                                <div class="unit">
-                                    <div class="btn-lbl">II</div>
-                                    <div class="led" id="led-chorus2"></div>
-                                    <button class="sq orange" data-param="chorus2"></button>
+                                <div class="chorus-group-wrapper">
+                                    <div class="chorus-labels-row">
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">OFF</span>
+                                            <div class="off-line"></div>
+                                        </div>
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">I</span>
+                                            <div class="led" id="led-chorus1"></div>
+                                        </div>
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">II</span>
+                                            <div class="led" id="led-chorus2"></div>
+                                        </div>
+                                    </div>
+                                    <div class="chorus-buttons-row">
+                                        <button class="sq beige" id="chorus-off-btn" data-active="true"></button>
+                                        <button class="sq orange" data-param="chorus1"></button>
+                                        <button class="sq orange" data-param="chorus2"></button>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -623,6 +723,7 @@
             <div class="settings-tabs">
                 <button class="tab-btn active" onclick="switchTab('general')">GENERAL</button>
                 <button class="tab-btn" onclick="switchTab('calibration')">CALIBRATION</button>
+                <button class="tab-btn" onclick="switchTab('routing')">ROUTING</button>
                 <button class="tab-btn" onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
             </div>
 
@@ -656,6 +757,13 @@
 
                 <!-- TAB 2: CALIBRATION PARAMS -->
                 <div id="tab-calibration" class="settings-content single-col">
+                    <div style="background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Calibration Parameters</span>
+                        <label style="font-size: 10px; display: flex; align-items: center; gap: 8px; color: var(--juno-orange); cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="chk-show-all-params" onchange="ServiceMode.toggleShowAllParams(this.checked)" style="cursor: pointer; accent-color: var(--juno-orange);">
+                            SHOW ALL (SUPER SIX MODE)
+                        </label>
+                    </div>
                     <div id="service-params-list" style="padding-right: 15px;"></div>
                     <div class="service-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                          <button class="tuning-btn primary" id="btn-auto-tune-cal" onclick="ServiceMode.startAutoTune()" style="background: #a50; color: white;">RUN AUTO-VCF TUNE</button>
@@ -728,6 +836,167 @@
                                 </div>
                                 <div id="sub-level-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (11 values)</div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: ENGINE MODEL ROUTING & ARPEGGIATOR -->
+                <div id="tab-routing" class="settings-content single-col">
+                    <div class="service-section">
+                        <div class="service-section-title">Engine Section Model Routing</div>
+                        
+                        <div class="setting-row">
+                            <label>DCO Model</label>
+                            <select data-param="modelDCO" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Classic Continuous DCO)</option>
+                                <option value="0.5">Juno-60 (Standard DCO)</option>
+                                <option value="1">Juno-106 (Hybrid DCO / Quartz Clock)</option>
+                            </select>
+                            <div class="val-lbl">DCO</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>HPF Model</label>
+                            <select data-param="modelHPF" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Continuous Slider HPF)</option>
+                                <option value="0.5">Juno-60 (Discrete 4-Position HPF)</option>
+                                <option value="1">Juno-106 (Discrete HPF with Active Bass Boost)</option>
+                            </select>
+                            <div class="val-lbl">HPF</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>VCF Model</label>
+                            <select data-param="modelVCF" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (IR3109 ResK & SoftClip)</option>
+                                <option value="0.5">Juno-60 (Classic IR3109 Filter)</option>
+                                <option value="1">Juno-106 (80017A Integrated Filter)</option>
+                            </select>
+                            <div class="val-lbl">VCF</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>ADSR Model</label>
+                            <select data-param="modelADSR" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Analog RC Curves)</option>
+                                <option value="0.5">Juno-60 (Analog RC Envelope)</option>
+                                <option value="1">Juno-106 (Digital uPD7811G Linear Ticks)</option>
+                            </select>
+                            <div class="val-lbl">ADSR</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Chorus Model</label>
+                            <select data-param="modelChorus" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Classic BBD Character)</option>
+                                <option value="0.5">Juno-60 (Wide Analog MN3009 BBD)</option>
+                                <option value="1">Juno-106 (Standard BBD Chorus & specific hiss)</option>
+                            </select>
+                            <div class="val-lbl">CHORUS</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arpeggiator Model</label>
+                            <select data-param="modelArp" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Analog Rate Osc & Schmitt Trigger)</option>
+                                <option value="0.5">Juno-60 (Standard Sync Clock Arpeggiator)</option>
+                                <option value="1">Juno-106 (No Arpeggiator / Disabled)</option>
+                            </select>
+                            <div class="val-lbl">ARP</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Voice Allocator</label>
+                            <select data-param="modelPoly" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Rotary voicelimit direct)</option>
+                                <option value="0.5">Juno-60 (Classic rotary allocator)</option>
+                                <option value="1">Juno-106 (Digital allocator)</option>
+                            </select>
+                            <div class="val-lbl">POLY</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Portamento Model</label>
+                            <select data-param="modelPorta" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (No Portamento)</option>
+                                <option value="0.5">Juno-60 (No Portamento)</option>
+                                <option value="1">Juno-106 (Portamento Glide)</option>
+                            </select>
+                            <div class="val-lbl">PORTA</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Unison Model</label>
+                            <select data-param="modelUnison" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (No Unison)</option>
+                                <option value="0.5">Juno-60 (No Unison)</option>
+                                <option value="1">Juno-106 (Unison Mode)</option>
+                            </select>
+                            <div class="val-lbl">UNISON</div>
+                        </div>
+                    </div>
+
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-section-title">Arpeggiator Settings</div>
+                        
+                        <div class="setting-row">
+                            <label>Arpeggiator Enable</label>
+                            <select data-param="arpEnabled" onchange="updatePref(this)">
+                                <option value="0">OFF</option>
+                                <option value="1">ON</option>
+                            </select>
+                            <div class="val-lbl">ARP</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Mode</label>
+                            <select data-param="arpMode" onchange="updatePref(this)">
+                                <option value="0">UP</option>
+                                <option value="0.5">DOWN</option>
+                                <option value="1">UP & DOWN</option>
+                            </select>
+                            <div class="val-lbl">MODE</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Range</label>
+                            <select data-param="arpRange" onchange="updatePref(this)">
+                                <option value="0">1 OCTAVE</option>
+                                <option value="0.5">2 OCTAVES</option>
+                                <option value="1">3 OCTAVES</option>
+                            </select>
+                            <div class="val-lbl">RANGE</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Rate (Free Run)</label>
+                            <input type="range" class="service-slider" data-param="arpRate" min="0" max="1" step="0.01" value="0.5" oninput="updatePref(this)">
+                            <div class="val-lbl" id="val-arpRate">0.50</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Sync to Host</label>
+                            <select data-param="arpSync" onchange="updatePref(this)">
+                                <option value="0">OFF (Free Run)</option>
+                                <option value="1">ON (Tempo Sync)</option>
+                            </select>
+                            <div class="val-lbl">SYNC</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Time Division</label>
+                            <select data-param="arpDivision" onchange="updatePref(this)">
+                                <option value="0">1/1 (Whole Note)</option>
+                                <option value="0.125">1/2 (Half Note)</option>
+                                <option value="0.25">1/2T (Half Triplet)</option>
+                                <option value="0.375">1/4 (Quarter Note)</option>
+                                <option value="0.5">1/4T (Quarter Triplet)</option>
+                                <option value="0.625">1/8 (Eighth Note)</option>
+                                <option value="0.75">1/8T (Eighth Triplet)</option>
+                                <option value="0.875">1/16 (Sixteenth Note)</option>
+                                <option value="1">1/16T (Sixteenth Triplet)</option>
+                            </select>
+                            <div class="val-lbl">DIV</div>
                         </div>
                     </div>
                 </div>

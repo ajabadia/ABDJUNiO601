@@ -23,9 +23,20 @@ void JunoVoiceManager::updateParams(const SynthParams& params) {
     }
     
     currentActiveVoices.store(juce::jlimit(1, (int)MAX_VOICES, requestedVoices));
+
+    // Resolve poly mode and portamento based on model routing
+    int resolvedPolyMode = params.polyMode;
+    bool resolvedPortamentoOn = params.portamentoOn;
+    setPolyMode(resolvedPolyMode);
+
+    // Make a copy of params to modify and propagate to voices
+    SynthParams resolvedParams = params;
+    resolvedParams.polyMode = resolvedPolyMode;
+    resolvedParams.portamentoOn = resolvedPortamentoOn;
+
     auto& voices = allocator.getVoices();
     for (auto& voice : voices) {
-        voice.updateParams(params);
+        voice.updateParams(resolvedParams);
     }
 }
 

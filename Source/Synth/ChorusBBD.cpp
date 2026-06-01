@@ -10,15 +10,19 @@ void ChorusBBD::prepare(double sampleRate, int /*maxBlockSize*/)
 {
     sr = sampleRate;
     
-    lineI_L.init(MAX_DELAY_SAMPLES);
-    lineI_R.init(MAX_DELAY_SAMPLES);
-    lineII_L.init(MAX_DELAY_SAMPLES);
-    lineII_R.init(MAX_DELAY_SAMPLES);
+    lineL.Init((float)sr, calFilterCutoff);
+    lineR.Init((float)sr, calFilterCutoff);
 
-    filterI_L.prepare(sr, calFilterCutoff);
-    filterI_R.prepare(sr, calFilterCutoff);
-    filterII_L.prepare(sr, calFilterCutoff);
-    filterII_R.prepare(sr, calFilterCutoff);
+    clickL_Pri.Init((float)sr);
+    clickR_Pri.Init((float)sr);
+    clickL_Slo.Init((float)sr);
+    clickR_Slo.Init((float)sr);
+
+    leakNoiseL.Init((float)sr, 800.0f);
+    leakNoiseR.Init((float)sr, 800.0f);
+
+    clickRingL.Init(30.0f, 18.0f, (float)sr);
+    clickRingR.Init(30.0f, 18.0f, (float)sr);
 
     wetNoiseL.Init((float)sr);
     wetNoiseL.mPinkEnabled = true;
@@ -37,18 +41,37 @@ void ChorusBBD::prepare(double sampleRate, int /*maxBlockSize*/)
 
 void ChorusBBD::reset()
 {
-    lineI_L.reset();
-    lineI_R.reset();
-    lineII_L.reset();
-    lineII_R.reset();
+    lineL.Clear();
+    lineR.Clear();
 
-    filterI_L.reset();
-    filterI_R.reset();
-    filterII_L.reset();
-    filterII_R.reset();
+    clickL_Pri.Reset();
+    clickR_Pri.Reset();
+    clickL_Slo.Reset();
+    clickR_Slo.Reset();
+
+    clickRingL.Reset();
+    clickRingR.Reset();
 
     wetRipple.Reset();
     lfoPhase = 0.0;
+}
+
+void ChorusBBD::setMode(Mode m)
+{
+    if (m != mode)
+    {
+        prevMode = mode;
+        mode = m;
+        if (mode != Mode::Off)
+        {
+            clickL_Pri.Suppress();
+            clickR_Pri.Suppress();
+            clickL_Slo.Suppress();
+            clickR_Slo.Suppress();
+            clickRingL.Reset();
+            clickRingR.Reset();
+        }
+    }
 }
 
 void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
@@ -61,17 +84,22 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
     float* L = buffer.getWritePointer(0);
     float* R = numChannels > 1 ? buffer.getWritePointer(1) : nullptr;
 
-    // Scale modulation depth by mode to match KR-106 hardware specs:
-    // Chorus I: 2.13ms (ref), Chorus II: 1.71ms (~0.8028x), Chorus Both: 0.236ms (~0.1108x)
-    float modeScale = 1.0f;
-    if (mode == Mode::ChorusII)   modeScale = 0.8028f;
-    else if (mode == Mode::ChorusBoth) modeScale = 0.1108f;
-    const float modAmp = (calModDepth * m_depth * 0.001f) * (float)sr * modeScale;
+    // Map base depths in ms for the physical chorus
+    float baseDepthMs = 2.13f;
+    if (mode == Mode::ChorusII)        baseDepthMs = 1.71f;
+    else if (mode == Mode::ChorusBoth) baseDepthMs = 0.236f;
+
+    // Scale by calModDepth (default 1.5ms) and user depth
+    float delayDepth = baseDepthMs * (calModDepth / 1.5f) * m_depth;
+
+    const float centerDelayMs = (mode == Mode::ChorusII) ? calDelayII : calDelayI;
     const float currentRate = (mode == Mode::ChorusBoth) ? calBothRate : lfoRate;
     const double phaseInc = juce::MathConstants<double>::twoPi * currentRate / sr;
 
-    const float baseI = (calDelayI * 0.001f) * (float)sr;
-    const float baseII = (calDelayII * 0.001f) * (float)sr;
+    // Apply sat boost to line saturation
+    float drive = 0.1f * calSatBoost;
+    lineL.mSatDrive = drive;
+    lineR.mSatDrive = drive;
 
     for (int s = 0; s < numSamples; ++s)
     {
@@ -81,62 +109,100 @@ void ChorusBBD::process(juce::AudioBuffer<float>& buffer)
         float outL = inL;
         float outR = inR;
 
-        // --- Chorus I or Both (Both uses 8Hz mono-line logic) ---
-        if (mode == Mode::ChorusI || mode == Mode::ChorusBoth)
+        // Calculate LFO value
+        float lfo;
+        if (mode == Mode::ChorusBoth)
         {
-            float lfo_L, lfo_R;
-            if (mode == Mode::ChorusBoth)
-            {
-                lfo_L = (float)std::sin(lfoPhase);
-                lfo_R = (float)std::sin(lfoPhase + juce::MathConstants<double>::pi);
-            }
-            else
-            {
-                double norm = lfoPhase / juce::MathConstants<double>::twoPi;
-                lfo_L = 1.0f - 4.0f * (float)std::abs(norm - 0.5);
-                lfo_R = -lfo_L;
-            }
-
-            float del_L = baseI + modAmp * lfo_L;
-            float del_R = baseI + modAmp * lfo_R;
-
-            lineI_L.write(saturate(inL));
-            lineI_R.write(saturate(inR));
-            float wet_L = filterI_L.process(lineI_L.read(del_L));
-            float wet_R = filterI_R.process(lineI_R.read(del_R));
-
-            float dryMix = 1.0f - wetMix * (1.0f - calGainDry);
-            float wetMixAmount = wetMix * calGainWet;
-
-            outL = dryMix * inL + wetMixAmount * wet_L;
-            outR = dryMix * inR + wetMixAmount * wet_R;
+            lfo = (float)std::sin(lfoPhase);
         }
-        else if (mode == Mode::ChorusII)
+        else
         {
             double norm = lfoPhase / juce::MathConstants<double>::twoPi;
-            float lfo_L = 1.0f - 4.0f * (float)std::abs(norm - 0.5);
-            float lfo_R = -lfo_L;
-
-            float del_L = baseII + modAmp * lfo_L;
-            float del_R = baseII + modAmp * lfo_R;
-
-            lineII_L.write(saturate(inL));
-            lineII_R.write(saturate(inR));
-            float wet_L = filterII_L.process(lineII_L.read(del_L));
-            float wet_R = filterII_R.process(lineII_R.read(del_R));
-
-            float dryMix = 1.0f - wetMix * (1.0f - calGainDry);
-            float wetMixAmount = wetMix * calGainWet;
-
-            outL = dryMix * inL + wetMixAmount * wet_L;
-            outR = dryMix * inR + wetMixAmount * wet_R;
+            lfo = 1.0f - 4.0f * (float)std::abs(norm - 0.5);
         }
 
-        float nL = wetNoiseL.Process() * 0.0018f * hissMultiplier;
-        float nR = wetNoiseR.Process() * 0.0018f * hissMultiplier;
+        // Delay-domain modulation with BBD Clock network tolerances
+        constexpr float kBBDClockTrim = 0.015f;
+        float delay0Ms = (centerDelayMs + delayDepth * lfo) * (1.f - kBBDClockTrim);
+        float delay1Ms = (centerDelayMs - delayDepth * lfo) * (1.f + kBBDClockTrim);
+
+        constexpr float kMinDelayMs = 0.1f;
+        delay0Ms = std::max(delay0Ms, kMinDelayMs);
+        delay1Ms = std::max(delay1Ms, kMinDelayMs);
+
+        float delay0samp = delay0Ms * 0.001f * (float)sr;
+        float delay1samp = delay1Ms * 0.001f * (float)sr;
+
+        // Clock rates in Hz for CTE-loss gain compensation
+        constexpr float kMinClockHz = 5000.f;
+        float clock0 = 256.f / (2.f * delay0Ms * 0.001f);
+        float clock1 = 256.f / (2.f * delay1Ms * 0.001f);
+        clock0 = std::max(clock0, kMinClockHz);
+        clock1 = std::max(clock1, kMinClockHz);
+
+        // BBD Leakage Noise
+        constexpr float kLeakMinFrac = 0.0126f;
+        float invDepth = (delayDepth > 1e-9f) ? 1.f / delayDepth : 0.f;
+        float lfo0 = (delay0Ms - centerDelayMs) * invDepth;
+        float lfo1 = (delay1Ms - centerDelayMs) * invDepth;
+
+        float lfoNorm0 = (lfo0 + 1.f) * 0.5f;
+        float lfoNorm1 = (lfo1 + 1.f) * 0.5f;
+
+        float leakAmount0 = delayDepth * (kLeakMinFrac + (1.f - kLeakMinFrac) * lfoNorm0);
+        float leakAmount1 = delayDepth * (kLeakMinFrac + (1.f - kLeakMinFrac) * lfoNorm1);
+
+        float noiseN0 = leakNoiseL.Process();
+        float noiseN1 = leakNoiseR.Process();
+
+        float baseNoiseGain = std::pow(10.f, hissLvlDb / 20.f);
+        float wetPink0 = wetNoiseL.Process(calHissColor) * baseNoiseGain * hissMultiplier;
+        float wetPink1 = wetNoiseR.Process(calHissColor) * baseNoiseGain * hissMultiplier;
+
+        // BBD clicks
+        float gainModScale = delayDepth / 2.13f;
+        constexpr float kBBDClickGain = 0.11f;
+        constexpr float kBBDSlowClickGain = 0.022f;
+
+        float click0Pri = clickL_Pri.Process(-lfo) * kBBDClickGain * gainModScale;
+        float click1Pri = clickR_Pri.Process(lfo) * kBBDClickGain * gainModScale;
+        float click0Slo = clickL_Slo.Process(lfo) * kBBDSlowClickGain * gainModScale;
+        float click1Slo = clickR_Slo.Process(-lfo) * kBBDSlowClickGain * gainModScale;
+
+        constexpr float kBBDLeakageGain = 8.8e-3f;
+        float bbdIn0 = (wetPink0 + noiseN0 * kBBDLeakageGain * leakAmount0 + click0Pri - click0Slo) * hissMultiplier;
+        float bbdIn1 = (wetPink1 + noiseN1 * kBBDLeakageGain * leakAmount1 + click1Pri - click1Slo) * hissMultiplier;
+
+        // Process through the Hermite BBD Line with pre/post reconstruction filters
+        float wet0 = lineL.Process(inL, delay0samp, bbdIn0);
+        float wet1 = lineR.Process(inR, delay1samp, bbdIn1);
+
+        // BBD charge-transfer efficiency loss gain modulation
+        constexpr float kBBDGainTrim = 0.04f;
+        constexpr float kBBDCTELossCoeff = 4468.f;
+        constexpr float kBBDInvClockCenter = 1.f / 40000.f;
+
+        float gain0 = (1.f + kBBDGainTrim) * (1.f - kBBDCTELossCoeff * (1.f / clock0 - kBBDInvClockCenter));
+        float gain1 = (1.f - kBBDGainTrim) * (1.f - kBBDCTELossCoeff * (1.f / clock1 - kBBDInvClockCenter));
+        wet0 *= gain0;
+        wet1 *= gain1;
+
+        // Per-channel LF ringing excited by clicks
+        constexpr float kClickRingGain = 0.06f;
+        wet0 += clickRingL.Process(click0Pri) * kClickRingGain * hissMultiplier;
+        wet1 += clickRingR.Process(click1Pri) * kClickRingGain * hissMultiplier;
+
+        // Mains ripple
         float ripple = wetRipple.Process() * hissMultiplier;
-        outL += nL + ripple;
-        outR += nR + ripple;
+        wet0 += ripple;
+        wet1 += ripple;
+
+        // IC6 Inverting summer dry/wet mix
+        float dryMix = 1.f - wetMix * (1.f - calGainDry);
+        float wetMixAmount = wetMix * calGainWet;
+
+        outL = dryMix * inL + wetMixAmount * wet0;
+        outR = dryMix * inR + wetMixAmount * wet1;
 
         L[s] = outL;
         if (R) R[s] = outR;

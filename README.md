@@ -1,86 +1,58 @@
-# JUNiO 601
+# ABD JUNiO Super SIX
 
-A hardware-authentic emulation of the legendary Roland Juno-106 synthesizer, built using the JUCE framework. This project focuses on absolute sonic fidelity, bidirectional SysEx communication, and replicating the original hardware's diagnostic and performance behaviors.
+A high-fidelity unified hybrid emulation of the classic Roland Juno series (Juno-6, Juno-60, and Juno-106), built using the JUCE 8 framework. **Super SIX** represents the new era of the emulator, combining the distinct analog behaviors, components, and characteristics of all three vintage models into a single modular and conmutable synthesizer engine.
 
-## Technical Architecture
+---
 
-The emulator is designed around a fixed 6-voice polyphonic engine, strictly mimicking the original 80017A VCF/VCA voice chips and DCO architecture.
+## The Unified Engine & Hybrid Architecture
 
-### Audio Signal Path
-The signal path preserves the unique Juno-106 topology:
-1. **DCO (Digitally Controlled Oscillator)**: Authentic Pulse (with PWM), Sawtooth, and Sub-oscillator waveforms with phase synchronization on Note-On.
-2. **Noise Generator**: White noise source for percussive or textured sounds.
-3. **HPF (High Pass Filter)**: 4-step selector (0-3) exactly mimicking the hardware logic (Bass Boost, Flat, 225Hz, 450Hz).
-4. **VCF (Voltage Controlled Filter)**: 24dB/oct resonant low-pass filter with envelope modulation and keyboard tracking. 
-5. **VCA (Voltage Controlled Amplifier)**: Switchable between Envelope or Gate mode, following the original hardware's bias characteristics.
-6. **LFO**: Monophonic Global LFO phase synchronization across all voices with individual per-voice delay (fade-in) ramps.
-7. **Chorus**: Dual-mode analog-modeled bucket-brigade delay (BBD) chorus with authentic background "hiss" emulation.
-8. **DC Blocker**: Final stage cleanup to ensure audio stability.
+Instead of forcing a single model emulation, **Super SIX** allows users to mix, match, and route components dynamically via the **ROUTING** panel or load authentic hardware eras instantly using calibration profiles:
 
-## Hardware Authenticity Features
+### 1. Conmutable DSP Sections (Model Selection)
+*   **DCO (Oscillator)**: Choose between discrete analog oscillators with thermal drift or quartz-stable DCOs. Switchable saw/pulse polarity and custom mixing ratios.
+*   **HPF (High Pass Filter)**: 
+    *   *Juno-6 mode*: Continuous frequency sweep slider (interpolated via hardware-calibrated PCHIP tables from 38.6 Hz to 1.39 kHz).
+    *   *Juno-60 mode*: 4-position discrete switch without bass boost (position 0 is flat/bypass).
+    *   *Juno-106 mode*: 4-position discrete switch with the active analog low-end shelving boost (+10.5 dB at 59 Hz) in position 0.
+*   **VCF (Voltage Controlled Filter)**: Conmutable 4-pole ZDF TPT ladder topologies modeling the **IR3109** (bright, self-oscillating, screaming resonance) vs. the **80017A** (warm, smooth saturation). Integrated with 2x/4x polyphase IIR oversampling and adaptive thermal noise to prime filter auto-oscillation.
+*   **ADSR (Envelopes)**: Toggle between the **J6/60 analog RC curve** (ultra-fast, percussive attack discharging towards -0.1V) and the **J106 digital MCU emulated envelope** (234.2 Hz tick resolution, 14-bit DAC steps, and hardware-correct 8-bit CPU multiplication truncation in `CalcDecay` leading to a 6% faster decay).
+*   **Chorus (BBD)**: Simulates Bucket-Brigade Delay lines (MN3009). Select J60 or J106 BBD settings with realistic clock rate variations, charge transfer efficiency loss (CTE), input saturation, and turnaround clicks resonant at 30 Hz (`ClickRing`). Soportes for Mono-line both-mode (I+II) running at 7.85 Hz.
+*   **Arpeggiator & Portamento**: Run the classic hardware arpeggiator (Juno-6/60) and polyphonic portamento / unison modes (Juno-106) simultaneously—expanding performance capabilities beyond original hardware limits.
 
-### SysEx Implementation (Roland Protocol)
-Complete bidirectional communication for hardware integration:
-- **Parameter Change (0x32)**: Real-time outgoing and incoming SysEx updates for all faders and switches.
-- **Patch Dump (0x30)**: Full 18-byte patch encoding/decoding, compatible with original hardware dumps and tape backups.
-- **Manual Mode (0x31)**: Dedicated "MANUAL" button to synchronize the sound with the current physical UI state.
-- **Corrected bit-mapping**: Follows the official service manual for SW1 and SW2 (addressing HPF, VCA, and Chorus bit discrepancies).
+---
 
-### Performance & Memory
-- **Group A/B Selection**: Authentic memory management with 128 patches divided into two groups of 64.
-- **Random Generator**: A specialized "Musical Random" button that generates usable, aesthetically pleasing patches by following Juno-specific synthesis rules.
-- **Panic Button**: "ALL OFF" functionality to instantly reset all voice states.
+## Key Features
 
-### Authentic Test Mode
-Replicates the diagnostic "Test Mode" used by technicians:
-- **Assignment Modes**:
-    - **POLY 1**: Round-robin rotary assignment.
-    - **POLY 2**: Static assignment (lowest-free).
-    - **UNISON**: 6-voice stacked mode.
-- **Digital Display**: A dedicated `JunoLCD` provides real-time "Group-Bank-Patch" and parameter feedback.
-- **Calibration Macros**: BANK buttons 1-8 are mapped to specific service manual calibration programs.
-- **Advanced Calibration (Service Mode)**: Modern trim-pot simulation including `vcfWidth` (tracking), `dcoDriftComplexity` (aging), and `vcaOffset` (bias).
-- **Auto-Tune Routine**: Automated iterative routine to align filter self-oscillation tracking against DCO reference tones.
+### 1. Dynamic Skin & Theme Manager
+The visual chassis adapts dynamically to the selected calibration profile, enforcing accurate hardware aesthetics:
+*   **Juno-6 Profile**: Locks UI skin to **Juno-6 Analog** (mahogany wood side cheeks) and disables manual selection.
+*   **Juno-60 Profile**: Locks UI skin to **Juno-60 Classic** (cherry wood side cheeks) and disables manual selection.
+*   **Juno-106 Profile**: Restricts skin selection exclusively to **Juno-106 Classic** and **Juno-106S Dark** (metal side cheeks).
+*   **Super SIX (Hybrid Mode)**: Unlocks full access to all 9 custom skin themes (Classic Blue, Space Echo, TR-808, Deepmind, ARP 2600, etc.), defaulting to **Classic Blue** (walnut wood cheeks). Enables hybrid component modeling colors in this theme.
 
-## Advanced Preset Browser
-A dual-tier management system for factory and user content:
-- **ABD-SynthEngine Core**: Unified `Preset` and `Library` models with JSON/XML persistence.
-- **Library Management**: Dynamic selection between "Factory", "User", and "Imported" banks.
-- **Advanced Metadata**: Tagging, authoring, and notes for deep organization.
-- **Tape Simulation**: Authentic FSK encoding/decoding for .wav-based patch backups, replicating original 1980s data storage.
-- **Musical Randomization**: Context-aware parameter generation for quick sound design.
+### 2. Expanded 7x3 Digital LCD Display
+The user interface features a custom 3-digit vintage LED display (`JunoLCD`) supporting a 26-bank layout:
+*   **Bancos A-Z**: Letters A to Z containing 64 patches each (1,664 slots total).
+*   **Display indicators**: Shows Bank letter + Patch indices (e.g., `A11` - `Z88`), parameter values, SysEx diagnostics, and test mode status.
 
-## Modern UI, Custom Skins & DAW Integration
-- **Dynamic Skin Manager:** Includes multiple selectable themes in General Settings:
-  - **Classic Blue**: The iconic blue and grey hardware appearance.
-  - **Juno-106S Dark**: Stealth black panel with neon green OLED/LED mod styling.
-  - **TR-808**: Step-sequencer color-coded module headers (Red, Orange, Yellow, Grey).
-  - **DeepMind**: Dark slate panel with walnut wood end cheeks and amber display.
-  - **Space Echo**: Textured forest green layout with retro silver-grey and emerald green indicators.
-  - **ARP 2600**: Solid black panel, white lines, and color-coded grouped slider caps.
-- **DAW-Integrated Undo/Redo:** Native C++ parameter gestures (`beginChangeGesture` / `endChangeGesture`) are mapped to the WebUI faders and knobs, grouping drags into single history events in the DAW.
-- **Global Keyboard Shortcuts:** Real-time `Ctrl+Z`, `Ctrl+Y`, and `Ctrl+Shift+Z` support for fast undo/redo actions.
+### 3. Universal Preset & Bank Importer
+*   **TAL-U-No-LX (`.pjunoxl`)**: Direct XML parsing to load single patches or bulk banks.
+*   **Roland SysEx (`.syx` / `.mid`)**: Bidirectional 18-byte MIDI dump parsing.
+*   **FSK Tape Backups (`.wav` / `.aif`)**: Decodes and encodes authentic 1980s cassette interface data (1300 Hz / 2100 Hz FSK).
+*   **CSV Banks (`.csv`)**: Text-based bulk preset management.
 
-## Standard MIDI Support
-- **CC 1 (Modulation)**: Mapped to the LFO depth lever (Mod Wheel).
-- **CC 64 (Sustain)**: Implements intelligent note-off queuing for authentic pedal behavior.
-- **MIDI Learn**: Right-click any UI element to bind it to a hardware CC.
+---
 
-## Build Requirements
-- **Framework**: JUCE 8 (Compatible with JUCE 7.x)
-- **Platform**: Windows / macOS / Linux (Standalone and Plug-in)
-- **Compiler**: MSVC / Clang / GCC (clean build with **zero warnings**)
-- **Build System**: Automatic build counter and versioning via `build_standalone.bat`.
-
-## Factory Preset Recovery
-The original Juno‑106 ROM contains 128 factory patches stored in binary `.106` files. These files use a custom format with a `!j106\` header followed by a sequence of patch entries (name string + 18‑byte parameter block). A helper script `generate_factory_presets.py` can parse the file `factory patches.106` and generate a complete `FactoryPresets.h` with all 128 entries.
-
-To regenerate the presets, run:
-```bash
-python generate_factory_presets.py
-```
-The script extracts only entries whose name starts with `A` (factory patches) and writes them to `Source/Core/FactoryPresets.h`. Other `.106` files (e.g., user libraries) may contain a different number of patches and are not processed by this script.
+## Technical Specifications
+*   **Framework**: JUCE 8 (Compatible with JUCE 7.x)
+*   **Audio Core**: 6-voice polyphonic engine built on the `ABD-SynthEngine` platform.
+*   **SysEx Protocol**: Authentic Roland SysEx command implementation (IPR/APR support with correct SW1/SW2 bitmappings).
+*   **Build Target**: Toggle compiler configurations via `JUNO_TARGET_MODEL` in `Source/Core/JunoModelConfig.h`:
+    *   `0`: ABD JUNiO Super SIX (Unified Hybrid)
+    *   `1`: ABD JUNiO 601 (Juno-106)
+    *   `2`: ABD JUNiO 06 (Juno-60)
+    *   `3`: ABD JUNiO SIX (Juno-6)
 
 ---
 *Developed by **ABD-IA** - Advanced Agentic Coding Project*
-**Version: 1.2.0 (Stabilized)**
+**Version: 2.0.0 (Unified Hybrid Era)**

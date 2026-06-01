@@ -13,6 +13,7 @@ public:
     ~CalibrationSettings();
 
     float getValue(const std::string& id) const;
+    float getValueForModel(const std::string& id, int model) const;
     void setValue(const std::string& id, float value, bool notify = true);
     
     Cal::CalibrationParam* getParam(const std::string& id);
@@ -23,6 +24,7 @@ public:
     void resetToDefaults();
     void resetParam(const std::string& id);
     void resetCategory(const std::string& category);
+    void hardResetToProfile(int profile);
 
     // External file support
     bool loadFromPath(const std::string& path);

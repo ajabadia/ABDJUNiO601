@@ -518,10 +518,17 @@ La siguiente hoja de ruta estructura la integración de todos estos algoritmos e
 - [ ] **Oversampling del VCF:** Meter el VCF y su saturación dentro de los bloques de sobremuestreo 2x (polyphase IIR halfband) para suprimir el aliasing residual.
 - [ ] **HPF Bass Boost:** Implementar el biquad activo exacto de KR-106 con la ganancia estante (low-shelf) de $+10.5 dB$ y los cortes del resto de posiciones.
 
-### [ ] FASE 6: Chorus BBD
-- [ ] **Afinación de Tiempos Analógicos:** Centrar los retrasos de los buffers a `3.30ms` e igualar la modulación LFO a los swings asimétricos exactos (I: $\pm2.13ms$, II: $\pm1.71ms$).
-- [ ] **Pérdida de Eficiencia (CTE):** Incorporar la pérdida de carga del capacitor emulada según se ensancha el reloj del BBD (`CTE_Loss`).
-- [ ] **Tratamiento de Señal BBD:** Sumar los transitorios eléctricos de rebote (`ClickRing` SVF a 30 Hz) y los filtros activos Biquad Butterworth (Lowpass de pre-énfasis a 9.6 kHz).
+### [x] FASE 6: Chorus BBD - *COMPLETADA*
+- [x] **Afinación de Tiempos Analógicos:** Centrar los retrasos de los buffers a `3.30ms` e igualar la modulación LFO a los swings asimétricos exactos (I: $\pm2.13ms$, II: $\pm1.71ms$).
+- [x] **Pérdida de Eficiencia (CTE):** Incorporar la pérdida de carga del capacitor emulada según se ensancha el reloj del BBD (`CTE_Loss`).
+- [x] **Tratamiento de Señal BBD:** Sumar los transitorios eléctricos de rebote (`ClickRing` SVF a 30 Hz) y los filtros activos Biquad Butterworth (Lowpass de pre-énfasis a 9.6 kHz).
+
+***Comentarios Históricos e Implementación Técnica:***
+* **Afinación e Interpolación de Retardos:** Se han reajustado los retardos centrales del Chorus a `3.30 ms` para ambos modos (I y II), corrigiendo la desviación heredada. Se cambiaron las trayectorias de modulación LFO de senoidales a triangulares puras con los swings físicos de `2.13 ms` (Chorus I) y `1.71 ms` (Chorus II), modelando la timbrística áspera original.
+* **Pérdidas de Transferencia de Carga (CTE Loss):** Añadido el modelado de la pérdida de eficiencia dinámica del BBD (`kBBDCTELossCoeff = 4468.f`). Esto varía la ganancia de salida de cada BBD dinámicamente entre el pico y el valle de la velocidad de reloj instantánea determinada por el LFO.
+* **Transitorios y Resonador ClickRing:** Se han implementado el generador de transitorios bifásicos de turnaround (`BBDClick`) y el resonador de salida `ClickRing` Chamberlin SVF a `30 Hz`, `Q = 18` para emular los rebotes graves e inestabilidades producidas en el bus de mezcla del hardware real al revertir la modulación de fase.
+* **Filtros Activos Biquad pre/post-BBD:** Integrados los filtros TPT biquad Butterworth analógicos exactos de `9.6 kHz` con inclinación de agudos de `20 kHz` (`BBDFilter.h`), modelando la atenuación de ruido y el aliasing del hardware.
+
 
 ---
 
@@ -869,9 +876,21 @@ Para posibilitar que el host DAW agrupe los movimientos continuos de controles d
 * Se auditó y comprobó que `sendManualMode()` en `PluginProcessor.cpp` captura instantáneamente el estado completo de los 44+ controles de panel activos mapeados.
 * Al presionar "MANUAL", los valores del panel se vuelcan síncronamente al motor DSP y a las voces activas, ejecutando un reinicio de fase de osciladores/envolventes para sincronización inmediata del tono y timbre.
 
+## 9. Restricciones Dinámicas de Temas, Aislamiento de Módulos y Correcciones de Maquetación
 
+### A. Restricción de Skins por Perfil (Profile Skin Constraints)
+Para alinear la experiencia estética con el modelo de hardware seleccionado, se implementaron restricciones dinámicas en el selector de skins (`skinType`) dentro de `service.js`:
+* **Juno-6 (`calibrationProfile` = 0)**: Bloqueado en `JUNO-6 ANALOG` (deshabilita el selector y limita las opciones a una sola).
+* **Juno-60 (`calibrationProfile` = 1)**: Bloqueado en `JUNO-60 CLASSIC` (deshabilita el selector y limita las opciones a una sola).
+* **Juno-106 (`calibrationProfile` = 2)**: Restringido únicamente a los skins `JUNO-106 CLASSIC` y `JUNO-106S DARK` (ocultando los demás).
+* **Super Six (`calibrationProfile` = 3)**: Desbloquea todas las opciones (9 skins disponibles), cargando por defecto el skin híbrido `CLASSIC BLUE`.
 
+### B. Aislamiento de Colores de Componentes en Temas Personalizados
+* **Problema**: Las variables CSS per-módulo (`.module[data-model]`) aplicaban overrides de fondo con `!important` que anulaban los esquemas de color oscuros de temas de autor (como `dark-106s` y `space-echo`), haciendo que los módulos permanecieran grises.
+* **Solución**: Se acotaron estas reglas en `vars.css` de manera que los overrides per-componente solo se activen cuando el chasis híbrido Classic Blue esté en uso (`body[data-theme="classic"]`). Esto asegura una estética de color totalmente homogénea en temas personalizados oscuros.
 
-
+### C. Restauración de los Paneles Laterales de Madera y Metal
+* Se restituyeron las propiedades de visualización física para los paneles laterales utilizando pseudo-elementos absolutos en `#synth-app::before` y `#synth-app::after` dentro de `base.css` (ancho de 20px, posicionamiento y pointer-events desactivados). Esto resolvió la invisibilidad del decorado en chasis.
+* Se eliminaron referencias huérfanas en `CMakeLists.txt` a archivos inexistentes de texturas para evitar excepciones en el empaquetador de recursos `juceaide`.
 
 

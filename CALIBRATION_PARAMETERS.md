@@ -9,6 +9,8 @@ Este documento contiene la documentación completa de todos los parámetros edit
 ### GENERAL
 | ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso | Tipo |
 |---|---|---|---|---|---|
+| `calibrationProfile` <br>**Default Calibration Profile** | Perfil de calibración por defecto para emular cada modelo (0 = Juno-6, 1 = Juno-60, 2 = Juno-106). | `2` (Juno-106) | `0` / `2` | `1.0` | Entero |
+| `skinType` <br>**UI Skin Theme** | Tema visual de la interfaz de usuario (0=Classic Blue, 1=Juno-60 Classic, 2=Juno-6 Analog, 3=Juno-106 Classic, 4=Juno-106S Dark, 5=TR-808, 6=DeepMind, 7=Space Echo, 8=ARP 2600). | `0` (Classic Blue) | `0` / `8` | `1.0` | Entero |
 | `midiChannel` <br>**Global MIDI Channel** | Canal de entrada MIDI global (0 = OMNI/Todos). | `1` | `0` / `16` | `1.0` | Entero |
 | `numVoices` <br>**Maximum Polyphony** | Número máximo de voces de polifonía simultánea. | `16` | `1` / `16` | `1.0` | Entero |
 | `benderRange` <br>**Bender Pitch Range** | Rango máximo de la palanca de pitch bend en semitonos. | `2` | `1` / `12` | `1.0` | Entero |
@@ -79,7 +81,7 @@ Este documento contiene la documentación completa de todos los parámetros edit
 |---|---|---|---|---|
 | `chorusMix` <br>**Chorus Dry/Wet Mix** | Mezcla entre el canal directo limpio y el BBD mojado. | `1.00` | `0.00` / `1.00` | `0.01` |
 | `chorusHiss` <br>**Analog Hiss Level** | Nivel de ruido de fondo de las líneas BBD (dB). | `-68.0 dB` | `-96.0 dB` / `-30.0 dB`| `0.5` |
-| `chorusDelayI` <br>**Chorus I Base Delay** | Retraso central en ms del modo Chorus I (J106 = 3.2ms). | `3.2 ms` | `1.0 ms` / `10.0 ms` | `0.1` |
+| `chorusDelayI` <br>**Chorus I Base Delay** | Retraso central en ms del modo Chorus I (J106 = 3.3ms). | `3.3 ms` | `1.0 ms` / `10.0 ms` | `0.1` |
 | `chorusDelayII` <br>**Chorus II Base Delay**| Retraso central en ms del modo Chorus II (J106 = 3.3ms). | `3.3 ms` | `2.0 ms` / `20.0 ms` | `0.1` |
 | `chorusGainDry` <br>**Chorus Dry Gain (IC6)**| Ganancia del bus dry en el sumador inversor IC6 (Default 0.863).| `0.863` | `0.500` / `1.500` | `0.001` |
 | `chorusGainWet` <br>**Chorus Wet Gain (IC6)**| Ganancia del bus wet en el sumador inversor IC6 (Default 1.257).| `1.257` | `0.500` / `2.000` | `0.001` |
@@ -88,8 +90,12 @@ Este documento contiene la documentación completa de todos los parámetros edit
 | `chorusBothRate` <br>**Chorus I+II Frequency**| LFO rápido al activar ambos interruptores I+II (7.7 Hz). | `7.70 Hz` | `1.00 Hz` / `15.00 Hz` | `0.1` |
 | `chorusModDepth` <br>**Chorus Mod Depth** | Desplazamiento máximo (swing) de modulación en milisegundos. | `1.50 ms` | `0.10 ms` / `5.00 ms` | `0.1` |
 | `chorusSatBoost` <br>**Chorus Saturation** | Nivel de distorsión analógica armónica en el chip BBD. | `1.20` | `0.50` / `2.00` | `0.05` |
-| `chorusFilterCutoff` <br>**Chorus Filter Cutoff**| Corte del filtro pasabajos de reconstrucción post-BBD (Hz). | `8000 Hz` | `2000 Hz` / `15000 Hz`| `100.0` |
+| `chorusFilterCutoff` <br>**Chorus Filter Cutoff**| Corte del filtro pasabajos de reconstrucción post-BBD (Hz). | `9661 Hz` | `2000 Hz` / `15000 Hz`| `100.0` |
 | `chorusHissColor` <br>**Hiss Filter Color** | Timbre espectral del ruido (Pink a White). | `0.40` | `0.05` / `1.00` | `0.05` |
+| `chorusHissLvl` <br>**Chorus Hiss Level (Cal)** | Trim de nivel base del soplido del Chorus en dB. | `-68.0 dB` | `-96.0 dB` / `-30.0 dB`| `0.5` |
+| `bbdHissColoration` <br>**BBD Hiss Coloration** | Carácter tonal del soplido BBD (valores altos = más brillante). | `0.40` | `0.05` / `1.00` | `0.05` |
+| `bbdClockTrim` <br>**BBD Clock Trim** | Desbalance de reloj entre las líneas BBD de canal izquierdo y derecho. | `0.015` | `0.000` / `0.100` | `0.001` |
+
 
 ### LFO
 | ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso |
@@ -120,10 +126,13 @@ Este documento contiene la documentación completa de todos los parámetros edit
 | `vcfSlewMs` <br>**VCF Analog Slew** | Slew analógico RC pasivo del CV del VCF (J106 = 0.522ms). | `0.522 ms` | `0.0 ms` / `20.0 ms` | `0.1` |
 | `vcfResPolK` <br>**VCF Res Polynomial K**| Coeficiente polinómico del feedback resonante ResK. | `1.24` | `0.50` / `2.00` | `0.01` |
 | `vcfFbScale` <br>**VCF BA662 Feedback** | Factor de escala de feedback para par diferencial BA662. | `4.20` | `1.00` / `10.00` | `0.05` |
+| `vcfResKModel` <br>**VCF ResK Model Curve** <br>*(Juno 60/106)* | Modelo de curva para realimentación de resonancia (0 = Juno-60/IR3109, 1 = Juno-106/80017A). | `1` (Juno-106) | `0` / `1` | `1.0` |
+
 
 ### HPF
 | ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso |
 |---|---|---|---|---|
+| `hpfFreq1` <br>**HPF Pos 1 Frequency** <br>*(Juno 60)* | Frecuencia de corte física en posición 1 (condensador 0.022uF). | `122.0 Hz` | `0.0 Hz` / `500.0 Hz` | `1.0` |
 | `hpfFreq2` <br>**HPF Pos 2 Frequency** | Frecuencia de corte física en posición 2 (condensador 0.015uF). | `236.0 Hz` | `50.0 Hz` / `1000.0 Hz`| `1.0` |
 | `hpfFreq3` <br>**HPF Pos 3 Frequency** | Frecuencia de corte física en posición 3 (condensador 0.0047uF). | `754.0 Hz` | `300.0 Hz` / `2500.0 Hz`| `5.0` |
 | `hpfBassBoostGain` <br>**Bass Boost Scale** | Multiplicador del realce de bajos en posición 0 (+10.5 dB a 59Hz).| `1.00` | `0.10` / `3.00` | `0.05` |
@@ -169,7 +178,31 @@ Este documento contiene la documentación completa de todos los parámetros edit
 | `paramSlewRate` <br>**Parameter Slew Rate**| Retraso de lag analógico al desplazar los sliders. | `0.95` | `0.50` / `1.00` | `0.01` |
 | `staggeredUpdateMaxMs` <br>**Staggered Delay** | Retraso de multiplexado del DAC por voz (J106 = 2ms). | `2.0 ms` | `0.0 ms` / `4.0 ms` | `0.1` |
 
+### ROUTING / MODEL SELECTION
+| ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso |
+|---|---|---|---|---|
+| `modelDCO` | Asignación del modelo de oscilador DCO (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelHPF` | Asignación del modelo de filtro pasaltas HPF (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelVCF` | Asignación del modelo de filtro pasabajos VCF (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelADSR` | Asignación del modelo de envolvente ADSR (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelChorus` | Asignación del modelo de Chorus analógico (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelArp` <br>*(Juno 6/60)* | Asignación del modelo de arpegiador (0 = Juno-6, 0.5 = Juno-60, 1 = Desactivado/J106). | `0` (Juno-6) | `0` / `1` | `0.5` |
+| `modelPoly` | Asignación del modelo del asignador de voces (0 = Juno-6, 0.5 = Juno-60, 1 = Juno-106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelPorta` | Asignación del modelo de Portamento (0 = Inactivo/J6, 0.5 = Inactivo/J60, 1 = Activo/J106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+| `modelUnison` | Asignación del modelo de Unísono (0 = Inactivo/J6, 0.5 = Inactivo/J60, 1 = Activo/J106). | `1` (Juno-106) | `0` / `1` | `0.5` |
+
+### ARPEGGIATOR *(Juno 6/60)*
+| ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso |
+|---|---|---|---|---|
+| `arpEnabled` | Activa/Desactiva el arpegiador global. | `0` (Off) | `0` / `1` | `1.0` |
+| `arpMode` | Modo de dirección del arpegiador (0 = UP, 0.5 = DOWN, 1 = UP & DOWN). | `0` | `0` / `1` | `0.5` |
+| `arpRange` | Rango de octavas del arpegiador (0 = 1 Octava, 0.5 = 2 Octavas, 1 = 3 Octavas). | `0` | `0` / `1` | `0.5` |
+| `arpRate` | Velocidad libre del arpegiador (cuando Host Sync está desactivado). | `0.5` | `0.0` / `1.0` | `0.01` |
+| `arpSync` | Sincroniza la velocidad del arpegiador al tempo del DAW (Host BPM). | `0` (Off) | `0` / `1` | `1.0` |
+| `arpDivision` | División rítmica del arpegiador sincronizado (Whole, Half, Triplet, 1/16, etc.). | `6` (1/16) | `0` / `8` | `1.0` |
+
 ---
+
 
 ## 2. Tablas Exportables / Importables (Archivos CSV)
 

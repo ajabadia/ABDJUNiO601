@@ -176,6 +176,16 @@
     background-image: url('../button_orange_on.png');
 }
 
+.sq.yellow {
+    background: url('../button_yellow_off.png') no-repeat center center;
+    background-size: contain;
+}
+
+.sq.yellow[data-active="true"],
+.sq.yellow.pushed {
+    background-image: url('../button_yellow_on.png');
+}
+
 .sq.beige {
     background: url('../button_white_off.png') no-repeat center center;
     background-size: contain;
@@ -255,4 +265,51 @@
     flex-direction: row;
     justify-content: center;
     gap: 12px;
+}
+
+/* Grouped Chorus Layout */
+.chorus-group-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.chorus-labels-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 132px;
+}
+
+.chorus-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 44px;
+    height: 36px;
+    gap: 4px;
+}
+
+.chorus-lbl {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+    line-height: 1;
+}
+
+.chorus-col .off-line {
+    width: 1.5px;
+    height: 14px;
+    background-color: var(--juno-grey);
+    opacity: 0.75;
+}
+
+.chorus-buttons-row {
+    display: flex;
+    justify-content: center;
+    gap: 0;
 }

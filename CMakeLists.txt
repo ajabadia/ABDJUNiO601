@@ -138,6 +138,14 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/fondo.png
     Source/UI/WebUI/fondo_sy.png
     Source/UI/WebUI/knob.png
+    Source/UI/WebUI/wood_left.png
+    Source/UI/WebUI/wood_right.png
+    Source/UI/WebUI/wood_60_left.png
+    Source/UI/WebUI/wood_60_right.png
+    Source/UI/WebUI/wood_6_left.png
+    Source/UI/WebUI/wood_6_right.png
+    Source/UI/WebUI/metal_106_left.png
+    Source/UI/WebUI/metal_106_right.png
     Source/UI/WebUI/slider_cap.png
     Source/UI/WebUI/slider_slot.png
     Source/UI/WebUI/led_off.png

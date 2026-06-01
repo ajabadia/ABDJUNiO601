@@ -15,6 +15,7 @@ let targetBank = 1;
 let targetPatch = 1;
 let memoryProtectActive = false;
 let globalUserName = "ABD USER";
+let paramValuesCache = {};
 
 // [Audit] Persistent SysEx Mirror for stable UI display
 let sysexMirror = new Array(23).fill(0);
@@ -221,19 +222,65 @@ function initApp() {
     const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
                     (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
 
+    let currentProductName = "ABD JUNiO 601";
+    if (initData && initData.productName) {
+        currentProductName = initData.productName;
+    }
+
+    const updateUIProductNames = (name) => {
+        currentProductName = name;
+        document.title = name + " - Gold Standard";
+        const splashH1 = document.querySelector('#splash-screen h1');
+        if (splashH1) splashH1.innerText = name;
+        const aboutTitle = document.querySelector('.about-title');
+        if (aboutTitle) aboutTitle.innerText = name;
+        
+        // Update About description based on model
+        const aboutP = document.querySelector('.about-content p');
+        if (aboutP) {
+            if (name.includes("Super")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" hybrid emulation combining Juno-6, Juno-60 and Juno-106 circuits.';
+            } else if (name.includes("601")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1984 analog poly-synth (Juno-106).';
+            } else if (name.includes("06")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth (Juno-60).';
+            } else if (name.includes("SIX")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth (Juno-6).';
+            }
+        }
+
+        const miniTitle = document.getElementById('app-title-mini');
+        if (miniTitle) {
+            const vMatch = miniTitle.innerText.match(/v\d+\.\d+\.\d+/);
+            const vStr = vMatch ? " " + vMatch[0] : "";
+            miniTitle.innerText = name + vStr;
+        }
+
+        document.querySelectorAll('.dropdown li').forEach(li => {
+            if (li.innerText.startsWith("About ABD") || li.innerText.startsWith("About JUNiO")) {
+                li.innerText = "About " + name + "...";
+            }
+        });
+    };
+
     if (initData && initData.buildVersion) {
         const vStr = initData.buildVersion;
         document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
-            if (el.id === 'app-title-mini') el.innerText = "ABD JUNiO 601 v" + vStr;
+            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + vStr;
             else el.innerText = "Version " + vStr;
         });
+        updateUIProductNames(currentProductName);
     }
 
     listenEvent("onVersionUpdate", (version) => {
         document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
-            if (el.id === 'app-title-mini') el.innerText = "ABD JUNiO 601 v" + version;
+            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + version;
             else el.innerText = "Version " + version;
         });
+    });
+
+    listenEvent("onProductNameUpdate", (name) => {
+        updateUIProductNames(name);
     });
 
     listenEvent("onVisualUpdate", (data) => {
@@ -313,6 +360,17 @@ function initApp() {
     setupKeyboard();
     setupMenus();
     setupOctaveButtons();
+
+    // Load calibration settings on startup to sync skin theme and profile label
+    if (window.ServiceMode && typeof window.ServiceMode.refreshParams === 'function') {
+        window.ServiceMode.refreshParams().then(() => {
+            updateThemeAndSkins();
+            updatePainterTapes();
+        });
+    } else {
+        updateThemeAndSkins();
+        updatePainterTapes();
+    }
 
     callNative("uiReady");
 
@@ -455,19 +513,19 @@ function setupSliders() {
             startY = e.clientY;
             callNative("beginGesture", paramID);
 
-            const knob = ring.querySelector('.knob');
-            let currentRotation = 0;
-            if (knob && knob.style.transform) {
-                const match = knob.style.transform.match(/rotate\(([^deg]+)deg\)/);
-                if (match) currentRotation = parseFloat(match[1]);
-            }
-            startVal = (currentRotation + 135) / 270;
+            // Fix rotation resets: pull current value from cache instead of parsing transform string
+            startVal = paramValuesCache[paramID] !== undefined ? paramValuesCache[paramID] : 0.5;
 
             const onMove = (ev) => {
                 const deltaY = startY - ev.clientY;
-                const divisor = (paramID === 'tune') ? 3000 : 500;
+                const isDiscrete = (paramID === 'arpMode' || paramID === 'arpRange');
+                const divisor = (paramID === 'tune') ? 3000 : (isDiscrete ? 150 : 500);
                 let val = startVal + (deltaY / divisor);
                 val = Math.max(0, Math.min(1, val));
+
+                if (isDiscrete) {
+                    val = Math.round(val * 2) / 2;
+                }
                 
                 syncUI(paramID, val);
                 callNative("setParameter", paramID, val);
@@ -484,6 +542,31 @@ function setupSliders() {
             };
             ring.addEventListener('pointermove', onMove);
             ring.addEventListener('pointerup', onUp);
+        });
+    });
+
+    // Premium Interaction: Allow clicking labels directly to switch modes/ranges
+    document.querySelectorAll('.knob-tick-lbl').forEach(lbl => {
+        lbl.style.cursor = 'pointer';
+        lbl.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const wrapper = lbl.closest('.knob-tick-wrapper[data-param]');
+            if (!wrapper) return;
+            const paramID = wrapper.getAttribute('data-param');
+            let val = 0.0;
+            if (lbl.classList.contains('pos-center')) val = 0.5;
+            else if (lbl.classList.contains('pos-right')) val = 1.0;
+
+            syncUI(paramID, val);
+            callNative("setParameter", paramID, val);
+
+            const displayNames = {
+                'arpMode': { 0.0: 'UP', 0.5: 'DN', 1.0: 'U/D' },
+                'arpRange': { 0.0: '1 OCT', 0.5: '2 OCT', 1.0: '3 OCT' }
+            };
+            const labelStr = displayNames[paramID] ? displayNames[paramID][val] : val.toFixed(2);
+            updateLCD(paramID.toUpperCase() + ": " + labelStr, true);
         });
     });
 }
@@ -658,6 +741,21 @@ function setupButtons() {
             callNative("setParameter", paramID, next);
         });
     });
+
+    const offBtn = document.getElementById('chorus-off-btn');
+    if (offBtn) {
+        offBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            offBtn.classList.add('pushed');
+            syncUI("chorus1", 0.0);
+            syncUI("chorus2", 0.0);
+            callNative("setParameter", "chorus1", 0.0);
+            callNative("setParameter", "chorus2", 0.0);
+            updateLCD("CHORUS: OFF", true);
+        });
+        offBtn.addEventListener('pointerup', () => offBtn.classList.remove('pushed'));
+        offBtn.addEventListener('pointerleave', () => offBtn.classList.remove('pushed'));
+    }
 }
 
 function setupBender() {
@@ -693,7 +791,7 @@ function setupKeyboard() {
     if (!bed) return;
     bed.innerHTML = '';
     const whiteNotes = [];
-    for (let i = 0; i < 49; i++) {
+    for (let i = 0; i < 48; i++) {
         const note = 36 + i;
         const pc = note % 12;
         if (![1, 3, 6, 8, 10].includes(pc)) whiteNotes.push({ note, i });
@@ -756,6 +854,20 @@ function setupMenus() {
 // UI SYNC
 // =============================
 function syncUI(id, val) {
+    paramValuesCache[id] = val;
+
+    // Highlight labels for discrete knobs
+    if (id === 'arpMode' || id === 'arpRange') {
+        const wrapper = document.querySelector(`.knob-tick-wrapper[data-param="${id}"]`);
+        if (wrapper) {
+            const labels = wrapper.querySelectorAll('.knob-tick-lbl');
+            const activeIdx = Math.round(val * 2);
+            labels.forEach((lbl, idx) => {
+                lbl.classList.toggle('active', idx === activeIdx);
+            });
+        }
+    }
+
     document.querySelectorAll('[data-param="' + id + '"]').forEach(pod => {
         const handle = pod.querySelector('.handle, .b-handle');
         if (handle) {
@@ -795,9 +907,12 @@ function syncUI(id, val) {
         if (pod.tagName === 'SELECT') {
             let denormalized = val;
             if (id === 'midiChannel') denormalized = Math.round(val * 15 + 1);
-            if (id === 'benderRange') denormalized = Math.round(val * 11 + 1);
-            if (id === 'numVoices') denormalized = Math.round(val * 15 + 1);
-            if (id === 'sustainInverted') denormalized = val > 0.5 ? 1 : 0;
+            else if (id === 'benderRange') denormalized = Math.round(val * 11 + 1);
+            else if (id === 'numVoices') denormalized = Math.round(val * 15 + 1);
+            else if (id === 'sustainInverted') denormalized = val > 0.5 ? 1 : 0;
+            else if (id.startsWith('model') || id === 'arpMode' || id === 'arpRange') denormalized = Math.round(val * 2) / 2;
+            else if (id === 'arpDivision') denormalized = Math.round(val * 8) / 8;
+            else if (id === 'arpEnabled' || id === 'arpSync') denormalized = val > 0.5 ? 1 : 0;
             pod.value = denormalized;
         }
         if (pod.tagName === 'INPUT' && pod.type === 'range') {
@@ -816,6 +931,22 @@ function syncUI(id, val) {
             }
         }
     });
+
+    if (id === 'arpRate') {
+        const rateValEl = document.getElementById('val-arpRate-perf');
+        if (rateValEl) rateValEl.innerText = val.toFixed(2);
+    }
+
+    if (id === 'chorus1' || id === 'chorus2') {
+        const c1 = id === 'chorus1' ? val : (paramValuesCache['chorus1'] || 0.0);
+        const c2 = id === 'chorus2' ? val : (paramValuesCache['chorus2'] || 0.0);
+        const isOff = (c1 < 0.5 && c2 < 0.5);
+        const offBtn = document.getElementById('chorus-off-btn');
+        if (offBtn) {
+            offBtn.setAttribute('data-active', isOff ? 'true' : 'false');
+            offBtn.classList.toggle('active-mode', isOff);
+        }
+    }
 
     if (id === 'memoryProtect') {
         memoryProtectActive = val > 0.5;
@@ -850,6 +981,29 @@ function syncUI(id, val) {
             const rLed = document.getElementById('led-dcoRange-' + Math.round(btnVal * 2));
             if (rLed) rLed.classList.toggle('active', match);
         });
+    }
+
+    // Dynamic LEDs synchronization
+    if (id === 'portamentoOn') {
+        const led = document.getElementById('led-tab-port');
+        if (led) led.classList.toggle('active', val > 0.5);
+    }
+    if (id === 'arpEnabled') {
+        const led = document.getElementById('led-tab-arp');
+        if (led) led.classList.toggle('active', val > 0.5);
+    }
+    if (id === 'polyMode') {
+        const led1 = document.getElementById('led-tab-poly1');
+        const led2 = document.getElementById('led-tab-poly2');
+        if (led1) led1.classList.toggle('active', Math.abs(val - 0.5) < 0.2);
+        if (led2) led2.classList.toggle('active', Math.abs(val - 1.0) < 0.2);
+    }
+
+    if (id === 'calibrationProfile' || id === 'skinType') {
+        updateThemeAndSkins();
+    }
+    if (id.startsWith('model') || id === 'polyMode') {
+        updatePainterTapes();
     }
 }
 
@@ -900,6 +1054,13 @@ function hideBrowser() {
 }
 
 function switchTab(tabName) {
+    // Reset hidden sections if going to calibration
+    if (tabName === 'calibration') {
+        document.querySelectorAll('.service-section').forEach(sec => {
+            sec.style.display = 'block';
+        });
+    }
+
     // 1. Update Buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.innerText.toLowerCase() === tabName.toLowerCase();
@@ -1246,3 +1407,212 @@ window.addEventListener('keyup', (e) => {
         }
     }
 });
+
+// ==========================================
+// NEW: DYNAMIC PERFORMANCE TABS & SKINS LFO
+// ==========================================
+
+function switchPerformanceTab(tabName) {
+    // 1. Update buttons active state
+    document.querySelectorAll('.perf-tab-btn').forEach(btn => {
+        const isTarget = btn.id === 'tab-btn-' + tabName;
+        btn.classList.toggle('active', isTarget);
+    });
+
+    // 2. Update panel contents visibility
+    document.querySelectorAll('.perf-tab-content').forEach(panel => {
+        const isTarget = panel.id === 'panel-' + tabName;
+        panel.classList.toggle('hidden', !isTarget);
+    });
+}
+
+function updateThemeAndSkins() {
+    const profileVal = paramValuesCache['calibrationProfile'] !== undefined ? paramValuesCache['calibrationProfile'] : 2.0;
+
+    let targetModel = 0; 
+    const backend = getBackend();
+    const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
+                    (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
+    
+    if (initData && initData.targetModel !== undefined) {
+        targetModel = parseInt(initData.targetModel);
+    }
+
+    const appSpec = document.getElementById('active-model-spec');
+    
+    document.body.removeAttribute('data-theme');
+    
+    let skinTheme = "juno-106";
+    let labelText = "SUPER SIX HYBRID";
+
+    if (targetModel === 1) {
+        skinTheme = "juno-106";
+        labelText = "JUNO-106 MODE";
+    } else if (targetModel === 2) {
+        skinTheme = "juno-60";
+        labelText = "JUNO-60 MODE";
+    } else if (targetModel === 3) {
+        skinTheme = "juno-6";
+        labelText = "JUNO-6 MODE";
+    } else {
+        labelText = "SUPER SIX HYBRID";
+        const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 0.0;
+        const themesMap = {
+            0: 'classic',
+            1: 'juno-60',
+            2: 'juno-6',
+            3: 'juno-106',
+            4: 'dark-106s',
+            5: 'tr-808',
+            6: 'deepmind',
+            7: 'space-echo',
+            8: 'arp-2600'
+        };
+        skinTheme = themesMap[Math.round(skinVal)] || 'classic';
+
+        if (profileVal === 0.0) {
+            labelText = "SUPER SIX (JUNO-6 PROFILE)";
+        } else if (profileVal === 1.0) {
+            labelText = "SUPER SIX (JUNO-60 PROFILE)";
+        } else if (profileVal === 2.0) {
+            labelText = "SUPER SIX (JUNO-106 PROFILE)";
+        } else {
+            labelText = "SUPER SIX (HYBRID MODE)";
+        }
+    }
+
+    document.body.setAttribute('data-theme', skinTheme);
+    if (appSpec) appSpec.innerText = labelText;
+
+    document.querySelectorAll('.painter-tape').forEach(tape => {
+        tape.classList.toggle('hidden', targetModel !== 0);
+        if (profileVal === 3.0) {
+            tape.style.pointerEvents = 'auto';
+            tape.style.cursor = 'pointer';
+        } else {
+            tape.style.pointerEvents = 'none';
+            tape.style.cursor = 'default';
+        }
+    });
+
+    const btnArp = document.getElementById('tab-btn-arp');
+    const btnPort = document.getElementById('tab-btn-port');
+    const btnPoly = document.getElementById('tab-btn-poly');
+
+    if (targetModel === 1) { // J106 VST
+        if (btnArp) btnArp.classList.add('hidden');
+        if (btnPort) btnPort.classList.remove('hidden');
+        if (btnPoly) btnPoly.classList.remove('hidden');
+    } else if (targetModel === 2 || targetModel === 3) { // J60/J6 VST
+        if (btnArp) btnArp.classList.remove('hidden');
+        if (btnPort) btnPort.classList.add('hidden');
+        if (btnPoly) btnPoly.classList.add('hidden');
+    } else { // Super SIX VST (targetModel === 0)
+        if (profileVal === 0.0 || profileVal === 1.0) { // J6 or J60 profile
+            if (btnArp) btnArp.classList.remove('hidden');
+            if (btnPort) btnPort.classList.add('hidden');
+            if (btnPoly) btnPoly.classList.add('hidden');
+        } else if (profileVal === 2.0) { // J106 profile
+            if (btnArp) btnArp.classList.add('hidden');
+            if (btnPort) btnPort.classList.remove('hidden');
+            if (btnPoly) btnPoly.classList.remove('hidden');
+        } else { // SUPER SIX (profileVal === 3.0)
+            if (btnArp) btnArp.classList.remove('hidden');
+            if (btnPort) btnPort.classList.remove('hidden');
+            if (btnPoly) btnPoly.classList.remove('hidden');
+        }
+    }
+
+    // Hide/show the ROUTING tab button in settings
+    const tabRoutingBtn = document.querySelector('button[onclick="switchTab(\'routing\')"]');
+    if (tabRoutingBtn) {
+        if (profileVal === 3.0) {
+            tabRoutingBtn.style.display = '';
+        } else {
+            tabRoutingBtn.style.display = 'none';
+        }
+    }
+
+    const activeTabBtn = document.querySelector('.perf-tab-btn.active');
+    if (activeTabBtn && activeTabBtn.classList.contains('hidden')) {
+        switchPerformanceTab('voltune');
+    }
+}
+
+function updatePainterTapes() {
+    const getVal = (paramId) => {
+        const el = document.querySelector(`[data-param="${paramId}"]`);
+        return el ? parseFloat(el.value) : 1.0;
+    };
+
+    const formatTape = (module, val) => {
+        const tape = document.getElementById('tape-' + module);
+        if (!tape) return;
+        
+        // Scope the selected model value to the parent module block in HTML
+        const moduleEl = document.getElementById(module);
+        if (moduleEl) {
+            moduleEl.setAttribute('data-model', val.toString());
+        }
+        
+        tape.classList.remove('tape-j6', 'tape-j60', 'tape-j106');
+        if (val === 0) {
+            tape.classList.add('tape-j6');
+        } else if (val === 0.5) {
+            tape.classList.add('tape-j60');
+        } else {
+            tape.classList.add('tape-j106');
+        }
+
+        let txt = '';
+        if (module === 'lfo') {
+            txt = val === 0 ? "J6 (Analog)" : (val === 0.5 ? "J60 (LFO)" : "J106 (uPD7811)");
+        } else if (module === 'dco') {
+            txt = val === 0 ? "J6 (DCO)" : (val === 0.5 ? "J60 (DCO)" : "J106 (8253)");
+        } else if (module === 'hpf') {
+            txt = val === 0 ? "J6 (Cont)" : (val === 0.5 ? "J60 (122Hz)" : "J106 (Boost)");
+        } else if (module === 'vcf') {
+            txt = val === 0 ? "J6 (IR3109)" : (val === 0.5 ? "J60 (IR3109)" : "J106 (80017A)");
+        } else if (module === 'vca') {
+            txt = val === 0 ? "J6 (Shockley)" : (val === 0.5 ? "J60 (Shockley)" : "J106 (Boaris)");
+        } else if (module === 'env') {
+            txt = val === 0 ? "J6 (Analog RC)" : (val === 0.5 ? "J60 (RC)" : "J106 (Linear)");
+        } else if (module === 'chorus') {
+            txt = val === 0 ? "J6 (BBD)" : (val === 0.5 ? "J60 (MN3009)" : "J106 (Hiss)");
+        }
+        tape.innerText = txt;
+    };
+
+    formatTape('lfo', getVal('modelPoly'));
+    formatTape('dco', getVal('modelDCO'));
+    formatTape('hpf', getVal('modelHPF'));
+    formatTape('vcf', getVal('modelVCF'));
+    formatTape('vca', getVal('modelPoly'));
+    formatTape('env', getVal('modelADSR'));
+    formatTape('chorus', getVal('modelChorus'));
+}
+
+// Click listener to filter calibration modal
+document.querySelectorAll('.painter-tape').forEach(tape => {
+    tape.addEventListener('click', (e) => {
+        const module = tape.getAttribute('data-module').toLowerCase();
+        showGlobalSettings('calibration');
+        
+        setTimeout(() => {
+            document.querySelectorAll('.service-section').forEach(sec => {
+                const title = sec.querySelector('.service-cat-header span');
+                if (title) {
+                    const match = title.innerText.toLowerCase().includes(module);
+                    sec.style.display = match ? 'block' : 'none';
+                    if (match) {
+                        const selectEl = sec.querySelector('.model-selector-row select, select');
+                        if (selectEl) selectEl.focus();
+                    }
+                }
+            });
+            const listContainer = document.getElementById('service-params-list');
+            if (listContainer) listContainer.scrollTop = 0;
+        }, 100);
+    });
+});
+
