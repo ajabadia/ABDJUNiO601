@@ -1,0 +1,26 @@
+{
+    "name": "Test Bank CDP",
+    "category": "Test",
+    "patches": [
+        {
+            "name": "Deep Analog Pad",
+            "author": "CDP Test",
+            "category": "Pad"
+        },
+        {
+            "name": "Bright Lead",
+            "author": "CDP Test",
+            "category": "Lead"
+        },
+        {
+            "name": "Warm Brass",
+            "author": "CDP Test",
+            "category": "Brass"
+        },
+        {
+            "name": "PWM Strings",
+            "author": "CDP Test",
+            "category": "String"
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 # Build & Artifacts
 logs/
-WebUI/
+/WebUI/
 build/
 Builds/
 bin/
@@ -43,3 +43,25 @@ temp_utramaster/
 # Root level excludes
 /JUNiO_601.exe
 /WebUI/
+
+# Python
+__pycache__/
+
+# Windows spurious files
+nul
+
+# Build helper scripts (temporary, prefixed with underscore)
+_build_*.bat
+_launch_*.bat
+
+# Temporary build output files
+_*.txt
+_*.json
+
+# CMake distribution (1.5 GB, bundled binary)
+/CMake/
+
+# Orphan backup files in root
+WebViewEditor_old*
+WebViewEditor_real*
+script_old*
