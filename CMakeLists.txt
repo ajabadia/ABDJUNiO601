@@ -134,6 +134,8 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Synth/JunoVoice.cpp
     Source/Synth/JunoVCF.h
     Source/Synth/JunoVCF.cpp
+    Source/Synth/JunoTapeEcho.h
+    Source/Synth/JunoTapeEcho.cpp
     Source/Synth/ChorusBBD.h
     Source/Synth/ChorusBBD.cpp
 )

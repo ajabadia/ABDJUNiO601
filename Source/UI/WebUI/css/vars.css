@@ -550,6 +550,49 @@ body[data-theme="juno-60"] .perf-tab-btn.active {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
 }
 
+/* Tab navigation buttons (< >) — half width, flanking VOL/TUNE */
+.perf-tab-nav-btn {
+    flex: 0.5;
+    background: #181a1e;
+    border: 1px solid #111;
+    color: #666;
+    padding: 4px 2px;
+    font-family: 'Microgramma', sans-serif;
+    font-size: 9px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+.perf-tab-nav-btn:hover {
+    background: #2a2d34;
+    color: #aaa;
+}
+.perf-tab-nav-btn:active {
+    background: var(--juno-blue);
+    color: #fff;
+}
+.perf-tab-nav-btn.hidden {
+    display: none;
+}
+.tab-nav-arrow {
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Dark theme overrides for tab nav */
+body[data-theme="tr-808"] .perf-tab-nav-btn:active,
+body[data-theme="deepmind"] .perf-tab-nav-btn:active,
+body[data-theme="space-echo"] .perf-tab-nav-btn:active,
+body[data-theme="juno-60"] .perf-tab-nav-btn:active {
+    background: rgba(255, 255, 255, 0.12);
+}
+
 /* VOL/TUNE tab has no LED indicator so padding is reduced and text wraps */
 #tab-btn-voltune {
     padding-top: 6px;
@@ -589,6 +632,205 @@ body[data-theme="juno-60"] .perf-tab-btn.active {
 
 .perf-tab-content.hidden {
     display: none !important;
+}
+
+/* ***************************************** */
+/* DELAY PANEL - Tape Echo                   */
+/* ***************************************** */
+#panel-delay {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 100px;
+    overflow: hidden;
+}
+
+/* SVG background - always visible, behind overlay */
+#tape-echo-visual {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.3s ease;
+}
+#tape-echo-visual svg {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+}
+
+/* Overlay controls - above SVG */
+#delay-controls-overlay {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+}
+#delay-controls-overlay.hidden {
+    display: none;
+}
+
+/* Vertical nav buttons */
+.delay-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    flex: 0 0 36px;
+}
+.delay-nav-unit {
+    width: 32px;
+    height: 24px;
+    background: #1e2025;
+    border: 1px solid #111;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    gap: 2px;
+}
+.delay-nav-unit:hover {
+    background: #2a2d34;
+}
+.delay-nav-unit.active {
+    background: var(--juno-blue);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+.delay-nav-lbl {
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+    line-height: 1;
+}
+.delay-nav-unit .nav-led {
+    width: 5px;
+    height: 5px;
+    background: #333;
+    border-radius: 50%;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+}
+.delay-nav-unit .nav-led.active {
+    background: var(--led-red);
+    box-shadow: var(--led-glow);
+}
+
+/* Sub-page content area */
+.delay-subpage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px 4px;
+    justify-content: center;
+    align-items: center;
+}
+.delay-subpage.hidden {
+    display: none;
+}
+
+/* Delay setting selector buttons (1-11) */
+.delay-setting-selector {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.delay-setting-btn {
+    width: 22px;
+    height: 20px;
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7px;
+    color: #888;
+    background: #1e2025;
+    border: 1px solid #111;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.delay-setting-btn:hover {
+    background: #2a2d34;
+    color: #ccc;
+}
+.delay-setting-btn.active {
+    background: var(--juno-blue);
+    color: #fff;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Dark theme overrides for delay nav */
+body[data-theme="tr-808"] .delay-nav-unit.active,
+body[data-theme="deepmind"] .delay-nav-unit.active,
+body[data-theme="space-echo"] .delay-nav-unit.active,
+body[data-theme="juno-60"] .delay-nav-unit.active {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
+}
+body[data-theme="tr-808"] .delay-setting-btn.active,
+body[data-theme="deepmind"] .delay-setting-btn.active,
+body[data-theme="space-echo"] .delay-setting-btn.active,
+body[data-theme="juno-60"] .delay-setting-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Delay stopped state: dim SVG */
+#panel-delay.delay-stopped #tape-echo-visual {
+    opacity: 0.5;
+}
+
+/* SVG animations when delay is running */
+#panel-delay.delay-running #reel-left {
+    animation: spin-delay-left 2s linear infinite;
+    transform-origin: 28px 48px;
+}
+#panel-delay.delay-running #reel-right {
+    animation: spin-delay-right 2s linear infinite;
+    transform-origin: 192px 48px;
+}
+#panel-delay.delay-running #tape-path {
+    animation: scroll-delay-tape 0.8s linear infinite;
+}
+#panel-delay.delay-running #capstan {
+    animation: spin-delay-right 1s linear infinite;
+    transform-origin: 152px 48px;
+}
+
+@keyframes spin-delay-left {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes spin-delay-right {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+@keyframes scroll-delay-tape {
+    0% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -14; }
+}
+
+/* Delay tab: only show for Super Six, hide for others */
+#tab-btn-delay.hidden {
+    display: none;
 }
 
 /* Vintage selector slider */

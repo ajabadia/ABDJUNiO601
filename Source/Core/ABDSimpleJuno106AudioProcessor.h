@@ -17,6 +17,7 @@
 #include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
 #include "../Synth/ChorusBBD.h"
+#include "../Synth/JunoTapeEcho.h"
 class PresetManager;
 
 class ABDSimpleJuno106AudioProcessor : public juce::AudioProcessor,
@@ -136,7 +137,10 @@ public:
     int getWipCount() const;
     int getActiveABSlot() const { return activeSlot; }
     void sendParamUpdateToUI();
-    
+
+    // [Tape Echo] Prepare delay DSP
+    void prepareTapeEcho();
+
     // [Build 103] Recording Support
     void toggleRecording();
     bool isRecording() const { return threadedWriter != nullptr; }
@@ -311,7 +315,28 @@ private:
     std::atomic<float>* fmtArpSync = nullptr;
     std::atomic<float>* fmtArpDivision = nullptr;
 
+    // Tape Echo / Delay Settings (Super Six only)
+    std::atomic<float>* fmtDelayEnabled = nullptr;
+    std::atomic<float>* fmtDelaySetting = nullptr;
+    std::atomic<float>* fmtDelayRepeatRate = nullptr;
+    std::atomic<float>* fmtDelayIntensity = nullptr;
+    std::atomic<float>* fmtDelayBass = nullptr;
+    std::atomic<float>* fmtDelayTreble = nullptr;
+    std::atomic<float>* fmtDelayReverbVol = nullptr;
+    std::atomic<float>* fmtDelayEchoVol = nullptr;
+
+    JunoTapeEcho tapeEcho;
+
     SelfTestResult lastSelfTestResult;
+
+    bool isSuperSix() const noexcept
+    {
+#if JUNO_TARGET_MODEL == 0
+        return true;
+#else
+        return false;
+#endif
+    }
 
 public:
     // User Settings

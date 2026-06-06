@@ -3,6 +3,10 @@
  * Dynamic performance tabs, skin/calibration theme switching, painter tape labels, and tape click filtering.
  */
 
+// Delay state
+let delayPowerOn = false;
+let delayActiveSubpage = 'settings';
+
 function switchPerformanceTab(tabName) {
     // 1. Update buttons active state
     document.querySelectorAll('.perf-tab-btn').forEach(btn => {
@@ -15,6 +19,37 @@ function switchPerformanceTab(tabName) {
         const isTarget = panel.id === 'panel-' + tabName;
         panel.classList.toggle('hidden', !isTarget);
     });
+
+    // 3. When switching to delay tab, show static SVG (no controls until ON pressed)
+    if (tabName === 'delay') {
+        const overlay = document.getElementById('delay-controls-overlay');
+        if (overlay) {
+            overlay.classList.toggle('hidden', !delayPowerOn);
+        }
+        const panel = document.getElementById('panel-delay');
+        if (panel) {
+            panel.classList.toggle('delay-stopped', !delayPowerOn);
+            panel.classList.toggle('delay-running', delayPowerOn);
+        }
+    }
+}
+
+function tabNavLeft() {
+    const visibleTabs = Array.from(document.querySelectorAll('.perf-tab-btn:not(.hidden)'));
+    const activeIdx = visibleTabs.findIndex(btn => btn.classList.contains('active'));
+    if (activeIdx <= 0) return;
+    const prevTab = visibleTabs[activeIdx - 1];
+    const tabName = prevTab.id.replace('tab-btn-', '');
+    switchPerformanceTab(tabName);
+}
+
+function tabNavRight() {
+    const visibleTabs = Array.from(document.querySelectorAll('.perf-tab-btn:not(.hidden)'));
+    const activeIdx = visibleTabs.findIndex(btn => btn.classList.contains('active'));
+    if (activeIdx === -1 || activeIdx >= visibleTabs.length - 1) return;
+    const nextTab = visibleTabs[activeIdx + 1];
+    const tabName = nextTab.id.replace('tab-btn-', '');
+    switchPerformanceTab(tabName);
 }
 
 function deactivatePerformanceTabs() {
@@ -23,6 +58,100 @@ function deactivatePerformanceTabs() {
     });
     document.querySelectorAll('.perf-tab-content').forEach(panel => {
         panel.classList.add('hidden');
+    });
+}
+
+function toggleDelayPower() {
+    delayPowerOn = !delayPowerOn;
+    const navBtn = document.getElementById('delay-nav-on');
+    const overlay = document.getElementById('delay-controls-overlay');
+    const panel = document.getElementById('panel-delay');
+    const led = document.getElementById('led-delay-on');
+
+    if (navBtn) navBtn.classList.toggle('active', delayPowerOn);
+    if (led) led.classList.toggle('active', delayPowerOn);
+    if (overlay) overlay.classList.toggle('hidden', !delayPowerOn);
+    if (panel) {
+        panel.classList.toggle('delay-stopped', !delayPowerOn);
+        panel.classList.toggle('delay-running', delayPowerOn);
+    }
+
+    // Enable/disable subpage nav buttons
+    document.querySelectorAll('.delay-subpage-btn').forEach(btn => {
+        btn.style.opacity = delayPowerOn ? '1' : '0.4';
+        btn.style.pointerEvents = delayPowerOn ? 'auto' : 'none';
+    });
+
+    // Show default subpage when turning on
+    if (delayPowerOn) {
+        switchDelaySubpage(delayActiveSubpage);
+    }
+
+    callNative('setParameter', 'delayEnabled', delayPowerOn ? 1.0 : 0.0);
+}
+
+function initDelayControls() {
+    // Wire delay setting buttons (1-11)
+    document.querySelectorAll('.delay-setting-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active from all siblings
+            this.parentElement.querySelectorAll('.delay-setting-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const idx = parseInt(this.getAttribute('data-idx'));
+            callNative('setParameter', 'delaySetting', idx / 10.0);
+        });
+    });
+
+    // Wire horizontal sliders
+    document.querySelectorAll('.h-slider-input').forEach(input => {
+        const unit = input.closest('.h-slider-unit');
+        const paramId = unit ? unit.getAttribute('data-param') : null;
+        if (!paramId) return;
+
+        const handle = unit.querySelector('.h-slider-handle');
+
+        function updateSlider(val) {
+            const pct = parseFloat(val) * 100;
+            if (handle) handle.style.left = Math.max(0, Math.min(pct, 100 - 12)) + 'px';
+            callNative('setParameter', paramId, parseFloat(val));
+        }
+
+        input.addEventListener('input', function() {
+            updateSlider(this.value);
+        });
+
+        // Initialize position from current value
+        updateSlider(input.value);
+    });
+
+    // Set initial disabled state for subpage buttons
+    document.querySelectorAll('.delay-subpage-btn').forEach(btn => {
+        btn.style.opacity = '0.4';
+        btn.style.pointerEvents = 'none';
+    });
+}
+
+// Wire delay controls after DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDelayControls);
+} else {
+    initDelayControls();
+}
+
+function switchDelaySubpage(page) {
+    if (!delayPowerOn) return;
+    delayActiveSubpage = page;
+
+    // Update nav button active states
+    document.querySelectorAll('.delay-subpage-btn').forEach(btn => {
+        const btnPage = btn.id.replace('delay-nav-', '');
+        btn.classList.toggle('active', btnPage === page);
+    });
+
+    // Show/hide subpages
+    ['settings', 'tone', 'reverb'].forEach(p => {
+        const el = document.getElementById('delay-sub-' + p);
+        if (el) el.classList.toggle('hidden', p !== page);
     });
 }
 
@@ -138,6 +267,16 @@ function updateThemeAndSkins() {
             if (btnPoly) btnPoly.classList.remove('hidden');
         }
     }
+
+    // DELAY tab: only visible in Super Six mode
+    const delayTab = document.getElementById('tab-btn-delay');
+    if (delayTab) delayTab.classList.toggle('hidden', targetModel !== 0);
+
+    // Tab nav buttons (< >): only visible in Super Six mode
+    const tabNavLeft = document.getElementById('tab-nav-left');
+    const tabNavRight = document.getElementById('tab-nav-right');
+    if (tabNavLeft) tabNavLeft.classList.toggle('hidden', targetModel !== 0);
+    if (tabNavRight) tabNavRight.classList.toggle('hidden', targetModel !== 0);
 
     // Hide/show the ROUTING tab button in settings
     const tabRoutingBtn = document.querySelector('button[onclick="switchTab(\'routing\')"]');

@@ -82,6 +82,9 @@
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -250,6 +253,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.h">

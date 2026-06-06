@@ -122,7 +122,7 @@ events:
       The output was:
       0
       Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
-      Compilación iniciada a las 05/06/2026 2:26:11.
+      Compilación iniciada a las 06/06/2026 18:09:31.
       
       Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\4.2.3-msvc3\\CompilerIdC\\CompilerIdC.vcxproj" en nodo 1 (destinos predeterminados).
       PrepareForBuild:
@@ -151,7 +151,7 @@ events:
           0 Advertencia(s)
           0 Errores
       
-      Tiempo transcurrido 00:00:01.06
+      Tiempo transcurrido 00:00:01.70
       
       
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
@@ -1201,7 +1201,7 @@ events:
       The output was:
       0
       Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
-      Compilación iniciada a las 05/06/2026 2:26:13.
+      Compilación iniciada a las 06/06/2026 18:09:33.
       
       Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\4.2.3-msvc3\\CompilerIdCXX\\CompilerIdCXX.vcxproj" en nodo 1 (destinos predeterminados).
       PrepareForBuild:
@@ -1230,7 +1230,7 @@ events:
           0 Advertencia(s)
           0 Errores
       
-      Tiempo transcurrido 00:00:01.00
+      Tiempo transcurrido 00:00:01.88
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -1443,8 +1443,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-6rq2vw"
-      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-6rq2vw"
+      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-e3hiwf"
+      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-e3hiwf"
     cmakeVariables:
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS"
       CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
@@ -1453,39 +1453,39 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-6rq2vw'
+        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-e3hiwf'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_88b63.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_170b5.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilación iniciada a las 05/06/2026 2:26:14.
+        Compilación iniciada a las 06/06/2026 18:09:36.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-6rq2vw\\cmTC_88b63.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-e3hiwf\\cmTC_170b5.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada está habilitada. El formato del diagnóstico del compilador reflejará la jerarquía de errores. Consulte https://aka.ms/cpp/structured-output para obtener más detalles.
-          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-6rq2vw\\Debug\\".
-          Creando directorio "cmTC_88b63.dir\\Debug\\cmTC_88b63.tlog\\".
+          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-e3hiwf\\Debug\\".
+          Creando directorio "cmTC_170b5.dir\\Debug\\cmTC_170b5.tlog\\".
         InitializeBuildStatus:
-          Se creará "cmTC_88b63.dir\\Debug\\cmTC_88b63.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_88b63.dir\\Debug\\cmTC_88b63.tlog\\unsuccessfulbuild".
+          Se creará "cmTC_170b5.dir\\Debug\\cmTC_170b5.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_170b5.dir\\Debug\\cmTC_170b5.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_88b63.dir\\Debug\\\\" /Fd"cmTC_88b63.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_170b5.dir\\Debug\\\\" /Fd"cmTC_170b5.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
           Compilador de optimización de C/C++ de Microsoft (R) versión 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_88b63.dir\\Debug\\\\" /Fd"cmTC_88b63.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_170b5.dir\\Debug\\\\" /Fd"cmTC_170b5.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
           CMakeCCompilerABI.c
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-6rq2vw\\Debug\\cmTC_88b63.exe" /INCREMENTAL /ILK:"cmTC_88b63.dir\\Debug\\cmTC_88b63.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-6rq2vw/Debug/cmTC_88b63.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-6rq2vw/Debug/cmTC_88b63.lib" /MACHINE:X64  /machine:x64 cmTC_88b63.dir\\Debug\\CMakeCCompilerABI.obj
-          cmTC_88b63.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-6rq2vw\\Debug\\cmTC_88b63.exe
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-e3hiwf\\Debug\\cmTC_170b5.exe" /INCREMENTAL /ILK:"cmTC_170b5.dir\\Debug\\cmTC_170b5.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-e3hiwf/Debug/cmTC_170b5.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-e3hiwf/Debug/cmTC_170b5.lib" /MACHINE:X64  /machine:x64 cmTC_170b5.dir\\Debug\\CMakeCCompilerABI.obj
+          cmTC_170b5.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-e3hiwf\\Debug\\cmTC_170b5.exe
         FinalizeBuildStatus:
-          Se eliminará el archivo "cmTC_88b63.dir\\Debug\\cmTC_88b63.tlog\\unsuccessfulbuild".
-          Aplicando tarea Touch a "cmTC_88b63.dir\\Debug\\cmTC_88b63.tlog\\cmTC_88b63.lastbuildstate".
-        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-6rq2vw\\cmTC_88b63.vcxproj" (destinos predeterminados).
+          Se eliminará el archivo "cmTC_170b5.dir\\Debug\\cmTC_170b5.tlog\\unsuccessfulbuild".
+          Aplicando tarea Touch a "cmTC_170b5.dir\\Debug\\cmTC_170b5.tlog\\cmTC_170b5.lastbuildstate".
+        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-e3hiwf\\cmTC_170b5.vcxproj" (destinos predeterminados).
         
         Compilación correcta.
             0 Advertencia(s)
             0 Errores
         
-        Tiempo transcurrido 00:00:01.09
+        Tiempo transcurrido 00:00:01.79
         
       exitCode: 0
   -
@@ -1525,8 +1525,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-0oaq9z"
-      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-0oaq9z"
+      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-l5th3w"
+      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-l5th3w"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
@@ -1536,39 +1536,39 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-0oaq9z'
+        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-l5th3w'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_611a4.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_fc43d.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilación iniciada a las 05/06/2026 2:26:16.
+        Compilación iniciada a las 06/06/2026 18:09:39.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-0oaq9z\\cmTC_611a4.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-l5th3w\\cmTC_fc43d.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada está habilitada. El formato del diagnóstico del compilador reflejará la jerarquía de errores. Consulte https://aka.ms/cpp/structured-output para obtener más detalles.
-          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-0oaq9z\\Debug\\".
-          Creando directorio "cmTC_611a4.dir\\Debug\\cmTC_611a4.tlog\\".
+          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-l5th3w\\Debug\\".
+          Creando directorio "cmTC_fc43d.dir\\Debug\\cmTC_fc43d.tlog\\".
         InitializeBuildStatus:
-          Se creará "cmTC_611a4.dir\\Debug\\cmTC_611a4.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_611a4.dir\\Debug\\cmTC_611a4.tlog\\unsuccessfulbuild".
+          Se creará "cmTC_fc43d.dir\\Debug\\cmTC_fc43d.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_fc43d.dir\\Debug\\cmTC_fc43d.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_611a4.dir\\Debug\\\\" /Fd"cmTC_611a4.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_fc43d.dir\\Debug\\\\" /Fd"cmTC_fc43d.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
           Compilador de optimización de C/C++ de Microsoft (R) versión 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_611a4.dir\\Debug\\\\" /Fd"cmTC_611a4.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_fc43d.dir\\Debug\\\\" /Fd"cmTC_fc43d.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-0oaq9z\\Debug\\cmTC_611a4.exe" /INCREMENTAL /ILK:"cmTC_611a4.dir\\Debug\\cmTC_611a4.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-0oaq9z/Debug/cmTC_611a4.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-0oaq9z/Debug/cmTC_611a4.lib" /MACHINE:X64  /machine:x64 cmTC_611a4.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_611a4.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-0oaq9z\\Debug\\cmTC_611a4.exe
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-l5th3w\\Debug\\cmTC_fc43d.exe" /INCREMENTAL /ILK:"cmTC_fc43d.dir\\Debug\\cmTC_fc43d.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-l5th3w/Debug/cmTC_fc43d.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/CMakeScratch/TryCompile-l5th3w/Debug/cmTC_fc43d.lib" /MACHINE:X64  /machine:x64 cmTC_fc43d.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_fc43d.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-l5th3w\\Debug\\cmTC_fc43d.exe
         FinalizeBuildStatus:
-          Se eliminará el archivo "cmTC_611a4.dir\\Debug\\cmTC_611a4.tlog\\unsuccessfulbuild".
-          Aplicando tarea Touch a "cmTC_611a4.dir\\Debug\\cmTC_611a4.tlog\\cmTC_611a4.lastbuildstate".
-        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-0oaq9z\\cmTC_611a4.vcxproj" (destinos predeterminados).
+          Se eliminará el archivo "cmTC_fc43d.dir\\Debug\\cmTC_fc43d.tlog\\unsuccessfulbuild".
+          Aplicando tarea Touch a "cmTC_fc43d.dir\\Debug\\cmTC_fc43d.tlog\\cmTC_fc43d.lastbuildstate".
+        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\CMakeFiles\\CMakeScratch\\TryCompile-l5th3w\\cmTC_fc43d.vcxproj" (destinos predeterminados).
         
         Compilación correcta.
             0 Advertencia(s)
             0 Errores
         
-        Tiempo transcurrido 00:00:01.07
+        Tiempo transcurrido 00:00:01.43
         
       exitCode: 0
   -
@@ -1618,37 +1618,37 @@ events:
       stdout: |
         Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/_juce/CMakeFiles/CMakeTmp'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_d8f39.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_14a70.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versión de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilación iniciada a las 05/06/2026 2:26:18.
+        Compilación iniciada a las 06/06/2026 18:09:42.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_d8f39.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_14a70.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada está habilitada. El formato del diagnóstico del compilador reflejará la jerarquía de errores. Consulte https://aka.ms/cpp/structured-output para obtener más detalles.
           Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\Debug\\".
-          Creando directorio "cmTC_d8f39.dir\\Debug\\cmTC_d8f39.tlog\\".
+          Creando directorio "cmTC_14a70.dir\\Debug\\cmTC_14a70.tlog\\".
         InitializeBuildStatus:
-          Se creará "cmTC_d8f39.dir\\Debug\\cmTC_d8f39.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_d8f39.dir\\Debug\\cmTC_d8f39.tlog\\unsuccessfulbuild".
+          Se creará "cmTC_14a70.dir\\Debug\\cmTC_14a70.tlog\\unsuccessfulbuild" porque se especificó "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_14a70.dir\\Debug\\cmTC_14a70.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /std:c++17 /Fo"cmTC_d8f39.dir\\Debug\\\\" /Fd"cmTC_d8f39.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /std:c++17 /Fo"cmTC_14a70.dir\\Debug\\\\" /Fd"cmTC_14a70.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
           Compilador de optimización de C/C++ de Microsoft (R) versión 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /std:c++17 /Fo"cmTC_d8f39.dir\\Debug\\\\" /Fd"cmTC_d8f39.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /std:c++17 /Fo"cmTC_14a70.dir\\Debug\\\\" /Fd"cmTC_14a70.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
           juce_runtime_arch_detection.cpp
-        D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_d8f39.vcxproj]
-        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_d8f39.vcxproj" (destinos predeterminados) -- ERROR.
+        D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_14a70.vcxproj]
+        Compilación del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_14a70.vcxproj" (destinos predeterminados) -- ERROR.
         
         ERROR al compilar.
         
-        "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_d8f39.vcxproj" (destino predeterminado) (1) ->
+        "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_14a70.vcxproj" (destino predeterminado) (1) ->
         (ClCompile destino) -> 
-          D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_d8f39.vcxproj]
+          D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_j106\\_juce\\CMakeFiles\\CMakeTmp\\cmTC_14a70.vcxproj]
         
             0 Advertencia(s)
             1 Errores
         
-        Tiempo transcurrido 00:00:00.57
+        Tiempo transcurrido 00:00:01.03
         
       exitCode: 1
   -
@@ -1658,7 +1658,7 @@ events:
       - "JUCE/extras/Build/CMake/JUCEUtils.cmake:300 (find_package)"
       - "JUCE/extras/Build/CMake/JUCEUtils.cmake:2136 (_juce_link_optional_libraries)"
       - "JUCE/extras/Build/CMake/JUCEUtils.cmake:2198 (_juce_initialise_target)"
-      - "CMakeLists.txt:69 (juce_add_plugin)"
+      - "CMakeLists.txt:60 (juce_add_plugin)"
     mode: "path"
     variable: "WebView2_root_dir"
     description: "Path to a file."

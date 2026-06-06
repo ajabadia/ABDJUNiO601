@@ -470,6 +470,38 @@ function syncUI(id, val) {
         if (led1) led1.classList.toggle('active', Math.abs(val - 0.5) < 0.2);
         if (led2) led2.classList.toggle('active', Math.abs(val - 1.0) < 0.2);
     }
+    // DELAY panel: sync h-slider handles when parameters change
+    if (id.startsWith('delay')) {
+        // Sync horizontal slider positions
+        const hUnit = document.querySelector(`.h-slider-unit[data-param="${id}"]`);
+        if (hUnit) {
+            const input = hUnit.querySelector('.h-slider-input');
+            const handle = hUnit.querySelector('.h-slider-handle');
+            if (input) {
+                input.value = val;
+                if (handle) {
+                    const pct = parseFloat(val) * 100;
+                    handle.style.left = Math.max(0, Math.min(pct, 88)) + 'px';
+                }
+            }
+        }
+        // Sync delay setting buttons
+        if (id === 'delaySetting') {
+            const settingIdx = Math.round(val * 10);
+            document.querySelectorAll('.delay-setting-btn').forEach(btn => {
+                const idx = parseInt(btn.getAttribute('data-idx'));
+                btn.classList.toggle('active', idx === settingIdx);
+            });
+        }
+        // Sync delay enable LED
+        if (id === 'delayEnabled') {
+            const led = document.getElementById('led-delay-on');
+            if (led) led.classList.toggle('active', val > 0.5);
+            const navBtn = document.getElementById('delay-nav-on');
+            if (navBtn) navBtn.classList.toggle('active', val > 0.5);
+        }
+    }
+
     if (id === 'calibrationProfile' || id === 'skinType') updateThemeAndSkins();
     if (id.startsWith('model') || id === 'polyMode') updatePainterTapes();
 }

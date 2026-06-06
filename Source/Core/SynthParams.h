@@ -241,6 +241,16 @@ struct SynthParams {
     bool arpSync = false;
     int arpDivision = 6;   // 1/16 note (kDiv16)
 
+    // --- Tape Echo / Delay (Super Six only) ---
+    bool delayEnabled = false;
+    int delaySetting = 0;       // 0-10 (head configurations)
+    float delayRepeatRate = 0.5f;
+    float delayIntensity = 0.5f;
+    float delayBass = 0.5f;
+    float delayTreble = 0.5f;
+    float delayReverbVol = 0.5f;
+    float delayEchoVol = 0.5f;
+
 #if defined(COMPILING_JUNO106)
   #define GET_MODEL_DCO(p)    2
   #define GET_MODEL_HPF(p)    2

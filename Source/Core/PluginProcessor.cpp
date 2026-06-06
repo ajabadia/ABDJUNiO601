@@ -117,6 +117,16 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     fmtArpSync = getCachedParam("arpSync");
     fmtArpDivision = getCachedParam("arpDivision");
 
+    // Tape Echo / Delay Settings (Super Six only)
+    fmtDelayEnabled = getCachedParam("delayEnabled");
+    fmtDelaySetting = getCachedParam("delaySetting");
+    fmtDelayRepeatRate = getCachedParam("delayRepeatRate");
+    fmtDelayIntensity = getCachedParam("delayIntensity");
+    fmtDelayBass = getCachedParam("delayBass");
+    fmtDelayTreble = getCachedParam("delayTreble");
+    fmtDelayReverbVol = getCachedParam("delayReverbVol");
+    fmtDelayEchoVol = getCachedParam("delayEchoVol");
+
     DBG("ABDSimpleJuno106AudioProcessor::Parameters cached DONE");
     loadUserSettings();
 
@@ -223,6 +233,9 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     dryNoise.SetHighShelf(500.0f, -16.0f, (float)sr);
     dryRipple.SetMainsHz(60.0f, (float)sr);
     dryRipple.SetAmplitudes(1.8e-5f, 8.9e-6f, 6.3e-6f);
+
+    // [Tape Echo] Prepare delay DSP for Super Six
+    prepareTapeEcho();
 
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
 }
@@ -482,6 +495,20 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     applyChorus(buffer, numSamples);
     processMasterEffects(buffer, numSamples);
 
+    // Tape Echo / Delay (Super Six only, applied at end of chain)
+    if (isSuperSix() && currentParams.delayEnabled)
+    {
+        tapeEcho.setEnabled(true);
+        tapeEcho.setDelaySetting(currentParams.delaySetting);
+        tapeEcho.setRepeatRate(currentParams.delayRepeatRate);
+        tapeEcho.setIntensity(currentParams.delayIntensity);
+        tapeEcho.setBass(currentParams.delayBass);
+        tapeEcho.setTreble(currentParams.delayTreble);
+        tapeEcho.setReverbVol(currentParams.delayReverbVol);
+        tapeEcho.setEchoVol(currentParams.delayEchoVol);
+        tapeEcho.process(buffer);
+    }
+
     // [Build 103] Recording Capture (Post-Process)
     {
         const juce::ScopedLock sl(writerLock);
@@ -638,6 +665,14 @@ void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<floa
     dcBlocker.process(context);
 }
 
+// Tape Echo prepare helper
+void ABDSimpleJuno106AudioProcessor::prepareTapeEcho()
+{
+    if (isSuperSix()) {
+        tapeEcho.prepare(getSampleRate(), 2, 512);
+    }
+}
+
 
 void ABDSimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { voiceManager.noteOn(0, midiNoteNumber, velocity); }
 void ABDSimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
@@ -720,6 +755,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcess
     params.push_back(makeParam("arpRate", "Arpeggiator Rate", 0.0f, 1.0f, 0.5f));
     params.push_back(makeBool("arpSync", "Arpeggiator Sync", false));
     params.push_back(makeIntParam("arpDivision", "Arpeggiator Division", 0, 8, 6));
+
+    // Tape Echo / Delay Settings (Super Six only)
+    params.push_back(makeBool("delayEnabled", "Delay Enable", false));
+    params.push_back(makeIntParam("delaySetting", "Delay Setting", 0, 10, 0));
+    params.push_back(makeParam("delayRepeatRate", "Delay Repeat Rate", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayIntensity", "Delay Intensity", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayBass", "Delay Bass", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayTreble", "Delay Treble", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayReverbVol", "Delay Reverb Vol", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayEchoVol", "Delay Echo Vol", 0.0f, 1.0f, 0.5f));
 
     return { params.begin(), params.end() };
 }

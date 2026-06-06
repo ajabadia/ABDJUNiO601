@@ -88,7 +88,7 @@ const ServiceMode = {
         container.innerHTML = '';
         
         // [Build 35] Order modules: LFO, DCO, HPF, VCF, VCA, ADSR, CHORUS, THERMAL, AGING, SYSTEM (GENERAL handled separately)
-        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "ADSR", "CHORUS", "THERMAL", "AGING", "SYSTEM"];
+        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "ADSR", "CHORUS", "THERMAL", "AGING", "SYSTEM", "SPACE ECHO"];
         
         categories.forEach(cat => {
             this.internalRenderCategory(cat, container);
@@ -256,7 +256,8 @@ const ServiceMode = {
                     "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
                     "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
                     "enableLogging": { 0: "OFF", 1: "ON" },
-                    "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" }
+                    "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" },
+                    "delayReverbType": { 0: "CONVOLUTION (FFT)", 1: "WAVEGUIDE", 2: "HYBRID" }
                 };
 
                 if (choiceParams[p.id]) {
@@ -342,7 +343,8 @@ const ServiceMode = {
             "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
             "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
             "enableLogging": { 0: "OFF", 1: "ON" },
-            "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" }
+            "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" },
+            "delayReverbType": { 0: "CONVOLUTION (FFT)", 1: "WAVEGUIDE", 2: "HYBRID" }
         };
 
         if (p && display) {

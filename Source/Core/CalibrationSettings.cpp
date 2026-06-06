@@ -189,6 +189,11 @@ void CalibrationSettings::buildParameterList()
     regTriple("voiceVcaGainSpread", "VCA Gain Voice Spread", "AGING", "%", "VCA gain fixed voice tolerance spread (J106: ±2.4% gain).", 0.024f, 0.0f, 0.1f, 0.001f);
     regTriple("driftWalkIntensity", "Drift Walk Intensity", "THERMAL", "cents", "Dynamic random drift walk max cents (J106: ±3 cents).", 3.0f, 0.0f, 10.0f, 0.1f);
 
+    // --- SPACE ECHO (Super Six only) ---
+    reg("delayInputLevel", "Space Echo Input Level", "SPACE ECHO", "", "Input gain into the tape echo processor.", 0.8f, 0.0f, 1.0f, 0.01f);
+    reg("delayWetDry", "Space Echo Wet/Dry Mix", "SPACE ECHO", "", "Balance between dry signal and tape echo output.", 0.5f, 0.0f, 1.0f, 0.01f);
+    reg("delayReverbType", "Space Echo Reverb Type", "SPACE ECHO", "", "Reverb algorithm type: 0=Convolution (FFT), 1=Waveguide, 2=Hybrid.", 0.0f, 0.0f, 2.0f, 1.0f, true);
+
     // --- SYSTEM ---
     regTriple("a4Reference", "A4 Reference Pitch", "SYSTEM", "Hz", "Master tuning reference frequency (Standard=440Hz).", 440.0f, 400.0f, 480.0f, 1.0f);
     regTriple("oversampling", "Internal Oversampling", "SYSTEM", "x", "Audio engine oversampling rate (1x=Normal, 2x=Hi-Fi, 4x=Extreme).", 1.0f, 1.0f, 4.0f, 1.0f, true);
