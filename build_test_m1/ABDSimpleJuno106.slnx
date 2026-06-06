@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<BuildType Name="Release"/>
+		<BuildType Name="MinSizeRel"/>
+		<BuildType Name="RelWithDebInfo"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Project Path="ABDSimpleJuno106_WebUI.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b76377a0-7808-3afd-b312-6721cc9b5e2f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="ABDSimpleJuno106_rc_lib.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f6947092-e76f-3139-a4ab-5f960ad4a6b9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="ABDSimpleJuno106_vst3_helper.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4f54ea69-e7e4-34bd-9e87-752ed0c52e8c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="JunoUnitTests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="81bd629c-9abb-3d47-9e72-74cffa324754">
+		<BuildDependency Project="JunoUnitTests_rc_lib.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="JunoUnitTests_rc_lib.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c2f3a273-70e9-37d8-b08d-4377115097fb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Folder Name="/ABDSimpleJuno106/">
+		<Project Path="ABDSimpleJuno106.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8c7c6030-85ec-3b76-8079-8506faeed83f">
+			<BuildDependency Project="ABDSimpleJuno106_WebUI.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		</Project>
+		<Project Path="ABDSimpleJuno106_All.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="dca27cf4-9846-3ef4-bef1-e9d16273cce8">
+			<BuildDependency Project="ABDSimpleJuno106_Standalone.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_VST3.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+			<Build Solution="Debug|*" Project="false"/>
+			<Build Solution="Release|*" Project="false"/>
+			<Build Solution="MinSizeRel|*" Project="false"/>
+			<Build Solution="RelWithDebInfo|*" Project="false"/>
+		</Project>
+		<Project Path="ABDSimpleJuno106_Standalone.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1371e06c-8eb4-3ac1-9717-c58b18838631">
+			<BuildDependency Project="ABDSimpleJuno106.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_WebUI.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_rc_lib.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		</Project>
+		<Project Path="ABDSimpleJuno106_VST3.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="722f2adb-5b3c-35af-b27d-1cb5c8390055">
+			<BuildDependency Project="ABDSimpleJuno106.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_WebUI.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_rc_lib.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_vst3_helper.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		</Project>
+	</Folder>
+	<Folder Name="/CMakePredefinedTargets/">
+		<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8fb33504-b86a-394c-914b-440ffdd328bc" DefaultStartup="true">
+			<BuildDependency Project="ABDSimpleJuno106.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_Standalone.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_VST3.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_WebUI.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_rc_lib.vcxproj"/>
+			<BuildDependency Project="ABDSimpleJuno106_vst3_helper.vcxproj"/>
+			<BuildDependency Project="JunoUnitTests.vcxproj"/>
+			<BuildDependency Project="JunoUnitTests_rc_lib.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		</Project>
+		<Project Path="INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2b0c6d45-5f58-3614-8053-c9b51af86777">
+			<BuildDependency Project="ALL_BUILD.vcxproj"/>
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+			<Build Solution="Debug|*" Project="false"/>
+			<Build Solution="Release|*" Project="false"/>
+			<Build Solution="MinSizeRel|*" Project="false"/>
+			<Build Solution="RelWithDebInfo|*" Project="false"/>
+		</Project>
+		<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f75a6c0a-fcfa-3dfa-9858-4d2708f74e0e"/>
+	</Folder>
+</Solution>

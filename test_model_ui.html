@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model UI Visibility Test</title>
+    <style>
+        body { font-family: monospace; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        h1 { color: #fa0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        h2 { color: #0af; margin: 20px 0 10px; }
+        .controls { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .controls button { padding: 12px 24px; font-family: monospace; font-weight: bold; background: #16213e; color: #eee; border: 1px solid #444; cursor: pointer; border-radius: 4px; font-size: 14px; }
+        .controls button:hover { background: #0f3460; }
+        .controls button.active { background: #fa0; color: #000; border-color: #fa0; }
+        .controls button.supersix { border-color: #fa0; }
+        .controls button.j106 { border-color: #0af; }
+        .controls button.j60 { border-color: #0f0; }
+        .controls button.j6 { border-color: #f0a; }
+        #status { margin: 20px 0; background: #16213e; padding: 15px; border-radius: 4px; }
+        #status .model-name { font-size: 24px; font-weight: bold; }
+        .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .section { padding: 12px; border-radius: 4px; background: #16213e; border: 1px solid #333; }
+        .section .name { font-weight: bold; margin-bottom: 4px; }
+        .section .state { font-size: 12px; }
+        .visible { border-left: 4px solid #0f0; }
+        .hidden { border-left: 4px solid #f00; opacity: 0.5; }
+        #results { margin-top: 20px; }
+        #results table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        #results th, #results td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #333; }
+        #results th { background: #0f3460; font-weight: bold; }
+        #results .pass { color: #0f0; font-weight: bold; }
+        #results .fail { color: #f00; font-weight: bold; }
+        .summary { margin: 20px 0; padding: 15px; background: #16213e; border-radius: 4px; font-size: 16px; }
+        .all-pass { border-left: 4px solid #0f0; }
+        .has-fail { border-left: 4px solid #f00; }
+    </style>
+</head>
+<body>
+    <h1>🔊 ABD JUNiO — Model UI Visibility Test (v5 — calibrationProfile check)</h1>
+
+    <div class="controls">
+        <button class="supersix active" onclick="setModel(0)">🔄 Super Six (0)</button>
+        <button class="j106" onclick="setModel(1)">🎛️ Juno-106 (1)</button>
+        <button class="j60" onclick="setModel(2)">🎛️ Juno-60 (2)</button>
+        <button class="j6" onclick="setModel(3)">🎛️ Juno-6 (3)</button>
+    </div>
+
+    <div id="status">
+        <div>Active Model: <span class="model-name" id="model-name">SUPER SIX HYBRID</span></div>
+        <div>Model Value: <span id="model-value">0</span></div>
+    </div>
+
+    <h2>DOM Elements Under Test</h2>
+    <div class="section-grid" id="section-grid">
+        <!-- Engine -->
+        <div class="section visible" id="dco-lfo-pwm"><div class="name">DCO LFO/PWM</div><div class="state" id="state-dco-lfo-pwm">🟢</div></div>
+        <div class="section visible" id="dco-mix"><div class="name">DCO MIX</div><div class="state" id="state-dco-mix">🟢</div></div>
+        <div class="section visible" id="chorus"><div class="name">CHORUS</div><div class="state" id="state-chorus">🟢</div></div>
+        <div class="section visible" id="vcf-polarity"><div class="name">VCF POLARITY</div><div class="state" id="state-vcf-polarity">🟢</div></div>
+        <div class="section visible" id="vca-mode"><div class="name">VCA MODE</div><div class="state" id="state-vca-mode">🟢</div></div>
+
+        <!-- Sidebar -->
+        <div class="section visible" id="nav-row"><div class="name">NAV ROW</div><div class="state" id="state-nav-row">🟢</div></div>
+        <div class="section visible" id="patch-grid-container"><div class="name">PATCH GRID</div><div class="state" id="state-patch-grid">🟢</div></div>
+
+        <div class="section visible" id="util-manual"><div class="name">UTIL: MANUAL</div><div class="state" id="state-util-manual">🟢</div></div>
+        <div class="section visible" id="util-write"><div class="name">UTIL: WRITE</div><div class="state" id="state-util-write">🟢</div></div>
+        <div class="section visible" id="util-save"><div class="name">UTIL: SAVE</div><div class="state" id="state-util-save">🟢</div></div>
+        <div class="section visible" id="util-verify"><div class="name">UTIL: VERIFY</div><div class="state" id="state-util-verify">🟢</div></div>
+        <div class="section visible" id="util-load"><div class="name">UTIL: LOAD</div><div class="state" id="state-util-load">🟢</div></div>
+        <div class="section visible" id="util-random"><div class="name">UTIL: RANDOM</div><div class="state" id="state-util-random">🟢</div></div>
+        <div class="section visible" id="util-panic"><div class="name">UTIL: PANIC</div><div class="state" id="state-util-panic">🟢</div></div>
+        <div class="section visible" id="util-test"><div class="name">UTIL: TEST</div><div class="state" id="state-util-test">🟢</div></div>
+
+        <!-- Header: top-left-display stays visible, but 7-segment + label hidden -->
+        <div class="section visible" id="top-left-display"><div class="name">TOP-LEFT CONTAINER</div><div class="state" id="state-top-left-display">🟢</div></div>
+        <div class="section visible" id="seven-segment-display"><div class="name">7-SEGMENT DISPLAY</div><div class="state" id="state-seven-segment">🟢</div></div>
+        <div class="section visible zone-label" id="zone-label"><div class="name">BANK/PATCH LABEL</div><div class="state" id="state-zone-label">🟢</div></div>
+        <div class="section visible" id="front-midi-badge"><div class="name">MIDI BADGE</div><div class="state" id="state-midi-badge">🟢</div></div>
+        <div class="section visible" id="protect-zone"><div class="name">PROTECT ZONE</div><div class="state" id="state-protect-zone">🟢</div></div>
+        <div class="section visible" id="sysex-zone"><div class="name">SYSEX ZONE</div><div class="state" id="state-sysex-zone">🟢</div></div>
+
+        <!-- Perf tabs -->
+        <div class="section visible" id="tab-btn-arp"><div class="name">ARP TAB</div><div class="state" id="state-tab-arp">🟢</div></div>
+        <div class="section visible" id="tab-btn-port"><div class="name">PORTA TAB</div><div class="state" id="state-tab-port">🟢</div></div>
+        <div class="section visible" id="tab-btn-poly"><div class="name">POLY TAB</div><div class="state" id="state-tab-poly">🟢</div></div>
+        <div class="section visible" id="tab-routing"><div class="name">ROUTING TAB</div><div class="state" id="state-tab-routing">🟢</div></div>
+
+        <!-- Settings -->
+        <div class="section visible" id="setting-numVoices-row"><div class="name">VOICE COUNT</div><div class="state" id="state-setting-numVoices-row">🟢</div></div>
+        <div class="section visible" id="setting-calibrationProfile-row"><div class="name">CALIBRATION PROFILE</div><div class="state" id="state-setting-calibrationProfile-row">🟢</div></div>
+
+        <!-- Painter tapes -->
+        <div class="section visible painter-tape" id="tape-dco"><div class="name">PAINTER TAPES</div><div class="state" id="state-tape-dco">🟢</div></div>
+    </div>
+
+    <div id="results">
+        <h2>Expected Behavior by Model</h2>
+        <table>
+            <thead>
+                <tr><th>Section</th><th>Super Six (0)</th><th>Juno-106 (1)</th><th>Juno-60 (2)</th><th>Juno-6 (3)</th></tr>
+            </thead>
+            <tbody id="results-table"></tbody>
+        </table>
+    </div>
+
+    <div id="summary" class="summary all-pass"><span id="summary-text">Ready.</span></div>
+
+    <script>
+        const TEST_IDS = [
+            'dco-lfo-pwm','dco-mix','chorus','vcf-polarity','vca-mode',
+            'nav-row','patch-grid-container',
+            'util-manual','util-write','util-save','util-verify','util-load',
+            'util-random','util-panic','util-test',
+            'top-left-display','seven-segment-display','zone-label','front-midi-badge','protect-zone','sysex-zone',
+            'tab-btn-arp','tab-btn-port','tab-btn-poly','tab-routing',
+            'setting-numVoices-row','setting-calibrationProfile-row','painter-tape'
+        ];
+
+        const EXPECT = {
+            0: {}, // Super Six: all false (visible)
+            1: { 'tab-btn-arp':true, 'tab-routing':true, 'painter-tape':true,
+                 'setting-numVoices-row':true, 'setting-calibrationProfile-row':true },
+            2: { 'chorus':true, 'vcf-polarity':true, 'vca-mode':true,
+                 'tab-btn-port':true, 'tab-btn-poly':true,
+                 'tab-routing':true, 'painter-tape':true,
+                 'setting-numVoices-row':true, 'setting-calibrationProfile-row':true },
+            3: { 'dco-lfo-pwm':true, 'dco-mix':true, 'chorus':true, 'vcf-polarity':true, 'vca-mode':true,
+                 'patch-grid-container':true, 'sysex-zone':true,
+                 'util-manual':true, 'util-write':true, 'util-save':true, 'util-verify':true, 'util-load':true,
+                 'seven-segment-display':true, 'zone-label':true, 'protect-zone':true,
+                 'tab-btn-port':true, 'tab-btn-poly':true,
+                 'tab-routing':true, 'painter-tape':true,
+                 'setting-numVoices-row':true, 'setting-calibrationProfile-row':true }
+            // nav-row: stays VISIBLE (BK/PT navigation for quick preset browsing)
+            // top-left-display: stays VISIBLE (contains MIDI badge)
+            // front-midi-badge: stays VISIBLE (J-6 needs MIDI)
+            // util-random, util-panic, util-test: stays VISIBLE
+            // tab-btn-arp: VISIBLE
+        };
+
+        const MODEL_NAMES = ['Super Six','Juno-106','Juno-60','Juno-6'];
+        const CHECK_LABELS = {
+            'dco-lfo-pwm':'DCO LFO/PWM','dco-mix':'DCO MIX','chorus':'CHORUS',
+            'vcf-polarity':'VCF Pol','vca-mode':'VCA Mode',
+            'nav-row':'Nav Row','patch-grid-container':'Patch Grid',
+            'util-manual':'Manual','util-write':'Write','util-save':'Save',
+            'util-verify':'Verify','util-load':'Load','util-random':'Random',
+            'util-panic':'Panic','util-test':'Test',
+            'top-left-display':'Top-Left Container','seven-segment-display':'7-Seg Display',
+            'zone-label':'BANK/PATCH Label','front-midi-badge':'MIDI Badge','protect-zone':'Protect','sysex-zone':'SysEx Zone',
+            'tab-btn-arp':'ARP Tab','tab-btn-port':'Porta Tab','tab-btn-poly':'Poly Tab',
+            'tab-routing':'Routing Tab','painter-tape':'Painter Tapes',
+            'setting-numVoices-row':'Voice Count','setting-calibrationProfile-row':'Calibration Profile'
+        };
+
+        function updateModelVisibility(model) {
+            const isSS = model===0, is106=model===1, is60=model===2, is6=model===3;
+
+            // Engine
+            byId('dco-lfo-pwm')?.classList.toggle('hidden',is6);
+            byId('dco-mix')?.classList.toggle('hidden',is6);
+            byId('chorus')?.classList.toggle('hidden',!is106&&!isSS);
+            byId('vcf-polarity')?.classList.toggle('hidden',is60||is6);
+            byId('vca-mode')?.classList.toggle('hidden',is60||is6);
+
+            // Sidebar
+            // nav-row: stays visible even for J-6 (BK/PT navigation for quick preset browsing)
+            byId('patch-grid-container')?.classList.toggle('hidden',is6);
+            ['util-manual','util-write','util-save','util-verify','util-load'].forEach(id=>
+                byId(id)?.classList.toggle('hidden',is6));
+
+            // Header: hide only 7-segment + label, keep top-left-display + midi-badge
+            // SysEx zone: hide for J-6 (no hardware display), keep for others
+            byId('sysex-zone')?.classList.toggle('hidden',is6);
+            byId('seven-segment-display')?.classList.toggle('hidden',is6);
+            byId('zone-label')?.classList.toggle('hidden',is6);
+            byId('protect-zone')?.classList.toggle('hidden',is6);
+
+            // Perf tabs
+            byId('tab-btn-arp')?.classList.toggle('hidden',is106);
+            byId('tab-routing')?.classList.toggle('hidden',!isSS);
+
+            // Settings params: only show in Super Six
+            byId('setting-numVoices-row')?.classList.toggle('hidden',!isSS);
+            byId('setting-calibrationProfile-row')?.classList.toggle('hidden',!isSS);
+
+            // Painter tapes
+            document.querySelectorAll('.painter-tape').forEach(t=>t.classList.toggle('hidden',!isSS));
+
+            // Porta/Poly tabs
+            if (is106) {
+                byId('tab-btn-port')?.classList.remove('hidden');
+                byId('tab-btn-poly')?.classList.remove('hidden');
+            } else if (is60||is6) {
+                byId('tab-btn-port')?.classList.add('hidden');
+                byId('tab-btn-poly')?.classList.add('hidden');
+            } else {
+                byId('tab-btn-port')?.classList.remove('hidden');
+                byId('tab-btn-poly')?.classList.remove('hidden');
+            }
+        }
+
+        function byId(id) { return document.getElementById(id); }
+
+        function setModel(model) {
+            document.querySelectorAll('.controls button').forEach(b=>b.classList.remove('active'));
+            const btns = document.querySelectorAll('.controls button');
+            if (btns[model]) btns[model].classList.add('active');
+
+            document.querySelectorAll('.section').forEach(el=>el.classList.remove('hidden'));
+
+            updateModelVisibility(model);
+
+            // Update states
+            TEST_IDS.forEach(id=>{
+                const el = id==='painter-tape' ? document.querySelector('.painter-tape') : byId(id);
+                const state = byId('state-'+id.replace(/-/g,''));
+                if (el && state) {
+                    const h = el.classList.contains('hidden');
+                    state.innerHTML = h ? '🔴 Hidden' : '🟢 Visible';
+                    el.className = 'section '+(h?'hidden':'visible')+(id==='painter-tape'?' painter-tape':'');
+                }
+            });
+
+            // Verify
+            const exp = EXPECT[model]||{};
+            const tbody = byId('results-table');
+            tbody.innerHTML = '';
+            let total=0, passed=0;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `<td><strong>${MODEL_NAMES[model]}</strong></td>`;
+
+            TEST_IDS.forEach(id=>{
+                const el = id==='painter-tape' ? document.querySelector('.painter-tape') : byId(id);
+                const actual = el ? el.classList.contains('hidden') : true;
+                const expected = exp[id] || false;
+                total++;
+                if (actual===expected) passed++;
+
+                const cell = document.createElement('td');
+                cell.className = actual===expected ? 'pass' : 'fail';
+                cell.innerText = actual===expected
+                    ? '✅ '+(expected?'HIDDEN':'VISIBLE')
+                    : '❌ Exp '+(expected?'H':'V')+' got '+(actual?'H':'V');
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+
+            const summary = byId('summary-text');
+            summary.innerHTML = `<strong>${MODEL_NAMES[model]}:</strong> ${passed}/${total} checks passed. ${passed===total?'✅ ALL GOOD':'❌ BUGS!'}`;
+        }
+
+        setModel(0);
+    </script>
+</body>
+</html>

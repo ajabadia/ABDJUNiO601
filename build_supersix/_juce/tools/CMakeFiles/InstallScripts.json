@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/modules/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/extras/Build/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/extras/Build/juceaide/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

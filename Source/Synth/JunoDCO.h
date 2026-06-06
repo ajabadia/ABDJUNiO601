@@ -73,6 +73,9 @@ public:
     void setPwmSlew(float manual, float lfo) { pwmSlewRateManual = manual; pwmSlewRateLFO = lfo; }
     void setNoiseGainScale(float scale) { noiseGainScale = scale; }
     
+    // Model selection (0=J6, 1=J60, 2=J106)
+    void setModel(int model) { dcoModel = model; }
+    
     /**
      * Processes the next audio sample for this DCO.
      * 
@@ -132,6 +135,7 @@ private:
     float pwmSlewRateManual = 0.05f;
     float pwmSlewRateLFO = 0.1f;
     float noiseGainScale = 0.45f;
+    int dcoModel = 2;  // 0=J6, 1=J60, 2=J106
     
     // Drift (Multi-level authenticity)
     float driftAmount = 0.0f;

@@ -70,11 +70,16 @@ public:
     std::array<float, 11> customSubLevelTable;
     bool hasCustomSubLevelTable = false;
 
+    // Library path string (serialized separately from float params)
+    void setLibraryPath(const std::string& path);
+    std::string getLibraryPath() const { return libraryPath; }
+
     // Callback for real-time DSP updates
     using OnChangeCallback = std::function<void(std::string, float)>;
     void setOnChangeCallback(OnChangeCallback cb) { onChangeCallback = cb; }
 
 private:
+    std::string libraryPath;
     std::vector<Cal::CalibrationParam> params;
     std::map<std::string, int> idToIndex;
     OnChangeCallback onChangeCallback;

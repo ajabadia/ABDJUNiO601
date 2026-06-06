@@ -33,6 +33,7 @@ JunoCsvImporter::ImportResult JunoCsvImporter::loadFromFile(const juce::File& fi
 
     // Parse header
     juce::StringArray headers = juce::StringArray::fromTokens(lines[0], ",", "\"");
+    res.columnHeaders = headers;
     
     // Process rows
     for (int i = 1; i < lines.size(); ++i) {

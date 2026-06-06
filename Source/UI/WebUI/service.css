@@ -226,3 +226,133 @@
 }
 
 /* Footer & Buttons handled by unified modal classes in settings.css / index.html */
+
+/* ─── Smart Tape Import Dialog ──────────────────────────────────────── */
+
+#si-progress-log {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+    background: rgba(0,0,0,0.15);
+}
+
+#si-progress-log > div {
+    white-space: pre-wrap;
+    padding: 1px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.si-metric-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+}
+
+.si-metric-label {
+    font-size: 8px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.si-metric-value {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.si-metric-badge {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #000;
+}
+
+.si-decoder-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.si-decoder-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.15);
+}
+
+.si-decoder-card.winner {
+    background: rgba(0, 255, 0, 0.05);
+    border-color: rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
+}
+
+.si-decoder-rank {
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+    min-width: 28px;
+    text-align: center;
+}
+
+.si-decoder-card.winner .si-decoder-rank {
+    color: #0f0;
+}
+
+.si-decoder-info {
+    flex: 1;
+}
+
+.si-decoder-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ddd;
+}
+
+.si-decoder-card.winner .si-decoder-label {
+    color: #0f0;
+}
+
+.si-decoder-meta {
+    font-size: 9px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.si-decoder-check {
+    font-size: 18px;
+    color: #0f0;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* General smart import section headers */
+.si-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Pulse animation for processing status */
+@keyframes pulse-status {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+#si-progress-status:not(:empty):not(.done) {
+    animation: pulse-status 1.5s ease-in-out infinite;
+}

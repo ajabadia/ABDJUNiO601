@@ -9,6 +9,7 @@
 
 #include <JuceHeader.h>
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
+#include "../../Core/JunoTapeDecoder.h"
 
 // Minimal bridge declaration to avoid conflicts
 class WebViewEditor : public juce::AudioProcessorEditor,
@@ -49,6 +50,15 @@ private:
     int lastLibraryIndex = -1;
     juce::String lastTuningName = "";
     std::unique_ptr<juce::FileChooser> fileChooser;
+    
+    // Pending tape import state
+    juce::File pendingTapeFile;
+    JunoTapeDecoder::SmartDecodeResult pendingSmartResult;
+    int selectedDecoderIndex = 0;
+    
+    // Pending generic import state (sysex, csv)
+    juce::File pendingImportFile;
+    juce::String pendingImportFormat;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WebViewEditor)
 };

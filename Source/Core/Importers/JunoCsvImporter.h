@@ -10,6 +10,7 @@ class JunoCsvImporter {
 public:
     struct ImportResult {
         std::vector<ABD::Preset> presets;
+        juce::StringArray columnHeaders;
         juce::Result result = juce::Result::ok();
     };
 

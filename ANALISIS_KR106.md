@@ -893,4 +893,29 @@ Para alinear la experiencia estética con el modelo de hardware seleccionado, se
 * Se restituyeron las propiedades de visualización física para los paneles laterales utilizando pseudo-elementos absolutos en `#synth-app::before` y `#synth-app::after` dentro de `base.css` (ancho de 20px, posicionamiento y pointer-events desactivados). Esto resolvió la invisibilidad del decorado en chasis.
 * Se eliminaron referencias huérfanas en `CMakeLists.txt` a archivos inexistentes de texturas para evitar excepciones en el empaquetador de recursos `juceaide`.
 
+---
+
+## 10. Análisis Comparativo de la Interfaz de Cinta (Cassette Interface): Juno-60 vs Juno-106
+
+### A. Especificaciones Físicas de la Señal (Modulación FSK)
+Ambos sintetizadores codifican datos digitales en audio analógico mediante modulación por desplazamiento de frecuencia (Frequency Shift Keying o FSK), pero utilizan parámetros físicos incompatibles:
+
+| Parámetro | Juno-106 | Juno-60 |
+| :--- | :--- | :--- |
+| **Velocidad (Baud Rate)** | **1200 baudios** (1200 bits/s) | **340 baudios** (340 bits/s) |
+| **Frecuencia del Cero (Space)** | $\sim 1.30\text{ kHz}$ | **1.36 kHz** |
+| **Frecuencia del Uno (Mark)** | $\sim 2.10\text{ kHz}$ | **2.38 kHz** |
+| **Tono Piloto (Leader Tone)** | Frecuencia constante de 1s de "Marks" | Frecuencia constante de "Marks" para sincronía de reloj |
+
+### B. Diferencia en la Estructura Lógica de Datos y Mapeo
+* **Juno-106:** Cada bloque de patch se codifica en **18 bytes** de datos de parámetros y **1 byte** de suma de comprobación (checksum & 0x7F), totalizando 19 bytes por patch.
+* **Juno-60:** El formato de almacenamiento de parámetros (tipo DCB) posee una estructura distinta de bytes y parámetros (p. ej., control continuo de HPF, interruptor sub-oscilador dedicado, ausencia de algunos parámetros del 106). No se pueden mapear directamente byte a byte sin una capa de traducción/conversión a nuestro motor híbrido.
+
+### C. Auto-detección de Formato vs. Entrada del Usuario
+Debido a la gran diferencia en el baud rate y el tono piloto inicial de las cintas, el cargador de audio puede detectar automáticamente el formato leyendo la frecuencia dominante del preámbulo (Leader Tone) del archivo WAV:
+* Un Leader Tone de ~2.38 kHz con periodos largos indica una cinta de **Juno-60**.
+* Un Leader Tone de ~2.10 kHz (u otra frecuencia del 106) con periodos cortos indica una cinta de **Juno-106**.
+* **Propuesta de UI:** A pesar del detector automático, se ofrecerá un diálogo/selector de formato en la pestaña de carga/guardado de cintas para evitar falsos positivos por ruido en la señal analógica y dar control directo al usuario.
+
+
 

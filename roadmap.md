@@ -128,3 +128,15 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
 
 ## Post-Launch / Future Iterations
 
+- [x] **Fix FSK Decoder at 340 Baud for Synthetic Signals**: [CORREGIDO] El decoder FSK Goertzel no lograba decodificar señales sintéticas limpias a 340 baud. Se aplicaron 3 correcciones:
+
+  1. **kMinSubWindowSamples: 10 → 65**: Aumenta el tamaño de sub-ventana Goertzel de ~32 a ~65 samples, reduciendo el ancho de banda de ~1378 Hz a ~678 Hz, por debajo de la separación de frecuencias (1020 Hz entre 1360 y 2380 Hz).
+
+  2. **Eliminar offset +1.0 del bit window**: Cambiar `(int)(samplePos + spb + 1.0)` a `(int)(samplePos + spb)`. El `+1.0` causaba un drift acumulativo de ~180 samples sobre 180 bits (~1.4 periodos de bit a 340 baud). El encoder usa truncación `(int)`, por lo que sin el offset ambos lados coinciden exactamente.
+
+  3. **Byte framing off-by-1**: El decoder leía datos desde `i+1` (start bit) en lugar de `i+2` (primer bit de datos). Además, después de decodificar un byte, `i=stopIdx` + `i++` posicionaba el índice en el start bit del siguiente byte, imposibilitando detectar la transición stop→start. Corregido: `i+2` para datos, `i=stopIdx-1` para continuación.
+
+  **Resultado:** Test de round-trip sintético a 340 baud pasa con ALL CHECKS PASSED — todos los 18 bytes decodificados coinciden exactamente con los originales. Sin regresiones en tests de cinta real (1200 baud).
+  **Impacto:** Ahora es viable el test de round-trip encode→decode sintético a 340 baud.
+
+

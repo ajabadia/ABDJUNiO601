@@ -18,7 +18,7 @@ const MODAL_SETTINGS = `
             <div class="settings-tabs">
                 <button class="tab-btn active" onclick="switchTab('general')">GENERAL</button>
                 <button class="tab-btn" onclick="switchTab('calibration')">CALIBRATION</button>
-                <button class="tab-btn" onclick="switchTab('routing')">ROUTING</button>
+                <button class="tab-btn" id="tab-routing" onclick="switchTab('routing')">ROUTING</button>
                 <button class="tab-btn" onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
             </div>
 
@@ -51,7 +51,7 @@ const MODAL_SETTINGS = `
                                 </select>
                                 <div class="val-lbl">CH</div>
                             </div>
-                            <div class="setting-row" style="padding: 10px;">
+                            <div class="setting-row" style="padding: 10px;" id="setting-numVoices-row">
                                 <label>Voice Count</label>
                                 <select data-param="numVoices" onchange="updatePref(this)">
                                     <option value="1">1 (MONO)</option>
@@ -130,7 +130,7 @@ const MODAL_SETTINGS = `
                         <span style="font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Calibration Parameters</span>
                         <label style="font-size: 10px; display: flex; align-items: center; gap: 8px; color: var(--juno-orange); cursor: pointer; user-select: none;">
                             <input type="checkbox" id="chk-show-all-params" onchange="ServiceMode.toggleShowAllParams(this.checked)" style="cursor: pointer; accent-color: var(--juno-orange);">
-                            SHOW ALL (SUPER SIX MODE)
+                            <span id="calibration-show-all-label">SHOW ALL (SUPER SIX MODE)</span>
                         </label>
                     </div>
                     <div id="service-params-list" style="padding-right: 15px;"></div>

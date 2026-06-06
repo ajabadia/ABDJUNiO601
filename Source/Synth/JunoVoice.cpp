@@ -212,6 +212,7 @@ void Voice::updateParams(const SynthParams& p) {
     dco.setPWMMode(static_cast<JunoDCO::PWMMode>(p.pwmMode));
     dco.setLFODepth(p.lfoToDCO);
     dco.setMasterClock(p.masterClockHz);
+    dco.setModel(GET_MODEL_DCO(p));
     
     // [Fidelity] VCF always uses ADSR (VCA mode switch only affects VCA)
     int adsrModel = GET_MODEL_ADSR(p);

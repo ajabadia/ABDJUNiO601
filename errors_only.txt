@@ -1,8 +1,0 @@
-﻿D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(352,25): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(352,39): error C3861: 'encodeSW1': no se encontr├│ el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(353,26): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(353,40): error C3861: 'encodeSW1': no se encontr├│ el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(358,25): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(358,39): error C3861: 'encodeSW2': no se encontr├│ el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(359,26): error C2653: 'JunoProtocol': no es un nombre de clase o espacio de nombres [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]
-D:\desarrollos\ABDJUNiO601\Source\Core\PluginProcessor.cpp(359,40): error C3861: 'encodeSW2': no se encontr├│ el identificador [D:\desarrollos\ABDJUNiO601\build\ABDSimpleJuno106.vcxproj]

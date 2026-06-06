@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j106\CMakeFiles\096e656e02e978ee764a317528f5ac40\ABDSimpleJuno106_resources.rc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j106\ABDSimpleJuno106_artefacts\JuceLibraryCode\ABDSimpleJuno106_resources.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E5034F4B-787A-360B-9082-2259C5F9D42A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{31A39910-9B45-30D3-9B05-F86B0426697B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

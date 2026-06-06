@@ -57,6 +57,7 @@ void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int sta
     // 0.42f provides a safe margin (~ -7.5dB) for heavy bass and resonance.
     const float polyHeadroomGain = 0.42f; 
 
+    bool anyActive = false;
     for (int i = 0; i < currentActiveVoices; ++i) {
         if (voices[i].isActive()) {
             // [Service Mode] Skip voice if soloing a different one
@@ -71,8 +72,11 @@ void JunoVoiceManager::renderNextBlock(juce::AudioBuffer<float>& buffer, int sta
             
             // Render with headroom scaling
             voices[i].renderNextBlock(buffer, startSample, numSamples);
-            buffer.applyGainRamp(startSample, numSamples, polyHeadroomGain, polyHeadroomGain);
+            anyActive = true;
         }
+    }
+    if (anyActive) {
+        buffer.applyGainRamp(startSample, numSamples, polyHeadroomGain, polyHeadroomGain);
     }
 }
 

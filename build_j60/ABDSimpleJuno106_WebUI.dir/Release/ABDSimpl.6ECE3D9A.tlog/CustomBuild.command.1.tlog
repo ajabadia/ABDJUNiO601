@@ -1,0 +1,24 @@
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\BUILD_J60\CMAKEFILES\94E8053347BE261B33F00DAD931F2427\BINARYDATA1.CPP.RULE
+setlocal
+cd D:\desarrollos\ABDSynths\ABDJUNiO601
+if %errorlevel% neq 0 goto :cmEnd
+D:
+if %errorlevel% neq 0 goto :cmEnd
+D:\desarrollos\ABDSynths\ABDJUNiO601\build_j60\_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe binarydata BinaryData BinaryData.h D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/juce_binarydata_ABDSimpleJuno106_WebUI/JuceLibraryCode D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/juce_binarydata_ABDSimpleJuno106_WebUI/JuceLibraryCode/input_file_list
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j60 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

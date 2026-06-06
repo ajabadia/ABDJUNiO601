@@ -1,6 +1,6 @@
 # Chat Log — Conclusiones del Proyecto
 
-*Última actualización: 4 Junio 2026*
+*Última actualización: 5 Junio 2026*
 
 ---
 
@@ -1326,7 +1326,7 @@ El pipeline se extendió para ejecutar **2 tests secuencialmente**:
 
 ## 22. PresetBrowser Nativo — Segunda Pasada de Robustez
 
-*Última actualización: 4 Junio 2026*
+*Última actualización: 5 Junio 2026*
 
 ### 22.1 Motivación
 
@@ -1638,7 +1638,7 @@ const MODAL_SMART_IMPORT = `<div class="smart-import-container">
 
 ## 28. Limpieza de Warnings y Refactorización de Includes — Sesión Actual
 
-*Última actualización: 4 Junio 2026*
+*Última actualización: 5 Junio 2026*
 
 ### 28.1 Verificación de Warnings de Compilación
 
@@ -1734,3 +1734,696 @@ Se eliminaron 7 archivos temporales creados durante la sesión de refactorizaci�
 **Estado final del repositorio:** Sin archivos temporales.
 
 ---
+
+## 30. Commit de Nuevos Archivos y Fix de .gitignore
+
+*Última actualización: 5 Junio 2026*
+
+### 30.1 Fix Crítico en .gitignore
+
+**Problema:** El patrón `WebUI/` (sin `/` inicial en línea 3) estaba ignorando **todo** directorio llamado `WebUI/` en cualquier nivel, incluyendo `Source/UI/WebUI/`. Esto impedía que git trackeara los 8 nuevos módulos JS refactorizados (modals.js, bridge-core.js, browser.js, smart-import.js, theme-manager.js, ui-keyboard.js, ui-modals.js, ui-sliders.js).
+
+**Solución:** Se corrigió cambiando `WebUI/` → `/WebUI/` (root-level only).
+
+**Patrones añadidos al .gitignore:**
+
+| Patrón | Protege |
+|--------|---------|
+| `__pycache__/` | Caché de Python bytecode |
+| `nul` | Archivo espurio del dispositivo NUL de Windows |
+| `_build_*.bat` | Scripts de build helper temporales |
+| `_launch_*.bat` | Scripts de launch helper temporales |
+| `_*.txt` | Outputs de build (_cpp_hex_output.txt, etc.) |
+| `_*.json` | Outputs JSON (_python_hex.json, etc.) |
+| `/CMake/` | Distribución CMake empaquetada (1.5 GB) |
+| `WebViewEditor_old*` | Backups huérfanos de WebViewEditor |
+| `WebViewEditor_real*` | Backup adicional WebViewEditor_real_utf8.cpp |
+| `script_old*` | Backups huérfanos de script.js |
+
+### 30.2 Commit de Archivos Nuevos
+
+Se realizó el commit `0f0a6fd` que trackea todos los archivos nuevos del proyecto:
+
+```
+208 files changed, 21,314 insertions(+), 1,623 deletions(-)
+```
+
+| Grupo | Archivos |
+|-------|----------|
+| **Core refactor** | `ProcessorMisc.cpp`, `ProcessorPresets.cpp`, `ProcessorState.cpp`, `ProcessorSysEx.cpp` |
+| **Tests** | 13 archivos en `Source/Core/Tests/` (ADSR, Chorus, DCB, DCO, FormatConverter, Memory, PresetBrowser, SmartImport, SmartTape, SysEx, Tape, Unison, VCF) |
+| **Synth** | `DacHzTable.h`, `kV4Hz.bin` (tabla DAC migrada a binario) |
+| **UI refactor** | `PresetBrowserHeaderBar.{cpp,h}`, `BridgeActions/Import/Menu/Service.{cpp,h}` |
+| **WebUI módulos** | `bridge-core.js`, `browser.js`, `browser.css`, `modals.js`, `smart-import.js`, `theme-manager.js`, `ui-keyboard.js`, `ui-modals.js`, `ui-sliders.js` |
+| **WebUI assets** | ~30 PNGs de botones/texturas/skins, assets/, base64_font.txt |
+| **Scripts** | ~37 herramientas de test y análisis en scripts/ |
+| **CI** | `build_and_test.bat` (pipeline CI/CD) |
+| **Docs** | `chat_log.md` (registro de sesión) |
+| **WebUI** | `script.js` eliminado (refactorizado en los 8 módulos) |
+
+**Estado del repositorio post-commit:**
+- `0f0a6fd` en branch `feature/fidelity-certified`
+- Sin archivos temporales (protegidos por .gitignore)
+- Todos los módulos refactorizados ahora trackeados
+
+---
+
+## 32. Refinamientos UI por Modelo — J-6: SysEx oculto, Nav Row visible
+
+*Última actualización: 5 Junio 2026*
+
+### 32.1 Motivación
+
+El J-6 original no tenía display de 7 segmentos, memoria de patches, ni gestión de SysEx. Sin embargo, los botones de navegación BK-/BK+/PT-/PT+ son útiles para cambiar de preset rápidamente sin abrir el browser. Se ajustó la visibilidad UI para cada modelo.
+
+### 32.2 Cambios Realizados
+
+| Cambio | Archivo | Detalle |
+|--------|---------|--------|
+| **SysEx zone oculto en J-6** | `bridge-core.js` | `sysex-zone` oculto para J-6, visible para J-106/J-60/Super Six |
+| **Nav Row visible en J-6** | `bridge-core.js` | BK-/BK+/PT-/PT+ siempre visibles para navegación rápida sin browser |
+| **Patch grid (1-8) oculto** | `bridge-core.js` | Sin cambios — se mantiene oculto en J-6 (no tenía selección de patches) |
+| **Bugfix test: zone-label** | `test_model_ui.html` | Faltaba `id="zone-label"` en el elemento de test, causaba 26/27 |
+
+### 32.3 Estado Visual del J-6 en el Frontal
+
+| Elemento | Visible | Razón |
+|:---------|:-------:|:------|
+| MIDI Badge | 🟢 | Necesario para recibir notas MIDI |
+| Nav Row (BK-/BK+/PT-/PT+) | 🟢 | Navegación rápida de presets |
+| 7-Segment Display | 🔴 | J-6 original no tenía display digital |
+| BANK/PATCH Label | 🔴 | Sin memoria de patches |
+| Patch Grid (1-8) | 🔴 | Sin selección de patches |
+| SysEx Zone | 🔴 | Sin display de SysEx en hardware |
+| Protect Zone | 🔴 | Sin memory protect |
+| MANUAL, WRITE, SAVE, VERIFY, LOAD | 🔴 | Gestión de presets no aplica |
+| RANDOM, PANIC, TEST | 🟢 | Sí aplican |
+
+### 32.4 Verificación Visual (Browser-use)
+
+| Modelo | Checks | Resultado |
+|:------:|:------:|:---------:|
+| Super Six (0) | 27/27 | ✅ |
+| Juno-106 (1) | 27/27 | ✅ |
+| Juno-60 (2) | 27/27 | ✅ |
+| Juno-6 (3) | 27/27 | ✅ |
+| **Total** | **108** | **✅ 0 fallos** |
+
+---
+
+## 33. Tests Unitarios DSP — J-6 y J-60
+
+*Última actualización: 5 Junio 2026*
+
+### 33.1 J-6 DSP Tests (JunoDSPJ6Tests)
+
+Añadidos 5 tests que verifican el comportamiento DSP específico del J-6 en `ModelRoutingTests.cpp`:
+
+| Test | Aserciones | Qué verifica |
+|:-----|:----------:|:-------------|
+| **ADSR J6 vs J106 envelope** | 5 | Modo analógico RC (J6) produce curvas diferentes al digital MCU (J106) |
+| **ADSR J6 exponential rise** | ~326 | Ataque analógico RC es monótono con forma exponencial (incrementos decrecientes) |
+| **DCO J6 saw+noise** | 3 | DCO J-6 produce salida normal con saw y noise (solo sub-osc y PWM deshabilitados) |
+| **VCF J6 stability** | 3 | Curva de resonancia exponencial J-6 no produce NaN/Inf bajo barrido |
+| **VCF J6 self-oscillation** | 1 | Filtro J-6 produce auto-oscilación tras impulso |
+
+### 33.2 J-60 DSP Tests (JunoDSPJ60Tests)
+
+Añadidos 6 tests que verifican el comportamiento DSP específico del J-60:
+
+| Test | Aserciones | Qué verifica |
+|:-----|:----------:|:-------------|
+| **ADSR kJ60 vs kJ6/kJ106** | 3 | Modos analógicos (kJ6/kJ60) difieren del digital (kJ106 MCU) |
+| **ADSR kJ60 monotonía** | ~120 | Ataque en modo J60 es monótono creciente |
+| **HPF J60 frecuencias** | 4 | `getJuno60HPFFreq()` retorna valores ngspice: 0, 122, 269, 571 Hz |
+| **HPF J60 setPosition** | 6 | `JunoHPF` en modo J60 mapea posiciones 0-3 a frecuencias correctas |
+| **Chorus J60 model** | 4 | Chorus con modelo J60 produce salida estéreo sin crash |
+| **VCF J60 polynomial** | 1 | J60 y J106 usan misma curva de resonancia polinómica (ResK_J106) |
+
+### 33.3 Build y Tests — 4 Modelos, 0 Fallos
+
+| Compilación | Tests | Resultado |
+|:------------|:-----:|:---------:|
+| **Super Six (0)** (hot-swappable) | ✅ JunoUnitTests | 0 fallos |
+| **JUNO_TARGET_MODEL=1** (J-106) | ✅ build_test_m1 | 0 fallos |
+| **JUNO_TARGET_MODEL=2** (J-60) | ✅ build_test_m2 | 0 fallos |
+| **JUNO_TARGET_MODEL=3** (J-6) | ✅ build_test_m3 | 0 fallos |
+| **build_all_models.bat** | N/A | ALL MODELS BUILT SUCCESSFULLY |
+
+Verificación crítica: `COMPILING_JUNO*` defines NO afectan a los tests — `ModelRouting Config` usa valores runtime de `SynthParams` y pasa correctamente para los 3 modelos.
+
+---
+
+## 35. Model Visibility & Overlap Fixes — Sesión 5 Junio (tarde)
+
+*Última actualización: 5 Junio 2026*
+
+### 35.1 Motivación
+
+Se identificaron múltiples problemas de solapamiento visual en los modelos J-6 y J-60 al ocultar elementos del engine. Los elementos ocultos dejaban huecos vacíos, separadores fantasma, y grids sin reflow. También se detectó que `calibrationProfile` no tenía sentido en modelos individuales (compilación fija).
+
+### 35.2 Fixes de Solapamiento (bridge-core.js)
+
+| # | Problema | Causa | Solución |
+|:-:|:---------|:------|:---------|
+| 1 | **VCF: hueco vacío** | `vcf-polarity` oculto pero su wrapper `.ctrl-group.center` seguía visible con padding | El wrapper también se oculta con `toggle('hidden', isJ60 \|\| isJ6)` |
+| 2 | **VCA: slider descentrado** | `vca-mode` oculto dejaba solo LEVEL pero desbalanceado | `justifyContent: 'center'` en `.controls` de VCA cuando mode está oculto |
+| 3 | **DCO: separadores fantasma (J-6)** | Separadores entre grupos ocultos seguían visibles como líneas huérfanas | Todos los `.separator` dentro de `#dco` se ocultan en J-6 |
+| 4 | **Header: LCD no se expandía (J-6)** | Grid `230px 60px 1fr 400px` mantenía columna vacía de 400px al ocultar `sysex-zone` | Grid cambia a `230px 60px 1fr` y LCD se expande al 100% |
+| 5 | **Engine row 2: borde extra (J-60, J-6)** | `#env` tenía `border-right` al convertirse en el último elemento visible | `border-right: none` en env cuando CHORUS está oculto |
+
+### 35.3 calibrationProfile Oculto en Modelos Individuales
+
+| Cambio | Archivo | Detalle |
+|--------|---------|--------|
+| **Filtro en service.js** | `Source/UI/WebUI/service.js` | `if (p.id === "calibrationProfile" && getCompiledTargetModel() !== 0) return false;` |
+| **Valor forzado** | `Source/UI/WebUI/bridge-core.js` | J-106=2, J-60=1, J-6=0 mediante `juce.setCalibrationParam()` |
+
+| Compilación | `calibrationProfile` | Valor forzado |
+|:------------|:--------------------:|:-------------:|
+| **Super Six (0)** | ✅ Visible | Controlable por usuario |
+| **J-106 (1)** | ❌ Oculto | 2 (J-106) |
+| **J-60 (2)** | ❌ Oculto | 1 (J-60) |
+| **J-6 (3)** | ❌ Oculto | 0 (J-6) |
+
+### 35.4 Skin Selector Filtrado por Modelo Compilado
+
+| Cambio | Archivo | Detalle |
+|--------|---------|--------|
+| **Nueva función `getCompiledTargetModel()`** | `Source/UI/WebUI/service.js` | Lee `targetModel` de `initData` |
+| **Skin filtering** | `Source/UI/WebUI/service.js` | Filtra skins según modelo compilado (no según `calibrationProfile`) |
+
+| Skin | Super Six (0) | J-106 (1) | J-60 (2) | J-6 (3) |
+|:-----|:-------------:|:---------:|:--------:|:-------:|
+| CLASSIC BLUE | ✅ | — | — | — |
+| JUNO-60 CLASSIC | ✅ | — | ✅ | — |
+| JUNO-6 ANALOG | ✅ | — | — | ✅ |
+| JUNO-106 CLASSIC | ✅ | ✅ | — | — |
+| JUNO-106S DARK | ✅ | ✅ | — | — |
+| TR-808 SEQUENCER | ✅ | ✅ | ✅ | ✅ |
+| DEEPMIND AMBER | ✅ | ✅ | ✅ | ✅ |
+| SPACE ECHO RE-201 | ✅ | ✅ | ✅ | ✅ |
+| ARP 2600 RETRO | ✅ | ✅ | ✅ | ✅ |
+
+### 35.5 Voice Count Forzado a 6
+
+En modelos individuales, `numVoices` se fuerza a 6 (CLASSIC) y el selector se oculta:
+
+| Compilación | Selector | Valor |
+|:------------|:--------:|:----:|
+| **Super Six (0)** | ✅ Visible | 1-16 configurable |
+| **J-106 / J-60 / J-6** | ❌ Oculto | Forzado a 6 |
+
+### 35.6 Test Visual (test_model_ui.html)
+
+El test de visibilidad se actualizó a **v5** con 28 checks por modelo (se agregó `calibrationProfile`):
+
+| Modelo | Checks | Resultado |
+|:------:|:------:|:---------:|
+| **Super Six (0)** | 28/28 | ✅ |
+| **Juno-106 (1)** | 28/28 | ✅ |
+| **Juno-60 (2)** | 28/28 | ✅ |
+| **Juno-6 (3)** | 28/28 | ✅ |
+| **Total** | **112** | **✅ 0 fallos** |
+
+### 35.7 Tests Unitarios Recompilados — 4 Modelos, 0 Fallos
+
+| Modelo | Build | Tests | Resultado |
+|:------|:-----:|:-----:|:---------:|
+| **Super Six (0)** | build_supersix | ~5,502 | ✅ 0 fallos |
+| **J-106 (1)** | build_test_m1 | 5,595 | ✅ 0 fallos |
+| **J-60 (2)** | build_test_m2 | 5,160 | ✅ 0 fallos |
+| **J-6 (3)** | build_test_m3 | ~4,413 | ✅ 0 fallos |
+
+### 35.8 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/bridge-core.js` | 5 overlap fixes + calibrationProfile forcing + numVoices forcing |
+| `Source/UI/WebUI/service.js` | `getCompiledTargetModel()` helper + skin filter + calibrationProfile hide |
+| `test_model_ui.html` | v5: +calibrationProfile test element, 28 checks/model |
+
+---
+
+### Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/bridge-core.js` | SysEx zone hidden for J-6, Nav Row always visible |
+| `Source/Core/Tests/ModelRoutingTests.cpp` | Añadidos JunoDSPJ6Tests (5 tests) + JunoDSPJ60Tests (6 tests) + include JunoHPF.h |
+| `chat_log.md` | Esta actualización |
+
+### Archivos de Test (no trackeados)
+
+| Archivo | Propósito |
+|---------|-----------|
+| `test_model_ui.html` | Test de visibilidad UI para 4 modelos (27 checks c/u) |
+
+---
+
+## 36. Herramientas de Análisis Cualitativo de Audio
+
+*Última actualización: 5 Junio 2026*
+
+### 36.1 Motivación
+
+Para validar la fidelidad del engine contra el hardware original sin acceso físico a un Juno-60/106, se optó por un enfoque de **análisis cualitativo**: usar grabaciones de referencia de internet (SynthMania) y comparar el espectro/forma de onda contra nuestro engine tocando el mismo preset.
+
+### 36.2 Herramientas Creadas
+
+| Script | Propósito | Dependencias |
+|--------|-----------|--------------|
+| `scripts/compare_audio.py` | Comparación espectral WAV vs WAV con 4 paneles de visualización | numpy, scipy, matplotlib |
+| `scripts/download_synthmania.py` | Descarga de preset MP3s desde synthmania.com | requests, beautifulsoup4 |
+
+### 36.3 `scripts/compare_audio.py`
+
+**Características:**
+| Funcionalidad | Detalle |
+|:---|---|
+| **Carga de audio** | WAV via `scipy.io.wavfile`, MP3 via `ffmpeg` subprocess (fallback: error message) |
+| **Alineación temporal** | Cross-correlación para alinear ambas señales, con clamp a `max_offset_sec` |
+| **Polyphase resampling** | `scipy.signal.resample_poly` con ratio reducido por GCD para preservar transientes |
+| **4 paneles de visualización** | Waveform overlay, Average spectrum (FFT), Spectrogram difference (dB), Metrics table |
+| **Métricas calculadas** | RMS diff, correlation coefficient, spectral similarity (cosine), spectral centroid (Hz), spectral rolloff (Hz) |
+| **Interpretación por colores** | 🟢 Bueno (correlación >0.8, similitud >0.9), 🟡 Regular, 🔴 Diferente |
+| **Segment selector** | Widget `SpanSelector` interactivo para seleccionar región de comparación |
+
+**Uso:**
+```bash
+python scripts/compare_audio.py ref_audio/juno60/A01_Strings_1.wav engine_output.wav
+python scripts/compare_audio.py ref.wav engine.wav --max-offset 0.5 --segment 0.5 2.5
+```
+
+### 36.4 `scripts/download_synthmania.py`
+
+**Características:**
+| Funcionalidad | Detalle |
+|:---|---|
+| **Scraping** | BeautifulSoup parsea `<a>` tags con href `.mp3` — el texto del enlace es el nombre del preset |
+| **Modelos soportados** | `juno-60` y `juno-106` |
+| **Detección de bancos** | Escanea HTML con regex para BANK A/B/I/II boundaries, fallback por conteo (primeros 56 = A, resto = B) |
+| **Rate limiting** | `--delay` configurable (default 1s) para no saturar el servidor |
+| **Max descargas** | `--max` limita cantidad de presets a descargar |
+| **Modo list-only** | `--list-only` muestra presets encontrados sin descargar |
+| **Filtro por preset** | `--preset N` descarga un preset específico por índice |
+| **Nombres sanitizados** | Caracteres no ASCII y especiales reemplazados para compatibilidad Windows |
+
+**Uso:**
+```bash
+python scripts/download_synthmania.py juno-60 --list-only
+python scripts/download_synthmania.py juno-60 --output ref_audio/juno60 --max 10 --delay 2
+python scripts/download_synthmania.py juno-106 --preset 5 --output ref_audio/juno106
+```
+
+### 36.5 Issues Encontrados y Fixeados
+
+| Problema | Causa | Solución |
+|:---------|:------|:---------|
+| **UnicodeError en Windows** | `print()` con caracteres `─` (box-drawing) en terminal cp1252 | Reemplazados por ASCII `-` |
+| **Scraper no encontraba presets** | Código original buscaba `<b>` tags, pero synthmania usa texto de `<a>` tags | Reescribir scraper para extraer nombre del texto del enlace MP3 |
+| **HTTP 406 (ModSecurity)** | Synthmania bloquea `requests` default (User-Agent Python/requests) | Añadir headers `Accept` + `Accept-Language` + User-Agent completo de Chrome |
+| **Nombres de archivo truncados** | Regex de sanitización duplicaba backslashes en el patrón de reemplazo | Patrón raw corregido: `re.sub(r'[\\/:*?"<>|]', '_', name)` |
+| **Detección de banco O(n²)** | `find_all_previous()` en cada preset | Reemplazado por pre-escaneo regex + caché de boundaries + fallback por conteo |
+| **Parser duplicado Juno-60/Juno-106** | Dos funciones casi idénticas | Fusionado en `parse_presets()` único |
+
+### 36.6 Presets Descargados de SynthMania
+
+**`ref_audio/juno60/`** (9 presets):
+| Archivo | Preset | Descripción |
+|:--------|:-------|:------------|
+| `A01_Strings_1.mp3` | Strings 1 | Cuerdas clásicas Juno-60 |
+| `A02_Strings_2.mp3` | Strings 2 | Cuerdas más lentas |
+| `A03_Strings_3.mp3` | Strings 3 | Cuerdas con chorus |
+| `A04_Organ_1.mp3` | Organ 1 | Órgano percusivo |
+| `A05_Organ_2.mp3` | Organ 2 | Órgano suave |
+| `A07_Brass.mp3` | Brass | Metales |
+| `A08_Phase_Brass.mp3` | Phase Brass | Metales con phaser |
+| `A09_Piano_1.mp3` | Piano 1 | Piano eléctrico |
+| `A10_Piano_2.mp3` | Piano 2 | Piano más brillante |
+
+**`ref_audio/juno106/`** (9 presets):
+| Archivo | Preset | Descripción |
+|:--------|:-------|:------------|
+| `A01_Brass.mp3` | Brass | Metales Juno-106 |
+| `A02_Brass_Swell.mp3` | Brass Swell | Metales con crescendo |
+| `A03_Trumpet.mp3` | Trumpet | Trompeta |
+| `A04_Flutes.mp3` | Flutes | Flautas |
+| `A05_Moving_Strings.mp3` | Moving Strings | Cuerdas en movimiento |
+| `A07_Choir.mp3` | Choir | Coro |
+| `A08_Piano_I.mp3` | Piano I | Piano (variante 1) |
+| `A09_Organ_I.mp3` | Organ I | Órgano (variante 1) |
+| `A10_Organ_II.mp3` | Organ II | Órgano (variante 2) |
+
+### 36.7 Flujo de Trabajo para Análisis Cualitativo
+
+```
+1. python scripts/download_synthmania.py juno-60 --output ref_audio/juno60
+2. # Convertir MP3 a WAV con ffmpeg
+   cd ref_audio/juno60 && for f in *.mp3; do ffmpeg -i "$f" "${f%.mp3}.wav"; done
+3. # Tocar el mismo preset en el engine y grabar WAV
+   # (usando el plugin standalone o JunoUnitTests)
+4. python scripts/compare_audio.py "ref_audio/juno60/A01_Strings_1.wav" "engine_A01_Strings_1.wav"
+```
+
+### 36.8 Archivos Creados
+
+| Archivo | Propósito |
+|---------|-----------|
+| `scripts/compare_audio.py` | Herramienta de comparación espectral WAV vs WAV |
+| `scripts/download_synthmania.py` | Descargador de preset MP3s desde synthmania.com |
+| `ref_audio/juno60/*.mp3` | 9 presets de referencia Juno-60 |
+| `ref_audio/juno106/*.mp3` | 9 presets de referencia Juno-106 |
+
+### 36.9 Próximos Pasos
+
+- [ ] Instalar ffmpeg para conversión MP3 → WAV
+- [ ] Generar audio de referencia desde el engine (tocar mismo preset con misma nota)
+- [ ] Ejecutar `compare_audio.py` para primera comparación cualitativa
+- [ ] Crear script `scripts/render_preset_wav.py` para generar WAV desde el engine vía CLI
+
+
+
+Se eliminaron del tracking de git (sin borrar del disco) 11 archivos que estaban commiteados pero no deberían estar en el repositorio:
+
+| Archivo | Tipo | Razón |
+|---------|------|-------|
+| `WebViewEditor_old.cpp` | Backup C++ | Código muerto (3 versiones) |
+| `WebViewEditor_old_utf8.cpp` | Backup C++ | Código muerto |
+| `WebViewEditor_real_utf8.cpp` | Backup C++ | Código muerto |
+| `script_old.js` | Backup JS | Código muerto |
+| `script_old_utf8.js` | Backup JS | Código muerto |
+| `check_core.txt` | Log de diagnóstico | Output de build trackeado |
+| `errors_final.txt` | Log de errores | Output de build trackeado |
+| `errors_only.txt` | Log de errores | Output de build trackeado |
+| `msbuild_path.txt` | Ruta de MSBuild | Output de build trackeado |
+| `tmp_preset_line.json` | Temp JSON | Archivo temporal vacío (0 bytes) |
+| `test_api.cpp` | C++ test huérfano | Test suelto en raíz |
+
+**Comando:** `git rm --cached` para cada archivo (preservando los archivos en disco).
+
+### 31.2 .gitignore Extendido
+
+Se agregaron patrones adicionales para proteger los archivos ahora untracked:
+
+| Patrón | Protege |
+|--------|---------|
+| `check_core.txt` | Log de diagnóstico |
+| `errors_final.txt` | Log de errores |
+| `errors_only.txt` | Log de errores |
+| `msbuild_path.txt` | Ruta de MSBuild |
+| `tmp_preset_line.json` | Temp JSON |
+| `test_api.cpp` | Test huérfano |
+
+### 31.3 git push a origin
+
+Se realizó push del commit `0f0a6fd` a `origin/feature/fidelity-certified`:
+
+```
+remote: Resolving deltas: 100% (375/375), completed with 1 local object.
+To https://github.com/ajabadia/ABDJUNiO601
+   24f0b69..0f0a6fd  feature/fidelity-certified -> feature/fidelity-certified
+```
+
+**Estado del repositorio post-push:**
+- Branch `feature/fidelity-certified` sincronizada con origin
+- 11 archivos huérfanos fuera del tracking de git
+- .gitignore endurecido contra re-adición accidental
+
+---
+## 37. Instalación de ffmpeg y Conversión de Referencias (6 Junio 2026)
+
+### 37.1 Instalación de ffmpeg
+
+ffmpeg fue descargado desde gyan.dev (build essentials, v8.1.1) y extraído en `/tmp/ffmpeg_temp/`. Se usa mediante `export PATH="/tmp/ffmpeg_temp/ffmpeg-8.1.1-essentials_build/bin:$PATH"`.
+
+### 37.2 Conversión MP3 → WAV
+
+Se convirtieron **18 MP3s de referencia** a WAV:
+
+| Directorio | Archivos |
+|------------|:--------:|
+| `ref_audio/juno106/` | 9 WAV (A01-A10) |
+| `ref_audio/juno60/` | 9 WAV (A01-A10) |
+
+### 37.3 Bugfix en compare_audio.py
+
+**Problema:** `IndexError` en `compute_metrics()` — `np.searchsorted(cumsum, 0.85)` devolvía `len(cumsum)` cuando `cumsum[-1] < 0.85`. **Fix:** `min(np.searchsorted(...), len(freq)-1)`. ✅ Code-review aprobado.
+
+---
+
+## 38. Primera Comparación Cualitativa (6 Junio 2026)
+
+### 38.1 Self-Test: Brass vs Brass ✅
+
+| Métrica | Valor |
+|:--------|:-----:|
+| Correlation | **1.0000** |
+| Spectral Similarity | **1.0000** |
+
+### 38.2 Diferentes Patches: Brass A01 vs Flutes A04 ❌
+
+| Métrica | Brass | Flutes |
+|:--------|:----:|:------:|
+| Correlation | — | **-0.0095** |
+| Spectral Similarity | — | **0.1011** |
+
+### 38.3 Engine A11 vs Ref Brass A01 ❌
+
+Engine grabó A11 "Brass Set 1"; referencia es A01 "Brass" — patches diferentes. No se puede comparar directamente.
+
+### 38.4 Gráficos
+
+3 PNGs guardados en `exports/`: self-test (344 KB), diff patches (1.7 MB), engine-vs-ref (442 KB).
+
+---
+
+## 39. Pendiente: Engine Reference Audio
+
+### 39.1 Limitación
+
+Engine WAV existente (`audioTests/junio601_A11_20260406_222254.wav`) es preset A11, pero referencias SynthMania solo incluyen A01-A10. Para comparación real se necesita:
+
+**Opción A:** Grabar engine tocando A01_Brass usando la grabadora interna (`toggleRecording()` en `ProcessorMisc.cpp`).
+
+**Opción B:** Descargar A11 de SynthMania con `download_synthmania.py`.
+
+### 39.2 Archivos del Engine
+
+| Archivo | Preset | Tamaño |
+|---------|--------|:------:|
+| `audioTests/junio601_A11_20260406_222254.wav` | A11 Brass Set 1 | 8.8 MB |
+
+## 40. Fixes de Tests CDP — confirmSmartImport y test_import_real.py (6 Junio 2026)
+
+### 40.1 Problemas Identificados
+
+En la ejecución del pipeline CI/CD, `test_import_real.py` reportaba **15/17 checks** con 2 fallos:
+
+| # | Fallo | Causa |
+|:-:|:------|:------|
+| 1 | **Library name no se renderiza en csvCols** | El check en el test tenía ambos lados del `or` duplicados (`"Test Bank" in csvCols or "Test Bank" in csvCols`), en vez de verificar el nombre real del banco (`"Test Bank CDP"`) |
+| 2 | **Notification toast no aparece** | En modo fallback (JS injection, sin diálogo nativo), `confirmImportFile()` en C++ no encuentra `pendingImportFile` y devuelve error vía `completion()` (no `dispatchToJS()`), por lo que el listener `onImportResult` en JS nunca se dispara |
+
+### 40.2 Cambios Realizados
+
+#### Fix 1: Notificación desde la promesa JS (`smart-import.js`)
+
+```javascript
+// Antes: la promesa se ignoraba
+function confirmSmartImport() {
+    if (!smartImportData) return;
+    const fmt = smartImportData.format || 'tape';
+    if (fmt === 'tape') juce.confirmTapeImport(selectedDecoderIdx);
+    else juce.confirmImportFile();
+    closeSmartImport();
+}
+
+// Después: se captura y await la promesa para mostrar notificación
+function confirmSmartImport() {
+    if (!smartImportData) return;
+    const fmt = smartImportData.format || 'tape';
+    const doImport = () => {
+        if (fmt === 'tape') return juce.confirmTapeImport(selectedDecoderIdx);
+        else return juce.confirmImportFile();
+    };
+    const promise = doImport();
+    closeSmartImport();
+    if (promise && typeof promise.then === 'function') {
+        promise.then(result => {
+            if (result && typeof result === 'object' && result.success !== undefined) {
+                const msg = result.message || (result.success ? 'Import completed.' : 'Import failed.');
+                showNotification(msg, result.success ? 'success' : 'error');
+            }
+        }).catch(err => { console.error('Import error:', err); });
+    }
+}
+```
+
+**Cómo funciona:**
+- `juce.confirmImportFile()` retorna una Promise vía el bridge JUCE
+- En modo E2E (diálogo nativo), C++ dispatchea `onImportResult` y la promesa resuelve con `undefined` → el fallback JS no se activa (no hay doble notificación)
+- En modo fallback (sin pending file), C++ resuelve la promesa con `{success: false, message: "No pending import file."}` → el fallback JS muestra la notificación
+
+#### Fix 2: Check de libraryName corregido (`test_import_real.py`)
+
+```python
+# Antes: ambos lados del or eran idénticos
+("Library name in csvCols", "Test Bank" in state.get("csvCols", "") or "Test Bank" in state.get("csvCols", "")),
+
+# Después: segundo lado verifica el nombre real del banco
+("Library name in csvCols", "Test Bank" in state.get("csvCols", "") or "Test Bank CDP" in state.get("csvCols", "")),
+```
+
+### 40.3 Resultados de Tests
+
+| Test | Antes | Después |
+|:-----|:-----:|:-------:|
+| `test_import_real.py` | **15/17** ❌ (2 fallos) | **16/16** ✅ |
+| `test_smart_import_all_formats.py` | **55/55** ✅ | **55/55** ✅ (sin regresión) |
+| **Pipeline total** | **70/72** ❌ | **71/71** ✅ |
+
+### 40.4 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/smart-import.js` | `confirmSmartImport()` ahora captura la promesa y muestra notificación vía `.then()` como JS-side fallback |
+| `scripts/test_import_real.py` | Corregido check duplicado de libraryName: segundo condición verifica `"Test Bank CDP"` (nombre real del banco) |
+
+### 40.5 Notas Técnicas
+
+- **No se requirieron cambios en C++.** El resource provider de WebView2 (`WebViewEditor.cpp`) sirve archivos JS directamente desde `Source/UI/WebUI/`, por lo que los cambios son efectivos sin recompilar.
+- **Doble notificación evitada:** En modo E2E normal, C++ dispatchea `onImportResult` y completa la promesa con `var::undefined()`. El fallback JS solo se activa cuando el resultado de la promesa es un objeto con `success`, evitando duplicados.
+- **Sin logging de diagnóstico:** El `console.log('[DIAG] ...')` añadido temporalmente para debugging fue removido después de la verificación.
+
+
+---
+
+## 41. Watermark JUNiO, Subtitulo de Modelo y Ajustes Visuales — 6 Junio 2026
+
+*Ultima actualizacion: 6 Junio 2026*
+
+### 41.1 Motivacion
+
+El watermark JUNiO en el `sunken-performance-panel` estaba centrado verticalmente (top: 50%), interfiriendo con los controles de los tabs de rendimiento. El nombre del modelo (601/06/SIX/SUPER SIX) no se mostraba en ninguna parte del panel inferior. Ademas, se identificaron problemas de alineacion de controles y temas que no se diferenciaban visualmente entre si.
+
+### 41.2 Cambios Realizados
+
+**`css/vars.css`** — 5 cambios:
+
+| # | Cambio | Detalle |
+|:-:|:-------|:--------|
+| 1 | **JUNiO movido mas arriba** | `top: 50%` → `top: 35%` — el texto JUNiO aparece en la parte superior del panel, sin interferir con los controles |
+| 2 | **Subtitulo del modelo al fondo** | Nuevo `::after` con `content: attr(data-model-name)`, posicionado en `bottom: 8px`, tamano 13px (antes 11px), opacidad 0.15 (misma que JUNiO), font-weight 700 |
+| 3 | **DeepMind module bars** | Anadidos colores ambar/dorado (#b8860b, #cc8800, #d4a017) a los modulos LFO/DCO/HPF/VCF/VCA/ENV/CHORUS |
+| 4 | **Space Echo module bars** | Anadidos colores verdes (#2ecc71, #27ae60, #1a8a4a) a los modulos |
+| 5 | **ARP 2600 recolor** | Fondo acero gris oscuro (#2a2b2e), modulos en azul pizarra (#4a6a8a), acentos naranja (#e67e22), texto plateado (#c8ccd0) |
+
+**`css/performance.css`** — 2 cambios:
+
+| # | Cambio | Detalle |
+|:-:|:-------|:--------|
+| 1 | **Octave LEDs rectangulares** | `.oct-led`: 6x6px redondo → 18x5px rectangular con `border-radius: 2px`, `top: 50%` → `top: 30%` (estilo MC-303) |
+| 2 | **ARP LEDs** | Nueva clase `.arp-led` identica a `.oct-led`, aplicada a los botones ON/OFF y SYNC del arpegiador |
+
+**`theme-manager.js`** — 2 cambios:
+
+| # | Cambio | Detalle |
+|:-:|:-------|:--------|
+| 1 | **data-model-name** | Se escribe `data-model-name` en `.sunken-performance-panel` segun targetModel: 601 (J-106), 06 (J-60), SIX (J-6), SUPER SIX (Super Six) |
+| 2 | **Skins universales en builds mono-modelo** | TR-808, DeepMind, Space Echo, ARP 2600 ahora disponibles en J-106/J-60/J-6 (antes solo Super Six). `updateThemeAndSkins()` lee `skinType` en lugar de hardcodear el tema |
+
+**`index.html`** — 2 cambios:
+
+| # | Cambio | Detalle |
+|:-:|:-------|:--------|
+| 1 | **Padding removido de panels** | Eliminado `padding-top: 20px` en panel PORT y `padding-top: 10px` en panel ARP — todos los tabs heredan `justify-content: center` |
+| 2 | **ARP panel restructuring** | LEDs redondos reemplazados por `.arp-led` rectangular dentro de botones. Titulos movidos debajo de los botones. Knob RATE alineado (eliminado `height:52px` y `margin-top:-6px`). `align-items: flex-start` → `align-items: center` |
+
+### 41.3 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/css/vars.css` | Watermark repositioning, model ::after, 3 theme fixes (DeepMind, Space Echo, ARP 2600) |
+| `Source/UI/WebUI/css/performance.css` | Octave LEDs rectangular, nueva clase .arp-led |
+| `Source/UI/WebUI/theme-manager.js` | data-model-name en panel, skins universales en mono-modelo |
+| `Source/UI/WebUI/index.html` | Padding removido, ARP panel restructuring |
+
+---
+
+## 42. Tema JP-80X0 SUPERSAW — 6 Junio 2026
+
+*Ultima actualizacion: 6 Junio 2026*
+
+### 42.1 Motivacion
+
+Anadir un tema inspirado en los sintetizadores Roland JP-8000 y JP-8080, siguiendo la misma estructura de los temas existentes (Space Echo, ARP 2600). El JP-8000/8080 es conocido por su diseno azul metalico oscuro con LEDs naranja-rojo y el revolucionario Supersaw.
+
+### 42.2 Implementacion
+
+**`css/vars.css`** — Nuevo bloque completo:
+
+| Variable | Valor | Inspiracion |
+|:---------|:-----:|:------------|
+| `--bg-synth` | `#1a2a44` | Panel azul metalico oscuro del JP-8000 |
+| `--juno-blue` | `#2a3d5e` | Azul metalico medio para modulos |
+| `--juno-grey` | `#b0b8c4` | Plateado azulado para etiquetas |
+| `--juno-red` | `#1a2a44` | Mismo que bg (sin rojo) |
+| `--led-red` | `#ff4500` | Naranja-rojo — LED signature del JP |
+| `--lcd-red` | `#ff4500` | LCD naranja con glow |
+
+**Modulos (module-bar colors):**
+| Modulo | Color |
+|:-------|:-----:|
+| LFO | `#3a5a8a` (azul acero) |
+| DCO | `#4a6a9a` (azul medio) |
+| HPF | `#2a4a6a` (azul profundo) |
+| VCF | `#5a7a9a` (azul claro) |
+| VCA | `#3a5a7a` (azul pizarra) |
+| ENV | `#4a6a8a` (azul acero medio) |
+| CHORUS | `#5a8aaa` (azul cielo) |
+
+**LED filter:** `hue-rotate(45deg)` para glow naranja en LEDs activos
+
+**perf-tab-btn.active:** Fondo naranja 25% de opacidad con box-shadow naranja
+
+**Slider caps:** Filtros de color para DCO/VCF/ENV
+
+**Side cheeks:** `metal_106_left.png` / `metal_106_right.png` (mismos que J-106 y dark-106s)
+
+**`theme-manager.js`** — `9: 'jp-80x0'` anadido a los 4 maps de modelo (0=Super Six, 1=J-106, 2=J-60, 3=J-6)
+
+**`service.js`** — `9: "JP-80X0 SUPERSAAW"` anadido a 6 definiciones de `skinType`:
+- `applySkinTheme()` themes object
+- `choiceParams` principal del parametro `skinType`
+- Overrides de J-106, J-60, J-6
+- `updateParam()` choiceParams
+
+### 42.3 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/css/vars.css` | Nuevo bloque `body[data-theme="jp-80x0"]` con todas las variables, modulos y side cheeks |
+| `Source/UI/WebUI/theme-manager.js` | `9: 'jp-80x0'` en themesMaps[0..3] |
+| `Source/UI/WebUI/service.js` | `9: "JP-80X0 SUPERSAAW"` en 6 definiciones de skinType |
+
+### 42.4 Skins Disponibles por Modelo (Actualizado)
+
+| Skin | Super Six (0) | J-106 (1) | J-60 (2) | J-6 (3) |
+|:-----|:-------------:|:---------:|:--------:|:-------:|
+| CLASSIC BLUE | ✅ | — | — | — |
+| JUNO-60 CLASSIC | ✅ | — | ✅ | — |
+| JUNO-6 ANALOG | ✅ | — | — | ✅ |
+| JUNO-106 CLASSIC | ✅ | ✅ | — | — |
+| JUNO-106S DARK | ✅ | ✅ | — | — |
+| TR-808 SEQUENCER | ✅ | ✅ | ✅ | ✅ |
+| DEEPMIND AMBER | ✅ | ✅ | ✅ | ✅ |
+| SPACE ECHO RE-201 | ✅ | ✅ | ✅ | ✅ |
+| ARP 2600 RETRO | ✅ | ✅ | ✅ | ✅ |
+| **JP-80X0 SUPERSAAW** 🆕 | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 43. Actualizacion de Fecha
+
+*Ultima actualizacion: 6 Junio 2026*

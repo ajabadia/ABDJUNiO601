@@ -50,6 +50,15 @@ JunoBankSection::JunoBankSection(PresetManager& pm, juce::AudioProcessorValueTre
     setupBtn(dumpButton, "EXPORT");
     setupBtn(randomButton, "RANDOM");
     setupBtn(portButton, "ON");
+
+    // Browser toggle
+    setupBtn(browserToggle, "BROWSER");
+    browserToggle.setClickingTogglesState(true);
+    browserToggle.setToggleState(true, juce::dontSendNotification);
+    browserToggle.setColour(juce::TextButton::buttonOnColourId, JunoUI::kStripBlue);
+    browserToggle.onClick = [this] {
+        presetBrowser.setVisible(browserToggle.getToggleState());
+    };
 }
 
 JunoBankSection::~JunoBankSection() {}
@@ -104,11 +113,16 @@ void JunoBankSection::resized() {
 
     r.removeFromTop(5);
 
-    // 2. PRESET BROWSER (List)
+    // 2. BROWSER TOGGLE
+    auto rToggle = r.removeFromTop(rowH);
+    browserToggle.setBounds(rToggle.reduced(2));
+    r.removeFromTop(gap);
+
+    // 3. PRESET BROWSER (List)
     presetBrowser.setBounds(r.removeFromTop(140).reduced(2));
     r.removeFromTop(gap);
 
-    // 3. NAVIGATION (BK/PTCH)
+    // 4. NAVIGATION (BK/PTCH)
     auto rNav = r.removeFromTop(rowH * 2 + gap);
     auto rRow1 = rNav.removeFromTop(rowH);
     decBankButton.setBounds(rRow1.removeFromLeft(rRow1.getWidth()/2).reduced(1));
@@ -121,7 +135,7 @@ void JunoBankSection::resized() {
     
     r.removeFromTop(gap);
 
-    // 4. BANK SELECTOR 1-8
+    // 5. BANK SELECTOR 1-8
     auto rBanks = r.removeFromTop(rowH * 2 + 5);
     int btnW = rBanks.getWidth() / 4;
     for (int i = 0; i < 4; ++i) bankButtons[i].setBounds(rBanks.getX() + i * btnW, rBanks.getY(), btnW - 2, rowH);
@@ -129,7 +143,7 @@ void JunoBankSection::resized() {
 
     r.removeFromTop(gap);
 
-    // 5. UTILITY BUTTONS
+    // 6. UTILITY BUTTONS
     auto rUtils = r.removeFromTop(rowH * 3 + gap * 2);
     auto uRow2 = rUtils.removeFromTop(rowH);
     manualButton.setBounds(uRow2.removeFromLeft(uRow2.getWidth()/2).reduced(1));

@@ -188,6 +188,8 @@ float JunoVCF::processSample (float input,
                        : ResK_J6 (resonance);
     if (!mJ106Res) k = SoftClipK (k);
 
+    float kPassed = k;
+
     if (frq > 0.5f) {
         k *= std::max(1.f - (frq - 0.5f) * 1.f, 0.5f);
     }
@@ -195,28 +197,28 @@ float JunoVCF::processSample (float input,
     mFreqComp = FreqCompensationClamped(k, frq * 0.25f);
 
     if (mOversample == 4)
-        lastOutput = process4x (input, frq, resonance) * (saturationScale > 0.0f ? saturationScale : 1.0f);
+        lastOutput = process4x (input, frq, resonance, kPassed) * (saturationScale > 0.0f ? saturationScale : 1.0f);
     else if (mOversample == 2)
-        lastOutput = process2x (input, frq, resonance) * (saturationScale > 0.0f ? saturationScale : 1.0f);
+        lastOutput = process2x (input, frq, resonance, kPassed) * (saturationScale > 0.0f ? saturationScale : 1.0f);
     else
-        lastOutput = processSampleInternal (input, frq, resonance) * (saturationScale > 0.0f ? saturationScale : 1.0f);
+        lastOutput = processSampleInternal (input, frq, resonance, kPassed) * (saturationScale > 0.0f ? saturationScale : 1.0f);
 
     return lastOutput;
 }
 
-float JunoVCF::process2x (float input, float frq, float res)
+float JunoVCF::process2x (float input, float frq, float res, float k)
 {
     float up[2], down[2];
     mUp1.process_sample(up[0], up[1], input);
 
     float frq2x = frq * 0.5f;
-    down[0] = processSampleInternal(up[0], frq2x, res);
-    down[1] = processSampleInternal(up[1], frq2x, res);
+    down[0] = processSampleInternal(up[0], frq2x, res, k);
+    down[1] = processSampleInternal(up[1], frq2x, res, k);
 
     return mDown1.process_sample(down);
 }
 
-float JunoVCF::process4x (float input, float frq, float res)
+float JunoVCF::process4x (float input, float frq, float res, float k)
 {
     float frq4x = frq * 0.25f;
 
@@ -227,20 +229,20 @@ float JunoVCF::process4x (float input, float frq, float res)
 
     float up4x_a[2];
     mUp2.process_sample(up4x_a[0], up4x_a[1], up2x[0]);
-    down4x[0] = processSampleInternal(up4x_a[0], frq4x, res);
-    down4x[1] = processSampleInternal(up4x_a[1], frq4x, res);
+    down4x[0] = processSampleInternal(up4x_a[0], frq4x, res, k);
+    down4x[1] = processSampleInternal(up4x_a[1], frq4x, res, k);
     down2x[0] = mDown2.process_sample(down4x);
 
     float up4x_b[2];
     mUp2.process_sample(up4x_b[0], up4x_b[1], up2x[1]);
-    down4x[0] = processSampleInternal(up4x_b[0], frq4x, res);
-    down4x[1] = processSampleInternal(up4x_b[1], frq4x, res);
+    down4x[0] = processSampleInternal(up4x_b[0], frq4x, res, k);
+    down4x[1] = processSampleInternal(up4x_b[1], frq4x, res, k);
     down2x[1] = mDown2.process_sample(down4x);
 
     return mDown1.process_sample(down2x);
 }
 
-float JunoVCF::processSampleInternal (float input, float frq, float res)
+float JunoVCF::processSampleInternal (float input, float frq, float res, float k)
 {
     mNoiseSeed = mNoiseSeed * 196314165u + 907633515u;
     float white = static_cast<float>(mNoiseSeed) / static_cast<float>(0xFFFFFFFFu) * 2.f - 1.f;
@@ -250,8 +252,6 @@ float JunoVCF::processSampleInternal (float input, float frq, float res)
     float noiseLevel = 1e-2f / (static_cast<float>(mOversample) * (1.f + energy * 1000.f));
     input += white * noiseLevel;
 
-    float k = mJ106Res ? ResK_J106(res) : ResK_J6(res);
-    if (!mJ106Res) k = SoftClipK(k);
     if (frq > 0.5f)
         k *= std::max(1.f - (frq - 0.5f) * 1.f, 0.5f);
 

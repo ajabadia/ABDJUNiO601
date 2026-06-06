@@ -230,13 +230,196 @@ function initApp() {
     const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
                     (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
 
+    let currentTargetModel = 0;
     let currentProductName = "ABD JUNiO 601";
-    if (initData && initData.productName) {
-        currentProductName = initData.productName;
+    if (initData) {
+        if (initData.productName) currentProductName = initData.productName;
+        if (initData.targetModel !== undefined) currentTargetModel = initData.targetModel;
     }
 
-    const updateUIProductNames = (name) => {
+    function getModelSpecLabel(model) {
+        const labels = {
+            0: 'SUPER SIX HYBRID',
+            1: 'JUNO-106',
+            2: 'JUNO-60',
+            3: 'JUNO-6'
+        };
+        return labels[model] || 'SUPER SIX HYBRID';
+    }
+    
+    function updateModelVisibility(model) {
+        // model: 0=SuperSix, 1=J106, 2=J60, 3=J6
+        // Note: These are JUNO_TARGET_MODEL values, different from SynthParams.h
+        // routing values (where 0=J6, 1=J60, 2=J106).
+        const isSuperSix = (model === 0);
+        const isJ106 = (model === 1);
+        const isJ60 = (model === 2);
+        const isJ6 = (model === 3);
+        
+        // Update model spec label in top bar
+        const specEl = document.getElementById('active-model-spec');
+        if (specEl) specEl.innerText = getModelSpecLabel(model);
+        
+        // In SuperSix (HYBRID) mode, show ALL sections — routing is dynamic.
+        // Only hide sections when compiled for a fixed model.
+        // The C++ engine (applyChorus, JunoDCO::getNextSample, etc.) already
+        // handles model-specific behavior via GET_MODEL_* macros.
+        
+        // DCO section: J6 has no sub-oscillator or PWM
+        const dcoLfoPwm = document.getElementById('dco-lfo-pwm');
+        const dcoMix = document.getElementById('dco-mix');
+        if (dcoLfoPwm) dcoLfoPwm.classList.toggle('hidden', isJ6);
+        if (dcoMix) dcoMix.classList.toggle('hidden', isJ6);
+        
+        // CHORUS section: Only J106 has hardware chorus
+        // Show in SuperSix and J106; hide in J60 and J6
+        const chorusSection = document.getElementById('chorus');
+        if (chorusSection) chorusSection.classList.toggle('hidden', !isJ106 && !isSuperSix);
+        
+        // VCF Polarity: Only J106 has POS/NEG switch; hide for J60 and J6
+        // Also hide the parent .ctrl-group.center wrapper to prevent empty space in flex layout
+        const vcfPolarity = document.getElementById('vcf-polarity');
+        if (vcfPolarity) {
+            vcfPolarity.classList.toggle('hidden', isJ60 || isJ6);
+            const vcfCenterGroup = vcfPolarity.closest('.ctrl-group.center');
+            if (vcfCenterGroup) vcfCenterGroup.classList.toggle('hidden', isJ60 || isJ6);
+        }
+        
+        // VCA Mode: Only J106 has GATE/ENV switch; hide for J60 and J6
+        const vcaMode = document.getElementById('vca-mode');
+        if (vcaMode) vcaMode.classList.toggle('hidden', isJ60 || isJ6);
+        // When VCA mode hidden, VCA controls should center LEVEL
+        const vcaControls = document.querySelector('#vca .controls');
+        if (vcaControls) vcaControls.style.justifyContent = (isJ60 || isJ6) ? 'center' : '';
+        
+        // Voice Count selector: Only show in Super Six (hybrid mode); hide for fixed models
+        // For single-model builds, force voice count to 6 (CLASSIC)
+        const numVoicesRow = document.getElementById('setting-numVoices-row');
+        if (numVoicesRow) numVoicesRow.classList.toggle('hidden', !isSuperSix);
+        
+        // DCO separators: hide when adjacent groups are hidden (J-6 has LFO/PWM and SUB/NOISE hidden)
+        const dcoSection = document.getElementById('dco');
+        if (dcoSection) {
+            dcoSection.querySelectorAll('.separator').forEach(sep => {
+                sep.classList.toggle('hidden', isJ6);
+            });
+        }
+        
+        // Header panel grid: adjust columns when sysex-zone is hidden (J-6)
+        // Default grid: 230px 60px 1fr 400px; without sysex: 230px 60px 1fr
+        const headerPanel = document.getElementById('header-panel');
+        if (headerPanel) {
+            if (isJ6) {
+                headerPanel.style.gridTemplateColumns = '230px 60px 1fr';
+            } else {
+                headerPanel.style.gridTemplateColumns = '';
+            }
+        }
+        
+        // Engine row 2: when chorus is hidden (J-60, J-6), env module needs no right border
+        // since it becomes the last element in the row
+        const envModule = document.getElementById('env');
+        if (envModule) {
+            const isChorusHidden = !isJ106 && !isSuperSix;
+            if (isChorusHidden) {
+                envModule.style.borderRight = 'none';
+            } else {
+                envModule.style.borderRight = '';
+            }
+        }
+        
+        // Force numVoices to 6 (CLASSIC) for single-model builds
+        // Only call setCalibrationParam when value differs to avoid redundant saves
+        if (!isSuperSix && paramValuesCache['numVoices'] !== 6.0) {
+            paramValuesCache['numVoices'] = 6.0;
+            if (typeof juce !== 'undefined' && juce.setCalibrationParam) {
+                juce.setCalibrationParam('numVoices', 6.0);
+            }
+        }
+        
+        // Force calibrationProfile for single-model builds (profile is fixed at compile time)
+        if (!isSuperSix) {
+            let targetProfile = 2; // J-106 default
+            if (isJ60) targetProfile = 1;
+            else if (isJ6) targetProfile = 0;
+            
+            if (paramValuesCache['calibrationProfile'] !== targetProfile) {
+                paramValuesCache['calibrationProfile'] = targetProfile;
+                if (typeof juce !== 'undefined' && juce.setCalibrationParam) {
+                    juce.setCalibrationParam('calibrationProfile', targetProfile);
+                }
+            }
+        }
+        
+        // ARP tab: Only J6 and J60 have arpeggiator (hide for J106)
+        // NOTE: Only toggle tab button visibility, NOT the panel itself.
+        // Panel visibility is managed exclusively by switchPerformanceTab / deactivatePerformanceTabs.
+        const arpTab = document.getElementById('tab-btn-arp');
+        if (arpTab) arpTab.classList.toggle('hidden', isJ106);
+        
+        // ROUTING tab: Only visible in Super Six mode
+        const routingTab = document.getElementById('tab-routing');
+        if (routingTab) routingTab.classList.toggle('hidden', !isSuperSix);
+        
+        // CALIBRATION tab: "SHOW ALL" label — "SUPER SIX MODE" is misleading for single-model builds
+        const showAllLabel = document.getElementById('calibration-show-all-label');
+        if (showAllLabel) {
+            showAllLabel.innerText = isSuperSix ? 'SHOW ALL (SUPER SIX MODE)' : 'SHOW ALL PARAMS';
+        }
+        
+        // =============================================
+        // JUNO-6 (model 3): No patch memory on hardware
+        // Hide bank/patch navigation, 7-segment display,
+        // patch grid, protect switch, and preset management
+        // utility buttons. Keep: RANDOM, PANIC, TEST.
+        // =============================================
+        
+        // Navigation row: BK-, BK+, PT-, PT+
+        // J-6: keep visible for quick preset browsing (no patch memory, but BK/PT buttons navigate)
+        // The patch grid (1-8 buttons) is hidden below, but the nav arrows remain.
+        const navRow = document.getElementById('nav-row');
+        if (navRow) navRow.classList.toggle('hidden', false);
+        
+        // SysEx zone: hide for J-6 (no hardware SysEx display), keep for J-106, J-60, Super Six
+        const sysexZone = document.getElementById('sysex-zone');
+        if (sysexZone) sysexZone.classList.toggle('hidden', isJ6);
+        // Also resize LCD bezel width when sysex is hidden (J-6)
+        const lcdBezel = document.getElementById('lcd-bezel');
+        if (lcdBezel) {
+            if (isJ6) {
+                lcdBezel.style.width = '100%';
+            } else {
+                lcdBezel.style.width = '';
+            }
+        }
+        
+        // Patch grid (1-8 buttons)
+        const patchGrid = document.getElementById('patch-grid-container');
+        if (patchGrid) patchGrid.classList.toggle('hidden', isJ6);
+        
+        // Top-left display: hide only the 7-segment LED and BANK/PATCH label
+        // Keep the front-midi-badge visible — J-6 needs MIDI for note input
+        const sevenSegDisplay = document.getElementById('seven-segment-display');
+        if (sevenSegDisplay) sevenSegDisplay.classList.toggle('hidden', isJ6);
+        const zoneLabel = document.querySelector('#top-left-display .zone-label');
+        if (zoneLabel) zoneLabel.classList.toggle('hidden', isJ6);
+        
+        // Protect zone: memory protect switch (J-6 has no patch memory)
+        const protectZone = document.getElementById('protect-zone');
+        if (protectZone) protectZone.classList.toggle('hidden', isJ6);
+        
+        // Utility buttons: hide preset management for J-6
+        const utilPresetBtns = ['util-manual', 'util-write', 'util-save', 'util-verify', 'util-load'];
+        utilPresetBtns.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden', isJ6);
+        });
+    }
+
+    const updateUIProductNames = (name, targetModel) => {
+        const model = (targetModel !== undefined) ? targetModel : currentTargetModel;
         currentProductName = name;
+        currentTargetModel = model;
         document.title = name + " - Gold Standard";
         const splashH1 = document.querySelector('#splash-screen h1');
         if (splashH1) splashH1.innerText = name;
@@ -260,6 +443,9 @@ function initApp() {
                 li.innerText = "About " + name + "...";
             }
         });
+        
+        // Update model-specific visibility
+        updateModelVisibility(model);
     };
 
     if (initData && initData.buildVersion) {
@@ -268,7 +454,7 @@ function initApp() {
             if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + vStr;
             else el.innerText = "Version " + vStr;
         });
-        updateUIProductNames(currentProductName);
+        updateUIProductNames(currentProductName, currentTargetModel);
     }
 
     listenEvent("onVersionUpdate", (version) => {
@@ -278,7 +464,13 @@ function initApp() {
         });
     });
 
-    listenEvent("onProductNameUpdate", (name) => updateUIProductNames(name));
+    listenEvent("onProductNameUpdate", (data) => {
+        if (typeof data === 'string') {
+            updateUIProductNames(data, currentTargetModel);
+        } else if (typeof data === 'object') {
+            updateUIProductNames(data.name || currentProductName, data.targetModel !== undefined ? data.targetModel : currentTargetModel);
+        }
+    });
 
     listenEvent("onVisualUpdate", (data) => {
         const c1Led = document.getElementById('led-chorus1');

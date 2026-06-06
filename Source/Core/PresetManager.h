@@ -4,6 +4,8 @@
 #include <vector>
 #include "BaseClass/PresetManagerBase.h"
 #include "FactoryPresets.h"
+#include "JunoTapeEncoder.h"
+#include "JunoTapeDecoder.h"
 
 /**
  * JUNiO 601 Implementation of Preset Management.
@@ -38,13 +40,14 @@ public:
         juce::String message;
     };
 
-    ImportResult loadTape(const juce::File& wavFile);
+    ImportResult loadTape(const juce::File& wavFile, int forcedBaudRate = 0);
+    ImportResult loadTapeFromData(const juce::File& originalWavFile, const struct JunoTapeDecoder::DecodeResult& decodedData);
     ImportResult importPresetsFromFile(const juce::File& file, bool ignoreSelection = false);
     void addLibraryFromSysEx(const uint8_t* data, int size);
     void randomizeCurrentParameters(juce::AudioProcessorValueTreeState& apvts);
     void triggerMemoryCorruption(juce::AudioProcessorValueTreeState& apvts);
     void exportCurrentPresetToJson(const juce::File& file);
-    void exportCurrentPresetToTape(const juce::File& file);
+    void exportCurrentPresetToTape(const juce::File& file, JunoTapeEncoder::Format format = JunoTapeEncoder::Juno106);
     void exportLibraryToJson(const juce::File& file);
     void exportLibraryToCSV(const juce::File& file);
     
@@ -121,7 +124,7 @@ public:
                         const juce::String& notes);
 
     // Bank & Slot Management Helpers
-    int findFirstEmptySlot(int startLib = 2);
+    int findFirstEmptySlot(int startLib = 6);
     std::vector<int> findEmptyBankIndices(int count);
     juce::String getLibraryLetter(int index);
     void ensureValidLibraryName(int index);

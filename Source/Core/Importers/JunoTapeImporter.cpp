@@ -2,7 +2,7 @@
 
 namespace ABD {
 
-JunoTapeImporter::ImportResult JunoTapeImporter::loadFromFile(const juce::File& file) {
+JunoTapeImporter::ImportResult JunoTapeImporter::loadFromFile(const juce::File& file, int forcedBaudRate) {
     ImportResult result;
 
     if (!file.existsAsFile()) {
@@ -10,7 +10,7 @@ JunoTapeImporter::ImportResult JunoTapeImporter::loadFromFile(const juce::File& 
         return result;
     }
 
-    auto decodeResult = JunoTapeDecoder::decodeWavFile(file);
+    auto decodeResult = JunoTapeDecoder::decodeWavFile(file, forcedBaudRate);
     if (!decodeResult.success) {
         result.result = juce::Result::fail(decodeResult.errorMessage);
         return result;
@@ -28,11 +28,11 @@ JunoTapeImporter::ImportResult JunoTapeImporter::loadFromFile(const juce::File& 
         for (int p = 0; p < 64; ++p) {
             size_t dataIdx = (l * 64 + p) * 18;
             if (dataIdx + 17 < decodeResult.data.size()) {
-                // Use the FormatConverter to create the preset
                 lib.patches.push_back(JunoFormatConverter::createPresetFromJunoBytes(
                     "Tape Patch " + juce::String((l * 64 + p) + 1),
                     &decodeResult.data[dataIdx],
-                    juce::ValueTree() // Template not strictly needed if Converter handles it
+                    juce::ValueTree(),
+                    decodeResult.detectedBaudRate
                 ));
             }
         }

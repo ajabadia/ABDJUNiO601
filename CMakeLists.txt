@@ -5,6 +5,28 @@ project(ABDSimpleJuno106 VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- Model Selection ---
+# JUNO_TARGET_MODEL: 0=SuperSix(Hybrid), 1=Juno-106, 2=Juno-60, 3=Juno-6
+if(NOT DEFINED JUNO_TARGET_MODEL)
+    set(JUNO_TARGET_MODEL 0 CACHE STRING "Model target: 0=SuperSix, 1=J106, 2=J60, 3=J6")
+endif()
+
+if(JUNO_TARGET_MODEL EQUAL 1)
+    set(PRODUCT_DISPLAY_NAME "ABD JUNiO 601")
+    set(PRODUCT_PLUGIN_CODE "J106")
+elseif(JUNO_TARGET_MODEL EQUAL 2)
+    set(PRODUCT_DISPLAY_NAME "ABD JUNiO 06")
+    set(PRODUCT_PLUGIN_CODE "J060")
+elseif(JUNO_TARGET_MODEL EQUAL 3)
+    set(PRODUCT_DISPLAY_NAME "ABD JUNiO SIX")
+    set(PRODUCT_PLUGIN_CODE "J006")
+else()
+    set(PRODUCT_DISPLAY_NAME "ABD JUNiO Super SIX")
+    set(PRODUCT_PLUGIN_CODE "JSSX")
+endif()
+
+message(STATUS "Building model: ${PRODUCT_DISPLAY_NAME} (JUNO_TARGET_MODEL=${JUNO_TARGET_MODEL})")
+
 if(NOT DEFINED JUCE_PATH)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
         set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
@@ -31,6 +53,10 @@ else()
     set(PLUGIN_FORMATS Standalone VST3 AU)
 endif()
 
+# JUNO_TARGET_MODEL remains directory-scope so both plugin and test targets
+# can use it for JunoModelConfig.h product name resolution.
+add_compile_definitions(JUNO_TARGET_MODEL=${JUNO_TARGET_MODEL})
+
 juce_add_plugin(ABDSimpleJuno106
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
@@ -41,7 +67,7 @@ juce_add_plugin(ABDSimpleJuno106
     PLUGIN_MANUFACTURER_CODE Abda
     PLUGIN_CODE J106
     FORMATS ${PLUGIN_FORMATS}
-    PRODUCT_NAME "ABD JUNiO 601"
+    PRODUCT_NAME "${PRODUCT_DISPLAY_NAME}"
     NEEDS_WEBVIEW2 TRUE
 )
 
@@ -65,6 +91,10 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/PerformanceState.cpp
     Source/Core/ServiceModeManager.cpp
     Source/Core/CalibrationSettings.cpp
+    Source/Core/ProcessorState.cpp
+    Source/Core/ProcessorPresets.cpp
+    Source/Core/ProcessorSysEx.cpp
+    Source/Core/ProcessorMisc.cpp
 
     Source/Core/Importers/TalImporter.h
     Source/Core/Importers/TalImporter.cpp
@@ -85,6 +115,14 @@ target_sources(ABDSimpleJuno106 PRIVATE
 
     Source/UI/WebView/WebViewEditor.h
     Source/UI/WebView/WebViewEditor.cpp
+    Source/UI/WebView/BridgeActions.h
+    Source/UI/WebView/BridgeActions.cpp
+    Source/UI/WebView/BridgeImport.h
+    Source/UI/WebView/BridgeImport.cpp
+    Source/UI/WebView/BridgeService.h
+    Source/UI/WebView/BridgeService.cpp
+    Source/UI/WebView/BridgeMenu.h
+    Source/UI/WebView/BridgeMenu.cpp
 
     Source/Synth/JunoADSR.h
     Source/Synth/JunoADSR.cpp
@@ -110,6 +148,8 @@ if(NOT BUILD_HEADLESS)
         Source/UI/JunoUIHelpers.h
         Source/UI/PresetBrowser.h
         Source/UI/PresetBrowser.cpp
+        Source/UI/PresetBrowserHeaderBar.h
+        Source/UI/PresetBrowserHeaderBar.cpp
         Source/UI/ParameterDisplay.h
         
         Source/UI/Sections/JunoSysExDisplay.h
@@ -131,8 +171,15 @@ endif()
 # [RESTORE] WebUI Binary Data
 juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/index.html
-    Source/UI/WebUI/script.js
+    Source/UI/WebUI/modals.js
+    Source/UI/WebUI/bridge-core.js
+    Source/UI/WebUI/ui-sliders.js
+    Source/UI/WebUI/ui-modals.js
+    Source/UI/WebUI/smart-import.js
+    Source/UI/WebUI/ui-keyboard.js
+    Source/UI/WebUI/theme-manager.js
     Source/UI/WebUI/service.js
+    Source/UI/WebUI/browser.js
     Source/UI/WebUI/style.css
     Source/UI/WebUI/service.css
     Source/UI/WebUI/fondo.png
@@ -233,6 +280,26 @@ target_include_directories(ABDSimpleJuno106 PRIVATE
 
 juce_generate_juce_header(ABDSimpleJuno106)
 
+# ── Copy kV4Hz.bin to the build output directory ────────────────────
+# The runtime loader (DacHzTable.h) looks for this file next to the
+# executable. If absent it falls back to the compile-time constexpr table.
+add_custom_command(TARGET ABDSimpleJuno106 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/Source/Synth/kV4Hz.bin"
+        "$<TARGET_FILE_DIR:ABDSimpleJuno106>"
+    COMMENT "Copying kV4Hz.bin to build output"
+)
+
+# Also copy for the test runner
+if(TARGET JunoUnitTests)
+    add_custom_command(TARGET JunoUnitTests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/Source/Synth/kV4Hz.bin"
+            "$<TARGET_FILE_DIR:JunoUnitTests>"
+        COMMENT "Copying kV4Hz.bin to test output"
+    )
+endif()
+
 target_compile_definitions(ABDSimpleJuno106
     PUBLIC
         JUCE_USE_CURL=0
@@ -242,6 +309,17 @@ target_compile_definitions(ABDSimpleJuno106
         JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1
         JUCE_DIRECT2D=1
 )
+
+# COMPILING_JUNO* defines are target-scoped to ABDSimpleJuno106 only.
+# JunoUnitTests runs in Super Six (hybrid) mode — no fixed compile-time defines,
+# so GET_MODEL_* macros use runtime values from SynthParams members.
+if(JUNO_TARGET_MODEL EQUAL 1)
+    target_compile_definitions(ABDSimpleJuno106 PRIVATE COMPILING_JUNO106)
+elseif(JUNO_TARGET_MODEL EQUAL 2)
+    target_compile_definitions(ABDSimpleJuno106 PRIVATE COMPILING_JUNO60)
+elseif(JUNO_TARGET_MODEL EQUAL 3)
+    target_compile_definitions(ABDSimpleJuno106 PRIVATE COMPILING_JUNO6)
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
@@ -279,6 +357,20 @@ juce_generate_juce_header(JunoUnitTests)
 
 target_sources(JunoUnitTests PRIVATE
     Source/Core/JunoUnitTests.cpp
+    Source/Core/Tests/DCOTests.cpp
+    Source/Core/Tests/PresetBrowserTests.cpp
+    Source/Core/Tests/ADSRTests.cpp
+    Source/Core/Tests/VCFTests.cpp
+    Source/Core/Tests/ChorusTests.cpp
+    Source/Core/Tests/SysExTests.cpp
+    Source/Core/Tests/TapeTests.cpp
+    Source/Core/Tests/FormatConverterTests.cpp
+    Source/Core/Tests/SmartTapeTests.cpp
+    Source/Core/Tests/MemoryTests.cpp
+    Source/Core/Tests/UnisonTests.cpp
+    Source/Core/Tests/DCBCorrectorTests.cpp
+    Source/Core/Tests/SmartImportHtmlTests.cpp
+    Source/Core/Tests/ModelRoutingTests.cpp
     Source/Synth/JunoDCO.cpp
     Source/Synth/JunoADSR.cpp
     Source/Synth/JunoVCF.cpp

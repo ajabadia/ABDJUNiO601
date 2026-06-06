@@ -21,7 +21,7 @@ public:
     /**
      * @brief Decodes a WAV file and creates libraries of 64 patches each.
      */
-    static ImportResult loadFromFile(const juce::File& file);
+    static ImportResult loadFromFile(const juce::File& file, int forcedBaudRate = 0);
 };
 
 } // namespace ABD

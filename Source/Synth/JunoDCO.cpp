@@ -182,6 +182,12 @@ float JunoDCO::getNextSample(float lfoValue) {
 
     float output = 0.0f;
 
+    // === MODEL-SPECIFIC BEHAVIOR ===
+    // J6: no sub-oscillator, no PWM (fixed pulse width ~50% duty)
+    // J60/J106: sub-osc and PWM as controlled by sliders
+    float effectiveSubLevel = (dcoModel == 0) ? 0.0f : subLevel;
+    float effectivePWM = (dcoModel == 0) ? 0.5f : pwmValue;
+
     // 1. SAW
     if (mSawGain > 1e-4f) {
         float sawAmp = (cal != nullptr) ? cal->getValue("sawMixAmp") : 0.6f;
@@ -197,10 +203,10 @@ float JunoDCO::getNextSample(float lfoValue) {
     if (mPulseGain > 1e-4f) {
         float pulseAmp = (cal != nullptr) ? cal->getValue("pulseMixAmp") : 0.5f;
         float targetPWM = pwmCenterDuty;
-        if (pwmMode == PWMMode::Manual) {
-            targetPWM = pwmCenterDuty + pwmOffset + (pwmValue - 0.5f) * 2.0f * (pwmMaxDuty - pwmCenterDuty);
+        if (pwmMode == PWMMode::Manual || dcoModel == 0) {
+            targetPWM = pwmCenterDuty + pwmOffset + (effectivePWM - 0.5f) * 2.0f * (pwmMaxDuty - pwmCenterDuty);
         } else {
-            targetPWM = juce::jlimit(pwmMinDuty, pwmMaxDuty, pwmCenterDuty + pwmOffset + lfoValue * pwmValue * 0.45f);
+            targetPWM = juce::jlimit(pwmMinDuty, pwmMaxDuty, pwmCenterDuty + pwmOffset + lfoValue * effectivePWM * 0.45f);
         }
         
         if (targetPWM > (1.0f - pwmOffThreshold)) targetPWM = 1.0f;
@@ -224,12 +230,12 @@ float JunoDCO::getNextSample(float lfoValue) {
     }
     
     // 3. SUB
-    if (mSubGain > 1e-4f) {
+    if (mSubGain > 1e-4f && effectiveSubLevel > 0.0f) {
         float subAmp = (cal != nullptr) ? cal->getValue("subMixAmp") : 0.75f;
-        float subLevelVal = subLevel;
+        float subLevelVal = effectiveSubLevel;
         // Interpolación en tabla de 11 puntos
         if (cal != nullptr) {
-            float subIdx = subLevel * 10.0f;
+            float subIdx = effectiveSubLevel * 10.0f;
             int subI0 = static_cast<int>(subIdx);
             subI0 = std::clamp(subI0, 0, 9);
             float subFrac = subIdx - subI0;

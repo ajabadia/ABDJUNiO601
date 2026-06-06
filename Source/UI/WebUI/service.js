@@ -1,7 +1,22 @@
 // service.js - Service Mode Logic for JUNiO 601
+
+/**
+ * Returns the compiled JUNO_TARGET_MODEL value from initData.
+ * 0 = Super Six, 1 = J-106, 2 = J-60, 3 = J-6
+ */
+function getCompiledTargetModel() {
+    const backend = getBackend();
+    const initData = window.__JUCE__ ? window.__JUCE__.initialisationData :
+                    (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
+    if (initData && initData.targetModel !== undefined) {
+        return parseInt(initData.targetModel);
+    }
+    return 0; // Default to Super Six
+}
+
 function applySkinTheme(skinVal) {
     console.log("Applying UI Skin Theme:", skinVal);
-    const themes = {
+        const themes = {
         0: 'classic',
         1: 'juno-60',
         2: 'juno-6',
@@ -10,7 +25,8 @@ function applySkinTheme(skinVal) {
         5: 'tr-808',
         6: 'deepmind',
         7: 'space-echo',
-        8: 'arp-2600'
+        8: 'arp-2600',
+        9: 'jp-80x0'
     };
     const themeName = themes[Math.round(skinVal)] || 'classic';
     document.body.setAttribute('data-theme', themeName);
@@ -107,7 +123,7 @@ const ServiceMode = {
             else activeSuffix = '_J106';
         }
 
-        const profile = paramValuesCache['calibrationProfile'] !== undefined ? Math.round(paramValuesCache['calibrationProfile']) : 3;
+        const profile = paramValuesCache['calibrationProfile'] !== undefined ? Math.round(paramValuesCache['calibrationProfile']) : 2;
 
         // Filter parameters based on selected profile, active model suffix, or show all toggle
         const catParams = this.params.filter(p => {
@@ -148,6 +164,14 @@ const ServiceMode = {
                 if (p.id.includes("Porta") || p.id.includes("Unison") || p.id.includes("porta")) return false;
             } else if (profile === 2) { // J106 lacks Arpeggiator
                 if (p.id.includes("Arp") || p.id.includes("arp")) return false;
+            }
+            
+            // calibrationProfile: only show in Super Six (compiled model 0) — single-model builds don't need profile switching
+            if (p.id === "calibrationProfile" && getCompiledTargetModel() !== 0) return false;
+            
+            // Hide anachronistic options for fixed/vintage models (not Super Six)
+            if (profile !== 3) {
+                if (p.id === "aftertouchToVCF" || p.id === "unisonWidth" || p.id === "unisonDetune" || p.id === "sustainMode") return false;
             }
             
             return true;
@@ -232,19 +256,25 @@ const ServiceMode = {
                     "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
                     "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
                     "enableLogging": { 0: "OFF", 1: "ON" },
-                    "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO" }
+                    "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" }
                 };
 
                 if (choiceParams[p.id]) {
                     let currentChoices = choiceParams[p.id];
                     if (p.id === 'skinType') {
-                        const profileVal = paramValuesCache['calibrationProfile'] !== undefined ? Math.round(paramValuesCache['calibrationProfile']) : 2;
-                        if (profileVal === 0) {
-                            currentChoices = { 2: "JUNO-6 ANALOG" };
-                        } else if (profileVal === 1) {
-                            currentChoices = { 1: "JUNO-60 CLASSIC" };
-                        } else if (profileVal === 2) {
-                            currentChoices = { 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK" };
+                        const targetModel = getCompiledTargetModel();
+                        if (targetModel === 0) {
+                            // Super Six: all 9 skins available regardless of profile
+                            currentChoices = choiceParams[p.id];
+                        } else if (targetModel === 1) {
+                            // J-106: 106 themes + universal skins
+                            currentChoices = { 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" };
+                        } else if (targetModel === 2) {
+                            // J-60: 60 theme + universal skins
+                            currentChoices = { 1: "JUNO-60 CLASSIC", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" };
+                        } else if (targetModel === 3) {
+                            // J-6: 6 theme + universal skins
+                            currentChoices = { 2: "JUNO-6 ANALOG", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" };
                         }
                     }
 
@@ -312,7 +342,7 @@ const ServiceMode = {
             "midiFunction": { 0: "I (NOTES)", 1: "II (+PATCH)", 2: "III (+SYSEX)" },
             "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
             "enableLogging": { 0: "OFF", 1: "ON" },
-            "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO" }
+            "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" }
         };
 
         if (p && display) {
@@ -401,6 +431,7 @@ const ServiceMode = {
 
         if (typeof updatePainterTapes === 'function') updatePainterTapes();
         if (typeof updateThemeAndSkins === 'function') updateThemeAndSkins();
+        deactivatePerformanceTabs();
         
         // Re-render GENERAL category list to update dynamic choice list/dropdowns
         this.renderCategory("GENERAL", "general-params-list");
@@ -447,6 +478,7 @@ const ServiceMode = {
         
         if (typeof updatePainterTapes === 'function') updatePainterTapes();
         if (typeof updateThemeAndSkins === 'function') updateThemeAndSkins();
+        deactivatePerformanceTabs();
         
         // Re-render GENERAL category list to update dynamic choice list/dropdowns
         this.renderCategory("GENERAL", "general-params-list");

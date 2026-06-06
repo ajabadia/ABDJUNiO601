@@ -1,7 +1,7 @@
 #include <JuceHeader.h>
 #include "CalibrationSettings.h"
 #include "JunoConstants.h"
-#include "../Synth/J106DACHzTable.h"
+#include "../Synth/DacHzTable.h"
 #include "../Synth/J106VCATable.h"
 #include <fstream>
 #include <iostream>
@@ -368,6 +368,13 @@ void CalibrationSettings::load()
             if (obj->hasProperty(juce::Identifier(p.id)))
                 p.currentValue = (float)obj->getProperty(juce::Identifier(p.id));
         }
+        // Load string properties
+        if (obj->hasProperty("_strings"))
+        {
+            auto* strObj = obj->getProperty("_strings").getDynamicObject();
+            if (strObj != nullptr && strObj->hasProperty("libraryPath"))
+                libraryPath = strObj->getProperty("libraryPath").toString().toStdString();
+        }
     }
 }
 
@@ -377,8 +384,19 @@ void CalibrationSettings::save()
     for (auto& p : params)
         obj->setProperty(juce::Identifier(p.id), p.currentValue);
     
+    // Save string properties
+    juce::DynamicObject::Ptr strObj = new juce::DynamicObject();
+    strObj->setProperty("libraryPath", juce::String(libraryPath));
+    obj->setProperty("_strings", juce::var(strObj.get()));
+    
     juce::File f(getConfigFile());
     f.replaceWithText(juce::JSON::toString(juce::var(obj.get())));
+}
+
+void CalibrationSettings::setLibraryPath(const std::string& path)
+{
+    libraryPath = path;
+    save();
 }
 
 void CalibrationSettings::resetToDefaults()
@@ -514,7 +532,7 @@ float CalibrationSettings::getDacHz(int index) const
     if (hasCustomDacTable)
         return customDacTable[(size_t)index];
     
-    return static_cast<float>(kr106::kV4Hz[index]);
+    return static_cast<float>(getDacHzTable()[index]);
 }
 
 bool CalibrationSettings::importDacTableCsv(const std::string& path)
@@ -560,10 +578,11 @@ bool CalibrationSettings::exportDacTableCsv(const std::string& path)
     std::ofstream out(file.getFullPathName().toStdString());
     if (!out.is_open()) return false;
     
+    auto* table = getDacHzTable();
     out << "DAC_Code,Frequency_Hz\n";
     for (int i = 0; i < 4096; ++i)
     {
-        float val = hasCustomDacTable ? customDacTable[i] : static_cast<float>(kr106::kV4Hz[i]);
+        float val = hasCustomDacTable ? customDacTable[i] : static_cast<float>(table[i]);
         out << i << "," << val << "\n";
     }
     

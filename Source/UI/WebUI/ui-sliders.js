@@ -99,6 +99,22 @@ function setupSliders() {
     });
 }
 
+function updateOctaveLEDs() {
+    const upLed = document.getElementById('led-octave-up');
+    const downLed = document.getElementById('led-octave-down');
+
+    [upLed, downLed].forEach(led => {
+        if (!led) return;
+        led.classList.remove('active', 'blink', 'blink-fast');
+    });
+
+    if (octaveShift > 0) {
+        if (upLed) upLed.classList.add(octaveShift >= 2 ? 'blink' : 'active');
+    } else if (octaveShift < 0) {
+        if (downLed) downLed.classList.add(octaveShift <= -2 ? 'blink' : 'active');
+    }
+}
+
 function setupOctaveButtons() {
     const upBtn = document.querySelector('.perf-octave-zone .oct-btn.up');
     const downBtn = document.querySelector('.perf-octave-zone .oct-btn.down');
@@ -106,6 +122,7 @@ function setupOctaveButtons() {
         upBtn.addEventListener('pointerdown', (e) => {
             e.preventDefault(); e.stopPropagation();
             octaveShift = Math.min(2, octaveShift + 1);
+            updateOctaveLEDs();
             updateLCD("OCTAVE: " + octaveShift, true);
         });
     }
@@ -113,6 +130,7 @@ function setupOctaveButtons() {
         downBtn.addEventListener('pointerdown', (e) => {
             e.preventDefault(); e.stopPropagation();
             octaveShift = Math.max(-2, octaveShift - 1);
+            updateOctaveLEDs();
             updateLCD("OCTAVE: " + octaveShift, true);
         });
     }

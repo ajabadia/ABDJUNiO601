@@ -1,0 +1,10 @@
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\BUILD_TEST_M2\_JUCE\TOOLS\CMAKEFILES\E8EC58E2CFD4D67863FCE243AC40AB15\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601/JUCE -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/tools --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/tools/JUCE.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

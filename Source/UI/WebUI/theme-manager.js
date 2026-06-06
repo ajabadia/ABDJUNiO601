@@ -17,6 +17,15 @@ function switchPerformanceTab(tabName) {
     });
 }
 
+function deactivatePerformanceTabs() {
+    document.querySelectorAll('.perf-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.perf-tab-content').forEach(panel => {
+        panel.classList.add('hidden');
+    });
+}
+
 function updateThemeAndSkins() {
     const profileVal = paramValuesCache['calibrationProfile'] !== undefined ? paramValuesCache['calibrationProfile'] : 2.0;
 
@@ -35,18 +44,29 @@ function updateThemeAndSkins() {
 
     let skinTheme = "juno-106";
     let labelText = "SUPER SIX HYBRID";
+    let modelSubtitle = "601";
 
     if (targetModel === 1) {
-        skinTheme = "juno-106";
+        const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 3.0;
+        const themesMap = { 3: 'juno-106', 4: 'dark-106s', 5: 'tr-808', 6: 'deepmind', 7: 'space-echo', 8: 'arp-2600', 9: 'jp-80x0' };
+        skinTheme = themesMap[Math.round(skinVal)] || 'juno-106';
         labelText = "JUNO-106 MODE";
+        modelSubtitle = "601";
     } else if (targetModel === 2) {
-        skinTheme = "juno-60";
+        const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 1.0;
+        const themesMap = { 1: 'juno-60', 5: 'tr-808', 6: 'deepmind', 7: 'space-echo', 8: 'arp-2600', 9: 'jp-80x0' };
+        skinTheme = themesMap[Math.round(skinVal)] || 'juno-60';
         labelText = "JUNO-60 MODE";
+        modelSubtitle = "06";
     } else if (targetModel === 3) {
-        skinTheme = "juno-6";
+        const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 2.0;
+        const themesMap = { 2: 'juno-6', 5: 'tr-808', 6: 'deepmind', 7: 'space-echo', 8: 'arp-2600', 9: 'jp-80x0' };
+        skinTheme = themesMap[Math.round(skinVal)] || 'juno-6';
         labelText = "JUNO-6 MODE";
+        modelSubtitle = "SIX";
     } else {
         labelText = "SUPER SIX HYBRID";
+        modelSubtitle = "SUPER SIX";
         const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 0.0;
         const themesMap = {
             0: 'classic',
@@ -57,7 +77,8 @@ function updateThemeAndSkins() {
             5: 'tr-808',
             6: 'deepmind',
             7: 'space-echo',
-            8: 'arp-2600'
+            8: 'arp-2600',
+            9: 'jp-80x0'
         };
         skinTheme = themesMap[Math.round(skinVal)] || 'classic';
 
@@ -71,6 +92,10 @@ function updateThemeAndSkins() {
             labelText = "SUPER SIX (HYBRID MODE)";
         }
     }
+
+    // Set model name subtitle on the performance panel watermark
+    const perfPanel = document.querySelector('.sunken-performance-panel');
+    if (perfPanel) perfPanel.setAttribute('data-model-name', modelSubtitle);
 
     document.body.setAttribute('data-theme', skinTheme);
     if (appSpec) appSpec.innerText = labelText;
@@ -126,7 +151,7 @@ function updateThemeAndSkins() {
 
     const activeTabBtn = document.querySelector('.perf-tab-btn.active');
     if (activeTabBtn && activeTabBtn.classList.contains('hidden')) {
-        switchPerformanceTab('voltune');
+        deactivatePerformanceTabs();
     }
 }
 

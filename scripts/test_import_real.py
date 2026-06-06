@@ -281,7 +281,7 @@ def main():
         ("CSV section visible (reused for JSON)", state.get("csvSec") == True),
         ("Tape section hidden", state.get("tapeSec") == False),
         ("Sysex section hidden", state.get("sysexSec") == False),
-        ("Library name in csvCols", "Test Bank" in state.get("csvCols", "") or "Test Bank" in state.get("csvCols", "")),
+        ("Library name in csvCols", "Test Bank" in state.get("csvCols", "") or "Test Bank CDP" in state.get("csvCols", "")),
         ("Category in csvParams", "Category:" in state.get("csvParams", "") or "Test" in state.get("csvParams", "")),
         ("Preset names visible", state.get("namesVis") == True),
         ("Preset names count >= 4", state.get("namesCount", 0) >= 4),

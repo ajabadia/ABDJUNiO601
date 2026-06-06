@@ -57,6 +57,7 @@ public:
     JunoUI::JunoButton nextPatchButton { ">" };
     JunoUI::JunoButton portButton { "ON" }; 
     JunoUI::JunoButton powerButton { "TEST" };
+    JunoUI::JunoButton browserToggle { "BROWSER" };
     
     JunoUI::JunoKnob portSlider;
     JunoUI::JunoKnob masterTuneKnob;

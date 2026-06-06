@@ -1,0 +1,303 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData6.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData10.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData13.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData14.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData15.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData16.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData17.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData18.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData19.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData20.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData21.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData22.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData23.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData24.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData25.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData26.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData27.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData28.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData29.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData30.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData31.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData33.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData34.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData35.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData36.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData37.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData38.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData39.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData40.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData41.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData42.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData43.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData44.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData45.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData46.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData47.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData48.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData49.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData50.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData51.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData52.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData53.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData54.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData55.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData56.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData57.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData58.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData59.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData60.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData61.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData62.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData63.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData65.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData66.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData67.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData68.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData69.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData70.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData71.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData72.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData73.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData74.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData75.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData76.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData77.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData78.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData79.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData80.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData81.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData82.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData83.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData84.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData85.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData86.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData87.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData88.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData89.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData90.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData91.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData92.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_test_tmp\CMakeFiles\877d9807afe3a998e3edbd11db7ba69b\BinaryData1.cpp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{79B2B1ED-27B7-3D1F-AE02-42D7D0999449}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{3236C260-0D1A-33EC-8053-D5BC09FB0187}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0923D994-DE3D-397C-8082-C5B440B393A7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

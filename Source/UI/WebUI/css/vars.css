@@ -129,6 +129,13 @@ body[data-theme="deepmind"] .front-midi-badge.active {
     background: #ff9900 !important;
     box-shadow: 0 0 10px #ff9900 !important;
 }
+body[data-theme="deepmind"] #lfo .module-bar { background: #b8860b !important; }
+body[data-theme="deepmind"] #dco .module-bar { background: #cc8800 !important; }
+body[data-theme="deepmind"] #hpf .module-bar { background: #996600 !important; }
+body[data-theme="deepmind"] #vcf .module-bar { background: #d4a017 !important; }
+body[data-theme="deepmind"] #vca .module-bar { background: #cc8800 !important; }
+body[data-theme="deepmind"] #env .module-bar { background: #b8860b !important; }
+body[data-theme="deepmind"] #chorus .module-bar { background: #996600 !important; }
 
 /* ROLAND SPACE ECHO RE-201 THEME */
 body[data-theme="space-echo"] {
@@ -154,34 +161,96 @@ body[data-theme="space-echo"] .front-midi-badge.active {
     background: #2ecc71 !important;
     box-shadow: 0 0 10px #2ecc71 !important;
 }
+body[data-theme="space-echo"] #lfo .module-bar { background: #2ecc71 !important; }
+body[data-theme="space-echo"] #dco .module-bar { background: #27ae60 !important; }
+body[data-theme="space-echo"] #hpf .module-bar { background: #1a8a4a !important; }
+body[data-theme="space-echo"] #vcf .module-bar { background: #2ecc71 !important; }
+body[data-theme="space-echo"] #vca .module-bar { background: #27ae60 !important; }
+body[data-theme="space-echo"] #env .module-bar { background: #1a8a4a !important; }
+body[data-theme="space-echo"] #chorus .module-bar { background: #2ecc71 !important; }
 
-/* ARP 2600 RETRO THEME */
+/* ARP 2600 RETRO THEME — authentic steel-gray/blue/orange palette */
 body[data-theme="arp-2600"] {
-    --juno-red: #8a1210;      /* Color scheme (106) */
-    --juno-blue: #345689;     /* Color scheme (106) */
-    --juno-grey: #ffffff;     /* White labels */
-    --led-red: #ffaa00;       /* Orange LEDs */
-    --lcd-red: #ffaa00;       /* Orange screen */
-    --led-glow: 0 0 12px rgba(255, 170, 0, 0.8), 0 0 4px #fff;
-    --bg-synth: #404040;      /* Color scheme (106) */
-    --metal-dark: #404040;
-    --metal-highlight: #404040;
+    --juno-red: #3a3b3e;      /* Dark steel gray */
+    --juno-blue: #4a6a8a;     /* ARP blue-gray accent */
+    --juno-grey: #c8ccd0;     /* Silver/white labels */
+    --led-red: #e67e22;       /* Orange ARP indicators */
+    --lcd-red: #e67e22;       /* Orange screen */
+    --led-glow: 0 0 12px rgba(230, 126, 34, 0.8), 0 0 4px #fff;
+    --bg-synth: #2a2b2e;      /* Dark steel gray */
+    --metal-dark: #2a2b2e;
+    --metal-highlight: #3a3b3e;
 }
+body[data-theme="arp-2600"] #lfo .module-bar { background: #4a5568 !important; color: #fff !important; }
+body[data-theme="arp-2600"] #dco .module-bar { background: #5a6a7a !important; color: #fff !important; }
+body[data-theme="arp-2600"] #hpf .module-bar { background: #3d4a5c !important; color: #fff !important; }
+body[data-theme="arp-2600"] #vcf .module-bar { background: #6a7a8a !important; color: #fff !important; }
+body[data-theme="arp-2600"] #vca .module-bar { background: #5a6a7a !important; color: #fff !important; }
+body[data-theme="arp-2600"] #env .module-bar { background: #4a5568 !important; color: #fff !important; }
+body[data-theme="arp-2600"] #chorus .module-bar { background: #3d4a5c !important; color: #fff !important; }
 body[data-theme="arp-2600"] .module-bar {
-    color: #000000 !important; /* Black text on white bars */
-    border-bottom: 2px solid #000000 !important;
+    border-bottom: 2px solid rgba(0,0,0,0.3) !important;
+}
+
+/* ROLAND JP-8000 / JP-8080 THEME — dark metallic blue with signature orange-red LEDs */
+body[data-theme="jp-80x0"] {
+    --juno-red: #1a2a44;      /* Dark metallic blue — matches chassis */
+    --juno-blue: #2a3d5e;     /* Medium metallic blue */
+    --juno-grey: #b0b8c4;     /* Silver-blue labels */
+    --led-red: #ff4500;       /* Bright orange-red — JP-8000 signature LED color */
+    --lcd-red: #ff4500;       /* Orange-red screen */
+    --led-glow: 0 0 12px rgba(255, 69, 0, 0.8), 0 0 4px #fff;
+    --bg-synth: #1a2a44;      /* Dark metallic blue chassis */
+    --metal-dark: #1a2a44;
+    --metal-highlight: #2a3d5e;
+}
+body[data-theme="jp-80x0"] #lfo .module-bar { background: #3a5a8a !important; }
+body[data-theme="jp-80x0"] #dco .module-bar { background: #4a6a9a !important; }
+body[data-theme="jp-80x0"] #hpf .module-bar { background: #2a4a6a !important; }
+body[data-theme="jp-80x0"] #vcf .module-bar { background: #5a7a9a !important; }
+body[data-theme="jp-80x0"] #vca .module-bar { background: #4a6a9a !important; }
+body[data-theme="jp-80x0"] #env .module-bar { background: #3a5a8a !important; }
+body[data-theme="jp-80x0"] #chorus .module-bar { background: #2a4a6a !important; }
+body[data-theme="jp-80x0"] .module-bar {
+    border-bottom: 2px solid rgba(0,0,0,0.3) !important;
+    color: #fff !important;
+}
+body[data-theme="jp-80x0"] .led.active,
+body[data-theme="jp-80x0"] img.led-sprite {
+    filter: hue-rotate(45deg) saturate(2.5) brightness(1.2) !important;
+}
+body[data-theme="jp-80x0"] #lcd-text {
+    color: #ff4500 !important;
+    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8) !important;
+}
+body[data-theme="jp-80x0"] .front-midi-badge.active {
+    background: #ff4500 !important;
+    box-shadow: 0 0 10px #ff4500 !important;
+}
+body[data-theme="jp-80x0"] .perf-tab-btn.active {
+    background: rgba(255, 69, 0, 0.25);
+    box-shadow: inset 0 1px 3px rgba(255,69,0,0.3);
+}
+body[data-theme="jp-80x0"] #dco .handle {
+    filter: hue-rotate(10deg) saturate(1.5) brightness(1.3);
+}
+body[data-theme="jp-80x0"] #vcf .handle {
+    filter: hue-rotate(210deg) saturate(1.5) brightness(1.2);
+}
+body[data-theme="jp-80x0"] #env .handle {
+    filter: hue-rotate(240deg) saturate(1.5) brightness(1.2);
 }
 body[data-theme="arp-2600"] .led.active,
 body[data-theme="arp-2600"] img.led-sprite {
     filter: hue-rotate(45deg) saturate(2.5) brightness(1.2) !important;
 }
 body[data-theme="arp-2600"] #lcd-text {
-    color: #ffaa00 !important;
-    text-shadow: 0 0 15px rgba(255, 170, 0, 0.8) !important;
+    color: #e67e22 !important;
+    text-shadow: 0 0 15px rgba(230, 126, 34, 0.8) !important;
 }
 body[data-theme="arp-2600"] .front-midi-badge.active {
-    background: #ffaa00 !important;
-    box-shadow: 0 0 10px #ffaa00 !important;
+    background: #e67e22 !important;
+    box-shadow: 0 0 10px #e67e22 !important;
 }
 /* Grouped colored slider caps */
 body[data-theme="arp-2600"] #dco .handle { filter: hue-rotate(35deg) saturate(2) brightness(1.1); }
@@ -264,13 +333,15 @@ body[data-theme="tr-808"] #synth-app::after {
 body[data-theme="juno-106"] #synth-app::before,
 body[data-theme="juno-106-metal"] #synth-app::before,
 body[data-theme="dark-106s"] #synth-app::before,
-body[data-theme="arp-2600"] #synth-app::before {
+body[data-theme="arp-2600"] #synth-app::before,
+body[data-theme="jp-80x0"] #synth-app::before {
     background-image: url('../metal_106_left.png');
 }
 body[data-theme="juno-106"] #synth-app::after,
 body[data-theme="juno-106-metal"] #synth-app::after,
 body[data-theme="dark-106s"] #synth-app::after,
-body[data-theme="arp-2600"] #synth-app::after {
+body[data-theme="arp-2600"] #synth-app::after,
+body[data-theme="jp-80x0"] #synth-app::after {
     background-image: url('../metal_106_right.png');
 }
 
@@ -383,6 +454,52 @@ body[data-theme="classic"] .module[data-model="1"] {
     flex-direction: column;
     min-height: 0;
     justify-content: space-between;
+    position: relative;
+    z-index: 0;  /* With position:relative this creates a stacking context so ::before z-index:-1 works */
+}
+
+/* Silkscreen JUNiO watermark — always visible behind the controls */
+/* z-index:0 on parent creates stacking context so ::before with z-index:-1 sits  */
+/* behind child elements but IN FRONT OF the parent background. Without it,        */
+/* z-index:-1 places the watermark behind the entire panel (in root stacking ctx). */
+.sunken-performance-panel::before {
+    content: "JUNiO";
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: perspective(300px) rotateX(6deg) translate(-50%, -50%);
+    transform-origin: center center;
+    font-family: 'Microgramma', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.15);
+    letter-spacing: 10px;
+    pointer-events: none;
+    z-index: -1;
+    text-transform: uppercase;
+    user-select: none;
+    white-space: nowrap;
+    /* z-index:-1 only works relative to parent's stacking context */
+}
+
+/* Model subtitle (601 / 06 / SIX / SUPER SIX) at the bottom of the panel */
+.sunken-performance-panel::after {
+    content: attr(data-model-name);
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: perspective(300px) rotateX(6deg) translate(-50%, 0);
+    transform-origin: center center;
+    font-family: 'Microgramma', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.15);
+    letter-spacing: 4px;
+    pointer-events: none;
+    z-index: -1;
+    text-transform: uppercase;
+    user-select: none;
+    white-space: nowrap;
 }
 
 .performance-tabs {
@@ -422,6 +539,22 @@ body[data-theme="classic"] .module[data-model="1"] {
     background: var(--juno-blue);
     color: #fff;
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Dark themes where --juno-blue is #161616 — use a subtle white highlight instead */
+body[data-theme="tr-808"] .perf-tab-btn.active,
+body[data-theme="deepmind"] .perf-tab-btn.active,
+body[data-theme="space-echo"] .perf-tab-btn.active,
+body[data-theme="juno-60"] .perf-tab-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
+}
+
+/* VOL/TUNE tab has no LED indicator so padding is reduced and text wraps */
+#tab-btn-voltune {
+    padding-top: 6px;
+    white-space: normal;
+    line-height: 1.3;
 }
 
 /* Selector LED indicators */

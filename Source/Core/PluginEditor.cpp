@@ -60,6 +60,38 @@ ABDSimpleJuno106AudioProcessorEditor::ABDSimpleJuno106AudioProcessorEditor (ABDS
          audioProcessor.loadPreset(presetIdx);
     };
     
+    // Save / Save As (PresetBrowser buttons)
+    bankSection.presetBrowser.onSaveClicked = [this] {
+        handleSave();
+    };
+    bankSection.presetBrowser.onSaveAsClicked = [this] {
+        auto& pm = *audioProcessor.getPresetManager();
+        auto* alert = new juce::AlertWindow("Save Preset As",
+                                            "Enter a name for the new preset:",
+                                            juce::MessageBoxIconType::QuestionIcon);
+        alert->addTextEditor("name", pm.getCurrentPreset().name + " Copy", "Preset Name:");
+        alert->addButton("Save", 1);
+        alert->addButton("Cancel", 0);
+        alert->enterModalState(true, juce::ModalCallbackFunction::create([this, alert](int result) {
+            if (result == 1) {
+                auto newName = alert->getTextEditorContents("name");
+                auto& pm2 = *audioProcessor.getPresetManager();
+                auto res = pm2.saveAsNewPresetFromState(audioProcessor.getAPVTS(), newName);
+                if (res.wasOk()) {
+                    bankSection.presetBrowser.refresh();
+                    lcd.setText("SAVED AS: " + newName);
+                } else {
+                    lcd.setText("SAVE ERROR");
+                }
+            }
+        }), true);
+    };
+    bankSection.presetBrowser.onCloseRequested = [this] {
+        bankSection.presetBrowser.setVisible(false);
+        bankSection.browserToggle.setToggleState(false, juce::dontSendNotification);
+        lcd.setText("BROWSER CLOSED");
+    };
+    
     // Bank Buttons (1-8) -> In Juno-106 terms, these are the PATCH buttons
     for(int i=0; i<8; ++i) {
         bankSection.bankButtons[i].onClick = [this, i] {

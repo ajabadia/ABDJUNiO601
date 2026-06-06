@@ -5,11 +5,16 @@
 
 class JunoTapeEncoder {
 public:
-    static inline juce::AudioBuffer<float> encodePatches(const std::vector<std::vector<uint8_t>>& patches, double sampleRate)
+    enum Format {
+        Juno106 = 0,
+        Juno60 = 1
+    };
+
+    static inline juce::AudioBuffer<float> encodePatches(const std::vector<std::vector<uint8_t>>& patches, double sampleRate, Format format = Juno106)
     {
-        const double bitsPerSecond = 1200.0;
-        const double freqLow = 1300.0;  // Space (0) - Roland Standard
-        const double freqHigh = 2100.0; // Mark (1)  - Roland Standard
+        const double bitsPerSecond = (format == Juno60) ? 340.0 : 1200.0;
+        const double freqLow = (format == Juno60) ? 1360.0 : 1300.0;  // Space (0)
+        const double freqHigh = (format == Juno60) ? 2380.0 : 2100.0; // Mark (1)
         
         std::vector<bool> bitStream;
         
@@ -18,8 +23,6 @@ public:
         
         for (const auto& data : patches) {
             if (data.size() != 18) continue;
-            
-            // No proprietary header for total hardware fidelity
             
             // Data
             uint8_t checksum = 0;
@@ -31,8 +34,6 @@ public:
             
             // Checksum
             appendByte(bitStream, checksum);
-            
-            // No proprietary end byte
             
             // Inter-block gap (0.1s of Marks)
             for (int i = 0; i < (int)(bitsPerSecond * 0.1); ++i) bitStream.push_back(true);

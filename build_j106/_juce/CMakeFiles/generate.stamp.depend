@@ -1,0 +1,12 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-4.2/Modules/BasicConfigVersion-ExactVersion.cmake.in
+C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-4.2/Modules/CMakeDependentOption.cmake
+C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-4.2/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-4.2/Modules/WriteBasicConfigVersionFile.cmake
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/CMakeLists.txt
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/extras/Build/CMake/JUCECheckAtomic.cmake
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/extras/Build/CMake/JUCEConfig.cmake.in
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/extras/Build/CMake/JUCEHelperTargets.cmake
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/extras/Build/CMake/JUCEModuleSupport.cmake
+D:/desarrollos/ABDSynths/ABDJUNiO601/JUCE/extras/Build/CMake/JUCEUtils.cmake
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_j106/CMakeFiles/cmake.verify_globs

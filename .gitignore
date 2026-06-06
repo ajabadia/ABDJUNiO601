@@ -65,3 +65,13 @@ _*.json
 WebViewEditor_old*
 WebViewEditor_real*
 script_old*
+
+# Orphan log and output files
+check_core.txt
+errors_final.txt
+errors_only.txt
+msbuild_path.txt
+tmp_preset_line.json
+
+# Orphan test files
+test_api.cpp

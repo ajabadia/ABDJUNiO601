@@ -1,12 +1,16 @@
 #include <JuceHeader.h>
 #include "WebViewEditor.h"
 #include "../../Core/ABDSimpleJuno106AudioProcessor.h"
-#include "../../Core/CalibrationSettings.h"
-#include "../../Core/ServiceModeManager.h"
 #include "../../Core/PresetManager.h"
+#include "../../Core/JunoTapeDecoder.h"
 #include "../../Core/BuildVersion.h"
 #include <optional>
 #include "JunoModelConfig.h"
+#include "BridgeActions.h"
+#include "BridgeImport.h"
+#include "BridgeService.h"
+#include "BridgeMenu.h"
+
 
 
 
@@ -71,7 +75,6 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
             };
 
             if (path == "index.html")   return getResourceFromBinary (BinaryData::index_html, BinaryData::index_htmlSize, "index.html");
-            if (path == "script.js")    return getResourceFromBinary (BinaryData::script_js, BinaryData::script_jsSize, "script.js");
             if (path == "service.js")   return getResourceFromBinary (BinaryData::service_js, BinaryData::service_jsSize, "service.js");
             if (path == "service.css")  return getResourceFromBinary (BinaryData::service_css, BinaryData::service_cssSize, "service.css");
             if (path == "style.css")    return getResourceFromBinary (BinaryData::style_css, BinaryData::style_cssSize, "style.css");
@@ -93,731 +96,124 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
 
             return std::nullopt;
         })
-        .withNativeFunction ("setParameter", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 2) {
-                juce::String paramID = args[0].toString();
-                float val = (float)args[1];
-                juce::Logger::writeToLog("[JUNiO] setParameter JS CALL: ID=" + paramID + ", Value=" + juce::String(val));
-                if (auto* param = audioProcessor.getAPVTS().getParameter(paramID))
-                {
-                    param->setValueNotifyingHost((float)val);
-                    completion (juce::var::undefined());
-                }
-                else
-                {
-                    juce::Logger::writeToLog("[JUNiO] setParameter ERROR: Parameter not found: " + paramID);
-                    completion({});
-                }
-            }
-            else
-            {
-                completion({});
-            }
+                .withNativeFunction ("setParameter", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::setParameter(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("beginGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                juce::String paramID = args[0].toString();
-                if (auto* param = audioProcessor.getAPVTS().getParameter(paramID)) {
-                    param->beginChangeGesture();
-                }
-            }
-            completion (juce::var::undefined());
+                .withNativeFunction ("beginGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::beginGesture(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("endGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                juce::String paramID = args[0].toString();
-                if (auto* param = audioProcessor.getAPVTS().getParameter(paramID)) {
-                    param->endChangeGesture();
-                }
-            }
-            completion (juce::var::undefined());
+                .withNativeFunction ("endGesture", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::endGesture(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("getCalibrationParams", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            juce::ignoreUnused(args);
-            juce::Array<juce::var> result;
-            auto& cal = audioProcessor.getCalibrationSettings();
-            for (const auto& p : cal.getAllParams()) {
-                juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-                obj->setProperty("id", juce::String(p.id));
-                obj->setProperty("label", juce::String(p.label));
-                obj->setProperty("category", juce::String(p.category));
-                obj->setProperty("unit", juce::String(p.unit));
-                obj->setProperty("tooltip", juce::String(p.tooltip));
-                obj->setProperty("defaultValue", (double)p.defaultValue);
-                obj->setProperty("currentValue", (double)p.currentValue);
-                obj->setProperty("minValue", (double)p.minValue);
-                obj->setProperty("maxValue", (double)p.maxValue);
-                obj->setProperty("stepSize", (double)p.stepSize);
-                result.add(juce::var(obj.get()));
-            }
-            completion(result);
+                .withNativeFunction ("getCalibrationParams", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::getCalibrationParams(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("setCalibrationParam", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 2) {
-                juce::String id = args[0].toString();
-                float val = (float)args[1];
-                audioProcessor.getCalibrationSettings().setValue(id.toStdString(), val);
-            }
-            completion({});
+                .withNativeFunction ("setCalibrationParam", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::setCalibrationParam(audioProcessor, args, std::move(completion));
         })
         .withNativeFunction ("serviceAction", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                auto obj = args[0].getDynamicObject();
-                if (obj != nullptr) {
-                    juce::String action = obj->getProperty("action").toString();
-                    auto& smm = audioProcessor.getServiceModeManager();
-                    if (action == "testVoice") smm.setVoiceSolo((int)obj->getProperty("voice"));
-                    else if (action == "stopVoiceTest") smm.clearVoiceSolo();
-                    else if (action == "sweepVCF") smm.startVCFSweep();
-                    else if (action == "playTestScale") {
-                        if (smm.isTestScaleActive()) smm.stopAllTests();
-                        else smm.startTestScale();
-                    }
-                    else if (action == "resetToFactory") audioProcessor.getCalibrationSettings().resetToDefaults();
-                    else if (action == "hardResetToProfile") {
-                        int profile = (int)obj->getProperty("profile");
-                        audioProcessor.getCalibrationSettings().hardResetToProfile(profile);
-                    }
-                    else if (action == "resetParam") audioProcessor.getCalibrationSettings().resetParam(obj->getProperty("id").toString().toStdString());
-                    else if (action == "resetCategory") audioProcessor.getCalibrationSettings().resetCategory(obj->getProperty("category").toString().toStdString());
-                    else if (action == "exportCalibration") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export Calibration JSON", 
-                                                                          juce::File::getSpecialLocation(juce::File::userHomeDirectory), 
-                                                                          "*.json");
-                                                                          
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles, 
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile() || !result.exists()) {
-                                audioProcessor.getCalibrationSettings().saveToPath(result.getFullPathName().toStdString());
-                                juce::Logger::writeToLog("[JUNiO] Calibration Exported successfully to: " + result.getFullPathName());
-                            }
-                        });
-                    }
-                    else if (action == "importCalibration") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import Calibration JSON", 
-                                                                          juce::File::getSpecialLocation(juce::File::userHomeDirectory), 
-                                                                          "*.json");
-                                                                          
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, 
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                audioProcessor.getCalibrationSettings().loadFromPath(result.getFullPathName().toStdString());
-                                juce::Logger::writeToLog("[JUNiO] Calibration Imported successfully from: " + result.getFullPathName());
-                                // Update UI by triggering a re-read of params if necessary, 
-                                // though the manager usually notifies listeners.
-                            }
-                        });
-                    }
-                    else if (action == "hpfCycle") { smm.startHpfCycle(); }
-                    else if (action == "chorusCycle") { smm.startChorusCycle(); }
-                    else if (action == "autoTuneVCF") { smm.startAutoVcfTune(); }
-                    else if (action == "toggleRecord") { audioProcessor.toggleRecording(); }
-                    // [New] DAC Hz Table CSV import/export
-                    else if (action == "importDacTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import DAC Hz Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                bool ok = audioProcessor.getCalibrationSettings().importDacTableCsv(result.getFullPathName().toStdString());
-                                dispatchToJS("onDacTableImport", juce::var(ok));
-                            }
-                        });
-                    }
-                    else if (action == "exportDacTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export DAC Hz Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("J106DACHzTable.csv"), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getCalibrationSettings().exportDacTableCsv(result.withFileExtension(".csv").getFullPathName().toStdString());
-                            }
-                        });
-                    }
-                    else if (action == "importVcaTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import VCA Gain Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                bool ok = audioProcessor.getCalibrationSettings().importVcaTableCsv(result.getFullPathName().toStdString());
-                                dispatchToJS("onVcaTableImport", juce::var(ok));
-                            }
-                        });
-                    }
-                    else if (action == "exportVcaTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export VCA Gain Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("J106VCAGainTable.csv"), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getCalibrationSettings().exportVcaTableCsv(result.withFileExtension(".csv").getFullPathName().toStdString());
-                            }
-                        });
-                    }
-                    else if (action == "importLfoSpeedTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import LFO Speed Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                bool ok = audioProcessor.getCalibrationSettings().importLfoSpeedTableCsv(result.getFullPathName().toStdString());
-                                dispatchToJS("onLfoSpeedTableImport", juce::var(ok));
-                            }
-                        });
-                    }
-                    else if (action == "exportLfoSpeedTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export LFO Speed Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("J106LFOSpeedTable.csv"), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getCalibrationSettings().exportLfoSpeedTableCsv(result.withFileExtension(".csv").getFullPathName().toStdString());
-                            }
-                        });
-                    }
-                    else if (action == "importLfoRampTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import LFO Ramp Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                bool ok = audioProcessor.getCalibrationSettings().importLfoRampTableCsv(result.getFullPathName().toStdString());
-                                dispatchToJS("onLfoRampTableImport", juce::var(ok));
-                            }
-                        });
-                    }
-                    else if (action == "exportLfoRampTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export LFO Ramp Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("J106LFORampTable.csv"), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getCalibrationSettings().exportLfoRampTableCsv(result.withFileExtension(".csv").getFullPathName().toStdString());
-                            }
-                        });
-                    }
-                    else if (action == "importSubLevelTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Import Sub Level Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result.existsAsFile()) {
-                                bool ok = audioProcessor.getCalibrationSettings().importSubLevelTableCsv(result.getFullPathName().toStdString());
-                                dispatchToJS("onSubLevelTableImport", juce::var(ok));
-                            }
-                        });
-                    }
-                    else if (action == "exportSubLevelTable") {
-                        fileChooser = std::make_unique<juce::FileChooser>("Export Sub Level Table (.csv)...",
-                            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("J106SubLevelTable.csv"), "*.csv");
-                        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& fc) {
-                            auto result = fc.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getCalibrationSettings().exportSubLevelTableCsv(result.withFileExtension(".csv").getFullPathName().toStdString());
-                            }
-                        });
-                    }
-                }
-            }
-            completion({});
+            BridgeService::serviceAction(audioProcessor, fileChooser, args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                std::move(completion));
         })
-        .withNativeFunction ("loadPreset", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                int index = (int)args[0];
-                audioProcessor.loadPreset(index);
-            }
-            completion({});
+                .withNativeFunction ("loadPreset", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::loadPreset(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("loadLibraryPreset", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 2) {
-                int libIdx = (int)args[0];
-                int prstIdx = (int)args[1];
-                audioProcessor.loadLibraryPreset(libIdx, prstIdx);
-            }
-            completion({});
+                .withNativeFunction ("loadLibraryPreset", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::loadLibraryPreset(audioProcessor, args, std::move(completion));
         })
 
-        .withNativeFunction ("runSelfTest", [this](const juce::Array<juce::var>&, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            juce::Logger::writeToLog("[JUNiO] IPC: runSelfTest requested by WebUI");
-            auto res = audioProcessor.runSelfTest();
-            notifySelfTestState();
-            
-            juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-            obj->setProperty("ok", res.ok);
-            obj->setProperty("presetFailures", res.presetFailures);
-            obj->setProperty("sysExOk", res.sysExOk);
-            obj->setProperty("jsonOk", res.jsonOk);
-            
-            juce::Array<juce::var> failedArr;
-            for (const auto& s : res.failedPresets) failedArr.add(s);
-            obj->setProperty("failedPresets", failedArr);
-            
-            completion(juce::var(obj.get()));
+                .withNativeFunction ("runSelfTest", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::runSelfTest(audioProcessor, args,
+                [this]() { notifySelfTestState(); },
+                std::move(completion));
         })
         .withNativeFunction ("menuAction", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                juce::String action = args[0].toString();
-                if (action == "panic") audioProcessor.triggerPanic();
-                else if (action == "undo") audioProcessor.undo();
-                else if (action == "redo") audioProcessor.redo();
-                else if (action == "getCurrentPresetName") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        completion(juce::var(pm->getCurrentPreset().name));
-                        return;
-                    }
-                    completion(juce::var("New Preset"));
-                    return;
+            // Handle uiReady inline (tightly coupled to editor state)
+            if (args.size() >= 1 && args[0].toString() == "uiReady") {
+                writeLog("[JUNiO] UI READY - Performing full state dump");
+                sendPresetListUpdate();
+                if (auto* pm = audioProcessor.getPresetManager()) {
+                    const auto& pr = pm->getCurrentPreset();
+                    sendBankPatchUpdate(pr.originGroup, pr.originBank, pr.originPatch);
+                    juce::String lcdString = "P: " + juce::String(audioProcessor.getCurrentProgram() + 1) + " " + audioProcessor.getProgramName(audioProcessor.getCurrentProgram());
+                    dispatchToJS("onLCDUpdate", lcdString);
+                    notifySelfTestState();
                 }
-                else if (action == "toggleMidiOut") audioProcessor.toggleMidiOut();
-                else if (action == "handleManual") {
-                    audioProcessor.enterTestMode(false);
-                    audioProcessor.sendManualMode();
-                }
-                else if (action == "handleTest") {
-                    audioProcessor.enterTestMode(true);
-                }
-                else if (action == "handleTestProgram") {
-                    if (args.size() >= 2) audioProcessor.triggerTestProgram((int)args[1]);
-                }
-                else if (action == "handleRandomize") {
-                    audioProcessor.randomizeSound();
-                }
-                else if (action == "handleAbout") showAboutCallback();
-                else if (action == "handleSettings") showSettingsCallback();
-                else if (action == "handleServiceMode") showServiceModeCallback();
-                else if (action == "uiReady") {
-                    writeLog("[JUNiO] UI READY - Performing full state dump");
-                    sendPresetListUpdate();
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        const auto& pr = pm->getCurrentPreset();
-                        sendBankPatchUpdate(pr.originGroup, pr.originBank, pr.originPatch);
-                        
-                        juce::String lcdString = "P: " + juce::String(audioProcessor.getCurrentProgram() + 1) + " " + audioProcessor.getProgramName(audioProcessor.getCurrentProgram());
-                        dispatchToJS ("onLCDUpdate", lcdString);
-                        
-                        notifySelfTestState();
-                    }
-                }
-                else if (action == "exit") {
-                    if (auto* app = juce::JUCEApplication::getInstance())
-                        app->systemRequestedQuit();
-                }
-                else if (action == "handleLoad" || action == "handleImportSysex") {
-                    fileChooser = std::make_unique<juce::FileChooser>("Load patch or bank...", 
-                        juce::File(audioProcessor.getPresetManager()->getLastPath()),
-                        "*.jno;*.syx;*.wav;*.bin;*.pjunoxl");
-                    fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::canSelectMultipleItems,
-                        [this](const juce::FileChooser& chooser) {
-                            auto results = chooser.getResults();
-                            if (results.size() > 0) {
-                                int successCount = 0;
-                                int totalFiles = results.size();
-                                juce::String lastError;
-                                juce::String finalMessage;
-
-                                for (int i = 0; i < totalFiles; ++i) {
-                                    // Only the first file respects selection; others ignore it to fill sequence
-                                    auto res = audioProcessor.getPresetManager()->importPresetsFromFile(results[i], (i > 0));
-                                    if (res.success) {
-                                        successCount++;
-                                        if (totalFiles == 1) finalMessage = res.message;
-                                    } else {
-                                        lastError = res.message;
-                                    }
-                                }
-
-                                if (totalFiles > 1) {
-                                    if (successCount == totalFiles) 
-                                        finalMessage = "Successfully imported " + juce::String(successCount) + " files.";
-                                    else if (successCount > 0) 
-                                        finalMessage = "Imported " + juce::String(successCount) + " of " + juce::String(totalFiles) + " files.";
-                                    else 
-                                        finalMessage = "Import failed: " + lastError;
-                                } else if (successCount == 0) {
-                                    finalMessage = lastError;
-                                }
-
-                                // Emit aggregate result to WebUI
-                                juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-                                obj->setProperty("success", successCount > 0);
-                                obj->setProperty("message", finalMessage);
-                                dispatchToJS("onImportResult", juce::var(obj.get()));
-
-                                audioProcessor.requestPatchDump();
-                            }
-                        });
-                }
-                else if (action == "handleSave" || action == "handleExportBank") {
-                    fileChooser = std::make_unique<juce::FileChooser>("Save patch...", 
-                        juce::File(audioProcessor.getPresetManager()->getLastPath()),
-                        "*.jno;*.json");
-                    fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& chooser) {
-                            auto result = chooser.getResult();
-                            if (result.exists()) { // allow overwrite
-                                audioProcessor.getPresetManager()->exportCurrentPresetToJson(result);
-                            } else if (result != juce::File()) {
-                                audioProcessor.getPresetManager()->exportCurrentPresetToJson(result.withFileExtension(".jno"));
-                            }
-                        });
-                }
-                else if (action == "handleLoadTape") {
-                    fileChooser = std::make_unique<juce::FileChooser>("Load Tape (.wav)...", 
-                        juce::File(audioProcessor.getPresetManager()->getLastPath()),
-                        "*.wav");
-                    fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this, action](const juce::FileChooser& chooser) {
-                            if (chooser.getResults().size() > 0) {
-                                auto res = audioProcessor.getPresetManager()->loadTape(chooser.getResults()[0]);
-                                
-                                juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-                                obj->setProperty("success", res.success);
-                                obj->setProperty("message", res.message);
-                                dispatchToJS("onImportResult", juce::var(obj.get()));
-                            }
-                        });
-                }
-                else if (action == "handleSaveTape") {
-                    fileChooser = std::make_unique<juce::FileChooser>("Save Tape (.wav)...", 
-                        juce::File(audioProcessor.getPresetManager()->getLastPath()),
-                        "*.wav");
-                    fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                        [this](const juce::FileChooser& chooser) {
-                            auto result = chooser.getResult();
-                            if (result != juce::File()) {
-                                audioProcessor.getPresetManager()->exportCurrentPresetToTape(result.withFileExtension(".wav"));
-                            }
-                        });
-                }
-                else if (action == "bank-inc" || action == "handleBankInc") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        pm->nextBank();
-                        audioProcessor.loadLibraryPreset(pm->getCurrentLibraryIndex(), pm->getCurrentPresetIndex());
-                    }
-                }
-                else if (action == "bank-dec" || action == "handleBankDec") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        pm->prevBank();
-                        audioProcessor.loadLibraryPreset(pm->getCurrentLibraryIndex(), pm->getCurrentPresetIndex());
-                    }
-                }
-                else if (action == "patch-inc" || action == "handlePatchInc") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        pm->nextPatch();
-                        audioProcessor.loadLibraryPreset(pm->getCurrentLibraryIndex(), pm->getCurrentPresetIndex());
-                    }
-                }
-                else if (action == "patch-dec" || action == "handlePatchDec") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        pm->prevPatch();
-                        audioProcessor.loadLibraryPreset(pm->getCurrentLibraryIndex(), pm->getCurrentPresetIndex());
-                    }
-                }
-                else if (action == "handleSavePreset") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        auto res = pm->saveCurrentPresetFromState(audioProcessor.getAPVTS());
-                        if (res.failed()) dispatchToJS("alert", res.getErrorMessage());
-                        else {
-                            dispatchToJS("alert", "PRESET SAVED");
-                            sendPresetListUpdate();
-                        }
-                    }
-                }
-                else if (action == "handleSavePresetAs") {
-                    if (auto* pm = audioProcessor.getPresetManager()) {
-                        juce::String newName;
-                        if (args.size() > 1) newName = args[1].toString();
-                        else newName = pm->getCurrentPreset().name + " Copy";
-
-                        auto res = pm->saveAsNewPresetFromState(audioProcessor.getAPVTS(), newName);
-                        if (res.failed()) dispatchToJS("alert", res.getErrorMessage());
-                        else {
-                            dispatchToJS("alert", "PRESET SAVED AS " + newName);
-                            sendPresetListUpdate();
-                        }
-                    }
-                }
-                else if (action == "handleLoadTuning") {
-                    // [Fix] LOAD .SCL — open native file dialog and load via processor
-                    fileChooser = std::make_unique<juce::FileChooser>("Load Scala Tuning (.scl)...",
-                        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
-                        "*.scl");
-                    fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                    [this](const juce::FileChooser& fc) {
-                        auto result = fc.getResult();
-                        if (result.existsAsFile()) {
-                            bool ok = audioProcessor.loadScalaTuning(result);
-                            juce::DynamicObject::Ptr obj = new juce::DynamicObject();
-                            obj->setProperty("ok", ok);
-                            obj->setProperty("name", result.getFileNameWithoutExtension());
-                            dispatchToJS("onTuningLoaded", juce::var(obj.get()));
-                        }
-                    });
-                }
-                else if (action == "handleResetTuning") {
-                    audioProcessor.resetTuning();
-                    dispatchToJS("onTuningLoaded", juce::var("reset"));
-                }
-
-                else if (action == "showBrowser") {
-                    dispatchToJS("showModal", "browser");
-                }
-                else if (action == "setUserName") {
-                    if (args.size() >= 2) audioProcessor.setUserName(args[1].toString());
-                }
-                else if (action == "getUserName") {
-                    completion(audioProcessor.getUserName());
-                    return;
-                }
-                else if (action == "writeToInternalSlot") {
-                    if (args.size() >= 2) {
-                        int slot = (int)args[1];
-                        juce::String name = args.size() >= 3 ? args[2].toString() : "";
-                        juce::String author = args.size() >= 4 ? args[3].toString() : "";
-                        
-                        int group = slot / 64;
-                        int rem = slot % 64;
-                        int bank = (rem / 8) + 1;
-                        int patch = (rem % 8) + 1;
-                        if (auto* pm = audioProcessor.getPresetManager()) {
-                            pm->writeToInternalSlot(group, bank, patch, audioProcessor.getAPVTS().copyState(), name, author);
-                            sendPresetListUpdate(); // Refresh browser immediately after saving to RAM
-                        }
-                    }
-                }
+                completion({});
+                return;
             }
-            completion({});
+            BridgeMenu::menuAction(audioProcessor, fileChooser,
+                pendingImportFile, pendingImportFormat,
+                pendingTapeFile, pendingSmartResult, selectedDecoderIndex,
+                args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                [this]() { sendPresetListUpdate(); },
+                [this]() { showAboutCallback(); },
+                [this]() { showSettingsCallback(); },
+                [this]() { showServiceModeCallback(); },
+                std::move(completion));
         })
         .withNativeFunction ("setBrowserData", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                if (auto* pm = audioProcessor.getPresetManager()) {
-                    // Use the var directly if it's already an object (JUCE 8 handles this)
-                    const auto& var = args[0];
-                    
-                    juce::ValueTree root("BankManager");
-                    auto* obj = var.getDynamicObject();
-                    if (obj) {
-                        // Extract categories
-                        auto catsVar = obj->getProperty("categories");
-                        if (auto* catsArr = catsVar.getArray()) {
-                            juce::String catsCsv;
-                            for (auto& cat : *catsArr) {
-                                if (catsCsv.isNotEmpty()) catsCsv += ",";
-                                catsCsv += cat.toString();
-                            }
-                            root.setProperty("categories", catsCsv, nullptr);
-                        }
-
-                        auto libsVar = obj->getProperty("libraries");
-                        if (auto* libsArr = libsVar.getArray()) {
-                            for (auto& libVar : *libsArr) {
-                                if (auto* lObj = libVar.getDynamicObject()) {
-                                    juce::ValueTree libVT("Library");
-                                    libVT.setProperty("name", lObj->getProperty("name"), nullptr);
-                                    
-                                    auto patchesVar = lObj->getProperty("patches");
-                                    if (auto* pArr = patchesVar.getArray()) {
-                                        for (auto& pVar : *pArr) {
-                                            if (auto* pObj = pVar.getDynamicObject()) {
-                                                juce::ValueTree pVT("Preset");
-                                                pVT.setProperty("name", pObj->getProperty("name"), nullptr);
-                                                pVT.setProperty("category", pObj->getProperty("category"), nullptr);
-                                                pVT.setProperty("author", pObj->getProperty("author"), nullptr);
-                                                pVT.setProperty("tags", pObj->getProperty("tags"), nullptr);
-                                                pVT.setProperty("notes", pObj->getProperty("notes"), nullptr);
-                                                pVT.setProperty("date", pObj->getProperty("date"), nullptr);
-                                                pVT.setProperty("favorite", pObj->getProperty("favorite"), nullptr);
-                                                
-                                                // Handle nested "data" or "state"
-                                                auto dataVar = pObj->getProperty("data");
-                                                if (dataVar.isObject()) {
-                                                    // Convert to Parameters ValueTree
-                                                    juce::ValueTree paramsVT("Parameters");
-                                                    if (auto* dObj = dataVar.getDynamicObject()) {
-                                                        for (auto& prop : dObj->getProperties())
-                                                            paramsVT.setProperty(prop.name, prop.value, nullptr);
-                                                    }
-                                                    pVT.addChild(paramsVT, -1, nullptr);
-                                                }
-                                                libVT.addChild(pVT, -1, nullptr);
-                                            }
-                                        }
-                                    }
-                                    root.addChild(libVT, -1, nullptr);
-                                }
-                            }
-                        }
-                    }
-                    pm->fromValueTree(root);
-                    pm->saveBrowserData();
-                    juce::Logger::writeToLog("[JUNiO] Browser Data Synced to C++ Engine and Persisted");
-                }
-            }
-            completion(juce::var::undefined());
+            BridgeActions::setBrowserData(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("getSynthState", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            juce::ignoreUnused(args);
-            juce::DynamicObject::Ptr state = new juce::DynamicObject();
-            for (auto* param : audioProcessor.getParameters()) {
-                if (auto* p = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
-                    state->setProperty(juce::Identifier(p->getParameterID()), (double)p->getValue());
-                }
-            }
-            completion(juce::var(state.get()));
+                .withNativeFunction ("getSynthState", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::getSynthState(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("getBrowserData", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            juce::ignoreUnused(args);
-            if (auto* pm = audioProcessor.getPresetManager()) {
-                juce::DynamicObject::Ptr root = new juce::DynamicObject();
-                juce::Array<juce::var> libs;
-                for (int i=0; i < pm->getNumLibraries(); ++i) {
-                    auto& lib = pm->getLibrary(i);
-                    juce::DynamicObject::Ptr lObj = new juce::DynamicObject();
-                    lObj->setProperty("name", lib.name);
-                    lObj->setProperty("index", i);
-                    juce::Array<juce::var> patches;
-                    for (int j=0; j < (int)lib.patches.size(); ++j) {
-                        auto& p = lib.patches[j];
-                        juce::DynamicObject::Ptr pObj = new juce::DynamicObject();
-                        pObj->setProperty("name", p.name);
-                        pObj->setProperty("category", p.category);
-                        pObj->setProperty("author", p.author);
-                        pObj->setProperty("tags", p.tags);
-                        pObj->setProperty("notes", p.notes);
-                        pObj->setProperty("date", p.creationDate);
-                        pObj->setProperty("favorite", p.isFavorite);
-                        pObj->setProperty("index", j);
-
-                        // Send patch data
-                        juce::DynamicObject::Ptr dObj = new juce::DynamicObject();
-                        const auto& state = p.state;
-                        if (state.isValid()) {
-                            for (int k=0; k < state.getNumProperties(); ++k) {
-                                auto propName = state.getPropertyName(k).toString();
-                                dObj->setProperty(propName, (double)state.getProperty(propName));
-                            }
-                        }
-                        pObj->setProperty("data", juce::var(dObj.get()));
-
-                        patches.add(juce::var(pObj.get()));
-                    }
-                    lObj->setProperty("patches", patches);
-                    libs.add(juce::var(lObj.get()));
-                }
-                root->setProperty("libraries", libs);
-                
-                // Send categories
-                juce::Array<juce::var> cats;
-                for (const auto& c : pm->categories_) cats.add(c);
-                root->setProperty("categories", cats);
-
-                completion(juce::var(root.get()));
-            } else {
-                completion({});
-            }
+                .withNativeFunction ("getBrowserData", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::getBrowserData(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("setFavorite", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 3) {
-                if (auto* pm = audioProcessor.getPresetManager())
-                    pm->setFavorite((int)args[0], (int)args[1], (bool)args[2]);
-            }
-            completion({});
+                .withNativeFunction ("setFavorite", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::setFavorite(audioProcessor, args, std::move(completion));
         })
-        .withNativeFunction ("updateMetadata", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 6) {
-                if (auto* pm = audioProcessor.getPresetManager())
-                    pm->updateMetadata((int)args[0], (int)args[1], args[2].toString(), args[3].toString(), args[4].toString(), args[5].toString());
-            }
-            completion({});
+                .withNativeFunction ("updateMetadata", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::updateMetadata(audioProcessor, args, std::move(completion));
         })
         .withNativeFunction ("exportBank", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) {
-                auto libObj = args[0];
-                fileChooser = std::make_unique<juce::FileChooser>("Export Bank as JSON...", 
-                    juce::File::getSpecialLocation(juce::File::userHomeDirectory), "*.json");
-                
-                fileChooser->launchAsync(juce::FileBrowserComponent::saveMode, [this, libObj](const juce::FileChooser& fc) {
-                    auto result = fc.getResult();
-                    if (result != juce::File()) {
-                        // but JS already sent us the library data.
-                        result.replaceWithText(juce::JSON::toString(libObj));
-                    }
-                });
-            }
-            completion({});
+            BridgeActions::exportBank(audioProcessor, fileChooser, args, std::move(completion));
         })
         .withNativeFunction ("importBank", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            juce::ignoreUnused(args);
-            fileChooser = std::make_unique<juce::FileChooser>("Import Bank JSON...", 
-                juce::File::getSpecialLocation(juce::File::userHomeDirectory), "*.json");
-            
-            // Completion needs to stay alive for async
-            auto safeCompletion = std::make_shared<juce::WebBrowserComponent::NativeFunctionCompletion>(std::move(completion));
-            
-            fileChooser->launchAsync(juce::FileBrowserComponent::openMode, [this, safeCompletion](const juce::FileChooser& fc) {
-                auto result = fc.getResult();
-                if (result.existsAsFile()) {
-                    juce::var json;
-                    if (juce::JSON::parse(result.loadFileAsString(), json).wasOk()) {
-                        (*safeCompletion)(json);
-                        return;
-                    }
-                }
-                // Important: Always complete signal
-                (*safeCompletion)(juce::var::undefined());
-            });
+            BridgeActions::importBank(audioProcessor, fileChooser, args, std::move(completion));
         })
-        .withNativeFunction ("savePresetDetailed", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 2) {
-                if (auto* pm = audioProcessor.getPresetManager()) {
-                    pm->selectPreset((int)args[0], (int)args[1]);
-                    auto res = pm->saveCurrentPresetFromState(audioProcessor.getAPVTS());
-                    if (res.failed()) dispatchToJS("alert", res.getErrorMessage());
-                    else {
-                        sendPresetListUpdate();
-                    }
-                }
-            }
-            completion({});
+                .withNativeFunction ("savePresetDetailed", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::savePresetDetailed(audioProcessor, args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                [this]() { sendPresetListUpdate(); },
+                std::move(completion));
         })
-        .withNativeFunction ("saveAsNewPresetDetailed", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 5) {
-                if (auto* pm = audioProcessor.getPresetManager()) {
-                    auto res = pm->saveAsNewPresetFromState(audioProcessor.getAPVTS(), 
-                        args[0].toString(), // Name
-                        args[1].toString(), // Category
-                        args[2].toString(), // Author
-                        args[3].toString(), // Tags
-                        args[4].toString()  // Notes
-                    );
-                    if (res.failed()) dispatchToJS("alert", res.getErrorMessage());
-                    else {
-                        sendPresetListUpdate();
-                    }
-                }
-            }
-            completion({});
+                .withNativeFunction ("saveAsNewPresetDetailed", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::saveAsNewPresetDetailed(audioProcessor, args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                [this]() { sendPresetListUpdate(); },
+                std::move(completion));
         })
-        .withNativeFunction ("pianoNoteOn", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 2) audioProcessor.keyboardState.noteOn(1, (int)args[0], (float)args[1]);
-            completion({});
+                .withNativeFunction ("confirmImportFile", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeImport::confirmImportFile(audioProcessor, pendingImportFile, pendingImportFormat, args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                [this]() { sendPresetListUpdate(); },
+                [this]() { audioProcessor.requestPatchDump(); },
+                std::move(completion));
         })
-        .withNativeFunction ("pianoNoteOff", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
-            if (args.size() >= 1) audioProcessor.keyboardState.noteOff(1, (int)args[0], 0.0f);
-            completion({});
+                .withNativeFunction ("confirmTapeImport", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeImport::confirmTapeImport(audioProcessor, pendingTapeFile, pendingSmartResult,
+                selectedDecoderIndex, args,
+                [this](const juce::String& e, const juce::var& v) { dispatchToJS(e, v); },
+                std::move(completion));
+        })
+                .withNativeFunction ("pianoNoteOn", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::pianoNoteOn(audioProcessor, args, std::move(completion));
+        })
+                .withNativeFunction ("pianoNoteOff", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::pianoNoteOff(audioProcessor, args, std::move(completion));
+        })
+                .withNativeFunction ("chooseDirectory", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::chooseDirectory(audioProcessor, fileChooser, args, std::move(completion));
+        })
+                .withNativeFunction ("getLibraryPath", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::getLibraryPath(audioProcessor, args, std::move(completion));
+        })
+                .withNativeFunction ("setLibraryPath", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
+            BridgeActions::setLibraryPath(audioProcessor, args, std::move(completion));
         })
         .withNativeFunction ("uiReady", [this](const juce::Array<juce::var>& args, juce::WebBrowserComponent::NativeFunctionCompletion completion) {
             juce::ignoreUnused(args);
@@ -833,7 +229,12 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 // 1. Version Info
                 juce::String versionStr = "1.2.0 (Build " + juce::String(JUNO_BUILD_VERSION) + ")";
                 dispatchToJS ("onVersionUpdate", versionStr);
-                dispatchToJS ("onProductNameUpdate", juce::String(getJunoModelName()));
+                
+                // Send both product name and target model
+                juce::DynamicObject::Ptr modelInfo = new juce::DynamicObject();
+                modelInfo->setProperty("name", juce::String(getJunoModelName()));
+                modelInfo->setProperty("targetModel", (int) JUNO_TARGET_MODEL);
+                dispatchToJS ("onProductNameUpdate", juce::var(modelInfo.get()));
                 
                 int prog = audioProcessor.getCurrentProgram();
                 int group = prog / 64;

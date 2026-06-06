@@ -1,0 +1,537 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{27A48BCE-C948-330A-90DB-63A7AF1C3D18}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ABDSimpleJuno106</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ABDSimpleJuno106.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ABD JUNiO SIX_SharedCode</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ABDSimpleJuno106.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ABD JUNiO SIX_SharedCode</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ABDSimpleJuno106.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ABD JUNiO SIX_SharedCode</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ABDSimpleJuno106.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ABD JUNiO SIX_SharedCode</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer="yourcompany";JucePlugin_ManufacturerWebsite="";JucePlugin_ManufacturerEmail="";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name="ABD JUNiO SIX";JucePlugin_Desc="ABD JUNiO SIX";JucePlugin_Version=0.0.1;JucePlugin_VersionString="0.0.1";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category="Instrument|Synth";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted="ABD_JUNiO_SIXAU";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID="com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1";JucePlugin_ARADocumentArchiveID="com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1";JucePlugin_ARACompatibleArchiveIDs="";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;DEBUG=1;_DEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer=\"yourcompany\";JucePlugin_ManufacturerWebsite=\"\";JucePlugin_ManufacturerEmail=\"\";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name=\"ABD JUNiO SIX\";JucePlugin_Desc=\"ABD JUNiO SIX\";JucePlugin_Version=0.0.1;JucePlugin_VersionString=\"0.0.1\";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category=\"Instrument|Synth\";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted=\"ABD_JUNiO_SIXAU\";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID=\"com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1\";JucePlugin_ARADocumentArchiveID=\"com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1\";JucePlugin_ARACompatibleArchiveIDs=\"\";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;DEBUG=1;_DEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>Copying kV4Hz.bin to build output</Message>
+      <Command>setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_if_different D:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/kV4Hz.bin D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer="yourcompany";JucePlugin_ManufacturerWebsite="";JucePlugin_ManufacturerEmail="";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name="ABD JUNiO SIX";JucePlugin_Desc="ABD JUNiO SIX";JucePlugin_Version=0.0.1;JucePlugin_VersionString="0.0.1";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category="Instrument|Synth";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted="ABD_JUNiO_SIXAU";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID="com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1";JucePlugin_ARADocumentArchiveID="com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1";JucePlugin_ARACompatibleArchiveIDs="";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer=\"yourcompany\";JucePlugin_ManufacturerWebsite=\"\";JucePlugin_ManufacturerEmail=\"\";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name=\"ABD JUNiO SIX\";JucePlugin_Desc=\"ABD JUNiO SIX\";JucePlugin_Version=0.0.1;JucePlugin_VersionString=\"0.0.1\";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category=\"Instrument|Synth\";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted=\"ABD_JUNiO_SIXAU\";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID=\"com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1\";JucePlugin_ARADocumentArchiveID=\"com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1\";JucePlugin_ARACompatibleArchiveIDs=\"\";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>Copying kV4Hz.bin to build output</Message>
+      <Command>setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_if_different D:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/kV4Hz.bin D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/Release
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer="yourcompany";JucePlugin_ManufacturerWebsite="";JucePlugin_ManufacturerEmail="";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name="ABD JUNiO SIX";JucePlugin_Desc="ABD JUNiO SIX";JucePlugin_Version=0.0.1;JucePlugin_VersionString="0.0.1";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category="Instrument|Synth";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted="ABD_JUNiO_SIXAU";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID="com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1";JucePlugin_ARADocumentArchiveID="com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1";JucePlugin_ARACompatibleArchiveIDs="";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer=\"yourcompany\";JucePlugin_ManufacturerWebsite=\"\";JucePlugin_ManufacturerEmail=\"\";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name=\"ABD JUNiO SIX\";JucePlugin_Desc=\"ABD JUNiO SIX\";JucePlugin_Version=0.0.1;JucePlugin_VersionString=\"0.0.1\";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category=\"Instrument|Synth\";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted=\"ABD_JUNiO_SIXAU\";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID=\"com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1\";JucePlugin_ARADocumentArchiveID=\"com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1\";JucePlugin_ARACompatibleArchiveIDs=\"\";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>Copying kV4Hz.bin to build output</Message>
+      <Command>setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_if_different D:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/kV4Hz.bin D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer="yourcompany";JucePlugin_ManufacturerWebsite="";JucePlugin_ManufacturerEmail="";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name="ABD JUNiO SIX";JucePlugin_Desc="ABD JUNiO SIX";JucePlugin_Version=0.0.1;JucePlugin_VersionString="0.0.1";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category="Instrument|Synth";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted="ABD_JUNiO_SIXAU";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID="com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1";JucePlugin_ARADocumentArchiveID="com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1";JucePlugin_ARACompatibleArchiveIDs="";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_AAX=0;JucePlugin_Build_LV2=0;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JucePlugin_Build_VST=0;JucePlugin_Build_VST3=1;JUCE_SHARED_CODE=1;JUCE_STANDALONE_APPLICATION=JucePlugin_Build_Standalone;JucePlugin_IsSynth=1;JucePlugin_ManufacturerCode=0x41626461;JucePlugin_Manufacturer=\"yourcompany\";JucePlugin_ManufacturerWebsite=\"\";JucePlugin_ManufacturerEmail=\"\";JucePlugin_PluginCode=0x4a313036;JucePlugin_ProducesMidiOutput=1;JucePlugin_IsMidiEffect=0;JucePlugin_WantsMidiInput=1;JucePlugin_EditorRequiresKeyboardFocus=1;JucePlugin_Name=\"ABD JUNiO SIX\";JucePlugin_Desc=\"ABD JUNiO SIX\";JucePlugin_Version=0.0.1;JucePlugin_VersionString=\"0.0.1\";JucePlugin_VersionCode=0x1;JucePlugin_VSTUniqueID=JucePlugin_PluginCode;JucePlugin_VSTCategory=kPlugCategSynth;JucePlugin_Vst3Category=\"Instrument|Synth\";JucePlugin_AUMainType='aumu';JucePlugin_AUSubType=JucePlugin_PluginCode;JucePlugin_AUExportPrefix=ABD_JUNiO_SIXAU;JucePlugin_AUExportPrefixQuoted=\"ABD_JUNiO_SIXAU\";JucePlugin_AUManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_CFBundleIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXIdentifier=com.yourcompany.ABDSimpleJuno106;JucePlugin_AAXManufacturerCode=JucePlugin_ManufacturerCode;JucePlugin_AAXProductId=JucePlugin_PluginCode;JucePlugin_AAXCategory=2048;JucePlugin_AAXDisableBypass=0;JucePlugin_AAXDisableMultiMono=0;JucePlugin_VSTNumMidiInputs=16;JucePlugin_VSTNumMidiOutputs=16;JucePlugin_Enable_ARA=0;JucePlugin_ARAFactoryID=\"com.yourcompany.ABDSimpleJuno106.arafactory.0.0.1\";JucePlugin_ARADocumentArchiveID=\"com.yourcompany.ABDSimpleJuno106.aradocumentarchive.1\";JucePlugin_ARACompatibleArchiveIDs=\"\";JucePlugin_ARAContentTypes=0;JucePlugin_ARATransformationFlags=0;JUCE_USE_CURL=0;JUCE_VST3_CAN_REPLACE_VST2=0;JUCE_WEB_BROWSER=1;JUCE_USE_WIN_WEBVIEW2=1;JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1;JUCE_DIRECT2D=1;COMPILING_JUNO6;JUNO_TARGET_MODEL=3;JUCE_MODULE_AVAILABLE_juce_audio_plugin_client=1;JUCE_MODULE_AVAILABLE_juce_audio_processors=1;JUCE_MODULE_AVAILABLE_juce_gui_extra=1;JUCE_MODULE_AVAILABLE_juce_gui_basics=1;JUCE_MODULE_AVAILABLE_juce_graphics=1;JUCE_MODULE_AVAILABLE_juce_events=1;JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1;NDEBUG=1;_NDEBUG=1;JUCE_MODULE_AVAILABLE_juce_core=1;JUCE_MODULE_AVAILABLE_juce_data_structures=1;JUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1;JUCE_MODULE_AVAILABLE_juce_audio_basics=1;JUCE_TARGET_HAS_BINARY_DATA=1;JUCE_MODULE_AVAILABLE_juce_audio_utils=1;JUCE_MODULE_AVAILABLE_juce_audio_formats=1;JUCE_MODULE_AVAILABLE_juce_audio_devices=1;JUCE_MODULE_AVAILABLE_juce_dsp=1;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode;D:\desarrollos\ABDSynths\ABDJUNiO601\Source;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView;D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers;C:\Users\ajaba\AppData\Local\PackageManagement\NuGet\Packages\Microsoft.Web.WebView2.1.0.3800.47\build\native\include;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\VST3_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lv2;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\serd;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sord\src;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\sratom;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\format_types\LV2_SDK\lilv\src;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message>Copying kV4Hz.bin to build output</Message>
+      <Command>setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_if_different D:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/kV4Hz.bin D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\a0380d2ccd31c1c13c378256b2148661\JuceHeader.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe header D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/Debug/Defs.txt D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\Debug\Defs.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\JuceHeader.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe header D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/Release/Defs.txt D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\Release\Defs.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\JuceHeader.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe header D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/MinSizeRel/Defs.txt D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\MinSizeRel\Defs.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\JuceHeader.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe header D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/RelWithDebInfo/Defs.txt D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\RelWithDebInfo\Defs.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\JuceHeader.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j6 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCXXInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeGenericSystem.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeLanguageInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeRCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\WindowsPaths.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\extras\Build\CMake\FindWebView2.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCXXCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeRCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeSystem.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\cmake.verify_globs;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j6 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCXXInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeGenericSystem.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeLanguageInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeRCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\WindowsPaths.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\extras\Build\CMake\FindWebView2.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCXXCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeRCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeSystem.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\cmake.verify_globs;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j6 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCXXInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeGenericSystem.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeLanguageInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeRCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\WindowsPaths.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\extras\Build\CMake\FindWebView2.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCXXCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeRCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeSystem.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\cmake.verify_globs;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/desarrollos/ABDSynths/ABDJUNiO601/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j6 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j6/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCXXInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeGenericSystem.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeLanguageInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeRCInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Compiler\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Linker\MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\Windows.cmake;C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-4.2\Modules\Platform\WindowsPaths.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\extras\Build\CMake\FindWebView2.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeCXXCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeRCCompiler.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\4.2.3-msvc3\CMakeSystem.cmake;D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\cmake.verify_globs;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ABDSimpleJuno106AudioProcessor.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PluginProcessor.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PresetManager.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PresetManager.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\SynthParams.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoVoiceManager.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoVoiceManager.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoTapeDecoder.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\MidiLearnHandler.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoSysEx.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoSysExEngine.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoSysExEngine.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoProtocol.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoTests.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoTests.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PerformanceState.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PerformanceState.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ServiceModeManager.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\CalibrationSettings.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorState.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorPresets.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorSysEx.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorMisc.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoTapeImporter.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoTapeImporter.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoSysexImporter.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoSysexImporter.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoFormatConverter.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoFormatConverter.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoCsvImporter.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoCsvImporter.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass\PresetManagerBase.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass\VoiceBase.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass\VoiceAllocator.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass\ADSRGeneric.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\BaseClass\LFOGeneric.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\WebViewEditor.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\WebViewEditor.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeActions.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeActions.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeImport.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeImport.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeService.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeService.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeMenu.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\WebView\BridgeMenu.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoADSR.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoADSR.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoDCO.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoDCO.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoLFO.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoLFO.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVoice.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVoice.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PluginEditor.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PluginEditor.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\JunoBender.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\JunoBender.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\JunoUIHelpers.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\PresetBrowser.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\PresetBrowser.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\PresetBrowserHeaderBar.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\PresetBrowserHeaderBar.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\ParameterDisplay.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoSysExDisplay.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoSysExDisplay.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoChorusSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoDCOSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoENVSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoHPFSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoLFOSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoVCASection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoVCFSection.h" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoPerformanceSection.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\UI\Sections\JunoBankSection.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_artefacts\JuceLibraryCode\JuceHeader.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors\juce_audio_processors.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_gui_extra\juce_gui_extra.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_gui_basics\juce_gui_basics.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics_Harfbuzz.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics_Sheenbidi.c" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_events\juce_events.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_core\juce_core.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_core\juce_core_CompilationTime.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_data_structures\juce_data_structures.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless_ara.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless_lv2_libs.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_basics\juce_audio_basics.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_utils\juce_audio_utils.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_formats\juce_audio_formats.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_devices\juce_audio_devices.cpp" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_dsp\juce_dsp.cpp" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ZERO_CHECK.vcxproj">
+      <Project>{9303F2D1-22B6-38FB-8E99-5EEDB929F175}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j6\ABDSimpleJuno106_WebUI.vcxproj">
+      <Project>{F98FF245-0427-32EA-B7EB-E860863518A8}</Project>
+      <Name>ABDSimpleJuno106_WebUI</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

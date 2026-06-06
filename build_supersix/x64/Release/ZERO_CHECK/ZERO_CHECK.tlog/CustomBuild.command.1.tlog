@@ -1,0 +1,10 @@
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\BUILD_SUPERSIX\CMAKEFILES\393EF1701393ECE8DF2C7D17AC6559BD\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/ABDSimpleJuno106.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

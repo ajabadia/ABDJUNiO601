@@ -99,26 +99,26 @@ public:
     float processSample (float input,
                          float cutoff01,
                          float resonance,
-                         float envAmount,
-                         float envVal,
-                         bool envInverted,
-                         float lfoAmount,
-                         float lfoVal,
-                         float kybdTrack,
-                         float currentFreqHz,
-                         float benderValue,
-                         float benderToVCF,
-                         float selfOscThreshold,
-                         float saturationScale,
-                         float selfOscInt,
-                         float vcfWidth,
-                         float vcfFrqTrim,
-                         class CalibrationSettings* cal);
+                         float envAmount = 0.0f,
+                         float envVal = 0.0f,
+                         bool envInverted = false,
+                         float lfoAmount = 0.0f,
+                         float lfoVal = 0.0f,
+                         float kybdTrack = 0.0f,
+                         float currentFreqHz = 440.0f,
+                         float benderValue = 0.0f,
+                         float benderToVCF = 0.0f,
+                         float selfOscThreshold = 0.95f,
+                         float saturationScale = 1.0f,
+                         float selfOscInt = 1.0f,
+                         float vcfWidth = 1.0f,
+                         float vcfFrqTrim = 0.0f,
+                         class CalibrationSettings* cal = nullptr);
 
 private:
-    float processSampleInternal (float input, float frq, float res);
-    float process2x (float input, float frq, float res);
-    float process4x (float input, float frq, float res);
+    float processSampleInternal (float input, float frq, float res, float k);
+    float process2x (float input, float frq, float res, float k);
+    float process4x (float input, float frq, float res, float k);
 
     float computeCutoffHz (float cutoff01,
                            float envAmount,

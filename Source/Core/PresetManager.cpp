@@ -194,8 +194,8 @@ juce::File PresetManager::getUserPresetsDirectory() const {
   return dir;
 }
 
-PresetManager::ImportResult PresetManager::loadTape(const juce::File &wavFile) {
-  auto result = ABD::JunoTapeImporter::loadFromFile(wavFile);
+PresetManager::ImportResult PresetManager::loadTape(const juce::File &wavFile, int forcedBaudRate) {
+  auto result = ABD::JunoTapeImporter::loadFromFile(wavFile, forcedBaudRate);
   if (result.result.failed())
       return { false, result.result.getErrorMessage() };
 
@@ -214,6 +214,74 @@ PresetManager::ImportResult PresetManager::loadTape(const juce::File &wavFile) {
   
   saveBrowserData();
   return { true, "Tape loaded successfully into " + juce::String(banksNeeded) + " banks." };
+}
+
+PresetManager::ImportResult PresetManager::loadTapeFromData(const juce::File& originalWavFile, const JunoTapeDecoder::DecodeResult& decodedData) {
+    if (!decodedData.success || decodedData.data.empty()) {
+        return { false, "No valid decoded data available." };
+    }
+    
+    // decodedData.data contains validated 18-byte patch segments (after DCB correction)
+    const auto& patches = decodedData.data;
+    int totalPatches = (int)patches.size() / 18;
+    
+    if (totalPatches == 0) {
+        return { false, "No patches found in decoded data." };
+    }
+    
+    // Group into libraries of 64 patches each
+    int banksNeeded = (totalPatches + 63) / 64;
+    auto emptyIndices = findEmptyBankIndices(banksNeeded);
+    
+    if ((int)emptyIndices.size() < banksNeeded) {
+        return { false, "Error: Not enough empty banks to load all tape data (Max 26)." };
+    }
+    
+    // Determine format description from baud rate
+    juce::String formatDesc = (decodedData.detectedBaudRate == 340) ? "Juno-60 Tape" : "Juno-106 Tape";
+    
+    for (int b = 0; b < banksNeeded; ++b) {
+        int targetIdx = emptyIndices[b];
+        auto& lib = libraries_[targetIdx];
+        lib.name = getLibraryLetter(targetIdx) + " - Smart Import: " + originalWavFile.getFileNameWithoutExtension();
+        lib.patches.clear();
+        
+        int startPat = b * 64;
+        int endPat = std::min(startPat + 64, totalPatches);
+        
+        for (int pi = startPat; pi < endPat; ++pi) {
+            size_t byteOff = (size_t)pi * 18;
+            juce::String patchName = "Tape " + juce::String(pi + 1);
+            
+            ABD::Preset preset = ABD::JunoFormatConverter::createPresetFromJunoBytes(
+                patchName,
+                &patches[byteOff],
+                juce::ValueTree(),
+                decodedData.detectedBaudRate);
+            
+            preset.category = formatDesc;
+            preset.originGroup = targetIdx;
+            preset.originBank = ((pi - startPat) / 8) + 1;
+            preset.originPatch = ((pi - startPat) % 8) + 1;
+            
+            lib.patches.push_back(preset);
+        }
+        
+        // Pad with INIT patches if needed
+        while ((int)lib.patches.size() < kMaxPatchesPerLibrary) {
+            ABD::Preset init;
+            init.name = "INIT PATCH";
+            init.category = "Init";
+            init.originGroup = targetIdx;
+            init.originBank = ((int)lib.patches.size() / 8) + 1;
+            init.originPatch = ((int)lib.patches.size() % 8) + 1;
+            init.state = bytesToState(nullptr, 0);
+            lib.patches.push_back(init);
+        }
+    }
+    
+    saveBrowserData();
+    return { true, "Smart import: " + juce::String(totalPatches) + " patches loaded into " + juce::String(banksNeeded) + " bank(s)." };
 }
 
 void PresetManager::addLibraryFromSysEx(const uint8_t *data, int size) {
@@ -427,10 +495,10 @@ void PresetManager::exportCurrentPresetToJson(const juce::File &file) {
   file.replaceWithText(vt.toXmlString());
 }
 
-void PresetManager::exportCurrentPresetToTape(const juce::File &file) {
+void PresetManager::exportCurrentPresetToTape(const juce::File &file, JunoTapeEncoder::Format format) {
   auto p = this->getCurrentPreset();
   auto bytes = stateToBytes(p.state);
-  auto buffer = JunoTapeEncoder::encodePatches({bytes}, 44100.0);
+  auto buffer = JunoTapeEncoder::encodePatches({bytes}, 44100.0, format);
 
   auto options = juce::AudioFormatWriterOptions()
                      .withSampleRate(44100.0)
@@ -598,15 +666,20 @@ void PresetManager::fromValueTree(const juce::ValueTree& vt) {
             }
 
             if (targetIdx >= 0 && targetIdx < kMaxLibraries) {
+                // Skip loading from XML for read-only factory banks (0, 1, 3, 4, 5)
+                if (targetIdx == 0 || targetIdx == 1 || targetIdx == 3 || targetIdx == 4 || targetIdx == 5) {
+                    continue;
+                }
+
                 // Merge patches into existing slot
                 auto& lib = this->libraries_[targetIdx];
                 
                 // Enforce valid library naming convention for persistence
-                if (targetIdx >= 3) {
+                if (targetIdx >= 6) {
                     lib.name = libName;
                     ensureValidLibraryName(targetIdx);
                 }
-
+                
                 lib.patches.clear();
                 for (int j = 0; j < libVT.getNumChildren() && j < kMaxPatchesPerLibrary; ++j) {
                     auto pVT = libVT.getChild(j);
@@ -677,7 +750,7 @@ int PresetManager::findFirstEmptySlot(int startLib) {
 
 std::vector<int> PresetManager::findEmptyBankIndices(int count) {
     std::vector<int> found;
-    for (int i = 3; i < (int)libraries_.size(); ++i) { // Start after Factory A/B and Internal RAM
+    for (int i = 6; i < (int)libraries_.size(); ++i) { // Start after Factory and RAM banks
         if (libraries_[i].name.contains("Empty Bank")) {
             found.push_back(i);
             if (found.size() >= (size_t)count) break;
@@ -731,7 +804,7 @@ void PresetManager::updateMetadata(int libIdx, int presetIdx, const juce::String
 }
 
 void PresetManager::loadFactoryPresets() {
-    // Fill A and B (0, 1) with actual factory data
+    // 1. Fill A and B (0, 1) with actual factory data (Juno-106)
     for (int g = 0; g < 2; ++g) {
         int libIdx = g;
         auto& lib = this->libraries_[libIdx];
@@ -749,6 +822,89 @@ void PresetManager::loadFactoryPresets() {
             }
         }
         
+        while (lib.patches.size() < kMaxPatchesPerLibrary) {
+            ABD::Preset init;
+            init.name = "INIT PATCH";
+            init.state = bytesToState(nullptr, 0);
+            lib.patches.push_back(init);
+        }
+    }
+
+    // 2. Fill D (index 3) with Juno-60 Factory presets
+    {
+        int libIdx = 3;
+        auto& lib = this->libraries_[libIdx];
+        lib.name = "D - Juno 60 Factory";
+        lib.patches.clear();
+
+        for (int p_idx = 0; p_idx < kNumJuno60FactoryPatches && p_idx < kMaxPatchesPerLibrary; ++p_idx) {
+            ABD::Preset p = createPresetFromJunoPatch(juno60FactoryPatches[p_idx]);
+            // Set Juno-60 model routing explicitly (1 = Juno-60)
+            p.state.setProperty("modelDCO", 1, nullptr);
+            p.state.setProperty("modelHPF", 1, nullptr);
+            p.state.setProperty("modelVCF", 1, nullptr);
+            p.state.setProperty("modelADSR", 1, nullptr);
+            p.state.setProperty("modelChorus", 1, nullptr);
+            p.state.setProperty("modelArp", 1, nullptr);
+            p.state.setProperty("modelPoly", 1, nullptr);
+            p.state.setProperty("modelPorta", 1, nullptr);
+            p.state.setProperty("modelUnison", 1, nullptr);
+            p.category = "Juno 60 Factory";
+            p.originGroup = libIdx;
+            p.originBank = (p_idx / 8) + 1;
+            p.originPatch = (p_idx % 8) + 1;
+            lib.patches.push_back(p);
+        }
+
+        while (lib.patches.size() < kMaxPatchesPerLibrary) {
+            ABD::Preset init;
+            init.name = "INIT PATCH";
+            init.state = bytesToState(nullptr, 0);
+            lib.patches.push_back(init);
+        }
+    }
+
+    // 3. Fill E (index 4) with David Churcher Custom Patches A (first 64 patches)
+    {
+        int libIdx = 4;
+        auto& lib = this->libraries_[libIdx];
+        lib.name = "E - David Churcher A";
+        lib.patches.clear();
+
+        for (int p_idx = 0; p_idx < kMaxPatchesPerLibrary && p_idx < kNumDavidChurcherPatches; ++p_idx) {
+            ABD::Preset p = createPresetFromJunoPatch(davidChurcherPatches[p_idx]);
+            p.category = "David Churcher";
+            p.originGroup = libIdx;
+            p.originBank = (p_idx / 8) + 1;
+            p.originPatch = (p_idx % 8) + 1;
+            lib.patches.push_back(p);
+        }
+
+        while (lib.patches.size() < kMaxPatchesPerLibrary) {
+            ABD::Preset init;
+            init.name = "INIT PATCH";
+            init.state = bytesToState(nullptr, 0);
+            lib.patches.push_back(init);
+        }
+    }
+
+    // 4. Fill F (index 5) with David Churcher Custom Patches B (remaining patches)
+    {
+        int libIdx = 5;
+        auto& lib = this->libraries_[libIdx];
+        lib.name = "F - David Churcher B";
+        lib.patches.clear();
+
+        for (int p_idx = kMaxPatchesPerLibrary; p_idx < kNumDavidChurcherPatches; ++p_idx) {
+            int localIdx = p_idx - kMaxPatchesPerLibrary;
+            ABD::Preset p = createPresetFromJunoPatch(davidChurcherPatches[p_idx]);
+            p.category = "David Churcher";
+            p.originGroup = libIdx;
+            p.originBank = (localIdx / 8) + 1;
+            p.originPatch = (localIdx % 8) + 1;
+            lib.patches.push_back(p);
+        }
+
         while (lib.patches.size() < kMaxPatchesPerLibrary) {
             ABD::Preset init;
             init.name = "INIT PATCH";

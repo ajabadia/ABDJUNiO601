@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/modules/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/extras/Build/cmake_install.cmake",
+		"D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_m2/_juce/extras/Build/juceaide/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

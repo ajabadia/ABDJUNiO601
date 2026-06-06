@@ -53,7 +53,11 @@
                     <ul class="dropdown">
                         <li onclick="juce.menuAction('showBrowser')">Preset Browser...</li>
                         <li class="divider"></li>
-                        <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / JNO...</li>
+                        <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / Syx...</li>
+                        <li onclick="juce.menuAction('handleImportCsv')">Import CSV...</li>
+                        <li onclick="juce.menuAction('handleImportJson')">Import JSON / JNO...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('handleLoadTape')">Load Tape (.WAV)...</li>
                         <li class="divider"></li>
                         <li onclick="juce.menuAction('exit')">Exit</li>
                     </ul>
@@ -134,7 +138,7 @@
             <aside id="sidebar-panel">
                 <section class="sidebar-top-section">
 
-                    <div class="nav-row">
+                    <div class="nav-row" id="nav-row">
                         <div class="nav-unit">
                             <div class="nav-lbl-mini">BK-</div>
                             <button class="sq beige nav-arrow" id="bank-dec"></button>
@@ -153,7 +157,7 @@
                         </div>
                     </div>
 
-                    <div class="patch-grid-container">
+                    <div class="patch-grid-container" id="patch-grid-container">
                         <div class="num-grid-8 patch-grid shadow-grid">
                             <div class="patch-unit">
                                 <div class="patch-lbl-mini top">1</div>
@@ -192,35 +196,35 @@
 
                     <!-- Utility Buttons 4x2 Grid -->
                     <div class="util-grid-4x2">
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-manual">
                             <div class="util-lbl-mini top">MANUAL</div>
                             <button class="sq orange" id="manual-btn" data-action="handleManual"></button>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-write">
                             <div class="util-lbl-mini top">WRITE</div>
                             <button class="sq orange" id="write-btn" data-action="handleWriteArm"></button>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-save">
                             <div class="util-lbl-mini top">SAVE</div>
                             <button class="sq grey" id="save-patch-btn" data-action="handleSave"></button>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-verify">
                             <div class="util-lbl-mini top">VERIFY</div>
                             <button class="sq grey" id="verify-patch-btn" data-action="handleExportBank"></button>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-load">
                             <button class="sq grey" id="load-patch-btn" data-action="handleLoad"></button>
                             <div class="util-lbl-mini bot">LOAD</div>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-random">
                             <button class="sq grey" id="random-btn" data-action="handleRandomize"></button>
                             <div class="util-lbl-mini bot">RANDOM</div>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-panic">
                             <button class="sq red" id="panic-btn" data-action="panic"></button>
                             <div class="util-lbl-mini bot">PANIC</div>
                         </div>
-                        <div class="util-unit">
+                        <div class="util-unit" id="util-test">
                             <button class="sq grey" id="test-btn" data-action="handleTest"></button>
                             <div class="util-lbl-mini bot">TEST</div>
                         </div>
@@ -231,8 +235,8 @@
                 <section class="performance-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                     <div class="sunken-performance-panel" style="margin-top: 0;">
                         <div class="performance-tabs">
-                            <div class="perf-tab-btn active" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
-                                VOL/TUNE
+                            <div class="perf-tab-btn" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
+                                VOLUME<br>TUNE
                             </div>
                             <div class="perf-tab-btn" id="tab-btn-port" onclick="switchPerformanceTab('port')">
                                 <div class="tab-led" id="led-tab-port"></div>
@@ -247,10 +251,14 @@
                                 <div class="tab-led" id="led-tab-arp"></div>
                                 ARP
                             </div>
+                            <div class="perf-tab-btn" id="tab-btn-delay" onclick="switchPerformanceTab('delay')">
+                                <div class="tab-led delay-tab-led" id="led-tab-delay"></div>
+                                DELAY
+                            </div>
                         </div>
 
                         <!-- Sub Panels -->
-                        <div class="perf-tab-content" id="panel-voltune">
+                        <div class="perf-tab-content hidden" id="panel-voltune">
                             <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
                                 <div class="knob-unit" data-param="masterVolume" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
                                     <span class="knob-lbl">VOLUME</span>
@@ -268,7 +276,7 @@
                         </div>
 
                         <div class="perf-tab-content hidden" id="panel-port">
-                            <div style="display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; padding-top: 20px;">
+                            <div style="display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%;">
                                 <div class="knob-unit" data-param="portamentoTime" style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none;">
                                     <span class="knob-lbl">TIME</span>
                                     <div class="knob-ring">
@@ -302,22 +310,24 @@
                             </div>
                         </div>
 
-                        <div class="perf-tab-content hidden" id="panel-arp" style="gap: 5px; padding-top: 10px;">
-                            <div style="display: flex; gap: 20px; align-items: center; justify-content: center; width: 100%;">
-                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
-                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">ON/OFF</div>
-                                    <div class="led" id="led-arpEnabled" style="margin-bottom: 2px;"></div>
-                                    <button class="sq orange" data-param="arpEnabled"></button>
+                        <div class="perf-tab-content hidden" id="panel-arp" style="gap: 4px;">
+                            <div style="display: flex; gap: 24px; align-items: center; justify-content: center; width: 100%; margin-top: auto;">
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 2px; flex: none;">
+                                    <button class="sq orange arp-btn" data-param="arpEnabled">
+                                        <div class="arp-led" id="led-arpEnabled"></div>
+                                    </button>
+                                    <div class="btn-lbl" style="font-size: 7px; color: #fff; margin-top: 1px;">ON/OFF</div>
                                 </div>
-                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
-                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">SYNC</div>
-                                    <div class="led" id="led-arpSync" style="margin-bottom: 2px;"></div>
-                                    <button class="sq orange" data-param="arpSync"></button>
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 2px; flex: none;">
+                                    <button class="sq orange arp-btn" data-param="arpSync">
+                                        <div class="arp-led" id="led-arpSync"></div>
+                                    </button>
+                                    <div class="btn-lbl" style="font-size: 7px; color: #fff; margin-top: 1px;">SYNC</div>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 12px; justify-content: center; align-items: flex-start; width: 100%; margin-top: 15px;">
+                            <div style="display: flex; gap: 12px; justify-content: center; align-items: center; width: 100%;">
                                 <!-- MODE -->
-                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 68px;">
                                     <span class="knob-lbl" style="font-size: 8px;">MODE</span>
                                     <div class="knob-tick-wrapper" data-param="arpMode">
                                         <div class="knob-ring">
@@ -329,7 +339,7 @@
                                     </div>
                                 </div>
                                 <!-- RANGE -->
-                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 68px;">
                                     <span class="knob-lbl" style="font-size: 8px;">RANGE</span>
                                     <div class="knob-tick-wrapper" data-param="arpRange">
                                         <div class="knob-ring">
@@ -340,25 +350,120 @@
                                         <span class="knob-tick-lbl pos-right">3</span>
                                     </div>
                                 </div>
-                                <!-- RATE -->
-                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                <!-- RATE (aligned identically to MODE and RANGE) -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 68px;">
                                     <span class="knob-lbl" style="font-size: 8px;">RATE</span>
-                                    <div class="knob-tick-wrapper" data-param="arpRate" style="height: 52px;">
+                                    <div class="knob-tick-wrapper" data-param="arpRate">
                                         <div class="knob-ring">
                                             <div class="knob"></div>
                                         </div>
                                     </div>
-                                    <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold; margin-top: -6px;">0.50</span>
+                                    <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold;">0.50</span>
                                 </div>
                             </div>
-                    </div>
+                        <!-- PANEL DELAY -->
+                        <div class="perf-tab-content hidden" id="panel-delay" style="position: relative;">
+                            <!-- Tape Echo SVG - visible when delay is off (static) or on (animated) -->
+                            <div id="tape-echo-visual" style="width: 220px; height: 85px; margin: auto;">
+                                <svg viewBox="0 0 220 85" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                    <!-- Tape path -->
+                                    <path d="M 28 38 Q 60 30 95 42 L 135 42 Q 165 30 192 38" fill="none" stroke="#555" stroke-width="2.5" stroke-dasharray="4 3" id="tape-path"/>
+
+                                    <!-- Reel left (supply) -->
+                                    <g id="reel-left">
+                                        <circle cx="28" cy="48" r="22" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1.5"/>
+                                        <circle cx="28" cy="48" r="7" fill="#252525" stroke="#4a4a4a" stroke-width="1"/>
+                                        <circle cx="28" cy="48" r="3" fill="#444"/>
+                                        <!-- Spokes -->
+                                        <line x1="28" y1="28" x2="28" y2="68" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="8" y1="48" x2="48" y2="48" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="14" y1="34" x2="42" y2="62" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="14" y1="62" x2="42" y2="34" stroke="#303030" stroke-width="1.5"/>
+                                    </g>
+
+                                    <!-- Reel right (take-up) -->
+                                    <g id="reel-right">
+                                        <circle cx="192" cy="48" r="22" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1.5"/>
+                                        <circle cx="192" cy="48" r="7" fill="#252525" stroke="#4a4a4a" stroke-width="1"/>
+                                        <circle cx="192" cy="48" r="3" fill="#444"/>
+                                        <!-- Spokes -->
+                                        <line x1="192" y1="28" x2="192" y2="68" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="172" y1="48" x2="212" y2="48" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="178" y1="34" x2="206" y2="62" stroke="#303030" stroke-width="1.5"/>
+                                        <line x1="178" y1="62" x2="206" y2="34" stroke="#303030" stroke-width="1.5"/>
+                                    </g>
+
+                                    <!-- Playback heads H1 H2 H3 -->
+                                    <g id="playback-heads">
+                                        <!-- Head base plate -->
+                                        <rect x="103" y="26" width="24" height="24" rx="2" fill="#222" stroke="#444" stroke-width="1"/>
+                                        <!-- Head 1 -->
+                                        <rect x="107" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
+                                        <!-- Head 2 -->
+                                        <rect x="115" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
+                                        <!-- Head 3 -->
+                                        <rect x="123" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
+                                        <!-- Label -->
+                                        <text x="115" y="58" text-anchor="middle" fill="#555" font-family="monospace" font-size="6">H1 H2 H3</text>
+                                    </g>
+
+                                    <!-- Capstan -->
+                                    <circle cx="152" cy="48" r="5" fill="#2a2a2a" stroke="#555" stroke-width="1" id="capstan"/>
+                                    <!-- Pinch roller -->
+                                    <circle cx="162" cy="48" r="3.5" fill="#222" stroke="#3a3a3a" stroke-width="0.8"/>
+
+                                    <!-- Guide rollers -->
+                                    <circle cx="52" cy="42" r="3" fill="#222" stroke="#3a3a3a" stroke-width="0.8"/>
+                                    <circle cx="170" cy="42" r="3" fill="#222" stroke="#3a3a3a" stroke-width="0.8"/>
+
+                                    <!-- Label -->
+                                    <text x="110" y="78" text-anchor="middle" fill="#555" font-family="Microgramma, monospace" font-size="8" letter-spacing="3">TAPE ECHO</text>
+                                </svg>
+                            </div>
+                            <style>
+                                .delay-running #reel-left {
+                                    animation: spin-left 2s linear infinite;
+                                    transform-origin: 28px 48px;
+                                }
+                                .delay-running #reel-right {
+                                    animation: spin-right 2s linear infinite;
+                                    transform-origin: 192px 48px;
+                                }
+                                .delay-running #tape-path {
+                                    animation: scroll-tape 0.8s linear infinite;
+                                }
+                                .delay-running #capstan {
+                                    animation: spin-right 1s linear infinite;
+                                    transform-origin: 152px 48px;
+                                }
+                                @keyframes spin-left {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                                @keyframes spin-right {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(-360deg); }
+                                }
+                                @keyframes scroll-tape {
+                                    0% { stroke-dashoffset: 0; }
+                                    100% { stroke-dashoffset: -14; }
+                                }
+                                .delay-stopped #tape-echo-visual {
+                                    opacity: 0.6;
+                                }
+                            </style>
+                        </div>
                     </div>
 
                     <!-- ROW 3: DEDICATED OCTAVE ZONE -->
                     <div class="perf-octave-zone" style="margin-top: auto;">
                         <span class="oct-lbl col-1">OCT -</span>
-                        <button class="sq grey oct-btn down col-2" data-action="octaveDown"></button>
-                        <button class="sq grey oct-btn up col-3" data-action="octaveUp"></button>
+                        <button class="sq grey oct-btn down col-2" data-action="octaveDown">
+                            <div class="oct-led" id="led-octave-down"></div>
+                        </button>
+                        <button class="sq grey oct-btn up col-3" data-action="octaveUp">
+                            <div class="oct-led" id="led-octave-up"></div>
+                        </button>
                         <span class="oct-lbl col-4">OCT +</span>
                     </div>
                 </section>
@@ -522,7 +627,7 @@
                                 </div>
 
                                 <div class="ctrl-group center">
-                                    <div class="ctrl">
+                                    <div class="ctrl" id="vcf-polarity">
                                         <div class="lbl">POL</div>
                                         <div class="sw-unit small" data-param="vcfPolarity">
                                             <div class="sw-lbl top">POS</div>
@@ -563,7 +668,7 @@
                             <div class="module-bar">VCA</div>
                             <div class="painter-tape" data-module="vca" id="tape-vca">J106</div>
                             <div class="controls">
-                                <div class="ctrl">
+                                <div class="ctrl" id="vca-mode">
                                     <div class="lbl">MODE</div>
                                     <div class="sw-unit" data-param="vcaMode">
                                         <div class="sw-lbl top">GATE</div>
@@ -712,464 +817,13 @@
             </div>
         </div>
     </div>
-    <!-- UNIFIED SETTINGS & CALIBRATION MODAL -->
-    <div id="modal-globalSettings" class="modal-overlay">
-        <div class="settings-container">
-            <div class="settings-header">
-                <span class="settings-title">SYSTEM SETTINGS</span>
-                <button class="close-btn" onclick="hideGlobalSettings()">&times;</button>
-            </div>
-
-            <div class="settings-tabs">
-                <button class="tab-btn active" onclick="switchTab('general')">GENERAL</button>
-                <button class="tab-btn" onclick="switchTab('calibration')">CALIBRATION</button>
-                <button class="tab-btn" onclick="switchTab('routing')">ROUTING</button>
-                <button class="tab-btn" onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
-            </div>
-
-            <div class="settings-inner">
-                <div id="tab-general" class="settings-content active single-col">
-                    <div id="general-params-list" class="service-param-list styled-scroll"></div>
-                    
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>User Identity</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px; display: flex; flex-direction: column; align-items: flex-start;">
-                                <label style="font-size: 10px; color: #888; margin-bottom: 5px;">AUTHOR NAME (DEFAULT)</label>
-                                <input type="text" id="setting-userName" maxlength="20" placeholder="Your Name..." style="width: 100%; background: #111; border: 1px solid #333; color: #eee; padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>Microtuning (SCL)</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('load')">LOAD .SCL</button>
-                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('reset')">RESET TUNING</button>
-                                </div>
-                                <div id="tuning-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Standard Tuning</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: CALIBRATION PARAMS -->
-                <div id="tab-calibration" class="settings-content single-col">
-                    <div style="background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <span style="font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Calibration Parameters</span>
-                        <label style="font-size: 10px; display: flex; align-items: center; gap: 8px; color: var(--juno-orange); cursor: pointer; user-select: none;">
-                            <input type="checkbox" id="chk-show-all-params" onchange="ServiceMode.toggleShowAllParams(this.checked)" style="cursor: pointer; accent-color: var(--juno-orange);">
-                            SHOW ALL (SUPER SIX MODE)
-                        </label>
-                    </div>
-                    <div id="service-params-list" style="padding-right: 15px;"></div>
-                    <div class="service-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                         <button class="tuning-btn primary" id="btn-auto-tune-cal" onclick="ServiceMode.startAutoTune()" style="background: #a50; color: white;">RUN AUTO-VCF TUNE</button>
-                    </div>
-
-                    <!-- DAC Hz Table CSV Import/Export -->
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>DAC Hz Table (J106DACHzTable)</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-dac" onclick="handleDacTableClick('import')">IMPORT DAC TABLE (.CSV)</button>
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-dac" onclick="handleDacTableClick('export')">EXPORT DAC TABLE (.CSV)</button>
-                                </div>
-                                <div id="dac-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (4096 values)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- VCA Gain Table CSV Import/Export -->
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>VCA Gain Table (J106VCAGainTable)</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-vca" onclick="handleVcaTableClick('import')">IMPORT VCA TABLE (.CSV)</button>
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-vca" onclick="handleVcaTableClick('export')">EXPORT VCA TABLE (.CSV)</button>
-                                </div>
-                                <div id="vca-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (256 values)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LFO Speed Table CSV Import/Export -->
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>LFO Speed Table</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-speed" onclick="handleLfoSpeedTableClick('import')">IMPORT LFO SPEED TABLE (.CSV)</button>
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-speed" onclick="handleLfoSpeedTableClick('export')">EXPORT LFO SPEED TABLE (.CSV)</button>
-                                </div>
-                                <div id="lfo-speed-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (128 values)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LFO Ramp Table CSV Import/Export -->
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>LFO Ramp Table</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-ramp" onclick="handleLfoRampTableClick('import')">IMPORT LFO RAMP TABLE (.CSV)</button>
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-ramp" onclick="handleLfoRampTableClick('export')">EXPORT LFO RAMP TABLE (.CSV)</button>
-                                </div>
-                                <div id="lfo-ramp-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (8 values)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sub-Osc Level Curve CSV Import/Export -->
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-cat-header"><span>Sub-Osc Level Curve</span></div>
-                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
-                            <div class="service-param-row" style="padding: 10px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-sub-level" onclick="handleSubLevelTableClick('import')">IMPORT SUB-OSC LEVEL TABLE (.CSV)</button>
-                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-sub-level" onclick="handleSubLevelTableClick('export')">EXPORT SUB-OSC LEVEL TABLE (.CSV)</button>
-                                </div>
-                                <div id="sub-level-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (11 values)</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: ENGINE MODEL ROUTING & ARPEGGIATOR -->
-                <div id="tab-routing" class="settings-content single-col">
-                    <div class="service-section">
-                        <div class="service-section-title">Engine Section Model Routing</div>
-                        
-                        <div class="setting-row">
-                            <label>DCO Model</label>
-                            <select data-param="modelDCO" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Classic Continuous DCO)</option>
-                                <option value="0.5">Juno-60 (Standard DCO)</option>
-                                <option value="1">Juno-106 (Hybrid DCO / Quartz Clock)</option>
-                            </select>
-                            <div class="val-lbl">DCO</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>HPF Model</label>
-                            <select data-param="modelHPF" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Continuous Slider HPF)</option>
-                                <option value="0.5">Juno-60 (Discrete 4-Position HPF)</option>
-                                <option value="1">Juno-106 (Discrete HPF with Active Bass Boost)</option>
-                            </select>
-                            <div class="val-lbl">HPF</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>VCF Model</label>
-                            <select data-param="modelVCF" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (IR3109 ResK & SoftClip)</option>
-                                <option value="0.5">Juno-60 (Classic IR3109 Filter)</option>
-                                <option value="1">Juno-106 (80017A Integrated Filter)</option>
-                            </select>
-                            <div class="val-lbl">VCF</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>ADSR Model</label>
-                            <select data-param="modelADSR" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Analog RC Curves)</option>
-                                <option value="0.5">Juno-60 (Analog RC Envelope)</option>
-                                <option value="1">Juno-106 (Digital uPD7811G Linear Ticks)</option>
-                            </select>
-                            <div class="val-lbl">ADSR</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Chorus Model</label>
-                            <select data-param="modelChorus" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Classic BBD Character)</option>
-                                <option value="0.5">Juno-60 (Wide Analog MN3009 BBD)</option>
-                                <option value="1">Juno-106 (Standard BBD Chorus & specific hiss)</option>
-                            </select>
-                            <div class="val-lbl">CHORUS</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arpeggiator Model</label>
-                            <select data-param="modelArp" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Analog Rate Osc & Schmitt Trigger)</option>
-                                <option value="0.5">Juno-60 (Standard Sync Clock Arpeggiator)</option>
-                                <option value="1">Juno-106 (No Arpeggiator / Disabled)</option>
-                            </select>
-                            <div class="val-lbl">ARP</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Voice Allocator</label>
-                            <select data-param="modelPoly" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (Rotary voicelimit direct)</option>
-                                <option value="0.5">Juno-60 (Classic rotary allocator)</option>
-                                <option value="1">Juno-106 (Digital allocator)</option>
-                            </select>
-                            <div class="val-lbl">POLY</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Portamento Model</label>
-                            <select data-param="modelPorta" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (No Portamento)</option>
-                                <option value="0.5">Juno-60 (No Portamento)</option>
-                                <option value="1">Juno-106 (Portamento Glide)</option>
-                            </select>
-                            <div class="val-lbl">PORTA</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Unison Model</label>
-                            <select data-param="modelUnison" onchange="updatePref(this)">
-                                <option value="0">Juno-6 (No Unison)</option>
-                                <option value="0.5">Juno-60 (No Unison)</option>
-                                <option value="1">Juno-106 (Unison Mode)</option>
-                            </select>
-                            <div class="val-lbl">UNISON</div>
-                        </div>
-                    </div>
-
-                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <div class="service-section-title">Arpeggiator Settings</div>
-                        
-                        <div class="setting-row">
-                            <label>Arpeggiator Enable</label>
-                            <select data-param="arpEnabled" onchange="updatePref(this)">
-                                <option value="0">OFF</option>
-                                <option value="1">ON</option>
-                            </select>
-                            <div class="val-lbl">ARP</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arp Mode</label>
-                            <select data-param="arpMode" onchange="updatePref(this)">
-                                <option value="0">UP</option>
-                                <option value="0.5">DOWN</option>
-                                <option value="1">UP & DOWN</option>
-                            </select>
-                            <div class="val-lbl">MODE</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arp Range</label>
-                            <select data-param="arpRange" onchange="updatePref(this)">
-                                <option value="0">1 OCTAVE</option>
-                                <option value="0.5">2 OCTAVES</option>
-                                <option value="1">3 OCTAVES</option>
-                            </select>
-                            <div class="val-lbl">RANGE</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arp Rate (Free Run)</label>
-                            <input type="range" class="service-slider" data-param="arpRate" min="0" max="1" step="0.01" value="0.5" oninput="updatePref(this)">
-                            <div class="val-lbl" id="val-arpRate">0.50</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arp Sync to Host</label>
-                            <select data-param="arpSync" onchange="updatePref(this)">
-                                <option value="0">OFF (Free Run)</option>
-                                <option value="1">ON (Tempo Sync)</option>
-                            </select>
-                            <div class="val-lbl">SYNC</div>
-                        </div>
-
-                        <div class="setting-row">
-                            <label>Arp Time Division</label>
-                            <select data-param="arpDivision" onchange="updatePref(this)">
-                                <option value="0">1/1 (Whole Note)</option>
-                                <option value="0.125">1/2 (Half Note)</option>
-                                <option value="0.25">1/2T (Half Triplet)</option>
-                                <option value="0.375">1/4 (Quarter Note)</option>
-                                <option value="0.5">1/4T (Quarter Triplet)</option>
-                                <option value="0.625">1/8 (Eighth Note)</option>
-                                <option value="0.75">1/8T (Eighth Triplet)</option>
-                                <option value="0.875">1/16 (Sixteenth Note)</option>
-                                <option value="1">1/16T (Sixteenth Triplet)</option>
-                            </select>
-                            <div class="val-lbl">DIV</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: DIAGNOSTICS & TOOLS -->
-                <div id="tab-diagnostics" class="settings-content single-col">
-                    <div class="service-section">
-                        <div class="service-section-title">Voice Diagnostics</div>
-                        <div id="voice-test-grid" class="voice-test-grid"></div>
-                    </div>
-                    <div class="service-section" style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
-                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <button class="tuning-btn" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
-                            <button class="tuning-btn" id="btn-record-audio" onclick="ServiceMode.toggleRecord()">
-                                <span class="record-dot"></span><span id="record-text">RECORD AUDIO</span>
-                            </button>
-                         </div>
-                          <button class="tuning-btn" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
-                         <button class="tuning-btn" onclick="ServiceMode.exportCalibration()">EXPORT CALIBRATION JSON</button>
-                         <button class="tuning-btn" onclick="ServiceMode.importCalibration()">IMPORT CALIBRATION JSON</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-footer" style="gap: 15px; padding: 20px; border-top: 1px solid #222; background: rgba(0,0,0,0.2);">
-                <button class="tuning-btn" style="max-width: 180px; background: #600;" onclick="ServiceMode.resetCalibration()">FACTORY RESET</button>
-                <button class="tuning-btn" style="max-width: 140px; background: #333; font-size: 14px;" onclick="hideGlobalSettings()">CLOSE</button>
-            </div>
-        </div>
-    </div>
+    <!-- UNIFIED SETTINGS & CALIBRATION MODAL (content injected by modals.js) -->
+    <div id="modal-globalSettings" class="modal-overlay"></div>
 
     <!-- Modal browser moved down -->
 
-    <div id="modal-browser" class="modal-overlay">
-        <div class="browser-container">
-            <div class="browser-header">
-                <div class="browser-title-zone">
-                    <span class="browser-title">PRESET BROWSER</span>
-                    <div id="browser-status-badges">
-                        <div class="badge-unit"><div class="badge" id="badge-lc">LC</div><div class="badge-lbl">MIDI</div></div>
-                        <div class="badge-unit"><div class="badge" id="badge-ab">A</div><div class="badge-lbl">SLOT</div></div>
-                        <div class="badge-unit"><div class="badge" id="badge-wip">0</div><div class="badge-lbl">WIP</div></div>
-                    </div>
-                </div>
-                <div class="browser-search-zone">
-                    <input type="text" id="browser-search" placeholder="Search presets, authors, tags...">
-                    <button class="close-btn" onclick="hideBrowser()">&times;</button>
-                </div>
-            </div>
-
-            <div class="browser-main">
-                <!-- PANE 1: CATEGORIES -->
-                <div class="browser-pane" id="pane-categories">
-                    <div class="pane-header">
-                        CATEGORIES
-                        <div class="pane-actions">
-                            <button class="icon-btn" onclick="PresetBrowser.addCategory()" title="Add Category">+</button>
-                            <button class="icon-btn" onclick="PresetBrowser.editCategory()" title="Edit Selected">✎</button>
-                            <button class="icon-btn" onclick="PresetBrowser.deleteCategory()" title="Delete Selected">×</button>
-                        </div>
-                    </div>
-                    <ul class="pane-list styled-scroll" id="cat-list" tabindex="0">
-                        <li class="active" data-cat="All">All</li>
-                        <li data-cat="Factory">Factory</li>
-                        <li data-cat="User">User</li>
-                        <li data-cat="WIP">WIP (Work in Progress)</li>
-                        <li data-cat="Favorites">Favorites</li>
-                    </ul>
-                </div>
-
-                <!-- PANE 2: LIBRARIES / BANKS -->
-                <div class="browser-pane" id="pane-libraries">
-                    <div class="pane-header">
-                        LIBRARIES / BANKS
-                        <div class="pane-actions">
-                            <button class="icon-btn" onclick="PresetBrowser.addLibrary()" title="Add Library">+</button>
-                            <button class="icon-btn" id="lib-edit-btn" onclick="PresetBrowser.editLibrary()" title="Rename Library">✎</button>
-                            <button class="icon-btn" id="lib-delete-btn" onclick="PresetBrowser.deleteLibrary()" title="Delete Library">×</button>
-                        </div>
-                    </div>
-                    <ul class="pane-list styled-scroll" id="lib-list" tabindex="0"></ul>
-                    <div class="pane-footer-actions bank-ops-grid">
-                        <button class="footer-action-btn" onclick="juce.menuAction('handleImportSysex')">IMPORT PRESET/S</button>
-                        <button class="footer-action-btn" onclick="PresetBrowser.importLibrary()">IMPORT .JSON</button>
-                        <button class="footer-action-btn" onclick="PresetBrowser.exportLibrary()">EXPORT .JSON</button>
-                        <button class="footer-action-btn" id="btn-save-tape" onclick="PresetBrowser.saveTape()">SAVE TAPE (.WAV)</button>
-                        <button class="footer-action-btn" id="btn-load-tape" onclick="PresetBrowser.loadTape()">LOAD TAPE (.WAV)</button>
-                    </div>
-                </div>
-
-                <!-- PANE 3: PRESETS -->
-                <div class="browser-pane" id="pane-presets">
-                    <div class="pane-header">
-                        PRESETS
-                        <div class="pane-actions">
-                            <button class="icon-btn" id="preset-add-btn" onclick="PresetBrowser.addPreset()" title="New Preset">+</button>
-                            <button class="icon-btn" id="preset-dup-btn" onclick="PresetBrowser.duplicatePreset()" title="Duplicate Selected">⧉</button>
-                            <button class="icon-btn" id="preset-move-btn" onclick="PresetBrowser.movePresetToLibrary()" title="Move to another Bank">➔</button>
-                            <button class="icon-btn" onclick="PresetBrowser.movePreset(-1)" title="Move Up">▲</button>
-                            <button class="icon-btn" onclick="PresetBrowser.movePreset(1)" title="Move Down">▼</button>
-                            <button class="icon-btn" id="preset-delete-btn" onclick="PresetBrowser.deletePreset()" title="Delete Selected">×</button>
-                        </div>
-                    </div>
-                    <ul class="pane-list styled-scroll" id="preset-list" tabindex="0"></ul>
-                    <div class="pane-footer-actions">
-                        <div class="preset-count" id="preset-count-label">0 Presets</div>
-                    </div>
-                </div>
-
-                <!-- PANE 4: METADATA & PREVIEW -->
-                <div id="pane-info">
-                    <div class="info-header">METADATA</div>
-                    <div class="info-content">
-                        <div class="meta-row">
-                            <label>Name</label>
-                            <input type="text" id="meta-name" readonly>
-                        </div>
-                        <div class="meta-row">
-                            <label>Author</label>
-                            <input type="text" id="meta-author">
-                        </div>
-                        <div class="meta-row">
-                            <label>Category</label>
-                            <select id="meta-category">
-                                <option>Bass</option>
-                                <option>Lead</option>
-                                <option>Pad</option>
-                                <option>Strings</option>
-                                <option>Brass</option>
-                                <option>FX</option>
-                                <option>Keys</option>
-                                <option>Organ</option>
-                                <option>Arp</option>
-                                <option>User</option>
-                            </select>
-                        </div>
-                        <div class="meta-row">
-                            <label>Tags</label>
-                            <input type="text" id="meta-tags" placeholder="80s, analog, warm...">
-                        </div>
-                        <div class="meta-row stack">
-                            <label>Notes</label>
-                            <textarea id="meta-notes" class="styled-scroll"></textarea>
-                        </div>
-                        <div class="meta-footer-info">
-                            <span id="meta-date">Created: --/--/----</span>
-                        </div>
-                        <div class="meta-actions">
-                            <button class="footer-action-btn primary" onclick="PresetBrowser.applyMetadata()">UPDATE METADATA</button>
-                            <button class="footer-action-btn" id="preset-saveas-btn" onclick="PresetBrowser.showSaveAsModal()">SAVE AS...</button>
-                            <button class="footer-action-btn" id="preset-write-btn" onclick="PresetBrowser.saveSynthToPreset()">SAVE CURRENT SOUND (WRITE)</button>
-                        </div>
-                    </div>
-                    
-                    <div class="ab-compare-zone">
-                        <div class="ab-header">A/B COMPARE</div>
-                        <div class="ab-buttons">
-                            <button id="btn-slot-a" class="ab-btn active" onclick="PresetBrowser.switchAB(0)">SLOT A</button>
-                            <button id="btn-slot-b" class="ab-btn" onclick="PresetBrowser.switchAB(1)">SLOT B</button>
-                            <button id="btn-copy-ab" class="ab-btn" onclick="PresetBrowser.copyAB()">COPY A➔B</button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="browser-footer">
-                <div class="footer-right" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px 20px;">
-                    <button class="footer-btn cancel" onclick="hideBrowser()">CLOSE</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- PRESET BROWSER MODAL (content injected by modals.js) -->
+    <div id="modal-browser" class="modal-overlay"></div>
     
     <div id="modal-saveas" class="modal-overlay hidden" style="z-index: 20000;">
         <div class="modal-content" style="max-width: 400px; background: #111; border: 1px solid #333; padding: 30px;">
@@ -1184,6 +838,9 @@
             </div>
         </div>
     </div>
+    <!-- SMART TAPE IMPORT MODAL (content injected by modals.js) -->
+    <div id="modal-smartImport" class="modal-overlay" style="z-index: 15000;"></div>
+
     <!-- SAVE PATCH METADATA MODAL -->
     <div id="modal-savePatch" class="modal-overlay">
         <div class="about-modal">
@@ -1219,7 +876,13 @@
         <span id="notification-message"></span>
     </div>
 
-    <script src="script.js"></script>
+    <script src="modals.js"></script>
+    <script src="bridge-core.js"></script>
+    <script src="ui-sliders.js"></script>
+    <script src="ui-modals.js"></script>
+    <script src="smart-import.js"></script>
+    <script src="ui-keyboard.js"></script>
+    <script src="theme-manager.js"></script>
     <script src="service.js"></script>
     <script src="browser.js"></script>
 </body>

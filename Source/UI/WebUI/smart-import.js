@@ -261,7 +261,21 @@ function closeSmartImport() {
 function confirmSmartImport() {
     if (!smartImportData) return;
     const fmt = smartImportData.format || 'tape';
-    if (fmt === 'tape') juce.confirmTapeImport(selectedDecoderIdx);
-    else juce.confirmImportFile();
+    const doImport = () => {
+        if (fmt === 'tape') return juce.confirmTapeImport(selectedDecoderIdx);
+        else return juce.confirmImportFile();
+    };
+    const promise = doImport();
     closeSmartImport();
+    // Await the native result and show a notification if C++ didn't dispatch one
+    if (promise && typeof promise.then === 'function') {
+        promise.then(result => {
+            if (result && typeof result === 'object' && result.success !== undefined) {
+                const msg = result.message || (result.success ? 'Import completed.' : 'Import failed.');
+                showNotification(msg, result.success ? 'success' : 'error');
+            }
+        }).catch(err => {
+            console.error('Import error:', err);
+        });
+    }
 }

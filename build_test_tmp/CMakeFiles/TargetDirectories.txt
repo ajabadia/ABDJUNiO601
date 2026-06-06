@@ -1,0 +1,17 @@
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_All.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_Standalone.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_rc_lib.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_VST3.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_vst3_helper.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ABDSimpleJuno106_WebUI.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/JunoUnitTests.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/JunoUnitTests_rc_lib.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/INSTALL.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ALL_BUILD.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/CMakeFiles/ZERO_CHECK.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/_juce/CMakeFiles/INSTALL.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/_juce/CMakeFiles/ALL_BUILD.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/_juce/modules/CMakeFiles/INSTALL.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/_juce/extras/Build/CMakeFiles/INSTALL.dir
+D:/desarrollos/ABDSynths/ABDJUNiO601/build_test_tmp/_juce/extras/Build/juceaide/CMakeFiles/INSTALL.dir
