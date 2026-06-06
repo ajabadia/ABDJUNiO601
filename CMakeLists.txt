@@ -373,6 +373,8 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/Tests/DCBCorrectorTests.cpp
     Source/Core/Tests/SmartImportHtmlTests.cpp
     Source/Core/Tests/ModelRoutingTests.cpp
+    Source/Core/Tests/TapeEchoTests.cpp
+    Source/Synth/JunoTapeEcho.cpp
     Source/Synth/JunoDCO.cpp
     Source/Synth/JunoADSR.cpp
     Source/Synth/JunoVCF.cpp
@@ -409,6 +411,7 @@ target_include_directories(JunoUnitTests PRIVATE
     Source/Core
     Source/Core/BaseClass
     Source/Core/Importers
+    Source/Synth
     "${CMAKE_CURRENT_BINARY_DIR}/JunoUnitTests_artefacts/JuceLibraryCode"
 )
 juce_generate_juce_header(JunoUnitTests)

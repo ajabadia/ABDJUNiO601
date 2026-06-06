@@ -41,6 +41,11 @@ public:
     void setReverbVol(float vol) noexcept           { reverbVol_ = vol; }
     void setEchoVol(float vol) noexcept             { echoVol_ = vol; }
 
+    // --- Calibration-linked parameters (from CalibrationSettings) ---
+    void setInputLevel(float level) noexcept        { inputLevel_ = juce::jlimit(0.0f, 1.0f, level); }
+    void setWetDry(float wetDry) noexcept           { wetDry_ = juce::jlimit(0.0f, 1.0f, wetDry); }
+    void setReverbType(int type) noexcept           { reverbType_ = juce::jlimit(0, 2, type); }
+
     bool isEnabled() const noexcept                 { return enabled_; }
     int getDelaySetting() const noexcept            { return delaySetting_; }
 
@@ -216,6 +221,11 @@ private:
     float treble_ = 0.5f;
     float reverbVol_ = 0.5f;
     float echoVol_ = 0.5f;
+
+    // Calibration-linked params
+    float inputLevel_ = 0.8f;
+    float wetDry_ = 0.5f;
+    int reverbType_ = 0;
 
     double sampleRate_ = 44100.0;
     int numChannels_ = 2;

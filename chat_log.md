@@ -2427,3 +2427,67 @@ Anadir un tema inspirado en los sintetizadores Roland JP-8000 y JP-8080, siguien
 ## 43. Actualizacion de Fecha
 
 *Ultima actualizacion: 6 Junio 2026*
+
+---
+
+## 44. Tape Echo / Delay — Tab Nav, DELAY Panel UI, Space Echo Calibration
+
+*Ultima actualizacion: 6 Junio 2026*
+
+### 44.1 Resumen
+
+Se implemento el motor DSP de delay tipo tape echo (RE-201) para Super Six, navegacion por tabs `< >`, y parametros de calibracion Space Echo conectados al audio engine.
+
+### 44.2 Tab Navigation Buttons
+
+- **HTML** (`index.html`): Dos `.perf-tab-nav-btn` flanqueando VOL/TUNE en `.performance-tabs`
+- **CSS** (`vars.css`): `.perf-tab-nav-btn` flex:0.5, hover/active states
+- **JS** (`theme-manager.js`): `tabNavLeft()`/`tabNavRight()` — ciclan tabs visibles, ocultos si targetModel!=0
+
+### 44.3 DELAY Panel UI
+
+- **HTML** (`index.html`): Tab DELAY + SVG tape echo RE-201 + navegacion vertical ON/D/T/R + 3 subpaginas + sliders + 11 botones setting
+- **CSS** (`vars.css`): ~200 lineas de estilos + animaciones SVG
+- **JS** (`theme-manager.js`): `switchDelaySubpage()`, `toggleDelayPower()`, `initDelayControls()`
+- **JS** (`ui-sliders.js`): syncUI para delay params
+
+### 44.4 JunoTapeEcho DSP Engine
+
+| Archivo | Lineas | Proposito |
+|:--------|------:|:----------|
+| `Source/Synth/JunoTapeEcho.h` | ~250 | Delay line, interpolacion cubica, biquad shelving, wow/flutter, saturacion, reverb Schroeder-Moorer |
+| `Source/Synth/JunoTapeEcho.cpp` | ~150 | 3 cabezales RE-201, 11 modos, tone stack |
+
+Arquitectura: `renderAudio → applyChorus → processMasterEffects → tapeEcho.process() → recording`
+
+### 44.5 SynthParams (APVTS)
+
+8 params: `delayEnabled`, `delaySetting` (0-10), `delayRepeatRate`, `delayIntensity`, `delayBass`, `delayTreble`, `delayReverbVol`, `delayEchoVol`
+
+### 44.6 Space Echo Calibration
+
+3 params en `CalibrationSettings.cpp` + `service.js`:
+- `delayInputLevel` (def 0.8, 0-1) — input gain
+- `delayWetDry` (def 0.5, 0-1) — dry/wet crossfade
+- `delayReverbType` (def 0, 0-2) — 0=corto, 1=largo, 2=hibrido (choiceParams en service.js)
+
+### 44.7 Wiring Calibration → DSP
+
+En `PluginProcessor.cpp`, antes de `tapeEcho.process()`:
+- `tapeEcho.setInputLevel(calibrationSettings->getValue("delayInputLevel"))`
+- `tapeEcho.setWetDry(calibrationSettings->getValue("delayWetDry"))`
+- `tapeEcho.setReverbType((int)calibrationSettings->getValue("delayReverbType"))`
+
+En `JunoTapeEcho.cpp::process()`:
+- `monoInput *= inputLevel_` — escala entrada
+- `reverbType_` branching — 3 algoritmos con arrays locales
+- `dry*(1-wetDry_) + wet*wetDry_` — crossfade real
+
+### 44.8 Build
+
+| Componente | Resultado |
+|-----------|:--------:|
+| Standalone | ✅ BUILD SUCCEEDED |
+| Unit tests C++ | ✅ ALL TESTS PASSED |
+
+---

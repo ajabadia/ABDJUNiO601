@@ -506,6 +506,12 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         tapeEcho.setTreble(currentParams.delayTreble);
         tapeEcho.setReverbVol(currentParams.delayReverbVol);
         tapeEcho.setEchoVol(currentParams.delayEchoVol);
+
+        // Read calibration-linked params
+        tapeEcho.setInputLevel(calibrationSettings->getValue("delayInputLevel"));
+        tapeEcho.setWetDry(calibrationSettings->getValue("delayWetDry"));
+        tapeEcho.setReverbType((int)calibrationSettings->getValue("delayReverbType"));
+
         tapeEcho.process(buffer);
     }
 

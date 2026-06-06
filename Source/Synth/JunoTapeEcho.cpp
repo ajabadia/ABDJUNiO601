@@ -100,13 +100,9 @@ void JunoTapeEcho::process(juce::AudioBuffer<float>& buffer)
         feedbackLPFs_[ch].setCutoff(juce::jlimit(800.0f, 15000.0f, lpfCutoff), (float)sampleRate_);
     }
 
-    // Setup reverb
-    const float revTimesMs[4] = { 30.0f, 37.0f, 43.0f, 50.0f };
-    const float revGains[4] = { 0.6f, 0.5f, 0.4f, 0.3f };
+    // Setup reverb (LPF cutoff for all types)
     for (int i = 0; i < 4; ++i)
-    {
         reverbLPFs_[i].setCutoff(8000.0f, (float)sampleRate_);
-    }
 
     // Active heads for current setting
     auto heads = getActiveHeads(delaySetting_);
@@ -135,6 +131,7 @@ void JunoTapeEcho::process(juce::AudioBuffer<float>& buffer)
         for (int ch = 0; ch < numCh; ++ch)
             monoInput += buffer.getSample(ch, s);
         monoInput /= (float)numCh;
+        monoInput *= inputLevel_; // Calibration input gain
 
         // --- Tape saturation (tanh approximation) ---
         float satInput = monoInput + satState_ * feedback * 0.3f;
@@ -166,16 +163,52 @@ void JunoTapeEcho::process(juce::AudioBuffer<float>& buffer)
         }
 
         // --- Tone stack (bass/treble per channel) ---
-        // --- Reverb ---
+        // --- Reverb (3 algorithms based on reverbType_) ---
         float reverbOut = 0.0f;
-        for (int i = 0; i < 4; ++i)
+        
+        if (reverbType_ == 0)
         {
-            float revDelay = revTimesMs[i] * 0.001f * (float)sampleRate_;
-            float revRead = reverbDelays_[i].read(revDelay);
-            float revWrite = monoInput * revGains[i] + revRead * 0.3f;
-            reverbDelays_[i].write(revWrite);
-            reverbOut += revRead * 0.25f;
+            // Type 0: Short Schroeder-Moorer (original, dark spring)
+            const float shortTimesMs[4] = { 30.0f, 37.0f, 43.0f, 50.0f };
+            const float shortGains[4]  = { 0.6f, 0.5f, 0.4f, 0.3f };
+            for (int i = 0; i < 4; ++i)
+            {
+                float revDelay = shortTimesMs[i] * 0.001f * (float)sampleRate_;
+                float revRead = reverbDelays_[i].read(revDelay);
+                float revWrite = monoInput * shortGains[i] + revRead * 0.3f;
+                reverbDelays_[i].write(revWrite);
+                reverbOut += revRead * 0.25f;
+            }
         }
+        else if (reverbType_ == 1)
+        {
+            // Type 1: Longer decay (brighter, more spacious)
+            const float longTimesMs[4] = { 50.0f, 62.0f, 73.0f, 88.0f };
+            const float longGains[4]  = { 0.7f, 0.6f, 0.5f, 0.4f };
+            for (int i = 0; i < 4; ++i)
+            {
+                float revDelay = longTimesMs[i] * 0.001f * (float)sampleRate_;
+                float revRead = reverbDelays_[i].read(revDelay);
+                float revWrite = monoInput * longGains[i] + revRead * 0.45f;
+                reverbDelays_[i].write(revWrite);
+                reverbOut += revRead * 0.25f;
+            }
+        }
+        else
+        {
+            // Type 2: Hybrid (2 short + 2 long)
+            const float hybridTimesMs[4] = { 30.0f, 37.0f, 73.0f, 88.0f };
+            const float hybridGains[4]  = { 0.6f, 0.5f, 0.5f, 0.4f };
+            for (int i = 0; i < 4; ++i)
+            {
+                float revDelay = hybridTimesMs[i] * 0.001f * (float)sampleRate_;
+                float revRead = reverbDelays_[i].read(revDelay);
+                float revWrite = monoInput * hybridGains[i] + revRead * 0.38f;
+                reverbDelays_[i].write(revWrite);
+                reverbOut += revRead * 0.25f;
+            }
+        }
+        
         reverbOut = std::tanh(reverbOut * 0.5f); // Soft clip reverb
         
         // --- Mix per channel ---
@@ -190,8 +223,8 @@ void JunoTapeEcho::process(juce::AudioBuffer<float>& buffer)
             // Dry signal (original)
             float dry = buffer.getSample(ch, s);
 
-            // Mix: dry + wet
-            buffer.setSample(ch, s, dry + wet);
+            // Mix: dry/wet crossfade (wetDry_ = 0..1)
+            buffer.setSample(ch, s, dry * (1.0f - wetDry_) + wet * wetDry_);
         }
     }
 }
