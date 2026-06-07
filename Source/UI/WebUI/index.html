@@ -412,29 +412,30 @@
                                 </svg>
                             </div>
 
-                            <!-- Controls: positioned below SVG when delay is ON -->
-                            <div id="delay-controls-below" class="hidden">
-                                <!-- Horizontal nav row -->
-                                <div class="delay-nav">
-                                    <div class="delay-nav-unit" id="delay-nav-on" onclick="toggleDelayPower()">
-                                        <div class="nav-led" id="led-delay-on"></div>
-                                        <div class="nav-lbl delay-nav-lbl">ON</div>
-                                    </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-settings" onclick="switchDelaySubpage('settings')">
-                                        <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">DELAY</div>
-                                    </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-tone" onclick="switchDelaySubpage('tone')">
-                                        <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">TONO</div>
-                                    </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-reverb" onclick="switchDelaySubpage('reverb')">
-                                        <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">REVERB</div>
-                                    </div>
+                            <!-- Horizontal nav row: always visible when DELAY tab is active -->
+                            <!-- The ON button must be outside delay-controls-below so the user -->
+                            <!-- can click it to enable the delay and reveal the subpage controls -->
+                            <div class="delay-nav" id="delay-nav-row">
+                                <div class="delay-nav-unit" id="delay-nav-on" onclick="toggleDelayPower()">
+                                    <div class="nav-led" id="led-delay-on"></div>
+                                    <div class="nav-lbl delay-nav-lbl">ON</div>
                                 </div>
+                                <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-settings" onclick="switchDelaySubpage('settings')">
+                                    <div class="nav-led"></div>
+                                    <div class="nav-lbl delay-nav-lbl">DELAY</div>
+                                </div>
+                                <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-tone" onclick="switchDelaySubpage('tone')">
+                                    <div class="nav-led"></div>
+                                    <div class="nav-lbl delay-nav-lbl">TONO</div>
+                                </div>
+                                <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-reverb" onclick="switchDelaySubpage('reverb')">
+                                    <div class="nav-led"></div>
+                                    <div class="nav-lbl delay-nav-lbl">REVERB</div>
+                                </div>
+                            </div>
 
-                                <!-- Sub-screens -->
+                            <!-- Sub-screens: hidden until ON is pressed -->
+                            <div id="delay-controls-below" class="hidden">
                                 <div class="delay-subpage" id="delay-sub-settings">
                                     <div class="h-slider-unit">
                                         <div class="h-slider-lbl">DELAY SETTING</div>

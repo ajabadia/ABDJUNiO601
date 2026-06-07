@@ -20,8 +20,14 @@ function switchPerformanceTab(tabName) {
         panel.classList.toggle('hidden', !isTarget);
     });
 
-    // 3. When switching to delay tab, show static SVG (no controls until ON pressed)
+    // 3. When switching to delay tab, show nav row (including ON button) always,
+    //    and subpage controls only when delay is powered on.
     if (tabName === 'delay') {
+        // Nav row (ON button + subpage nav) is always visible when tab is active
+        const navRow = document.getElementById('delay-nav-row');
+        if (navRow) navRow.classList.remove('hidden');
+        
+        // Subpage content hidden until ON is pressed
         const below = document.getElementById('delay-controls-below');
         if (below) {
             below.classList.toggle('hidden', !delayPowerOn);
