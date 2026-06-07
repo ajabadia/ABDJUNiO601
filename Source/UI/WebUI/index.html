@@ -434,27 +434,28 @@
                                 </div>
                             </div>
 
-                            <!-- Sub-screens: hidden until ON is pressed -->
+                            <!-- ALL controls visible simultaneously (no subpage hiding) -->
                             <div id="delay-controls-below" class="hidden">
-                                <div class="delay-subpage" id="delay-sub-settings">
-                                    <div class="h-slider-unit">
-                                        <div class="h-slider-lbl">DELAY SETTING</div>
-                                        <div class="delay-setting-selector" style="display:flex; gap: 2px;">
-                                            <button class="sq grey delay-setting-btn active" data-idx="0">1</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="1">2</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="2">3</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="3">4</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="4">5</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="5">6</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="6">7</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="7">8</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="8">9</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="9">10</button>
-                                            <button class="sq grey delay-setting-btn" data-idx="10">11</button>
-                                        </div>
+                                <!-- Delay setting buttons: 5 columns x 2 rows (5+5+1) -->
+                                <div class="delay-setting-section">
+                                    <div class="delay-setting-selector delay-grid-5col">
+                                        <button class="sq grey delay-setting-btn active" data-idx="0">1</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="1">2</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="2">3</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="3">4</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="4">5</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="5">6</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="6">7</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="7">8</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="8">9</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="9">10</button>
+                                        <button class="sq grey delay-setting-btn" data-idx="10" style="grid-column: 3;">11</button>
                                     </div>
+                                </div>
+                                <!-- All 5 sliders in a compact row -->
+                                <div class="delay-sliders-row">
                                     <div class="h-slider-unit" data-param="delayRepeatRate">
-                                        <div class="h-slider-lbl">REPEAT RATE</div>
+                                        <div class="h-slider-lbl">REPEAT</div>
                                         <div class="h-slider-container">
                                             <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
                                             <div class="h-slider-track"><div class="h-slider-handle"></div></div>
@@ -462,16 +463,13 @@
                                         <div class="h-slider-labels"><span>SLOW</span><span></span><span>FAST</span></div>
                                     </div>
                                     <div class="h-slider-unit" data-param="delayIntensity">
-                                        <div class="h-slider-lbl">INTENSITY</div>
+                                        <div class="h-slider-lbl">INTENSE</div>
                                         <div class="h-slider-container">
                                             <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
                                             <div class="h-slider-track"><div class="h-slider-handle"></div></div>
                                         </div>
                                         <div class="h-slider-labels"><span>MIN</span><span></span><span>MAX</span></div>
                                     </div>
-                                </div>
-
-                                <div class="delay-subpage hidden" id="delay-sub-tone">
                                     <div class="h-slider-unit" data-param="delayBass">
                                         <div class="h-slider-lbl">BASS</div>
                                         <div class="h-slider-container">
@@ -488,11 +486,8 @@
                                         </div>
                                         <div class="h-slider-labels"><span>CUT</span><span></span><span>BOOST</span></div>
                                     </div>
-                                </div>
-
-                                <div class="delay-subpage hidden" id="delay-sub-reverb">
                                     <div class="h-slider-unit" data-param="delayReverbVol">
-                                        <div class="h-slider-lbl">REVERB VOL</div>
+                                        <div class="h-slider-lbl">REVERB</div>
                                         <div class="h-slider-container">
                                             <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
                                             <div class="h-slider-track"><div class="h-slider-handle"></div></div>
@@ -500,7 +495,7 @@
                                         <div class="h-slider-labels"><span>OFF</span><span></span><span>MAX</span></div>
                                     </div>
                                     <div class="h-slider-unit" data-param="delayEchoVol">
-                                        <div class="h-slider-lbl">ECHO VOL</div>
+                                        <div class="h-slider-lbl">ECHO</div>
                                         <div class="h-slider-container">
                                             <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
                                             <div class="h-slider-track"><div class="h-slider-handle"></div></div>

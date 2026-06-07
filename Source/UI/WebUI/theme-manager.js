@@ -20,14 +20,12 @@ function switchPerformanceTab(tabName) {
         panel.classList.toggle('hidden', !isTarget);
     });
 
-    // 3. When switching to delay tab, show nav row (including ON button) always,
-    //    and subpage controls only when delay is powered on.
+    // 3. When switching to delay tab, show nav row always (ON button + subpage nav).
+    //    Subpage controls hidden until ON is pressed.
     if (tabName === 'delay') {
-        // Nav row (ON button + subpage nav) is always visible when tab is active
         const navRow = document.getElementById('delay-nav-row');
         if (navRow) navRow.classList.remove('hidden');
-        
-        // Subpage content hidden until ON is pressed
+
         const below = document.getElementById('delay-controls-below');
         if (below) {
             below.classList.toggle('hidden', !delayPowerOn);
@@ -84,7 +82,7 @@ function toggleDelayPower() {
         btn.style.pointerEvents = delayPowerOn ? 'auto' : 'none';
     });
 
-    // Show default subpage when turning on
+    // Highlight default subpage button when turning on
     if (delayPowerOn) {
         switchDelaySubpage(delayActiveSubpage);
     }
@@ -144,16 +142,10 @@ function switchDelaySubpage(page) {
     if (!delayPowerOn) return;
     delayActiveSubpage = page;
 
-    // Update nav button active states
+    // Update nav button active states (no content hiding — all controls visible simultaneously)
     document.querySelectorAll('.delay-subpage-btn').forEach(btn => {
         const btnPage = btn.id.replace('delay-nav-', '');
         btn.classList.toggle('active', btnPage === page);
-    });
-
-    // Show/hide subpages
-    ['settings', 'tone', 'reverb'].forEach(p => {
-        const el = document.getElementById('delay-sub-' + p);
-        if (el) el.classList.toggle('hidden', p !== page);
     });
 }
 

@@ -755,26 +755,47 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
     box-shadow: var(--led-glow);
 }
 
-/* Sub-page content area */
-.delay-subpage {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 2px 4px;
-    justify-content: center;
-    align-items: center;
-}
-.delay-subpage.hidden {
-    display: none;
-}
-
-/* Delay setting selector buttons (1-11) */
+/* Delay setting selector buttons (1-11) — 5-column grid */
 .delay-setting-selector {
     display: flex;
     gap: 2px;
     flex-wrap: wrap;
     justify-content: center;
+}
+.delay-grid-5col {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    justify-items: center;
+    max-width: 160px;
+    margin: 0 auto;
+}
+
+/* All 6 sliders in a compact row */
+.delay-sliders-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
+    width: 100%;
+}
+.delay-sliders-row .h-slider-unit {
+    width: 60px;
+    margin: 2px 0;
+}
+.delay-sliders-row .h-slider-container {
+    width: 54px;
+}
+.delay-sliders-row .h-slider-lbl {
+    font-size: 6px;
+}
+.delay-sliders-row .h-slider-labels {
+    width: 54px;
+    font-size: 6px;
+}
+.delay-sliders-row .h-slider-labels span {
+    width: auto;
 }
 .delay-setting-btn {
     width: 22px;
