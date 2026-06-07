@@ -326,8 +326,9 @@ private:
     std::atomic<float>* fmtDelayEchoVol = nullptr;
 
     JunoTapeEcho tapeEcho;
-
     SelfTestResult lastSelfTestResult;
+
+    bool firstPrepare_ = true;
 
     bool isSuperSix() const noexcept
     {

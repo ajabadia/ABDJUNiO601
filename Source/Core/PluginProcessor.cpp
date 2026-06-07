@@ -237,6 +237,15 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     // [Tape Echo] Prepare delay DSP for Super Six
     prepareTapeEcho();
 
+    // [Startup] Always start at Bank A, Patch 1 (index 0) on first launch only
+    // This overrides any saved preset from the last session
+    if (firstPrepare_) {
+        firstPrepare_ = false;
+        if (presetManager) {
+            loadPreset(0);
+        }
+    }
+
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
 }
 

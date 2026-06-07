@@ -236,30 +236,34 @@
                     <div class="sunken-performance-panel" style="margin-top: 0;">
                         <div class="performance-tabs">
                             <div class="perf-tab-nav-btn" id="tab-nav-left" onclick="tabNavLeft()">
-                                <span class="tab-nav-arrow">&lt;</span>
+                                <span class="tab-nav-arrow">&#9664;</span>
                             </div>
-                            <div class="perf-tab-btn" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
-                                VOLUME<br>TUNE
+                            <div class="perf-tabs-carousel">
+                                <div class="perf-tabs-scroll">
+                                    <div class="perf-tab-btn" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
+                                        VOLUME<br>TUNE
+                                    </div>
+                                    <div class="perf-tab-btn" id="tab-btn-port" onclick="switchPerformanceTab('port')">
+                                        <div class="tab-led" id="led-tab-port"></div>
+                                        PORTA
+                                    </div>
+                                    <div class="perf-tab-btn" id="tab-btn-poly" onclick="switchPerformanceTab('poly')">
+                                        <div class="tab-led" id="led-tab-poly1" style="left: 30%;"></div>
+                                        <div class="tab-led" id="led-tab-poly2" style="left: 70%;"></div>
+                                        POLY
+                                    </div>
+                                    <div class="perf-tab-btn" id="tab-btn-arp" onclick="switchPerformanceTab('arp')">
+                                        <div class="tab-led" id="led-tab-arp"></div>
+                                        ARP
+                                    </div>
+                                    <div class="perf-tab-btn" id="tab-btn-delay" onclick="switchPerformanceTab('delay')">
+                                        <div class="tab-led delay-tab-led" id="led-tab-delay"></div>
+                                        DELAY
+                                    </div>
+                                </div>
                             </div>
                             <div class="perf-tab-nav-btn" id="tab-nav-right" onclick="tabNavRight()">
-                                <span class="tab-nav-arrow">&gt;</span>
-                            </div>
-                            <div class="perf-tab-btn" id="tab-btn-port" onclick="switchPerformanceTab('port')">
-                                <div class="tab-led" id="led-tab-port"></div>
-                                PORTA
-                            </div>
-                            <div class="perf-tab-btn" id="tab-btn-poly" onclick="switchPerformanceTab('poly')">
-                                <div class="tab-led" id="led-tab-poly1" style="left: 30%;"></div>
-                                <div class="tab-led" id="led-tab-poly2" style="left: 70%;"></div>
-                                POLY
-                            </div>
-                            <div class="perf-tab-btn" id="tab-btn-arp" onclick="switchPerformanceTab('arp')">
-                                <div class="tab-led" id="led-tab-arp"></div>
-                                ARP
-                            </div>
-                            <div class="perf-tab-btn" id="tab-btn-delay" onclick="switchPerformanceTab('delay')">
-                                <div class="tab-led delay-tab-led" id="led-tab-delay"></div>
-                                DELAY
+                                <span class="tab-nav-arrow">&#9654;</span>
                             </div>
                         </div>
 
@@ -367,6 +371,8 @@
                                     <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold;">0.50</span>
                                 </div>
                             </div>
+                    </div>
+
                         <!-- PANEL DELAY -->
                         <div class="perf-tab-content hidden" id="panel-delay">
                             <!-- Tape Echo SVG: always visible when tab is active, behind controls -->
@@ -406,25 +412,25 @@
                                 </svg>
                             </div>
 
-                            <!-- Overlay controls: positioned above SVG when delay is ON -->
-                            <div id="delay-controls-overlay" class="hidden">
-                                <!-- Vertical nav buttons -->
+                            <!-- Controls: positioned below SVG when delay is ON -->
+                            <div id="delay-controls-below" class="hidden">
+                                <!-- Horizontal nav row -->
                                 <div class="delay-nav">
                                     <div class="delay-nav-unit" id="delay-nav-on" onclick="toggleDelayPower()">
                                         <div class="nav-led" id="led-delay-on"></div>
                                         <div class="nav-lbl delay-nav-lbl">ON</div>
                                     </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-d" onclick="switchDelaySubpage('settings')">
+                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-settings" onclick="switchDelaySubpage('settings')">
                                         <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">D</div>
+                                        <div class="nav-lbl delay-nav-lbl">DELAY</div>
                                     </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-t" onclick="switchDelaySubpage('tone')">
+                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-tone" onclick="switchDelaySubpage('tone')">
                                         <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">T</div>
+                                        <div class="nav-lbl delay-nav-lbl">TONO</div>
                                     </div>
-                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-r" onclick="switchDelaySubpage('reverb')">
+                                    <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-reverb" onclick="switchDelaySubpage('reverb')">
                                         <div class="nav-led"></div>
-                                        <div class="nav-lbl delay-nav-lbl">R</div>
+                                        <div class="nav-lbl delay-nav-lbl">REVERB</div>
                                     </div>
                                 </div>
 

@@ -11,6 +11,21 @@ CalibrationSettings::CalibrationSettings()
 {
     buildParameterList();
     load();
+
+    // [Super Six] Force calibrationProfile to 3.0 regardless of saved file.
+    // This ensures Super Six builds always start in Super Six profile,
+    // even if the user previously saved calibration.json with profile 2.0 (J-106).
+    // We use setValue() instead of direct assignment so that all routing params
+    // (modelDCO, modelVCF, etc.) get soft-updated to their Super Six defaults.
+#if JUNO_TARGET_MODEL == 0
+    {
+        auto it = idToIndex.find("calibrationProfile");
+        if (it != idToIndex.end() && params[it->second].currentValue != 3.0f)
+        {
+            setValue("calibrationProfile", 3.0f, true);
+        }
+    }
+#endif
 }
 
 CalibrationSettings::~CalibrationSettings()
@@ -46,7 +61,13 @@ void CalibrationSettings::buildParameterList()
     };
 
     // --- GENERAL PREFERENCES ---
+#if JUNO_TARGET_MODEL == 0
+    // Super Six build: default to Super Six profile (3) so Space Echo features are active
+    reg("calibrationProfile", "Profile", "GENERAL", "", "Sets the default calibration profile (0=Juno-6, 1=Juno-60, 2=Juno-106, 3=Super Six).", 3.0f, 0.0f, 3.0f, 1.0f, true);
+#else
+    // Single-model build: default to that model's profile (J-106 = 2, J-60 = 1, J-6 = 0)
     reg("calibrationProfile", "Profile", "GENERAL", "", "Sets the default calibration profile (0=Juno-6, 1=Juno-60, 2=Juno-106, 3=Super Six).", 2.0f, 0.0f, 3.0f, 1.0f, true);
+#endif
     reg("skinType", "UI Skin Theme", "GENERAL", "", "Selects the UI theme (0 = Classic Blue, 1 = Juno-60 Classic, 2 = Juno-6 Analog, 3 = Juno-106 Classic, 4 = Juno-106S Dark, 5 = TR-808, 6 = DeepMind, 7 = Space Echo, 8 = ARP 2600).", 0.0f, 0.0f, 8.0f, 1.0f, true);
     reg("midiChannel", "Global MIDI Channel", "GENERAL", "", "Global MIDI input channel (1-16, 0=OMNI).", 1.0f, 0.0f, 16.0f, 1.0f, true);
     reg("numVoices", "Maximum Polyphony", "GENERAL", "voices", "Maximum number of simultaneous voices.", 16.0f, 1.0f, 16.0f, 1.0f, true);
@@ -389,6 +410,9 @@ void CalibrationSettings::save()
     for (auto& p : params)
         obj->setProperty(juce::Identifier(p.id), p.currentValue);
     
+    // Version marker to distinguish old vs new file format
+    obj->setProperty("_version", 2);
+
     // Save string properties
     juce::DynamicObject::Ptr strObj = new juce::DynamicObject();
     strObj->setProperty("libraryPath", juce::String(libraryPath));

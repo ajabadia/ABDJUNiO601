@@ -88,7 +88,9 @@ const ServiceMode = {
         container.innerHTML = '';
         
         // [Build 35] Order modules: LFO, DCO, HPF, VCF, VCA, ADSR, CHORUS, THERMAL, AGING, SYSTEM (GENERAL handled separately)
-        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "ADSR", "CHORUS", "THERMAL", "AGING", "SYSTEM", "SPACE ECHO"];
+        const categories = ["LFO", "DCO", "HPF", "VCF", "VCA", "ADSR", "CHORUS", "THERMAL", "AGING", "SYSTEM"].concat(
+            getCompiledTargetModel() === 0 ? ["SPACE ECHO"] : []
+        );
         
         categories.forEach(cat => {
             this.internalRenderCategory(cat, container);

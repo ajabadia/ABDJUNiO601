@@ -350,6 +350,63 @@ function initApp() {
                 }
             }
         }
+
+        // Force calibrationProfile to Super Six (3.0) for Super Six builds
+        // This ensures the Hybrid profile is always active on Super Six hardware,
+        // even if a previous calibration.json was saved with profile 2.0 (J-106).
+        // Uses setCalibrationParam (not setParameter) because calibrationProfile
+        // is in CalibrationSettings, NOT in APVTS.
+        if (isSuperSix) {
+            const targetProfile = 3;
+            const curProfile = paramValuesCache['calibrationProfile'] !== undefined
+                ? Math.round(paramValuesCache['calibrationProfile']) : -1;
+            if (curProfile !== targetProfile) {
+                paramValuesCache['calibrationProfile'] = targetProfile;
+                if (typeof juce !== 'undefined' && juce.setCalibrationParam) {
+                    juce.setCalibrationParam('calibrationProfile', targetProfile);
+                }
+            }
+
+            // Also initialize routing params (APVTS) to Super Six defaults
+            // This ensures the audio engine actually runs in Super Six mode,
+            // not just the UI. These are soft-updated (only if at previous default)
+            // to avoid overriding manual tweaks between sessions.
+            const routingDefaults = {
+                "modelDCO": 1.0,
+                "modelHPF": 1.0,
+                "modelVCF": 1.0,
+                "modelADSR": 1.0,
+                "modelChorus": 1.0,
+                "modelArp": 0.5,
+                "modelPoly": 1.0,
+                "modelPorta": 1.0,
+                "modelUnison": 1.0
+            };
+            for (const [paramId, newVal] of Object.entries(routingDefaults)) {
+                const cacheVal = paramValuesCache[paramId];
+                // Only set if not yet in cache (first init) OR still at the default
+                if (cacheVal === undefined) {
+                    paramValuesCache[paramId] = newVal;
+                    if (typeof juce !== 'undefined' && juce.setParameter) {
+                        juce.setParameter(paramId, newVal);
+                    }
+                }
+            }
+        }
+
+        // DELAY tab: only visible when Super Six hardware AND profile is 3
+        // This must run AFTER the profile force above so cache is populated.
+        {
+            const profileForDelay = paramValuesCache['calibrationProfile'] !== undefined
+                ? Math.round(paramValuesCache['calibrationProfile']) : -1;
+            const canShowDelay = isSuperSix && profileForDelay === 3;
+            const delayTab = document.getElementById('tab-btn-delay');
+            if (delayTab) delayTab.classList.toggle('hidden', !canShowDelay);
+            const tabNavL = document.getElementById('tab-nav-left');
+            const tabNavR = document.getElementById('tab-nav-right');
+            if (tabNavL) tabNavL.classList.toggle('hidden', !canShowDelay);
+            if (tabNavR) tabNavR.classList.toggle('hidden', !canShowDelay);
+        }
         
         // ARP tab: Only J6 and J60 have arpeggiator (hide for J106)
         // NOTE: Only toggle tab button visibility, NOT the panel itself.
@@ -531,6 +588,13 @@ function initApp() {
         updateThemeAndSkins();
         updatePainterTapes();
     }
+
+    // Expose updateModelVisibility globally so theme-manager.js can call it
+    // when the user changes calibrationProfile, adapting all UI sections
+    // (chorus, VCF polarity, VCA mode, etc.) to the selected profile.
+    window.__updateModelVisibility = updateModelVisibility;
+
+    console.log(`[DEBUG] initApp complete. targetModel=${currentTargetModel} calibrationProfile=${paramValuesCache['calibrationProfile']}`);
 
     callNative("uiReady");
 

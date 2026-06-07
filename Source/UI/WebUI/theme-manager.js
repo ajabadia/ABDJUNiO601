@@ -22,9 +22,9 @@ function switchPerformanceTab(tabName) {
 
     // 3. When switching to delay tab, show static SVG (no controls until ON pressed)
     if (tabName === 'delay') {
-        const overlay = document.getElementById('delay-controls-overlay');
-        if (overlay) {
-            overlay.classList.toggle('hidden', !delayPowerOn);
+        const below = document.getElementById('delay-controls-below');
+        if (below) {
+            below.classList.toggle('hidden', !delayPowerOn);
         }
         const panel = document.getElementById('panel-delay');
         if (panel) {
@@ -35,21 +35,17 @@ function switchPerformanceTab(tabName) {
 }
 
 function tabNavLeft() {
-    const visibleTabs = Array.from(document.querySelectorAll('.perf-tab-btn:not(.hidden)'));
-    const activeIdx = visibleTabs.findIndex(btn => btn.classList.contains('active'));
-    if (activeIdx <= 0) return;
-    const prevTab = visibleTabs[activeIdx - 1];
-    const tabName = prevTab.id.replace('tab-btn-', '');
-    switchPerformanceTab(tabName);
+    const scroll = document.querySelector('.perf-tabs-scroll');
+    if (!scroll) return;
+    const tabWidth = scroll.querySelector('.perf-tab-btn')?.offsetWidth || 80;
+    scroll.scrollBy({ left: -tabWidth, behavior: 'smooth' });
 }
 
 function tabNavRight() {
-    const visibleTabs = Array.from(document.querySelectorAll('.perf-tab-btn:not(.hidden)'));
-    const activeIdx = visibleTabs.findIndex(btn => btn.classList.contains('active'));
-    if (activeIdx === -1 || activeIdx >= visibleTabs.length - 1) return;
-    const nextTab = visibleTabs[activeIdx + 1];
-    const tabName = nextTab.id.replace('tab-btn-', '');
-    switchPerformanceTab(tabName);
+    const scroll = document.querySelector('.perf-tabs-scroll');
+    if (!scroll) return;
+    const tabWidth = scroll.querySelector('.perf-tab-btn')?.offsetWidth || 80;
+    scroll.scrollBy({ left: tabWidth, behavior: 'smooth' });
 }
 
 function deactivatePerformanceTabs() {
@@ -64,13 +60,13 @@ function deactivatePerformanceTabs() {
 function toggleDelayPower() {
     delayPowerOn = !delayPowerOn;
     const navBtn = document.getElementById('delay-nav-on');
-    const overlay = document.getElementById('delay-controls-overlay');
+    const below = document.getElementById('delay-controls-below');
     const panel = document.getElementById('panel-delay');
     const led = document.getElementById('led-delay-on');
 
     if (navBtn) navBtn.classList.toggle('active', delayPowerOn);
     if (led) led.classList.toggle('active', delayPowerOn);
-    if (overlay) overlay.classList.toggle('hidden', !delayPowerOn);
+    if (below) below.classList.toggle('hidden', !delayPowerOn);
     if (panel) {
         panel.classList.toggle('delay-stopped', !delayPowerOn);
         panel.classList.toggle('delay-running', delayPowerOn);
@@ -156,7 +152,8 @@ function switchDelaySubpage(page) {
 }
 
 function updateThemeAndSkins() {
-    const profileVal = paramValuesCache['calibrationProfile'] !== undefined ? paramValuesCache['calibrationProfile'] : 2.0;
+    let profileVal = paramValuesCache['calibrationProfile'] !== undefined ? paramValuesCache['calibrationProfile'] : 2.0;
+    console.log(`[DEBUG] updateThemeAndSkins profileVal=${profileVal} cacheProfile=${paramValuesCache['calibrationProfile']}`);
 
     let targetModel = 0;
     const backend = getBackend();
@@ -165,6 +162,17 @@ function updateThemeAndSkins() {
 
     if (initData && initData.targetModel !== undefined) {
         targetModel = parseInt(initData.targetModel);
+    }
+
+    // Sync UI sections to the selected profile by calling bridge-core's
+    // updateModelVisibility with the profile mapped to a model number.
+    // Mapping: profile 3→0 (SuperSix), 2→1 (J106), 1→2 (J60), 0→3 (J6)
+    if (typeof window.__updateModelVisibility === 'function') {
+        const profileModelMap = { 0: 3, 1: 2, 2: 1, 3: 0 };
+        let mappedModel = profileModelMap[Math.round(profileVal)];
+        if (mappedModel !== undefined) {
+            window.__updateModelVisibility(mappedModel);
+        }
     }
 
     const appSpec = document.getElementById('active-model-spec');
@@ -231,7 +239,9 @@ function updateThemeAndSkins() {
 
     document.querySelectorAll('.painter-tape').forEach(tape => {
         tape.classList.toggle('hidden', targetModel !== 0);
-        if (profileVal === 3.0) {
+        // Tapes are always clickable on Super Six hardware, regardless of profile
+        // (profiles only affect which modules default to which circuit model)
+        if (targetModel === 0) {
             tape.style.pointerEvents = 'auto';
             tape.style.cursor = 'pointer';
         } else {
@@ -268,15 +278,16 @@ function updateThemeAndSkins() {
         }
     }
 
-    // DELAY tab: only visible in Super Six mode
+    // DELAY tab: only visible when Super Six hardware AND Super Six profile (3)
+    const isSuperSixActive = (targetModel === 0 && profileVal === 3.0);
     const delayTab = document.getElementById('tab-btn-delay');
-    if (delayTab) delayTab.classList.toggle('hidden', targetModel !== 0);
+    if (delayTab) delayTab.classList.toggle('hidden', !isSuperSixActive);
 
-    // Tab nav buttons (< >): only visible in Super Six mode
+    // Tab nav buttons (< >): only visible when Super Six hardware AND Super Six profile (3)
     const tabNavLeft = document.getElementById('tab-nav-left');
     const tabNavRight = document.getElementById('tab-nav-right');
-    if (tabNavLeft) tabNavLeft.classList.toggle('hidden', targetModel !== 0);
-    if (tabNavRight) tabNavRight.classList.toggle('hidden', targetModel !== 0);
+    if (tabNavLeft) tabNavLeft.classList.toggle('hidden', !isSuperSixActive);
+    if (tabNavRight) tabNavRight.classList.toggle('hidden', !isSuperSixActive);
 
     // Hide/show the ROUTING tab button in settings
     const tabRoutingBtn = document.querySelector('button[onclick="switchTab(\'routing\')"]');

@@ -512,8 +512,29 @@ body[data-theme="classic"] .module[data-model="1"] {
     margin-bottom: 8px;
 }
 
-.perf-tab-btn {
+/* Carousel: fixed nav buttons + scrollable tab strip */
+.perf-tabs-carousel {
     flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+.perf-tabs-scroll {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    height: 100%;
+}
+.perf-tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.perf-tab-btn {
+    flex: 1 0 33.333%;
+    min-width: 0;
     background: #1e2025;
     border: 1px solid #111;
     color: #888;
@@ -528,6 +549,7 @@ body[data-theme="classic"] .module[data-model="1"] {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    scroll-snap-align: start;
 }
 
 .perf-tab-btn:hover {
@@ -550,12 +572,13 @@ body[data-theme="juno-60"] .perf-tab-btn.active {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
 }
 
-/* Tab navigation buttons (< >) — half width, flanking VOL/TUNE */
+/* Tab navigation buttons (< >) — fixed width, flanking all tab buttons */
 .perf-tab-nav-btn {
-    flex: 0.5;
+    flex: none;
+    width: 28px;
     background: #181a1e;
     border: 1px solid #111;
-    color: #666;
+    color: #999;
     padding: 4px 2px;
     font-family: 'Microgramma', sans-serif;
     font-size: 9px;
@@ -570,7 +593,7 @@ body[data-theme="juno-60"] .perf-tab-btn.active {
 }
 .perf-tab-nav-btn:hover {
     background: #2a2d34;
-    color: #aaa;
+    color: #ddd;
 }
 .perf-tab-nav-btn:active {
     background: var(--juno-blue);
@@ -580,9 +603,10 @@ body[data-theme="juno-60"] .perf-tab-btn.active {
     display: none;
 }
 .tab-nav-arrow {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: bold;
     line-height: 1;
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.15));
 }
 
 /* Dark theme overrides for tab nav */
@@ -640,69 +664,68 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
 #panel-delay {
     position: relative;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
     min-height: 100px;
     overflow: hidden;
+    gap: 4px;
 }
 
-/* SVG background - always visible, behind overlay */
+/* SVG - always visible at top when tab is active */
 #tape-echo-visual {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    z-index: 0;
     transition: opacity 0.3s ease;
+    flex: 0 0 auto;
 }
 #tape-echo-visual svg {
     width: 100%;
-    max-width: 220px;
+    max-width: 200px;
     height: auto;
 }
 
-/* Overlay controls - above SVG */
-#delay-controls-overlay {
+/* Controls - below SVG, nav row + content below */
+#delay-controls-below {
     position: relative;
-    z-index: 1;
     display: flex;
-    flex-direction: row;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
     width: 100%;
-    height: 100%;
     flex: 1;
+    align-items: stretch;
 }
-#delay-controls-overlay.hidden {
+#delay-controls-below.hidden {
     display: none;
 }
 
-/* Vertical nav buttons */
+/* Horizontal nav row (ON / DELAY / TONO / REVERB) */
 .delay-nav {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
-    padding: 4px;
-    flex: 0 0 36px;
+    padding: 2px 4px;
+    justify-content: center;
+    width: 100%;
 }
 .delay-nav-unit {
-    width: 32px;
-    height: 24px;
+    min-width: 44px;
+    height: 22px;
     background: #1e2025;
     border: 1px solid #111;
     border-radius: 3px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.15s ease;
     position: relative;
-    gap: 2px;
+    gap: 4px;
+    padding: 0 8px;
 }
 .delay-nav-unit:hover {
     background: #2a2d34;
