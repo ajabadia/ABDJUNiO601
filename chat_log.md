@@ -2491,3 +2491,1055 @@ En `JunoTapeEcho.cpp::process()`:
 | Unit tests C++ | ✅ ALL TESTS PASSED |
 
 ---
+
+## 45. TapeEcho Unit Tests — JunoTapeEchoTests (10 tests)
+
+*Ultima actualizacion: 6 Junio 2026*
+
+### 45.1 Resumen
+
+Se crearon 10 tests unitarios especificos para el motor DSP `JunoTapeEcho`, cubriendo los 3 parametros de calibracion Space Echo (`delayInputLevel`, `delayWetDry`, `delayReverbType`) asi como funcionalidad basica de enable/disable, reset de estado, y estabilidad numerica.
+
+### 45.2 Archivos Modificados
+
+| Archivo | Cambio |
+|:--------|:-------|
+| `Source/Core/Tests/TapeEchoTests.cpp` | Nuevo: 10 tests en clase `JunoTapeEchoTests` (hereda `juce::UnitTest`) |
+| `CMakeLists.txt` | Anadido `Source/Synth` a `target_include_directories(JunoUnitTests)` + `JunoTapeEcho.cpp` a `target_sources` |
+
+### 45.3 Estructura de los Tests
+
+- **Helper `createTestBuffer()`**: buffer estereo de 48000 samples (~1.1s a 44.1kHz) con onda senoidal de 200Hz
+- **Helper `processWarm()`**: procesa el buffer 3 veces para llenar la linea de delay (minimo ~2205 samples a 50ms) antes de medir
+- **Helper `computeRMS()`**: RMS de todo el buffer (doble precision)
+- **Helper `computePeak()`**: pico absoluto del buffer
+- **Sample rate**: 44100 Hz
+- **Amplitud de prueba**: 0.5 (-6dB)
+
+### 45.4 Listado de Tests
+
+| # | Nombre | Que Verifica | Parametros Clave |
+|:--|:-------|:-------------|:-----------------|
+| 1 | `Disabled` | `process()` no modifica buffer | `setEnabled(false)`, buffer vs referencia |
+| 2 | `inputLevel=0` | Senal wet silenciada | `inputLevel=0`, `wetDry=1`, `intensity=1`, peak < 0.001 |
+| 3 | `inputLevel=1, wetDry=1` | Senal wet presente | `inputLevel=1`, `wetDry=1`, `intensity=0.3`, RMS > 0.001 |
+| 4 | `wetDry=0` | Output ≈ dry | `wetDry=0`, `intensity=0`, `echoVol=1`, RMS dry≈out |
+| 5 | `wetDry monotonic` | RMS crece con wetDry | 5 pasos (0, 0.25, 0.5, 0.75, 1.0), tolerancia 10% |
+| 6 | `Reverb types` | 3 tipos producen output distinto | `reverbType` 0/1/2, `echoVol=0`, al menos 1 par difiere |
+| 7 | `No NaN/Inf` | 12 combinaciones extremas sin NaN/Inf | 3 tipos × 2 inputLevel × 2 wetDry, amplitud 1.0 |
+| 8 | `getActiveHeads` | 11 settings producen 1-3 heads | `getActiveHeads(s)` para s=0..10 |
+| 9 | `Reset` | Estado repetible tras `reset()` | Dos corridas con reset intermedio, RMS identico |
+| 10 | `inputLevel=0 + feedback` | Silencia incluso con feedback maximo | `inputLevel=0`, `intensity=1`, `delaySetting=6`, peak < 0.001 |
+
+### 45.5 Integracion en CMake
+
+```cmake
+target_include_directories(JunoUnitTests PRIVATE
+    ...
+    Source/Synth
+)
+
+target_sources(JunoUnitTests PRIVATE
+    ...
+    Source/Core/Tests/TapeEchoTests.cpp
+    Source/Synth/JunoTapeEcho.cpp
+    ...
+)
+```
+
+### 45.6 Commit
+
+- Commit: `3beee23`
+- Mensaje: `feat(delay): add TapeEcho unit tests + wire calibration params into DSP`
+- Rama: `feature/fidelity-certified`
+
+## 45. TapeEcho Unit Tests — JunoTapeEchoTests (10 tests)
+
+*Ultima actualizacion: 6 Junio 2026*
+
+### 45.1 Resumen
+
+Se crearon 10 tests unitarios especificos para el motor DSP `JunoTapeEcho`, cubriendo los 3 parametros de calibracion Space Echo (`delayInputLevel`, `delayWetDry`, `delayReverbType`) asi como funcionalidad basica de enable/disable, reset de estado, y estabilidad numerica.
+
+### 45.2 Archivos Modificados
+
+| Archivo | Cambio |
+|:--------|:-------|
+| `Source/Core/Tests/TapeEchoTests.cpp` | Nuevo: 10 tests en clase `JunoTapeEchoTests` (hereda `juce::UnitTest`) |
+| `CMakeLists.txt` | Anadido `Source/Synth` a `target_include_directories(JunoUnitTests)` + `JunoTapeEcho.cpp` a `target_sources` |
+
+### 45.3 Estructura de los Tests
+
+- **Helper `createTestBuffer()`**: buffer estereo de 48000 samples (~1.1s a 44.1kHz) con onda senoidal de 200Hz
+- **Helper `processWarm()`**: procesa el buffer 3 veces para llenar la linea de delay (minimo ~2205 samples a 50ms) antes de medir
+- **Helper `computeRMS()`**: RMS de todo el buffer (doble precision)
+- **Helper `computePeak()`**: pico absoluto del buffer
+- **Sample rate**: 44100 Hz
+- **Amplitud de prueba**: 0.5 (-6dB)
+
+### 45.4 Listado de Tests
+
+| # | Nombre | Que Verifica | Parametros Clave |
+|:--|:-------|:-------------|:-----------------|
+| 1 | `Disabled` | `process()` no modifica buffer | `setEnabled(false)`, buffer vs referencia |
+| 2 | `inputLevel=0` | Senal wet silenciada | `inputLevel=0`, `wetDry=1`, `intensity=1`, peak < 0.001 |
+| 3 | `inputLevel=1, wetDry=1` | Senal wet presente | `inputLevel=1`, `wetDry=1`, `intensity=0.3`, RMS > 0.001 |
+| 4 | `wetDry=0` | Output ~ dry | `wetDry=0`, `intensity=0`, `echoVol=1`, RMS dry~out |
+| 5 | `wetDry monotonic` | RMS crece con wetDry | 5 pasos (0, 0.25, 0.5, 0.75, 1.0), tolerancia 10% |
+| 6 | `Reverb types` | 3 tipos producen output distinto | `reverbType` 0/1/2, `echoVol=0`, al menos 1 par difiere |
+| 7 | `No NaN/Inf` | 12 combinaciones extremas sin NaN/Inf | 3 tipos x 2 inputLevel x 2 wetDry, amplitud 1.0 |
+| 8 | `getActiveHeads` | 11 settings producen 1-3 heads | `getActiveHeads(s)` para s=0..10 |
+| 9 | `Reset` | Estado repetible tras `reset()` | Dos corridas con reset intermedio, RMS identico |
+| 10 | `inputLevel=0 + feedback` | Silencia incluso con feedback maximo | `inputLevel=0`, `intensity=1`, `delaySetting=6`, peak < 0.001 |
+
+### 45.5 Integracion en CMake
+
+```cmake
+target_include_directories(JunoUnitTests PRIVATE
+    ...
+    Source/Synth
+)
+
+target_sources(JunoUnitTests PRIVATE
+    ...
+    Source/Core/Tests/TapeEchoTests.cpp
+    Source/Synth/JunoTapeEcho.cpp
+    ...
+)
+```
+
+### 45.6 Commit
+
+- Commit: `3beee23`
+- Mensaje: `feat(delay): add TapeEcho unit tests + wire calibration params into DSP`
+- Rama: `feature/fidelity-certified`
+
+
+---
+
+## 37. CSS Audit, Centralización y Mejoras SVG Delay Sync
+
+*Última actualización: 7 Junio 2026*
+
+### 37.1 Auditoría de Selectores Huérfanos
+
+Se realizó un análisis exhaustivo cruzando **13 archivos CSS** (230 selectores CLASS, 69 selectores ID) contra referencias en **10 archivos HTML/JS** (~343 referencias ID, ~91 referencias CLASS).
+
+**Resultados:**
+- **IDs huérfanos reales:** 0 ✅ (todos los IDs son usados por `getElementById()` y no necesitan CSS)
+- **Classes huérfanas reales:** 8 grupos 🔴
+
+**8 grupos de clases sin CSS:**
+
+| Clase | Dónde se usa | Impacto |
+|:------|:-------------|:--------|
+| **`.head-active`** | `theme-manager.js:updateHeadHighlights()` | Heads H1/H2/H3 no se iluminan en el SVG |
+| **`.tape-j6` / `.j60` / `.j106`** | `updatePainterTapes()` | Painter tapes no cambian de color por modelo |
+| **`.peak-led-active/on/off`** | `startPeakLedAnimation()` | LED peak no tiene feedback visual |
+| **`.delay-stopped`** | `toggleDelayPower()` | Panel delay no se atenúa al apagar |
+| **`.pos-left/center/right`** | `index.html` (knobs ARP) | Labels UP/DN/U/D sin posicionamiento |
+| **`.knob-tick-lbl` / `.knob-tick-wrapper`** | `index.html`, `setupSliders()` | Sin estilos base para clicks |
+| **`.tiny-util`** | `index.html` (botones PROTECT/COPY) | Clase extra sin efecto |
+| **`.nav-led`** | `index.html` (delay nav) | LEDs navegación sin estilo |
+
+**Script creado:** `scripts/audit_orphan_selectors.py` — herramienta para detectar selectores huérfanos en el futuro.
+
+### 37.2 Centralización de .sw-lbl y .juno-btn en controls.css
+
+Se movieron las reglas base de `.sw-lbl` y `.juno-btn` a `controls.css` para centralizar toda la lógica de switches y botones en un solo archivo:
+
+| Regla | Origen | Destino | Estado |
+|:------|:-------|:--------|:-------|
+| `.sw-lbl` (base) | `performance.css` | → `controls.css` (antes de `.sw-lbl.top`) | ✅ Movido |
+| `.juno-btn` (base) | `sidebar.css` | → `controls.css` (antes de `.juno-btn.pushed`) | ✅ Movido |
+| `.sw-lbl.top` / `.bot` | `controls.css` | — | ✅ Ya estaba |
+| `.juno-btn.pushed` / `[data-active]` | `controls.css` | — | ✅ Ya estaba |
+| `vars.css` chain-selectors | `vars.css` | — | ✅ Sin cambios |
+
+**Orden de carga CSS verificado:** `vars → base → header → sidebar → engine → controls → performance → keyboard → about → settings`. `controls.css` carga después de `sidebar.css` y antes de `performance.css`, manteniendo la cascada correcta.
+
+**Archivos modificados:**
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/css/controls.css` | + `.sw-lbl` base (5 líneas) + `.juno-btn` base (9 líneas) |
+| `Source/UI/WebUI/css/performance.css` | − `.sw-lbl` base (7 líneas) |
+| `Source/UI/WebUI/css/sidebar.css` | − `.juno-btn` base (10 líneas) |
+
+### 37.3 Indicador de BPM en SVG Delay
+
+Se añadió un indicador de BPM en la esquina inferior derecha del SVG de la cinta del delay, visible cuando el sync está activo:
+
+| Archivo | Cambio |
+|:--------|:-------|
+| **index.html** | Nuevo `<text id="svg-bpm-indicator">` en x=192, y=78, text-anchor="end" |
+| **performance.css** | 3 reglas: `.svg-bpm-hidden` (hidden), `#svg-bpm-indicator.svg-bpm-visible` (#888), `.delay-running #svg-bpm-indicator.svg-bpm-visible` (#aaa) |
+| **theme-manager.js** | `updateSyncIndicator()` ahora actualiza texto BPM del SVG (ej. "120 BPM") con transición de opacidad |
+| **bridge-core.js** | `onDelayBPMUpdate` actualiza texto BPM en el SVG en vivo desde el DAW |
+
+**Layout final del SVG de cinta:**
+```
+┌──────────────────────────────────────┐
+│ [PEAK]          [ECHO CANCEL]       │
+│     ┌──────┐                        │
+│ (◉)─│H1H2H3│─(◉)──(◉)──(◉)       │
+│     │ 1/8  │                        │  ← división (sobre heads)
+│     └──────┘                        │
+│  (◉)          (◉)                   │
+│      TAPE ECHO    120 BPM           │  ← BPM (esquina inf. derecha)
+└──────────────────────────────────────┘
+```
+
+### 37.4 Pulso Sutil en Indicador SVG Sync
+
+Se añadió una animación de pulso suave al indicador de división SVG cuando el delay está activo:
+
+```css
+@keyframes svg-indicator-pulse {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1.0; }
+}
+
+.delay-running #svg-sync-indicator.svg-sync-visible {
+    fill: #ff8800;
+    animation: svg-indicator-pulse 2s ease-in-out infinite;
+}
+
+.delay-stopped #svg-sync-indicator.svg-sync-visible {
+    animation: none;
+}
+```
+
+**Comportamiento:**
+| Estado | Indicador división | Indicador BPM |
+|:-------|:------------------|:--------------|
+| Delay OFF | Estático (oculto) | Estático (oculto) |
+| Delay ON + SYNC OFF | Estático (oculto) | Estático (oculto) |
+| Delay ON + SYNC ON | **Pulso suave** 0.85↔1.0 | Estático (#888→#aaa) |
+
+### 37.5 Análisis de Orden de Carga CSS
+
+Se analizó el orden de carga en `style.css` y se propuso una reorganización para que `controls.css` (librería de componentes) cargue antes que sus consumidores (`sidebar.css`, `engine.css`):
+
+**Orden actual:** `vars → base → header → sidebar → engine → controls → performance → keyboard → about → settings`
+**Orden propuesto:** `vars → base → header → controls → sidebar → engine → performance → keyboard → about → settings`
+
+`service.css` y `browser.css` cargan como `<link>` separado después de `style.css` — correcto por ser modales que se abren post-render.
+
+### 37.6 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/css/controls.css` | Centralización de `.sw-lbl` y `.juno-btn` base |
+| `Source/UI/WebUI/css/performance.css` | Eliminado `.sw-lbl` base; añadido BPM indicator CSS + pulse animation |
+| `Source/UI/WebUI/css/sidebar.css` | Eliminado `.juno-btn` base |
+| `Source/UI/WebUI/index.html` | Nuevo `<text id="svg-bpm-indicator">` en SVG |
+| `Source/UI/WebUI/theme-manager.js` | `updateSyncIndicator()` actualiza BPM SVG |
+| `Source/UI/WebUI/bridge-core.js` | `onDelayBPMUpdate` actualiza BPM en SVG en vivo |
+| `scripts/audit_orphan_selectors.py` | **Nuevo** — herramienta de detección de selectores huérfanos |
+
+---
+
+## 38. Refactorización CSS, Sincronización ARP BPM y Mejoras UI
+
+*Última actualización: 7 Junio 2026*
+
+### 38.1 Migración de service.css y browser.css a @import
+
+Se movieron `service.css` y `browser.css` de `<link>` tags en `index.html` a `@import` en `style.css`:
+
+| Archivo | Cambio |
+|---------|--------|
+| `style.css` | Añadidos `@import url('service.css')` y `@import url('browser.css')` después de `css/settings.css` |
+| `index.html` | Eliminados `<link rel="stylesheet" href="service.css">` y `<link rel="stylesheet" href="browser.css">` — solo queda `<link rel="stylesheet" href="style.css">` |
+
+**Orden de carga preservado:** `vars → base → header → sidebar → engine → controls → performance → keyboard → about → settings → service.css → browser.css`
+
+### 38.2 CSS para 8 Grupos de Clases Huérfanas
+
+Se implementó CSS faltante para 8 grupos de clases JS-manipuladas detectados en la auditoría de selectores huérfanos:
+
+| Clase | Archivo CSS | Efecto visual |
+|:------|:------------|:--------------|
+| **`.head-active`** | `performance.css` | Heads H1/H2/H3 brillan en naranja (#ff8800) con drop-shadow cuando activos; más brillo (#ffaa33) cuando delay running |
+| **`.tape-j6` / `.j60` / `.j106`** | `sidebar.css` | Painter tapes cambian de color: rojo (J6), azul (J60), naranja (J106) con gradient bg |
+| **`.peak-led-off/on/active`** | `performance.css` | LED peak: off=grayscale+dim, on=normal, active=bright red glow; brighter when delay running |
+| **`.delay-stopped`** | `performance.css` | SVG de cinta se atenúa (opacity 0.45 + grayscale 0.6) cuando delay está apagado |
+| **`.pos-left/center/right`** | `controls.css` | Tick labels de knobs ARP se posicionan con align-self + margins (left/right 6px) |
+| **`.knob-tick-lbl` / `.knob-tick-wrapper`** | `controls.css` | Base styles: Fragment Mono 7px, #888, sin pointer events; wrapper en flex column |
+| **`.tiny-util`** | `controls.css` | Botones PROTECT/COPY SYX reducidos a 28x20px con background-size: contain |
+| **`.nav-led`** | `performance.css` | LEDs navegación delay: círculo 8px, #333; `.active`=red+glow, matching `.oct-led` pattern |
+
+Además se añadió estilo base para `.painter-tape` que estaba completamente sin CSS (0 reglas encontradas): Fragment Mono 7px, dark bg #1a1c21, border 1px #222, border-radius 2px.
+
+### 38.3 Sincronización ARP BPM desde el DAW
+
+Se implementó un indicador de BPM en el panel ARP que se actualiza cuando el DAW envía BPM:
+
+**HTML:** Nuevo `<div id="arp-bpm-indicator">` al final de `panel-arp` (oculto por defecto)
+
+**CSS:** `.arp-bpm-hidden` (opacity 0, transition 0.3s) / `.arp-bpm-visible` (opacity 1, Fragment Mono 9px, var(--juno-orange) con glow)
+
+**JS (`bridge-core.js`):** `onDelayBPMUpdate` ahora:
+- Lee `paramValuesCache['arpSync']` para saber si el sync está activo
+- Muestra "{bpm} BPM" en el indicador ARP
+- Muestra "ARP SYNC: {bpm} BPM" en LCD
+
+### 38.4 LED ARP SYNC Parpadea al Ritmo del BPM
+
+**Nueva función `startArpSyncBlink()`** en `theme-manager.js`:
+- Timer que parpadea `#led-arpSync` a negra (60000/BPM ms, clamp 125-2000ms)
+- Se limpia el timer al reiniciar o al desactivar sync
+- Llamado desde `onDelayBPMUpdate` en `bridge-core.js`
+
+| Escenario | LED ARP SYNC |
+|:----------|:-------------|
+| ARP OFF o SYNC OFF | Apagado (gestionado por syncUI) |
+| SYNC ON + BPM desde DAW | Parpadeo rítmico a negra (ej. 120 BPM → 500ms ciclo) |
+| SYNC ON + DAW parado | Se mantiene el último BPM conocido |
+
+### 38.5 RATE Knob Deshabilitado en Modo SYNC
+
+Cuando `arpSync` está activo, el RATE knob se deshabilita visualmente (el tempo lo dicta el DAW):
+
+**CSS:** `.arp-rate-disabled` — knob-ring: opacity 0.3 + grayscale 0.8 + pointer-events: none; label y value al 30-35% opacidad
+
+**JS:** En `syncUI()` de `ui-sliders.js`, cuando `id === 'arpSync'`, se togglea `.arp-rate-disabled` en la columna RATE via `[data-param="arpRate"]?.closest('.knob-column')`
+
+| Estado | RATE knob |
+|:-------|:----------|
+| arpSync OFF | Normal — se puede girar |
+| arpSync ON | Deshabilitado visualmente: gris, 30% opacidad, pointer-events: none, cursor not-allowed |
+
+### 38.6 Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `Source/UI/WebUI/index.html` | Movidos service.css/browser.css a @import; añadido ARP BPM indicator; añadido BPM indicator SVG |
+| `Source/UI/WebUI/style.css` | Añadidos @import de service.css y browser.css |
+| `Source/UI/WebUI/css/performance.css` | +head-active, peak-led-*, delay-stopped, nav-led, arp-bpm-*, arp-rate-disabled, svg-bpm-indicator, svg-indicator-pulse |
+| `Source/UI/WebUI/css/controls.css` | +knob-tick-lbl, knob-tick-wrapper, pos-left/center/right, .sq.tiny-util |
+| `Source/UI/WebUI/css/sidebar.css` | +.painter-tape base, +.tape-j6/j60/j106 |
+| `Source/UI/WebUI/bridge-core.js` | onDelayBPMUpdate extendido: +ARP BPM indicator + startArpSyncBlink |
+| `Source/UI/WebUI/theme-manager.js` | Nueva startArpSyncBlink() para LED ARP a tempo |
+| `Source/UI/WebUI/ui-sliders.js` | syncUI() maneja arpSync → toggle arp-rate-disabled |
+
+| Source/UI/WebUI/bridge-core.js | onDelayBPMUpdate actualiza ARP BPM indicator + LCD + LED blink |
+
+### 38.7 Limpieza de Clase Huérfana `.arp-bpm-indicator-modal`
+
+Se eliminó la clase CSS huérfana `arp-bpm-indicator-modal` del elemento `<div>` del indicador BPM en el modal de Settings (`modals.js`).
+
+| Detalle | Valor |
+|:--------|:------|
+| **Clase eliminada** | `.arp-bpm-indicator-modal` |
+| **Archivo** | `Source/UI/WebUI/modals.js` |
+| **Elemento** | `<div class="arp-bpm-indicator-modal" id="arp-bpm-indicator-settings">` |
+| **Estado final** | `<div id="arp-bpm-indicator-settings">` |
+| **Razón** | La clase no tenía ninguna regla CSS asociada — todo el estilo se aplicaba inline (color, font-family, font-size, font-weight, letter-spacing) |
+| **Build** | ✅ Éxito (WebUI target) |
+| **Impacto visual** | Ninguno — todas las propiedades visuales se mantienen vía `inline` + `id` |
+
+### 38.8 Auditoría sidebar.css vs controls.css
+
+Se realizó un análisis de redundancias entre `sidebar.css` y `controls.css`.
+
+| Resultado | Detalle |
+|:----------|:--------|
+| **Reglas redundantes** | **0** — separación de responsabilidades limpia |
+| **sidebar.css** | Layout del panel lateral (navegación, utilidades, grid de patches) + badges `.painter-tape` |
+| **controls.css** | Librería de componentes (sliders, knobs, switches, buttons, LEDs) |
+
+**Referencias cruzadas verificadas (ningún conflicto):**
+| Selector | Definido en | Referenciado en |
+|:---------|:-----------|:----------------|
+| `.num-btn` | (externo/HTML) | `sidebar.css`: `[data-active="true"]`, `controls.css`: `.pushed` |
+| `.nav-arrow` | `sidebar.css` (base) | `controls.css`: `.pushed` state |
+
+### 38.9 Test Visual CDP — Verificación de CSS
+
+Se lanzó el standalone Super Six y se verificaron los cambios CSS via HTTP server + browser-use agent.
+
+**Verificados correctamente (7/7):**
+- ✅ `@import` load order: `style.css` → `service.css` + `browser.css` al final
+- ✅ `.painter-tape`: Fragment Mono 7px 700, padding 1px 5px
+- ✅ `.knob-tick-wrapper`: Flex column, gap 2px
+- ✅ `.knob-tick-lbl`: Fragment Mono 7px #888
+- ✅ `.pos-left/center/right`: align-self flex-start/center/flex-end
+- ✅ `.arp-bpm-hidden`: opacity 0, transition 0.3s ease
+- ✅ `.sq.tiny-util`: CSS correcto 28×20px (source verificado)
+
+**No verificables sin bridge JUCE (12 items):** Clases estado-dependientes que requieren JS bridge para togglear (`.head-active`, `.peak-led-*`, `.delay-stopped`, `.tape-j6/j60/j106`, `.arp-bpm-visible`, `.arp-rate-disabled`, `.nav-led.active`).
+
+### 38.10 Archivos Modificados (Sesión)
+
+| Archivo | Cambio |
+|:--------|:-------|
+| `Source/UI/WebUI/modals.js` | Eliminada clase huérfana `arp-bpm-indicator-modal` del indicador BPM en Settings |
+
+---
+
+
+
+### 38.11 Auditoría Completa de Clases CSS (245 clases analizadas)
+
+Se realizó una auditoría automatizada (`scripts/audit_css_classes.py`) que cruza todas las clases definidas en 13 archivos CSS contra las referencias en 10 archivos HTML/JS.
+
+| Métrica | Cantidad |
+|:--------|:--------:|
+| Clases CSS totales | **245** |
+| Referencias en HTML/JS | **291** |
+| Clases en uso (ambos) | **230** |
+| CSS muerto (solo en CSS) | **15** (8 reales, 7 falsos positivos) |
+| Huérfanas (solo en HTML/JS) | **61** |
+
+#### CSS Muerto Verificado (8 clases)
+
+| Clase | Archivo | Descripción |
+|:------|:--------|:------------|
+| `.blink` | performance.css | Animación oct-led (0.5s) — JS nunca la togglea |
+| `.blink-fast` | performance.css | Animación oct-led rápida (0.25s) — JS nunca la togglea |
+| `.fade-out` | base.css | `#splash-screen.fade-out` — posiblemente no usada |
+| `.error` | style.css | `.notification-toast.error` — estilo de notificación de error |
+| `.success` | style.css | `.notification-toast.success` — estilo de notificación de éxito |
+| `.ab-util-btn` | browser.css | Botón utilidad browser |
+| `.browser-action-btn` | browser.css | Botón acción browser |
+| `.info-actions` | browser.css | Contenedor acciones browser |
+
+#### Clases Huérfanas Más Significativas (61 total)
+
+| Grupo | Clases | Estado |
+|:------|:-------|:------:|
+| **Panel Delay (13)** | `.delay-ec-led`, `.delay-knob-lbl`, `.delay-knob-ring`, `.delay-knob-unit`, `.delay-knobs-group`, `.delay-nav`, `.delay-nav-lbl`, `.delay-nav-unit`, `.delay-preset-knob`, `.delay-subpage`, `.delay-subpage-btn`, `.delay-sync-row-inline`, `.delay-tab-led` | Sin CSS |
+| **Performance Tabs (6)** | `.perf-tab-btn`, `.perf-tab-content`, `.perf-tab-nav-btn`, `.perf-tabs-carousel`, `.perf-tabs-scroll`, `.performance-tabs` | Sin CSS |
+| **Smart Import (4)** | `.smart-import-body`, `.smart-import-container`, `.smart-import-footer`, `.smart-import-header` | Sin CSS |
+| **Preset Knobs (3)** | `.preset-knob-body`, `.preset-knob-img`, `.preset-knob-pointer` | Sin CSS |
+| **Knob layout (2)** | `.knob-column`, `.knob-unit` | Sin CSS |
+| **Varios (20+)** | `.record-dot`, `.recording`, `.save-field`, `.poly-btn`, `.poly-mode-btn`, `.patch-btn`, `.patch-grid`, `.changed`, `.hex-byte`, `.v-slider-mini`, `.h-slider-handle`, `.h-slider-input`, `.modal-content`, `.nav-lbl`, `.model-selector-row`, `.heads-bezel`, `.echo-cancel-fo`, `.sw-col`, `.tab-led`, `.tab-nav-arrow` | Sin CSS |
+
+### 38.12 Auditoría style.css vs service.css vs browser.css
+
+Se verificó que no hay reglas redundantes entre los 3 archivos CSS que se cargan via `@import` desde `style.css`:
+
+| Archivo | Responsabilidad | Clases exclusivas |
+|:--------|:----------------|:-----------------:|
+| `style.css` | Hub @import + `.notification-toast` | ~5 |
+| `service.css` | Service mode + Calibration + Smart Import | ~50 |
+| `browser.css` | Preset browser + Search + A/B compare | ~80 |
+
+**Resultado: 0 reglas redundantes** ✅
+
+- Ningún nombre de clase aparece en más de un archivo
+- `.primary` y `.active` se usan en múltiples archivos pero siempre como selectores compuestos (`.footer-action-btn.primary`, `.badge.active`) — sin conflictos
+- `:root` variables en browser.css usan prefijo `--browser-*` y `--pane-*` — no chocan con `css/vars.css`
+- Único `@keyframes`: `pulse-status` en service.css
+- Único `@font-face`: `SevenSegment` en browser.css
+
+### 38.13 Herramienta de Auditoría Creada
+
+| Archivo | Descripción |
+|:--------|:------------|
+| `scripts/audit_css_classes.py` | Script Python que extrae clases CSS de 13 archivos, referencias de 10 HTML/JS, y cruza ambos sets para identificar CSS muerto y clases huérfanas |
+
+---
+
+*
+## 39. Limpieza de CSS Muerto e Implementación de Clases Huérfanas
+
+*Última actualización: 7 Junio 2026*
+
+### 39.1 Verificación y Eliminación de CSS Muerto (5 clases)
+
+Se auditaron 8 clases candidatas a CSS muerto de la auditoría anterior. Solo 5 estaban realmente sin uso:
+
+| Clase | Archivo | Acción |
+|:------|:--------|:-------|
+|  |  | Eliminada — JS solo hace , nunca  |
+|  |  | Eliminada — 0 referencias en JS/HTML |
+|  |  | Eliminada — 0 referencias |
+|  |  | Eliminada — 0 referencias |
+|  (+ , ) |  | Eliminada — 0 referencias |
+
+**Preservadas** (falsos positivos):  (octave LED en uso), / (notificaciones via ).
+
+### 39.2 CSS para 13 Clases Huérfanas del Panel Delay
+
+70+ líneas de CSS en : , ,  layout, , , , , , , , , , , , .
+
+Adicional:  ahora  (necesario para  absoluto).
+
+### 39.3 CSS para 4 Clases Huérfanas del Smart Import
+
+4 reglas agregadas a : , , , .
+Los 4  atributos inline correspondientes eliminados del template en .
+
+### 39.4 Archivos Modificados
+
+| Archivo | Cambio |
+|:--------|:-------|
+|  | Eliminado  + 70+ líneas delay panel CSS |
+|  | Eliminado  |
+|  | Eliminados 3 bloques de clases muertas (20 líneas) |
+|  | Agregadas 4 reglas  (22 líneas) |
+|  | Eliminados 4  inline del template Smart Import |
+
+---
+
+
+## 39. Limpieza de CSS Muerto e Implementación de Clases Huérfanas
+
+*Última actualización: 7 Junio 2026*
+
+### 39.1 Verificación y Eliminación de CSS Muerto (5 clases)
+
+Se auditaron 8 clases candidatas. 5 estaban realmente sin uso: .oct-led.blink-fast, #splash-screen.fade-out, .ab-util-btn, .info-actions, .browser-action-btn.
+
+### 39.2 CSS para 13 Clases Huérfanas del Panel Delay
+
+70+ líneas en performance.css: .tab-led, .delay-tab-led, #panel-delay layout, .delay-subpage, .delay-preset-knob, .delay-knobs-group, .delay-knob-unit, .delay-knob-lbl, .delay-knob-ring, .delay-ec-led, .delay-sync-row-inline, .delay-nav, .delay-nav-unit, .delay-nav-lbl, .delay-subpage-btn.active.
+
+### 39.3 CSS para 4 Clases Huérfanas del Smart Import
+
+4 reglas en service.css: .smart-import-container, .smart-import-header, .smart-import-body, .smart-import-footer. 4 style inline eliminados de modals.js.
+
+---
+
+## 40. Mejoras en la Interfaz del Delay y Conectividad Sync
+
+*Última actualización: 8 Junio 2026*
+
+### 40.1 Rediseño del Delay (Panel Space Echo y Potenciómetros)
+- **Fondo de Controles**: Agregamos un fondo verde Space Echo (`#355923`) con esquinas redondeadas (`.space-echo-panel`) para envolver los 6 potenciómetros en Settings, e introdujimos un contenedor interno de fondo negro (`#000000`) para la fila superior (Bass, Treble, Reverb).
+- **Potenciómetros plateados RE-201**: Reemplazamos los potenciómetros originales en Settings (6) y Reverb (2) por la filmstrip plateada `silver_re201_normal.png`. Se escalan a `60px` para la Reverb y a `40px` (diseño compacto) para Settings.
+- **Glitch de carga solucionado**: Modificamos `ui-sliders.js` para detectar el tamaño de la filmstrip mediante clases (.closest('.delay-knob-ring')) en lugar del bounding rect dinámico (que devolvía 0 al estar oculto en la carga inicial).
+- **Prevención de Scroll**: Redujimos paddings, margins y gaps en los paneles y en la barra de navegación, aplicando `overflow: hidden` en `#delay-controls-below` para eliminar barras de desplazamiento vertical y horizontal.
+
+### 40.2 Reubicación de Controles Sync, Echo Cancel y BMP
+- **Interruptor Sync Principal**: Movimos el interruptor de Sync (`delaySyncEnabled`) a la pantalla principal del delay (esquina inferior izquierda) con la etiqueta `SYNC` colocada debajo del switch. Se bajó su posición general a `bottom: 36px` y se alineó a `left: 3px`, con el literal `SYNC` superpuesto en el área transparente inferior.
+- **Interruptor Echo Cancel**: Se quitó del SVG y se colocó en la esquina inferior derecha de la pantalla principal (`right: 3px`, `bottom: 36px`) con el mismo tamaño y estilo de switch de 56px, con el literal `ECHO CANCEL` debajo.
+- **Selector de divisiones unificado**: Se movió más a la izquierda (`left: 60px`) entre ambos interruptores para optimizar el espacio. Adicionalmente, se reorganizó para que el valor `1/8` pase a la primera fila, quedando en formato 5 + 4 selectores.
+- **Indicador BPM y LED de Pico**: El LED de pico (`#svg-peak-led`) en el SVG se amplió a `32x17px` y se desplazó más a la izquierda (`x="2" y="4"`). La posición del BPM se mantuvo en `y="83"` para evitar solaparse con `TAPE ECHO`.
+- **Botones inferiores de Navegación**: Se rediseñó el estilo de los botones inferiores (`ON/OFF`, `PRESETS`, `SETTINGS`, `REVERB`) para que actúen como pestañas (grises por defecto `#1e2025` y azules `var(--juno-blue)` cuando están activos).
+- **Visibilidad condicionada por ON/OFF**: Cuando el delay está apagado (label `ON`), los botones `PRESETS`, `SETTINGS` y `REVERB` se vuelven totalmente transparentes e interactivos (`opacity: 0`, `pointer-events: none`). Al encenderse (label `OFF`), se revelan con el estilo normal.
+- **Opacidad del SVG Detenido**: Se incrementó la opacidad del SVG animado del tape echo cuando está detenido (`#panel-delay.delay-stopped`) de `0.7` a `0.9` para evitar que quede demasiado transparente y asegurar que sea visible.
+
+### 40.3 Selector de Presets Plateado (Conmutador RE-201)
+- **Filmstrip de Presets**: Copiamos e integramos la emulación de selector original `silver_re201_preset.png` (128x128px de 12 posiciones).
+- **Lógica de Conmutación**: Actualizamos `theme-manager.js` para que desplace el fondo (`background-position-y`) de forma infinita de forma similar a un conmutador rotatorio físico, eliminando las rotaciones por CSS 3D.
+
+### 40.4 Corrección de Scripts y Compilación
+- **Sintaxis**: Reparamos el error de cierre `</div>v>` en el DOM de la subpágina Tone.
+- **Line Endings en Windows**: Convertimos finales de línea de `build_model.bat` a CRLF (`\r\n`), resolviendo el fallo de lectura de CMD.exe que ejecutaba líneas como comandos erróneos en bucle.
+- **Compilación exitosa**: La compilación de MSBuild en Release para el Super Six (Hybrid) finalizó con éxito en: `build_supersix\ABDSimpleJuno106_artefacts\Release\Standalone\ABD JUNiO Super SIX.exe`.
+
+
+## 41. Depuración del Audio del Delay — Causa Raíz y Solución
+
+*Última actualización: 8 Junio 2026*
+
+### 41.1 Síntoma
+
+Tras la compilación del build anterior (§40), el delay presentaba dos problemas:
+1. **El tono de diagnóstico de 440Hz** (inyectado como test en `JunoTapeEcho::process()`) sonaba al abrir el sintetizador
+2. **El botón ON/OFF** del delay no detenía el tono — se quedaba sonando indefinidamente
+
+### 41.2 Diagnóstico
+
+Se investigó la cadena de señal completa:
+
+| Componente | Estado | Problema |
+|:-----------|:------:|:---------|
+| `JunoTapeEcho::process()` | ✅ Se ejecuta | El beep de 440Hz confirmó que `process()` era llamado |
+| `enabled_` check (línea 73) | ✅ Funciona | Pero el `return` del beep (línea 94) lo saltaba |
+| `tapeEcho.setEnabled(false)` | ❌ **Nunca se llamaba** | El bloque `if(delayEnabled)` saltaba TODO cuando OFF |
+| `paramsAreDirty` flag | ❌ **Nunca se marcaba** para parámetros delay | Los 11 parámetros `delay*` no estaban en la lista de listeners |
+| `currentParams.delayEnabled` | ❌ **Nunca se actualizaba** | Consecuencia de `paramsAreDirty` nunca marcado |
+
+### 41.3 Causa Raíz (Doble)
+
+**Causa 1 — Listeners no registrados (`WebViewEditor.cpp`):**
+
+Los parámetros `delayEnabled`, `delaySetting`, `delayRepeatRate`, etc. (11 en total) **no estaban en la lista de `addParameterListener()`** de `WebViewEditor`. Esto significaba que cuando el JavaScript llamaba `callNative('setParameter', 'delayEnabled', 0.0)`:
+- El APVTS se actualizaba correctamente ✅
+- Pero `parameterChanged()` nunca se disparaba para ese parámetro ❌
+- Por tanto `paramsAreDirty.store(true)` nunca se ejecutaba ❌
+- Y `currentParams = getMirrorParameters()` nunca se recalculaba ❌
+
+**Causa 2 — `setEnabled(false)` nunca llamado (`PluginProcessor.cpp`):**
+
+```cpp
+// ANTES (roto): cuando delayEnabled=false, se salta TODO el bloque
+if (isSuperSix() && currentParams.delayEnabled) {
+    tapeEcho.setEnabled(true);   // ← Solo se llama aquí
+    tapeEcho.process(buffer);
+}
+// setEnabled(false) NUNCA se llamaba
+```
+
+### 41.4 Archivos Modificados
+
+| Archivo | Cambio |
+|:--------|:-------|
+| `Source/UI/WebView/WebViewEditor.cpp` | Añadidos 11 IDs de parámetros delay a ambas listas de listeners (constructor + destructor) |
+| `Source/Core/PluginProcessor.cpp` | Reestructurado el bloque de procesamiento: `if(isSuperSix()) { if(delayEnabled) {...} else { setEnabled(false); } }` |
+| `Source/Synth/JunoTapeEcho.cpp` | Eliminado el bloque de diagnóstico 440Hz (13 líneas incluyendo el `return` que bypaseaba el DSP real) |
+
+### 41.5 Parámetros Delay Añadidos al Listener
+
+```
+delayEnabled, delaySetting, delayRepeatRate, delayIntensity,
+delayBass, delayTreble, delayReverbVol, delayEchoVol,
+delayEchoCancel, delaySyncEnabled, delaySyncDivision
+```
+
+### 41.6 Estado Actual
+
+- ✅ El beep de 440Hz ha sido eliminado
+- ✅ El DSP real del delay (Schroeder/Waveguide) ahora procesará la señal
+- ✅ El botón ON/OFF debería funcionar correctamente (pendiente de verificar con compilación)
+- ⬜ Pendiente compilar y verificar audio
+
+---
+
+*Fin del registro — Última actualización: 8 Junio 2026*
+
+---
+
+## 36. Tape Echo DSP Fix + WebUI Delay Panel Cleanup
+
+*8 Junio 2026*
+
+### 36.1 echoCancel_ Fix: Reverb Preserved When Echo Cancel ON
+
+**Bug:**  made a hard  early in , bypassing ALL processing including reverb.
+
+**Fix:** Removed early return.  is already zeroed when  is true. The full DSP chain (wow/flutter, saturation, delay line write, reverb, tone stack) now runs normally -- only echo output is silenced.
+
+**File:** 
+
+### 36.2 Shared K_SYNC_DIV_NAMES Constant
+
+**Problem:** Sync division names array duplicated in 4+ places across bridge-core.js, theme-manager.js, ui-sliders.js.
+
+**Fix:** Extracted to  in bridge-core.js. All inline arrays replaced.
+
+### 36.3 Rename delayEchoCancelActive -> delayEffectActive
+
+Renamed across theme-manager.js, ui-sliders.js, ui-keyboard.js, bridge-core.js.
+
+### 36.4 Files Modified
+
+| Archivo | Cambio |
+|---|---|
+|  | Removed echoCancel_ early return, echoGain zeroed instead |
+|  | Added K_SYNC_DIV_NAMES + comment update |
+|  | Renamed delayEchoCancelActive -> delayEffectActive + K_SYNC_DIV_NAMES |
+|  | Renamed + K_SYNC_DIV_NAMES |
+|  | Renamed local var -> isDelayActive |
+
+### 36.5 Reviewer Notes
+
+- No bugs found. echoGain zeroing silences echoes while reverb still processes.
+- Minor: delay line not cleared on echoCancel toggle, brief residual echoes may persist. Acceptable.
+
+---
+
+*Fin del registro -- Ultima actualizacion: 8 Junio 2026*
+
+
+---
+
+## 37. Session Cleanup + CSS Dedup — 8 Junio 2026
+
+### 37.1 Refactor ui-keyboard.js: Use Global delayEffectActive
+
+**Problem:** `ui-keyboard.js` had a local variable `isDelayActive` that redundantly computed the same value as the global `delayEffectActive` from `theme-manager.js`.
+
+**Fix:** Replaced local computation with direct reference to global `delayEffectActive`. Removed the redundant comment and variable.
+
+**File:** `Source/UI/WebUI/ui-keyboard.js`
+
+### 37.2 CSS Dedup: Remove Duplicate .delay-sync-toggle-main Rule
+
+**Problem:** `performance.css` had two `.delay-sync-toggle-main` blocks — the first was a subset of the second (which included the `.delay-running` visibility state).
+
+**Fix:** Removed the first duplicate block. The second complete block (with `display: block` when `.delay-running`) is the single authoritative rule.
+
+**File:** `Source/UI/WebUI/css/performance.css`
+
+### 37.3 JunoUnitTests.cpp Split — Already Complete
+
+Verified that `JunoUnitTests.cpp` (114KB) was already split into 16 individual test files in `Source/Core/Tests/`. The main file is now a 51-line runner with `ConsoleRunner` class.
+
+### 37.4 Files Modified
+
+| Archivo | Cambio |
+|---|---|
+| `Source/UI/WebUI/ui-keyboard.js` | Replaced local isDelayActive with global delayEffectActive |
+| `Source/UI/WebUI/css/performance.css` | Removed duplicate .delay-sync-toggle-main block |
+
+### 37.5 Session Summary — All Changes (8 Junio 2026)
+
+| # | Change | File(s) | Status |
+|---|---|---|---|
+| 1 | echoCancel_: removed early return, reverb preserved | JunoTapeEcho.cpp | Done |
+| 2 | K_SYNC_DIV_NAMES shared constant extracted | bridge-core.js | Done |
+| 3 | delayEchoCancelActive -> delayEffectActive rename | theme-manager.js, ui-sliders.js, ui-keyboard.js, bridge-core.js | Done |
+| 4 | chat_log.md section 36 appended | chat_log.md | Done |
+| 5 | ui-keyboard.js: use global delayEffectActive | ui-keyboard.js | Done |
+| 6 | CSS: remove duplicate .delay-sync-toggle-main | performance.css | Done |
+| 7 | JunoUnitTests.cpp split verified (already done) | JunoUnitTests.cpp + 16 test files | Verified |
+
+
+---
+
+## 38. CSS Fade-In Animation for Main App After Splash
+
+*8 Junio 2026*
+
+### 38.1 Problem
+
+When the splash screen dismissed, the main synth app (`#synth-app`) was fully rendered behind it at full opacity. The splash fading out revealed the app instantly — a hard cut instead of a smooth transition.
+
+### 38.2 Solution
+
+Added a CSS animation on `#synth-app` that triggers when the splash screen dismisses:
+
+**base.css:**
+- `#synth-app` starts at `opacity: 0` (hidden behind splash)
+- New class `.app-visible` triggers `@keyframes app-fade-in`:
+  - `opacity: 0 → 1` (fade in)
+  - `translateY: 6px → 0` (subtle upward slide)
+  - `scale: 0.98 → 1.0` (subtle scale-up for premium feel)
+  - Duration: 1s with `cubic-bezier(0.22, 0.61, 0.36, 1)` ease-out (matches `tape-settle` curve)
+  - `animation-fill-mode: forwards` keeps app visible after animation completes
+
+**bridge-core.js:**
+- Normal dismiss path (3s `setTimeout` in `initApp()`): adds `.app-visible` class after splash fades out, creating a crossfade effect
+- Defensive fallback (10s `forceDismissSplash()`): also adds `.app-visible` so app appears even if `initApp()` crashes before its timer fires
+
+### 38.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/UI/WebUI/css/base.css` | Added `opacity: 0` default, `.app-visible` class, `@keyframes app-fade-in` with scale |
+| `Source/UI/WebUI/bridge-core.js` | Added `.app-visible` trigger in both splash dismiss paths |
+
+### 38.4 Reviewer Notes
+
+- Code reviewer confirmed: no bugs, timing well-aligned, scale is subtle enough to feel premium without distraction
+- The `?.` operator on `getElementById` provides defensive null handling
+- Both dismiss paths (normal + fallback) guarantee the animation fires, preventing `#synth-app` from staying invisible permanently
+
+---
+
+## 39. CSS Fade-In Animation + Staggered Module Reveal
+
+*8 Junio 2026*
+
+### 39.1 Problem
+
+When the splash screen dismissed, the main synth app (`#synth-app`) and all engine modules appeared instantly — a hard cut instead of a smooth transition.
+
+### 39.2 Solution
+
+Added a two-phase reveal animation:
+
+**Phase 1 — App Fade-In (base.css):**
+- `#synth-app` starts at `opacity: 0` (hidden behind splash)
+- New class `.app-visible` triggers `@keyframes app-fade-in`:
+  - `opacity: 0 → 1`, `translateY: 6px → 0`, `scale: 0.98 → 1.0`
+  - Duration: 1s with `cubic-bezier(0.22, 0.61, 0.36, 1)` ease-out
+  - `animation-fill-mode: forwards` keeps app visible after animation completes
+- Triggered in both splash dismiss paths (3s normal + 10s fallback) in bridge-core.js
+
+**Phase 2 — Staggered Module Reveal (engine.css):**
+- 7 engine modules fade in sequentially after the app appears:
+  - Row 1: LFO (0.15s) → DCO (0.25s) → HPF (0.35s)
+  - Row 2: VCF (0.45s) → VCA (0.55s) → ENV (0.65s) → CHORUS (0.75s)
+- Each module: `@keyframes module-reveal` (opacity 0→1, translateY 8px→0, scale 0.97→1, 0.6s)
+- Total stagger: 0.15s–0.75s delays, completing ~1.35s after splash dismisses
+- Accessibility: `prefers-reduced-motion` media query skips animation and shows modules immediately
+
+### 39.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/UI/WebUI/css/base.css` | Added `opacity: 0` default, `.app-visible` class, `@keyframes app-fade-in` with scale |
+| `Source/UI/WebUI/css/engine.css` | Added `@keyframes module-reveal`, staggered delays via `:nth-child`, `prefers-reduced-motion` |
+| `Source/UI/WebUI/bridge-core.js` | Added `.app-visible` trigger in both splash dismiss paths (initApp + forceDismissSplash) |
+
+### 39.4 Timing Diagram
+
+```
+t=0s     Splash visible, #synth-app at opacity:0
+t=0-2s   Bridge detected, initApp() runs
+t=3s     Splash starts fading out (1s transition)
+         #synth-app.app-visible added → app-fade-in starts (1s)
+t=3.15s  LFO module starts fading in (0.6s)
+t=3.25s  DCO module starts fading in
+t=3.35s  HPF module starts fading in
+t=3.45s  VCF module starts fading in
+t=3.55s  VCA module starts fading in
+t=3.65s  ENV module starts fading in
+t=3.75s  CHORUS module starts fading in (last)
+t=4s     Splash fully hidden, app fully visible
+t=4.35s  All modules fully visible (CHORUS finishes at 0.75+0.6=1.35s)
+```
+
+### 39.5 Integration Review
+
+- **Splash + build version fixes**: Confirmed working together — splash dismissal, version display, and fade-in are properly coordinated
+- **body.smooth-fade**: Now redundant (body fade-in runs behind splash), but harmless — can be cleaned up later
+- **Double `.app-visible`**: Idempotent via classList.add() — no conflict between 3s timer and 10s fallback
+- **Accessibility**: `prefers-reduced-motion` prevents modules from staying invisible if OS suppresses animations
+
+### 39.6 Reviewer Notes
+
+- Code reviewer confirmed: no bugs, timing well-aligned, scale animations subtle enough to feel premium
+- CSS-only approach (no JS changes needed for module stagger) — clean and performant
+- Stagger overlaps with parent fade-in (modules start appearing while parent is still fading) — creates cascading reveal effect
+
+---
+
+## 40. Tape Echo & Reverb Fixes
+
+*9 Junio 2026*
+
+### 40.1 Problem
+
+1. **Preset 12 (Reverb Only) Silence**: The "Echo Cancel" toggle in the UI was wired to set `delayEnabled` to `false` when Echo Cancel was ON. Because Preset 12 has no echo, the entire audio processing block was bypassed, rendering Preset 12 completely silent when Echo Cancel was active. Additionally, BASS and TREBLE controls had no effect on the reverb signal.
+2. **Reverb Double Attenuation**: Reverb volume was applied at both the input stage and output mixing stage, cubing the attenuation (`reverbVol_³`) and making it extremely quiet.
+3. **Glitches at Max Volume**: High feedback saturation used a formula (`tanh(x*1.5)*0.7 + x*0.3`) where the linear bypass term (`x*0.3`) allowed signals in the feedback loop to grow without bound, causing harsh digital clipping.
+4. **Redundant Controls**: The REVERB subpage duplicated the Reverb and Echo volume controls from the Settings/Tone page.
+
+### 40.2 Solution
+
+1. **POWER Switch Rename & Rewire**:
+   - Renamed `ECHO CANCEL` to `POWER` in [index.html](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/index.html).
+   - Changed its binding from `delayEchoCancel` to `delayEnabled`.
+   - Updated the JavaScript handler in [ui-sliders.js](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/ui-sliders.js) to treat the switch value as active/ON when `val > 0.5`. This cleanly toggles the entire tape echo module ON/OFF, starting/stopping the tape animations and letting dry signals pass when OFF.
+2. **Rename and Empty Reverb Subpage**:
+   - Renamed the navigation tab from `REVERB` to `Advanced` in [index.html](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/index.html).
+   - Removed the duplicate knobs from this subpage, leaving its panel content empty.
+3. **DSP Signal Routing & Quality Fixes**:
+   - In [JunoTapeEcho.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.cpp):
+     - **Tone Stack on Reverb**: Applied the `bassFilters_` and `trebleFilters_` EQ filters to the combined wet signal (echo + reverb) instead of just the echo. This allows the BASS and TREBLE controls to function on Preset 12.
+     - **Removed Reverb Double Attenuation**: Deleted `reverbVol_` from the input feeding the reverb, and changed `reverbGain` to be a linear `reverbVol_` multiplier instead of squared.
+     - **Feedback Saturation Cleanup**: Removed the parallel `+ satInput * 0.3f` bypass term from the tape saturation formula to use pure `tanh(satInput * 1.5f)`, preventing feedback loop runaway glitches.
+
+### 40.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/UI/WebUI/index.html` | Renamed ECHO CANCEL label to POWER, rewired parameter, renamed REVERB tab to Advanced, emptied subpage knobs |
+| `Source/UI/WebUI/ui-sliders.js` | Updated toggle listener from `delayEchoCancel` to `delayEnabled`, inverted active state logic |
+| `Source/Synth/JunoTapeEcho.cpp` | Routed Bass/Treble filters post-mix, fixed reverb gain scaling, and used pure `tanh` saturation |
+
+### 40.4 Reviewer Notes
+
+- Run `build_tests.bat` to confirm all existing Tape Echo unit tests pass.
+- Verified that dry bypass and peak LED animation sync cleanly with the new POWER switch value.
+
+---
+
+## 41. Treble, Reverb Gain, and Global Noise Floor Fixes
+
+*9 Junio 2026*
+
+### 41.1 Problem
+
+1. **Treble Whistling/Beeping**: When boosting Treble past 50%, the biquad filter would become unstable and self-oscillate, emitting whistling sounds at various frequencies.
+2. **Quiet/Dry Reverb**: Waveguide Spring Reverb was extremely quiet, making Preset 12 (Reverb Only) sound dry and bypassed.
+3. **Echo Noise Build-up**: The synthesizer's master noise floor and mains ripple were processed *before* the delay, meaning the delay continuously recorded and looped/amplified the background hum and hiss even when no keys were pressed.
+
+### 41.2 Solution
+
+1. **Treble HighShelf Filter Stability**:
+   - Corrected mathematical sign errors in the Biquad HighShelf coefficient calculations in [JunoTapeEcho.h](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.h):
+     - Changed `a1_ = 2.0f * ((A - 1.0f) + (A + 1.0f) * cosW0);` to `2.0f * ((A - 1.0f) - (A + 1.0f) * cosW0)`.
+   - This aligns with the standard RBJ Audio EQ Cookbook HighShelf implementation, keeping the poles stable.
+2. **Spring Reverb Gain Recovery**:
+   - Removed duplicate divisions by 4 in the waveguide summing in `JunoTapeEcho.h`. The outputs of the spring guides and the springs themselves now sum directly without the extra averaging factors, matching the reference implementation and restoring +24 dB (16x) of reverb presence.
+3. **Post-Delay Master Noise Injection**:
+   - Moved the Master Noise Floor and Mains Ripple injection block from `processMasterEffects()` (which runs before the delay) to the very end of `processBlock()` in [PluginProcessor.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Core/PluginProcessor.cpp).
+   - This ensures the delay processes a clean input signal, preventing background hum from looping while preserving the global analog noise floor on final outputs.
+
+### 41.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/Synth/JunoTapeEcho.h` | Corrected HighShelf coefficient formula for `a1_`, removed waveguide summing scaling factors |
+| `Source/Core/PluginProcessor.cpp` | Moved master noise floor and mains ripple block post-delay |
+
+### 41.4 Reviewer Notes
+
+- Verified that all unit tests built and passed successfully.
+- Confirmed that the noise floor no longer accumulates in the delay line feedback.
+
+
+## 42. Advanced Delay Panel & Parameters
+
+### 42.1 Overview
+
+Implemented the `Advanced` delay settings panel featuring a 2x2 grid of custom filmstrip knobs for the following four controls:
+1. **Reverb Type**: Discrete selector (0 = Spring, 1 = Dark, 2 = Hybrid).
+2. **Wow & Flutter**: Speed stability depth (0.0 to 1.0).
+3. **Reverb Decay**: Tail feedback length scale (0.0 to 1.0).
+4. **Echo Isolator**: Cutoff frequency for delay feedback damping (0.0 to 1.0).
+
+### 42.2 C++ & DSP Implementation
+
+- **Parameter Mapping**: Cached, registered, and mirrored the four controls via JUCE's APVTS parameter layout in `PluginProcessor.cpp`, `ProcessorState.cpp`, and `PresetManager.cpp`.
+- **DSP Enhancements**:
+  - `Wow/Flutter`: Dynamically scales wow/flutter/dirt delay modulation depth.
+  - `Decay`: Linearly scales waveguide spring feed gain and Schroeder feedback factors.
+  - `Isolator`: Added a one-pole low-pass filter in the delay feedback path, scaling down the cutoff cutoff towards 200 Hz.
+
+### 42.3 UI & Visuals
+
+- **2x2 Knob Grid**: Arranged the four knobs in the HTML structure under `#delay-sub-reverb` in two black rows matching the style of the tone stack panel.
+- **JS Integration**: Added discrete parameter handling to `ui-sliders.js` and custom display names/values (`REV TYPE`, `WOW/FLUT`, etc.) on the LCD.
+
+### 42.4 Verification
+
+- Added new automated tests to `TapeEchoTests.cpp` validating that Wow/Flutter, Reverb Decay, and Echo Isolator each dynamically affect the output RMS.
+- Ran `build_tests.bat` successfully; all unit tests passed.
+
+---
+
+## 43. Advanced Delay DSP & UI Layout Polish
+
+*9 Junio 2026*
+
+### 43.1 Problem
+
+1. **Digital Noise/Crackle in Echo Repetitions**: Delay repeats had a digital click/crackling noise, especially noticeable on the first few repetitions.
+2. **Quiet/Dry Reverb and Preset 12 (Reverb Only)**: Despite previous fixes, the reverb still sounded quiet and dry under typical mixing conditions, and Preset 12 (Reverb Only) lacked presence.
+3. **UI Layout Cut-offs**:
+   - The label `REV TYPE` was wrapping or pushed too high, and the `WOW/FLUTE` label was clipped at the top of the black box.
+   - The knobs for `DECAY` and `ISOLATOR` were clipped by the bottom border of the green panel.
+4. **Incorrect Head Highlights**: The JS active head highlights map `kPresetHeads` in `theme-manager.js` did not align with the actual C++ active playheads.
+5. **MidiLearnHandler callback omission**: The `MidiLearnHandler::bind()` and other mapping modification methods did not invoke the `onMappingChanged` callback, failing the newly added unit tests.
+
+### 43.2 Solution
+
+1. **Tape Speed Noise Jitter Removal**:
+   - In [JunoTapeEcho.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.cpp), changed the `dirtMod` calculation. Modulating the delay line read position using audio-rate white noise (`noiseGen_.next()`) had caused massive random sample-to-sample pointer jitter.
+   - Replaced it with a smooth 12 Hz tape scrape sine wave LFO: `float dirtMod = std::sin(dirtPhase_ * 2.0f * juce::MathConstants<float>::pi) * 0.0005f * modScale;`. This keeps tape fluctuations organic and analog, completely eliminating digital clicks.
+2. **Reverb Gain Recovery**:
+   - Scaled the Waveguide Spring Reverb (Type 0) output by `3.0f`.
+   - Scaled and soft-clipped the Schroeder comb filter output (Types 1 & 2) using `std::tanh(schroederOut * 1.5f) * 1.5f` to enrich the tail harmonics and bring the wet reverb level to a lush, audible mix.
+3. **UI Padding & Spacing Optimizations**:
+   - Modified [index.html](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/index.html):
+     - Reduced `.space-echo-panel` padding from `10px 4px 6px 4px` to `4px 4px 4px 4px` and gap from `8px` to `4px` to shrink its vertical footprint.
+     - Reduced `.space-echo-top-row` padding from `6px 10px` to `4px 10px` and label gap to `2px`. Added explicit heights to labels (`REV TYPE`, `WOW/FLUTE`) to prevent top-edge clipping.
+     - Changed `.space-echo-bottom-row` padding to `2px 10px` and set `margin-top: 0px` to lift the bottom knobs away from the lower boundary.
+4. **JS Visual Alignment**:
+   - Updated `kPresetHeads` in [theme-manager.js](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/theme-manager.js) to match the exact C++ playhead activation configurations.
+5. **MidiLearnHandler Notification Integration**:
+   - Updated [MidiLearnHandler.h](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Core/MidiLearnHandler.h) to trigger `onMappingChanged()` during `bind()`, `unbindCC()`, `clearMappings()`, and `loadState()`.
+6. **Robust Test Setup**:
+   - Adjusted `TapeEchoTests.cpp` to use transient burst buffers (clearing the buffer after sample 2000) for testing the Reverb Decay and Echo Isolator behaviors. This avoids steady-state clipping/flatline comparisons and guarantees accurate tail measurements.
+
+### 43.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/Synth/JunoTapeEcho.cpp` | Replaced white noise delay time jitter with LFO; boosted reverb output gains |
+| `Source/UI/WebUI/index.html` | Redesigned advanced subpage spacings, margins, and label dimensions |
+| `Source/UI/WebUI/theme-manager.js` | Synced visual preset active head array with C++ |
+| `Source/Core/MidiLearnHandler.h` | Trigger callback on mapping mutations |
+| `Source/Core/Tests/TapeEchoTests.cpp` | Enabled transient/burst buffers for decay & isolator tests |
+
+### 43.4 Verification
+
+- Ran `build_tests.bat` successfully. All 42 unit tests (including all JunoTapeEcho and MidiLearnHandler tests) compile and pass.
+
+---
+
+## 44. Reverb Feedback Stability, Discrete Drag & Delay Tab LED Sync
+
+*9 Junio 2026*
+
+### 44.1 Problem
+
+1. **Spring Reverb Thunderous Feedback**: Setting `REV TYPE` to Spring (0.0) generated an acoustic feedback explosion at high decay values due to feedback gain approaching `0.95f`.
+2. **Reverb Type Selection Feel**: The `REV TYPE` knob felt heavy to drag (requiring a long mouse motion to change between positions) and visually only seemed to point to "arriba" (DARK) and "abajo" (SPRING/HYBRID, which both point downwards at opposite angles).
+3. **DELAY Tab LED Synchronization**: Toggling the delay state in the main panel did not reflect status on the sidebar `DELAY` tab LED (`#led-tab-delay`) until the user navigated out of the panel.
+
+### 44.2 Solution
+
+1. **Feedback Safety Cap & Guide Averaging**:
+   - Modified [JunoTapeEcho.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.cpp): Capped the feedback loop gain for Waveguide Spring Reverb to a stable range of `0.05f` (reverbDecay=0) to `0.25f` (reverbDecay=1).
+   - Modified [JunoTapeEcho.h](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.h): Scaled/averaged the outputs of the 4 parallel waveguide units per spring by `0.25f`. This prevents energy buildup and loop clipping (`juce::jlimit`), resolving the acoustic feedback and distortion issue entirely.
+2. **Knob Drag Divisor Optimization**:
+   - Modified [ui-sliders.js](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/ui-sliders.js): Reduced the drag divisor for `delayReverbType` to `80`. This makes the mouse drag feel much lighter and allows easy selection between the three distinct reverb types.
+3. **Tab LED Direct Sync**:
+   - Modified [ui-sliders.js](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/UI/WebUI/ui-sliders.js): Linked the `delayEnabled` parameter state directly to the `#led-tab-delay` LED in `syncUI`, ensuring that it immediately turns red when the effect is ON and turns dark when OFF.
+
+### 44.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/Synth/JunoTapeEcho.cpp` | Stabilized feedback range for spring reverb (0.05f to 0.25f) |
+| `Source/Synth/JunoTapeEcho.h` | Scaled/averaged waveguide outputs by 0.25f |
+| `Source/Core/TapeSignalRestorer.h` | Fixed undeclared 'pi' constant compilation error |
+| `Source/UI/WebUI/ui-sliders.js` | Added drag divisor (80) for `delayReverbType`; synced `#led-tab-delay` with `delayEnabled` |
+
+### 44.4 Verification
+
+- Built and ran tests using `build_tests.bat`. All unit tests passed without regression.
+
+---
+
+## 45. Delay Calibration Parameters Audit
+
+*9 Junio 2026*
+
+### 45.1 Goal
+
+Revisited the delay DSP source code to search for fixed (hardcoded) parameters that can be promoted to the **General Settings > Calibrations** menu (under a dedicated Delay section applying only to the Super Six model).
+
+### 45.2 Identified Parameters
+
+Compiled a list of 16 hardcoded parameters, grouped into:
+1. **Tape Modulation & Jitter** (Wow LFO Rate/Amp, Flutter LFO Rate/Amp, Tape Scrape LFO Rate/Amp, Wow/Flutter Knob Scale)
+2. **Tape Saturation & Head Ratios** (Saturation Input Gain, Playhead 2 & 3 delay ratios)
+3. **Tone Stack & Feedback Filters** (Bass Filter Frequency, Treble Filter Frequency, Feedback LPF cutoff & range)
+4. **Reverb Engine** (Waveguide Spring Reverb Output Gain, Waveguide Spring Reflection Scaling, Schroeder Moorer LPF cutoff, Schroeder Reverb Output Gain, Schroeder Reverb Saturation Input Scale)
+
+The detailed specifications (with names, default values, ranges, and descriptions) have been documented in the new artifact: [delay_calibration_parameters.md](file:///C:/Users/ajaba/.gemini/antigravity-ide/brain/46532372-d862-4b61-8add-92ae4cc07470/delay_calibration_parameters.md).
+
+---
+
+## 46. Delay Calibration Parameters Integration
+
+*9 Junio 2026*
+
+### 46.1 Goal
+
+Promote all 19 identified hardcoded parameters of the Space Echo / Delay module to the standard **General Settings > Calibrations** system so they are only applied to the Super Six model.
+
+### 46.2 Solution
+
+1. **Parameters Registration**:
+   - Registered all 19 parameters in [CalibrationSettings.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Core/CalibrationSettings.cpp) under the `"SPACE ECHO"` category.
+2. **DSP Engine Extension**:
+   - Added setters and corresponding private float member variables in [JunoTapeEcho.h](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.h).
+   - Replaced all hardcoded constants in [JunoTapeEcho.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Synth/JunoTapeEcho.cpp) with the new calibration-linked member variables.
+   - Refactored the `SpringReverb::process` signature to take `reflectionScale` dynamically.
+3. **Parameter Routing**:
+   - Updated [PluginProcessor.cpp](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Core/PluginProcessor.cpp) to query the value of all 19 parameters from the calibration manager and push them to the `tapeEcho` instance before DSP processing.
+
+### 46.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/Core/CalibrationSettings.cpp` | Registered 19 delay parameters under `"SPACE ECHO"` |
+| `Source/Synth/JunoTapeEcho.h` | Added setters/member variables and updated `SpringReverb::process` signature |
+| `Source/Synth/JunoTapeEcho.cpp` | Integrated member variables in place of hardcoded constants |
+| `Source/Core/PluginProcessor.cpp` | Fed all calibration parameters into the `tapeEcho` instance |
+
+### 46.4 Verification
+
+- Built the standalone plugin for the Super Six model using `build_model.bat`. The build succeeded with zero errors.

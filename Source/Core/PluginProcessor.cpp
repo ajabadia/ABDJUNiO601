@@ -126,6 +126,13 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     fmtDelayTreble = getCachedParam("delayTreble");
     fmtDelayReverbVol = getCachedParam("delayReverbVol");
     fmtDelayEchoVol = getCachedParam("delayEchoVol");
+    fmtDelayEchoCancel = getCachedParam("delayEchoCancel");
+    fmtDelaySyncEnabled = getCachedParam("delaySyncEnabled");
+    fmtDelaySyncDivision = getCachedParam("delaySyncDivision");
+    fmtDelayReverbType = getCachedParam("delayReverbType");
+    fmtDelayWowFlutter = getCachedParam("delayWowFlutter");
+    fmtDelayReverbDecay = getCachedParam("delayReverbDecay");
+    fmtDelayEchoIsolator = getCachedParam("delayEchoIsolator");
 
     DBG("ABDSimpleJuno106AudioProcessor::Parameters cached DONE");
     loadUserSettings();
@@ -153,6 +160,7 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     midiLearnHandler.bind(30, "sustain");
     midiLearnHandler.bind(31, "release");
     midiLearnHandler.bind(32, "vcaLevel");
+    midiLearnHandler.bind(80, "delayEchoCancel"); // CC80 = footswitch Echo Cancel (RE-201 style)
     
     keyboardState.addListener(this);
 
@@ -235,7 +243,7 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     dryRipple.SetAmplitudes(1.8e-5f, 8.9e-6f, 6.3e-6f);
 
     // [Tape Echo] Prepare delay DSP for Super Six
-    prepareTapeEcho();
+    prepareTapeEcho(sr);
 
     // [Startup] Always start at Bank A, Patch 1 (index 0) on first launch only
     // This overrides any saved preset from the last session
@@ -505,23 +513,83 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     processMasterEffects(buffer, numSamples);
 
     // Tape Echo / Delay (Super Six only, applied at end of chain)
-    if (isSuperSix() && currentParams.delayEnabled)
+    if (isSuperSix())
     {
-        tapeEcho.setEnabled(true);
-        tapeEcho.setDelaySetting(currentParams.delaySetting);
-        tapeEcho.setRepeatRate(currentParams.delayRepeatRate);
-        tapeEcho.setIntensity(currentParams.delayIntensity);
-        tapeEcho.setBass(currentParams.delayBass);
-        tapeEcho.setTreble(currentParams.delayTreble);
-        tapeEcho.setReverbVol(currentParams.delayReverbVol);
-        tapeEcho.setEchoVol(currentParams.delayEchoVol);
+        if (currentParams.delayEnabled)
+        {
+            tapeEcho.setEnabled(true);
+            tapeEcho.setDelaySetting(currentParams.delaySetting);
+            tapeEcho.setRepeatRate(currentParams.delayRepeatRate);
+            tapeEcho.setIntensity(currentParams.delayIntensity);
+            tapeEcho.setBass(currentParams.delayBass);
+            tapeEcho.setTreble(currentParams.delayTreble);
+            tapeEcho.setReverbVol(currentParams.delayReverbVol);
+            tapeEcho.setEchoVol(currentParams.delayEchoVol);
+            tapeEcho.setEchoCancel(currentParams.delayEchoCancel);
+            tapeEcho.setSyncEnabled(currentParams.delaySyncEnabled);
+            tapeEcho.setSyncDivision(currentParams.delaySyncDivision);
 
-        // Read calibration-linked params
-        tapeEcho.setInputLevel(calibrationSettings->getValue("delayInputLevel"));
-        tapeEcho.setWetDry(calibrationSettings->getValue("delayWetDry"));
-        tapeEcho.setReverbType((int)calibrationSettings->getValue("delayReverbType"));
+            // Read DAW tempo for sync
+            if (currentParams.delaySyncEnabled) {
+                if (auto* playHead = getPlayHead()) {
+                    juce::AudioPlayHead::CurrentPositionInfo posInfo;
+                    if (playHead->getCurrentPosition(posInfo)) {
+                        tapeEcho.setHostBPM(posInfo.bpm);
+                        delaySyncBPM_.store(posInfo.bpm);
+                    }
+                }
+            }
 
-        tapeEcho.process(buffer);
+            // Read calibration-linked params
+            tapeEcho.setInputLevel(calibrationSettings->getValue("delayInputLevel"));
+            tapeEcho.setWetDry(calibrationSettings->getValue("delayWetDry"));
+            tapeEcho.setReverbType(currentParams.delayReverbType);
+            tapeEcho.setWowFlutter(currentParams.delayWowFlutter);
+            tapeEcho.setReverbDecay(currentParams.delayReverbDecay);
+            tapeEcho.setEchoIsolator(currentParams.delayEchoIsolator);
+
+            tapeEcho.setWowRate(calibrationSettings->getValue("delayWowRate"));
+            tapeEcho.setFlutterRate(calibrationSettings->getValue("delayFlutterRate"));
+            tapeEcho.setTapeScrapeRate(calibrationSettings->getValue("delayTapeScrapeRate"));
+            tapeEcho.setWowAmp(calibrationSettings->getValue("delayWowAmp"));
+            tapeEcho.setFlutterAmp(calibrationSettings->getValue("delayFlutterAmp"));
+            tapeEcho.setTapeScrapeAmp(calibrationSettings->getValue("delayTapeScrapeAmp"));
+            tapeEcho.setWowFlutterScale(calibrationSettings->getValue("delayWowFlutterScale"));
+            tapeEcho.setSaturationInputGain(calibrationSettings->getValue("delaySaturationInputGain"));
+            tapeEcho.setHead2Ratio(calibrationSettings->getValue("delayHead2Ratio"));
+            tapeEcho.setHead3Ratio(calibrationSettings->getValue("delayHead3Ratio"));
+            tapeEcho.setBassFreq(calibrationSettings->getValue("delayBassFreq"));
+            tapeEcho.setTrebleFreq(calibrationSettings->getValue("delayTrebleFreq"));
+            tapeEcho.setFeedbackLpfBase(calibrationSettings->getValue("delayFeedbackLpfBase"));
+            tapeEcho.setFeedbackLpfRange(calibrationSettings->getValue("delayFeedbackLpfRange"));
+            tapeEcho.setSpringGain(calibrationSettings->getValue("delaySpringGain"));
+            tapeEcho.setSpringReflectionScale(calibrationSettings->getValue("delaySpringReflectionScale"));
+            tapeEcho.setSchroederLpf(calibrationSettings->getValue("delaySchroederLpf"));
+            tapeEcho.setSchroederGain(calibrationSettings->getValue("delaySchroederGain"));
+            tapeEcho.setSchroederSatDrive(calibrationSettings->getValue("delaySchroederSatDrive"));
+
+            tapeEcho.process(buffer);
+        }
+        else
+        {
+            tapeEcho.setEnabled(false);
+        }
+    }
+
+    // Apply Master Noise Floor and Mains Ripple after the delay/reverb processing
+    {
+        float dbScale = std::pow(10.0f, (currentParams.masterNoise + 80.0f) / 20.0f);
+        float dryNoiseVol = 0.0015f * currentParams.noiseFloorMul * dbScale;
+        float rippleVol = currentParams.mainsRippleMul;
+
+        for (int i = 0; i < numSamples; ++i) {
+            float n = dryNoise.Process() * dryNoiseVol;
+            n += dryRipple.Process() * rippleVol;
+            
+            for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+                buffer.getWritePointer(ch)[i] += n;
+            }
+        }
     }
 
     // [Build 103] Recording Capture (Post-Process)
@@ -628,20 +696,6 @@ void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<floa
     
     buffer.applyGain(smoothedSagGain.getNextValue() * masterVol);
 
-    // [Fidelity] Master Noise Floor (Pink floor noise) and Mains Ripple
-    float dbScale = std::pow(10.0f, (currentParams.masterNoise + 80.0f) / 20.0f);
-    float dryNoiseVol = 0.0015f * currentParams.noiseFloorMul * dbScale;
-    float rippleVol = currentParams.mainsRippleMul;
-
-    for (int i = 0; i < numSamples; ++i) {
-        float n = dryNoise.Process() * dryNoiseVol;
-        n += dryRipple.Process() * rippleVol;
-        
-        for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-            buffer.getWritePointer(ch)[i] += n;
-        }
-    }
-
     for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
         float* d = buffer.getWritePointer(ch);
         if (currentParams.lowCpuMode) {
@@ -681,10 +735,10 @@ void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<floa
 }
 
 // Tape Echo prepare helper
-void ABDSimpleJuno106AudioProcessor::prepareTapeEcho()
+void ABDSimpleJuno106AudioProcessor::prepareTapeEcho(double sr)
 {
     if (isSuperSix()) {
-        tapeEcho.prepare(getSampleRate(), 2, 512);
+        tapeEcho.prepare(sr, 2, 512);
     }
 }
 
@@ -773,13 +827,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcess
 
     // Tape Echo / Delay Settings (Super Six only)
     params.push_back(makeBool("delayEnabled", "Delay Enable", false));
-    params.push_back(makeIntParam("delaySetting", "Delay Setting", 0, 10, 0));
+    params.push_back(makeIntParam("delaySetting", "Delay Setting", 0, 11, 11)); // default=REV ONLY
     params.push_back(makeParam("delayRepeatRate", "Delay Repeat Rate", 0.0f, 1.0f, 0.5f));
     params.push_back(makeParam("delayIntensity", "Delay Intensity", 0.0f, 1.0f, 0.5f));
     params.push_back(makeParam("delayBass", "Delay Bass", 0.0f, 1.0f, 0.5f));
     params.push_back(makeParam("delayTreble", "Delay Treble", 0.0f, 1.0f, 0.5f));
     params.push_back(makeParam("delayReverbVol", "Delay Reverb Vol", 0.0f, 1.0f, 0.5f));
     params.push_back(makeParam("delayEchoVol", "Delay Echo Vol", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeBool("delayEchoCancel", "Delay Echo Cancel", false));
+    params.push_back(makeBool("delaySyncEnabled", "Delay Sync", false));
+    params.push_back(makeIntParam("delaySyncDivision", "Delay Sync Division", 0, 8, 2)); // default=1/4 note
+    params.push_back(makeIntParam("delayReverbType", "Delay Reverb Type", 0, 2, 0));
+    params.push_back(makeParam("delayWowFlutter", "Delay Wow Flutter", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayReverbDecay", "Delay Reverb Decay", 0.0f, 1.0f, 0.5f));
+    params.push_back(makeParam("delayEchoIsolator", "Delay Echo Isolator", 0.0f, 1.0f, 0.5f));
 
     return { params.begin(), params.end() };
 }

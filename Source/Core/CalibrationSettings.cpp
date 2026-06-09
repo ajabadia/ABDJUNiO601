@@ -213,7 +213,34 @@ void CalibrationSettings::buildParameterList()
     // --- SPACE ECHO (Super Six only) ---
     reg("delayInputLevel", "Space Echo Input Level", "SPACE ECHO", "", "Input gain into the tape echo processor.", 0.8f, 0.0f, 1.0f, 0.01f);
     reg("delayWetDry", "Space Echo Wet/Dry Mix", "SPACE ECHO", "", "Balance between dry signal and tape echo output.", 0.5f, 0.0f, 1.0f, 0.01f);
-    reg("delayReverbType", "Space Echo Reverb Type", "SPACE ECHO", "", "Reverb algorithm type: 0=Convolution (FFT), 1=Waveguide, 2=Hybrid.", 0.0f, 0.0f, 2.0f, 1.0f, true);
+    reg("delayReverbType", "Space Echo Reverb Type", "SPACE ECHO", "", "Reverb algorithm type: 0=Waveguide (Spring), 1=Schroeder (Dark), 2=Schroeder (Hybrid).", 0.0f, 0.0f, 2.0f, 1.0f, true);
+
+    // --- Tape Modulation (Wow, Flutter, Scrape) ---
+    reg("delayWowRate",         "Wow LFO Speed",            "SPACE ECHO", "Hz",  "Speed of slow tape-speed wow oscillation (RE-201 factory: 0.5 Hz).",                0.5f,   0.1f,    5.0f,    0.1f);
+    reg("delayFlutterRate",     "Flutter LFO Speed",        "SPACE ECHO", "Hz",  "Speed of rapid tape-speed flutter oscillation (RE-201 factory: 8 Hz).",              8.0f,   2.0f,   20.0f,    0.1f);
+    reg("delayTapeScrapeRate",  "Tape Scrape LFO Speed",    "SPACE ECHO", "Hz",  "Speed of micro-jitter scrape modulation (RE-201 factory: 12 Hz).",                  12.0f,   5.0f,   30.0f,    0.1f);
+    reg("delayWowAmp",          "Wow Modulation Depth",     "SPACE ECHO", "",    "Maximum depth of the slow wow modulation (RE-201 factory: 0.003).",                 0.003f,  0.000f,  0.010f,  0.0005f);
+    reg("delayFlutterAmp",      "Flutter Modulation Depth", "SPACE ECHO", "",    "Maximum depth of the rapid flutter modulation (RE-201 factory: 0.001).",            0.001f,  0.000f,  0.005f,  0.0001f);
+    reg("delayTapeScrapeAmp",   "Tape Scrape Depth",        "SPACE ECHO", "",    "Maximum depth of tape-scrape micro-jitter (RE-201 factory: 0.0005).",              0.0005f,  0.0000f, 0.0030f,  0.0001f);
+    reg("delayWowFlutterScale", "Wow/Flutter Knob Scale",   "SPACE ECHO", "x",   "Global multiplier applied to the front-panel WOW/FLUTTER knob value.",               2.0f,   0.5f,    5.0f,    0.1f);
+
+    // --- Tape Saturation & Head Ratios ---
+    reg("delaySaturationInputGain", "Tape Saturation Drive",   "SPACE ECHO", "x",  "Input drive into the tape tanh() saturator (RE-201 factory: 1.5).",                 1.5f,   0.5f,    3.0f,    0.1f);
+    reg("delayHead2Ratio",           "Playhead 2 Ratio",        "SPACE ECHO", "x",  "Delay time ratio of playhead 2 relative to head 1 (RE-201 factory: 2.0).",           2.0f,   1.1f,    2.9f,    0.05f);
+    reg("delayHead3Ratio",           "Playhead 3 Ratio",        "SPACE ECHO", "x",  "Delay time ratio of playhead 3 relative to head 1 (RE-201 factory: 3.0).",           3.0f,   2.0f,    4.0f,    0.05f);
+
+    // --- Tone Stack & Feedback Filters ---
+    reg("delayBassFreq",           "Delay Bass Frequency",       "SPACE ECHO", "Hz", "Bass shelving filter centre frequency in the delay tone stack (factory: 300 Hz).",  300.0f,  50.0f, 1000.0f,   5.0f);
+    reg("delayTrebleFreq",         "Delay Treble Frequency",     "SPACE ECHO", "Hz", "Treble shelving filter centre frequency in the delay tone stack (factory: 3000 Hz).", 3000.0f, 1000.0f, 8000.0f,  50.0f);
+    reg("delayFeedbackLpfBase",    "Feedback LPF Base",          "SPACE ECHO", "Hz", "Baseline cutoff of the feedback loop low-pass filter (factory: 5000 Hz).",          5000.0f, 1000.0f,10000.0f, 100.0f);
+    reg("delayFeedbackLpfRange",   "Feedback LPF Range Scale",   "SPACE ECHO", "Hz", "Dynamic cutoff range added by repeat-rate position (factory: 10000 Hz).",          10000.0f,   0.0f,15000.0f, 100.0f);
+
+    // --- Reverb Engine Calibration ---
+    reg("delaySpringGain",          "Spring Reverb Output Gain",      "SPACE ECHO", "x",  "Output gain of the waveguide spring reverb (Type 0, factory: 3.0).",              3.0f,   0.5f,    5.0f,    0.1f);
+    reg("delaySpringReflectionScale","Spring Reflection Scale",        "SPACE ECHO", "x",  "Per-waveguide averaging/attenuation factor for the spring (factory: 0.25).",      0.25f,  0.10f,   0.50f,   0.01f);
+    reg("delaySchroederLpf",        "Schroeder Reverb LPF Cutoff",    "SPACE ECHO", "Hz", "Comb-filter damping LPF cutoff for Schroeder reverbs types 1/2 (factory: 8000 Hz).", 8000.0f, 2000.0f,15000.0f, 100.0f);
+    reg("delaySchroederGain",       "Schroeder Reverb Output Gain",   "SPACE ECHO", "x",  "Output gain of the Schroeder-Moorer reverb (types 1/2, factory: 1.5).",           1.5f,   0.5f,    3.0f,    0.1f);
+    reg("delaySchroederSatDrive",   "Schroeder Saturation Drive",     "SPACE ECHO", "x",  "Input drive to the Schroeder reverb output saturator (factory: 1.5).",             1.5f,   0.5f,    3.0f,    0.1f);
 
     // --- SYSTEM ---
     regTriple("a4Reference", "A4 Reference Pitch", "SYSTEM", "Hz", "Master tuning reference frequency (Standard=440Hz).", 440.0f, 400.0f, 480.0f, 1.0f);
