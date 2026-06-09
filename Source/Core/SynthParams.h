@@ -243,13 +243,20 @@ struct SynthParams {
 
     // --- Tape Echo / Delay (Super Six only) ---
     bool delayEnabled = false;
-    int delaySetting = 0;       // 0-10 (head configurations)
+    int delaySetting = 11;      // 0-11 (RE-201 preset positions, default=11 REV ONLY)
     float delayRepeatRate = 0.5f;
     float delayIntensity = 0.5f;
     float delayBass = 0.5f;
     float delayTreble = 0.5f;
     float delayReverbVol = 0.5f;
     float delayEchoVol = 0.5f;
+    bool delayEchoCancel = false;  // true = kill echoes, keep reverb (RE-201 Echo Cancel footswitch)
+    bool delaySyncEnabled = false;   // true = tempo sync to DAW BPM
+    int delaySyncDivision = 2;       // 0-8 (kDivBeats index, default 2 = 1/4 note)
+    int delayReverbType = 0;         // 0 = Spring, 1 = Dark, 2 = Hybrid
+    float delayWowFlutter = 0.5f;    // 0.0 - 1.0 depth of tape modulation
+    float delayReverbDecay = 0.5f;   // 0.0 - 1.0 feedback decay of reverb
+    float delayEchoIsolator = 0.5f;  // 0.0 - 1.0 feedback LPF cutoff of delay
 
 #if defined(COMPILING_JUNO106)
   #define GET_MODEL_DCO(p)    2

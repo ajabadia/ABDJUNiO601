@@ -259,7 +259,7 @@ const ServiceMode = {
                     "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
                     "enableLogging": { 0: "OFF", 1: "ON" },
                     "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" },
-                    "delayReverbType": { 0: "CONVOLUTION (FFT)", 1: "WAVEGUIDE", 2: "HYBRID" }
+                    "delayReverbType": { 0: "WAVEGUIDE (SPRING)", 1: "SCHROEDER (DARK)", 2: "SCHROEDER (HYBRID)" }
                 };
 
                 if (choiceParams[p.id]) {
@@ -346,7 +346,7 @@ const ServiceMode = {
             "sustainPedalInvert": { 0: "NORMAL", 1: "INVERTED" },
             "enableLogging": { 0: "OFF", 1: "ON" },
             "skinType": { 0: "CLASSIC BLUE", 1: "JUNO-60 CLASSIC", 2: "JUNO-6 ANALOG", 3: "JUNO-106 CLASSIC", 4: "JUNO-106S DARK", 5: "TR-808 SEQUENCER", 6: "DEEPMIND AMBER", 7: "SPACE ECHO RE-201", 8: "ARP 2600 RETRO", 9: "JP-80X0 SUPERSÄW" },
-            "delayReverbType": { 0: "CONVOLUTION (FFT)", 1: "WAVEGUIDE", 2: "HYBRID" }
+            "delayReverbType": { 0: "WAVEGUIDE (SPRING)", 1: "SCHROEDER (DARK)", 2: "SCHROEDER (HYBRID)" }
         };
 
         if (p && display) {

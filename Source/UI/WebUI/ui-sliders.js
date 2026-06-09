@@ -38,7 +38,7 @@ function setupSliders() {
         });
     });
 
-    document.querySelectorAll('.knob-ring').forEach(ring => {
+    document.querySelectorAll('.knob-ring, .reverb-filmstrip-knob, .preset-filmstrip-knob').forEach(ring => {
         const pod = ring.closest('[data-param]');
         if (!pod) return;
         const paramID = pod.getAttribute('data-param');
@@ -54,16 +54,29 @@ function setupSliders() {
 
             const onMove = (ev) => {
                 const deltaY = startY - ev.clientY;
-                const isDiscrete = (paramID === 'arpMode' || paramID === 'arpRange');
-                const divisor = (paramID === 'tune') ? 3000 : (isDiscrete ? 150 : 500);
+                const isDiscrete = (paramID === 'arpMode' || paramID === 'arpRange' || paramID === 'delayReverbType');
+                const isPresetSelect = (paramID === 'delaySetting');
+                const divisor = (paramID === 'tune') ? 3000 : (paramID === 'delayReverbType' ? 80 : ((isDiscrete || isPresetSelect) ? 150 : 500));
                 let val = startVal + (deltaY / divisor);
                 val = Math.max(0, Math.min(1, val));
                 if (isDiscrete) val = Math.round(val * 2) / 2;
+                else if (isPresetSelect) val = Math.round(val * 11) / 11;
                 syncUI(paramID, val);
                 callNative("setParameter", paramID, val);
                 let displayVal = val.toFixed(2);
                 if (paramID === 'tune') displayVal = ((val * 100) - 50).toFixed(1);
-                updateLCD(paramID.toUpperCase() + ": " + displayVal, true);
+                else if (paramID === 'delayReverbType') {
+                    const typeIdx = Math.round(val * 2);
+                    displayVal = typeIdx === 0 ? "SPRING" : (typeIdx === 1 ? "DARK" : "HYBRID");
+                }
+                
+                let label = paramID.toUpperCase();
+                if (paramID === 'delayReverbType') label = 'REV TYPE';
+                else if (paramID === 'delayWowFlutter') label = 'WOW/FLUTE';
+                else if (paramID === 'delayReverbDecay') label = 'REV DECAY';
+                else if (paramID === 'delayEchoIsolator') label = 'ECHO ISOLATOR';
+                
+                updateLCD(label + ": " + displayVal, true);
             };
 
             const onUp = () => {
@@ -383,6 +396,14 @@ function syncUI(id, val) {
         }
         const knob = pod.querySelector('.knob');
         if (knob) knob.style.transform = 'translateX(-50%) rotate(' + ((val * 270) - 135) + 'deg)';
+        const filmstrip = pod.querySelector('.reverb-filmstrip-knob');
+        if (filmstrip) {
+            const frame = Math.round(val * 30);
+            const isSmall = filmstrip.closest('.delay-knob-ring') !== null;
+            const size = isSmall ? 40 : 60;
+            const yOffset = -(frame * size);
+            filmstrip.style.backgroundPositionY = yOffset + 'px';
+        }
         const peg = pod.querySelector('.sw-peg');
         if (peg) {
             peg.style.bottom = (val > 0.5) ? ((id === 'vcaMode') ? '38px' : '0px') : ((id === 'vcaMode') ? '0px' : '38px');
@@ -464,6 +485,17 @@ function syncUI(id, val) {
         const led = document.getElementById('led-tab-arp');
         if (led) led.classList.toggle('active', val > 0.5);
     }
+    if (id === 'delayEnabled') {
+        const led = document.getElementById('led-tab-delay');
+        if (led) led.classList.toggle('active', val > 0.5);
+    }
+    if (id === 'arpSync') {
+        // Disable/enable RATE knob when arpSync is ON (tempo dictated by DAW)
+        const rateColumn = document.querySelector('[data-param="arpRate"]')?.closest('.knob-column');
+        if (rateColumn) {
+            rateColumn.classList.toggle('arp-rate-disabled', val > 0.5);
+        }
+    }
     if (id === 'polyMode') {
         const led1 = document.getElementById('led-tab-poly1');
         const led2 = document.getElementById('led-tab-poly2');
@@ -485,20 +517,105 @@ function syncUI(id, val) {
                 }
             }
         }
-        // Sync delay setting buttons
+        // Sync RE-201 large preset knob (12 positions: 0-11 → 0.0-1.0)
         if (id === 'delaySetting') {
-            const settingIdx = Math.round(val * 10);
-            document.querySelectorAll('.delay-setting-btn').forEach(btn => {
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                btn.classList.toggle('active', idx === settingIdx);
-            });
+            const settingIdx = Math.round(val * 11);
+            if (typeof setPresetKnobPosition === 'function') {
+                setPresetKnobPosition(settingIdx);
+            }
         }
-        // Sync delay enable LED
+        // Sync delay division selector visibility and active state
+        if (id === 'delaySyncEnabled') {
+            ['delay-div-selector', 'delay-div-selector-tone', 'delay-div-selector-main'].forEach(selId => {
+                const divSelector = document.getElementById(selId);
+                if (divSelector) {
+                    divSelector.classList.toggle('hidden', val <= 0.5);
+                }
+            });
+            // Update main toggle visual state if present
+            const mainToggle = document.querySelector('.delay-sync-toggle-main');
+            if (mainToggle) {
+                mainToggle.style.backgroundPositionY = (val > 0.5) ? '0px' : '-56px';
+                mainToggle.setAttribute('data-state', val > 0.5 ? "1" : "0");
+                const led = mainToggle.querySelector('.switch-led');
+                if (led) led.classList.toggle('active', val > 0.5);
+            }
+            // Update SVG sync indicator
+            const divVal = paramValuesCache['delaySyncDivision'] !== undefined ? paramValuesCache['delaySyncDivision'] : 0.25;
+            const divIdx = Math.round(divVal * 8);
+            if (typeof updateSyncIndicator === 'function') {
+                updateSyncIndicator(val > 0.5, divIdx);
+            }
+            // [LCD BPM] Show BPM on LCD when sync is toggled ON
+            if (val > 0.5) {
+                const bpm = typeof delaySyncBPM !== 'undefined' ? delaySyncBPM : 120;
+                if (typeof updateLCD === 'function') {
+                    updateLCD('SYNC: ' + K_SYNC_DIV_NAMES[divIdx] + ' @ ' + bpm + ' BPM', true);
+                }
+            }
+        }
         if (id === 'delayEnabled') {
-            const led = document.getElementById('led-delay-on');
-            if (led) led.classList.toggle('active', val > 0.5);
-            const navBtn = document.getElementById('delay-nav-on');
-            if (navBtn) navBtn.classList.toggle('active', val > 0.5);
+            const toggle = document.querySelector('.delay-echo-cancel-toggle-main');
+            if (toggle) {
+                toggle.style.backgroundPositionY = (val > 0.5) ? '0px' : '-56px';
+                toggle.setAttribute('data-state', val > 0.5 ? "1" : "0");
+                const led = toggle.querySelector('.switch-led');
+                if (led) led.classList.toggle('active', val > 0.5);
+            }
+            // POWER (delayEnabled) controls the delay effect state:
+            // POWER ON (val>0.5) = effect active (processing, running)
+            // POWER OFF (val<=0.5) = effect bypassed (dry signal passes through, stopped)
+            const panel = document.getElementById('panel-delay');
+            const isEffectActive = val > 0.5; // Effect runs when switch is ON
+            if (panel) {
+                panel.classList.toggle('delay-stopped', !isEffectActive);  // Bypassed when OFF
+                panel.classList.toggle('delay-running', isEffectActive);  // Running when ON
+            }
+            // Update global state for peak LED animation
+            delayEffectActive = isEffectActive;
+            // Start/stop peak LED based on effect state
+            if (typeof startPeakLedAnimation === 'function') {
+                startPeakLedAnimation(isEffectActive);
+            }
+
+            // If turning OFF (bypass), hide all subpage content
+            if (!isEffectActive) {
+                document.querySelectorAll('.delay-subpage').forEach(sp => {
+                    sp.classList.add('hidden');
+                });
+                document.querySelectorAll('.delay-subpage-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                const svg = document.getElementById('tape-echo-visual');
+                if (svg) svg.style.display = '';
+                const below = document.getElementById('delay-controls-below');
+                if (below) below.classList.add('hidden');
+            }
+        }
+        if (id === 'delaySyncDivision') {
+            const divIdx = Math.round(val * 8);
+            document.querySelectorAll('.div-lbl').forEach(lbl => {
+                const idx = parseInt(lbl.getAttribute('data-div'));
+                lbl.classList.toggle('active', idx === divIdx);
+            });
+            // Update SVG sync indicator division label
+            const syncEnabled = paramValuesCache['delaySyncEnabled'] !== undefined ? paramValuesCache['delaySyncEnabled'] > 0.5 : false;
+            if (typeof updateSyncIndicator === 'function') {
+                updateSyncIndicator(syncEnabled, divIdx);
+            }
+            // [LCD BPM] Show division + BPM when sync is enabled
+            if (syncEnabled) {
+                const bpm = typeof delaySyncBPM !== 'undefined' ? delaySyncBPM : 120;
+                if (typeof updateLCD === 'function') {
+                    updateLCD('SYNC: ' + K_SYNC_DIV_NAMES[divIdx] + ' @ ' + bpm + ' BPM', true);
+                }
+            }
+        }
+        // Sync delay enable LED and state (now driven by ECHO CANCEL, not by delayEnabled alone)
+        if (id === 'delayEnabled') {
+            // delayEnabled is no longer used to control the ON/OFF of the delay panel.
+            // The ECHO CANCEL switch (delayEchoCancel) controls whether the effect is active or bypassed.
+            // This handler is kept for backward compatibility but has no effect on the panel state.
         }
     }
 

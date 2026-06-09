@@ -13,6 +13,8 @@
 @import url('css/keyboard.css');
 @import url('css/about.css');
 @import url('css/settings.css');
+@import url('service.css');
+@import url('browser.css');
 
 /* Notification Toast */
 .notification-toast {

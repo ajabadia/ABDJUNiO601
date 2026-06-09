@@ -417,35 +417,6 @@
 .ab-btn.active#btn-slot-a { background: rgba(255, 60, 60, 0.2); border-color: #ff3c3c; color: #fff; box-shadow: 0 0 10px rgba(255,60,60,0.3); }
 .ab-btn.active#btn-slot-b { background: rgba(60, 138, 255, 0.2); border-color: #3c8aff; color: #fff; box-shadow: 0 0 10px rgba(60,138,255,0.3); }
 
-.ab-util-btn {
-    background: #333;
-    border: 1px solid #444;
-    color: #ccc;
-    padding: 8px;
-    font-size: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.info-actions { margin-top: 15px; }
-
-.browser-action-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.browser-action-btn.primary {
-    background: #ff3c3c;
-    border: none;
-    color: #fff;
-}
-
-.browser-action-btn.primary:hover { background: #ff5555; transform: translateY(-1px); }
-
 .meta-actions {
     display: flex;
     flex-direction: column;

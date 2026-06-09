@@ -398,48 +398,167 @@ body[data-theme="classic"] .module[data-model="1"] {
     position: absolute;
     bottom: 6px;
     left: 50%;
-    transform: translateX(-50%) rotate(-1.5deg);
-    padding: 2px 8px;
+    transform: translateX(-50%) rotate(var(--tape-rot, -1.5deg));
+    padding: 3px 10px 2px;
     font-family: 'Fragment Mono', monospace;
     font-size: 8px;
     font-weight: bold;
-    border-radius: 1px;
-    box-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+    border-radius: 0;
     cursor: pointer;
-    border-left: 3px solid rgba(0,0,0,0.1);
-    border-right: 3px solid rgba(0,0,0,0.1);
     text-transform: uppercase;
     transition: all 0.2s ease;
     z-index: 101;
     white-space: nowrap;
+    /* Torn/irregular edges via clip-path */
+    clip-path: polygon(
+        0% 8%, 3% 0%, 8% 5%, 15% 1%, 22% 6%, 30% 2%, 38% 7%, 45% 0%, 52% 4%, 60% 1%, 68% 6%, 75% 2%, 82% 5%, 90% 0%, 95% 4%, 100% 1%,
+        100% 92%, 97% 100%, 92% 95%, 85% 99%, 78% 94%, 70% 98%, 62% 93%, 55% 100%, 48% 96%, 40% 99%, 32% 94%, 25% 98%, 18% 95%, 10% 100%, 5% 96%, 0% 99%
+    );
+    /* Soft shadow — SVG grain filter added on hover only for performance */
+    filter: hue-rotate(var(--tape-age, 0deg)) drop-shadow(1.5px 2px 1.5px rgba(0,0,0,0.35));
+}
+/* Fiber grain overlay + curl shadow via pseudo-element */
+.painter-tape::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        /* Right-edge curl: subtle shadow suggesting tape lifting off surface */
+        linear-gradient(to left,
+            rgba(0,0,0,0.18) 0%,
+            rgba(0,0,0,0.08) 8%,
+            rgba(0,0,0,0.02) 20%,
+            transparent 35%
+        ),
+        /* Fiber grain texture */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(0,0,0,0.02) 1px,
+            transparent 2px,
+            rgba(255,255,255,0.04) 3px
+        );
+    pointer-events: none;
+    z-index: 1;
+}
+/* Bottom edge shadow + adhesive residue strip */
+.painter-tape::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 2px;
+    right: 2px;
+    height: 3px;
+    background:
+        /* Adhesive residue: faint yellowish translucent strip */
+        linear-gradient(90deg,
+            transparent 0%,
+            rgba(210, 195, 150, 0.12) 15%,
+            rgba(210, 195, 150, 0.18) 30%,
+            rgba(210, 195, 150, 0.22) 50%,
+            rgba(210, 195, 150, 0.18) 70%,
+            rgba(210, 195, 150, 0.12) 85%,
+            transparent 100%
+        ),
+        /* Original bottom edge shadow */
+        rgba(0,0,0,0.08);
+    filter: blur(0.4px);
+    pointer-events: none;
+}
+/* Coffee ring stain: subtle radial gradient ring, only on select tapes */
+.painter-tape.tape-stain::after {
+    bottom: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    background:
+        radial-gradient(ellipse 9px 7px at var(--stain-x, 65%) var(--stain-y, 40%),
+            transparent 50%, rgba(139,90,43,0.09) 55%,
+            rgba(139,90,43,0.13) 60%, rgba(139,90,43,0.06) 70%,
+            transparent 75%);
+    filter: blur(0.3px);
+}
+/* Tape wrinkle/crease: thin diagonal highlight+shadow line across some tapes */
+.painter-tape.tape-crease::before {
+    background:
+        /* Right-edge curl */
+        linear-gradient(to left,
+            rgba(0,0,0,0.18) 0%,
+            rgba(0,0,0,0.08) 8%,
+            rgba(0,0,0,0.02) 20%,
+            transparent 35%
+        ),
+        /* Diagonal crease: thin bright line + thin shadow */
+        linear-gradient(155deg,
+            transparent 0%,
+            transparent 44%,
+            rgba(255,255,255,0.08) 45%,
+            rgba(0,0,0,0.06) 46%,
+            rgba(255,255,255,0.05) 47%,
+            transparent 48%,
+            transparent 100%
+        ),
+        /* Fiber grain texture */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(0,0,0,0.02) 1px,
+            transparent 2px,
+            rgba(255,255,255,0.04) 3px
+        );
+}
+.painter-tape.tape-aged {
+    filter: hue-rotate(var(--tape-age, 0deg)) brightness(0.9) sepia(0.12) drop-shadow(1.5px 2px 1.5px rgba(0,0,0,0.35));
+}
+.painter-tape.tape-aged:hover {
+    filter: hue-rotate(var(--tape-age, 0deg)) brightness(0.93) sepia(0.08) url(#tape-grain) drop-shadow(2px 3px 3px rgba(0,0,0,0.4));
 }
 .painter-tape.tape-j106 {
-    background: #ffb3ba;
+    background-color: rgba(255, 179, 186, 0.88);
     color: #4a1b21;
 }
 .painter-tape.tape-j6 {
-    background: #ffe97f;
+    background-color: rgba(255, 233, 127, 0.88);
     color: #3d3408;
 }
 .painter-tape.tape-j60 {
-    background: #eae7df;
+    background-color: rgba(234, 231, 223, 0.88);
     color: #2e2f30;
 }
 .painter-tape.tape-j106:hover {
-    background: #ffc2d1;
-    transform: translateX(-50%) rotate(0deg) scale(1.05);
-    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+    background-color: rgba(255, 194, 209, 0.95);
+    transform: translateX(-50%) rotate(0deg) scale(1.05) !important;
+    /* SVG grain filter applied only on hover for performance */
+    filter: hue-rotate(var(--tape-age, 0deg)) url(#tape-grain) drop-shadow(2px 3px 3px rgba(0,0,0,0.4));
 }
 .painter-tape.tape-j6:hover {
-    background: #fff099;
-    transform: translateX(-50%) rotate(0deg) scale(1.05);
-    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+    background-color: rgba(255, 240, 153, 0.95);
+    transform: translateX(-50%) rotate(0deg) scale(1.05) !important;
+    filter: hue-rotate(var(--tape-age, 0deg)) url(#tape-grain) drop-shadow(2px 3px 3px rgba(0,0,0,0.4));
 }
 .painter-tape.tape-j60:hover {
-    background: #f2efe7;
-    transform: translateX(-50%) rotate(0deg) scale(1.05);
-    box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+    background-color: rgba(242, 239, 231, 0.95);
+    transform: translateX(-50%) rotate(0deg) scale(1.05) !important;
+    filter: hue-rotate(var(--tape-age, 0deg)) url(#tape-grain) drop-shadow(2px 3px 3px rgba(0,0,0,0.4));
 }
+
+/* Tape placement animation: subtle sway that settles to resting position */
+@keyframes tape-settle {
+    0%   { opacity: 0; transform: translateX(-50%) rotate(calc(var(--tape-rot, -1.5deg) + 6deg)) scale(0.92); }
+    30%  { opacity: 1; transform: translateX(-50%) rotate(calc(var(--tape-rot, -1.5deg) - 3deg)) scale(1.02); }
+    60%  { transform: translateX(-50%) rotate(calc(var(--tape-rot, -1.5deg) + 1deg)) scale(0.99); }
+    80%  { transform: translateX(-50%) rotate(calc(var(--tape-rot, -1.5deg) - 0.5deg)) scale(1.0); }
+    100% { transform: translateX(-50%) rotate(var(--tape-rot, -1.5deg)) scale(1.0); opacity: 1; }
+}
+.painter-tape.tape-lfo  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.05s both; }
+.painter-tape.tape-dco  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.12s both; }
+.painter-tape.tape-hpf  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.20s both; }
+.painter-tape.tape-vcf  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.28s both; }
+.painter-tape.tape-vca  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.35s both; }
+.painter-tape.tape-env  { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.42s both; }
+.painter-tape.tape-chorus { animation: tape-settle 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.50s both; }
 
 /* SUNKEN PERFORMANCE PANEL (dynamic left area) */
 .sunken-performance-panel {
@@ -624,24 +743,7 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
     line-height: 1.3;
 }
 
-/* Selector LED indicators */
-.tab-led {
-    width: 5px;
-    height: 5px;
-    background: #333;
-    border-radius: 50%;
-    position: absolute;
-    top: 3px;
-    left: 50%;
-    transform: translateX(-50%);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
-    transition: all 0.2s ease;
-}
-
-.tab-led.active {
-    background: var(--led-red);
-    box-shadow: var(--led-glow);
-}
+/* tab-led, tab-led.active: moved to performance.css */
 
 /* Sub-panel content area */
 .perf-tab-content {
@@ -660,16 +762,8 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
 
 /* ***************************************** */
 /* DELAY PANEL - Tape Echo                   */
+/* #panel-delay: main definition in performance.css */
 /* ***************************************** */
-#panel-delay {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    min-height: 100px;
-    overflow: hidden;
-    gap: 4px;
-}
 
 /* SVG - always visible at top when tab is active */
 #tape-echo-visual {
@@ -702,100 +796,16 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
     display: none;
 }
 
-/* Horizontal nav row (ON / DELAY / TONO / REVERB) */
-.delay-nav {
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    padding: 2px 4px;
-    justify-content: center;
-    width: 100%;
-}
-.delay-nav-unit {
-    min-width: 44px;
-    height: 22px;
-    background: #1e2025;
-    border: 1px solid #111;
-    border-radius: 3px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    position: relative;
-    gap: 4px;
-    padding: 0 8px;
-}
-.delay-nav-unit:hover {
-    background: #2a2d34;
-}
-.delay-nav-unit.active {
-    background: var(--juno-blue);
-    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
-}
-.delay-nav-lbl {
-    font-family: 'Microgramma', sans-serif;
-    font-size: 7px;
-    font-weight: 900;
-    color: var(--white);
-    text-align: center;
-    line-height: 1;
-}
-.delay-nav-unit .nav-led {
-    width: 5px;
-    height: 5px;
-    background: #333;
-    border-radius: 50%;
-    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
-    transition: all 0.2s ease;
-}
-.delay-nav-unit .nav-led.active {
-    background: var(--led-red);
-    box-shadow: var(--led-glow);
-}
+/* delay-nav, delay-nav-unit, delay-nav-lbl, nav-led: moved to performance.css */
 
-/* Delay setting selector buttons (1-11) — 5-column grid */
+/* delay-subpage: moved to performance.css */
+
+/* Delay setting selector buttons (1-11) */
 .delay-setting-selector {
     display: flex;
     gap: 2px;
     flex-wrap: wrap;
     justify-content: center;
-}
-.delay-grid-5col {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 2px;
-    justify-items: center;
-    max-width: 160px;
-    margin: 0 auto;
-}
-
-/* All 6 sliders in a compact row */
-.delay-sliders-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 2px;
-    justify-content: center;
-    width: 100%;
-}
-.delay-sliders-row .h-slider-unit {
-    width: 60px;
-    margin: 2px 0;
-}
-.delay-sliders-row .h-slider-container {
-    width: 54px;
-}
-.delay-sliders-row .h-slider-lbl {
-    font-size: 6px;
-}
-.delay-sliders-row .h-slider-labels {
-    width: 54px;
-    font-size: 6px;
-}
-.delay-sliders-row .h-slider-labels span {
-    width: auto;
 }
 .delay-setting-btn {
     width: 22px;
@@ -822,14 +832,7 @@ body[data-theme="juno-60"] .perf-tab-nav-btn:active {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
 }
 
-/* Dark theme overrides for delay nav */
-body[data-theme="tr-808"] .delay-nav-unit.active,
-body[data-theme="deepmind"] .delay-nav-unit.active,
-body[data-theme="space-echo"] .delay-nav-unit.active,
-body[data-theme="juno-60"] .delay-nav-unit.active {
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
-}
+/* Dark theme overrides for delay nav: moved to performance.css */
 body[data-theme="tr-808"] .delay-setting-btn.active,
 body[data-theme="deepmind"] .delay-setting-btn.active,
 body[data-theme="space-echo"] .delay-setting-btn.active,
@@ -839,7 +842,7 @@ body[data-theme="juno-60"] .delay-setting-btn.active {
 
 /* Delay stopped state: dim SVG */
 #panel-delay.delay-stopped #tape-echo-visual {
-    opacity: 0.5;
+    opacity: 0.9;
 }
 
 /* SVG animations when delay is running */
@@ -972,65 +975,42 @@ body[data-theme="juno-60"] .delay-setting-btn.active {
     text-shadow: 0 0 4px rgba(255, 140, 0, 0.5);
 }
 
-/* Ticked rotary knob styling */
-.knob-tick-wrapper {
-    position: relative;
-    width: 66px;
-    height: 66px;
+/* knob-tick-wrapper and knob-tick-lbl: moved to controls.css (flex-column layout) */
+
+/* --- Delay grid 5-column layout (refactor: delay controls grid) --- */
+.delay-grid-5col {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    justify-items: center;
+    max-width: 160px;
+    margin: 0 auto;
+}
+
+/* All 6 sliders in a compact row */
+.delay-sliders-row {
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
     justify-content: center;
-    align-items: center;
+    width: 100%;
+}
+.delay-sliders-row .h-slider-unit {
+    width: 60px;
+    margin: 2px 0;
+}
+.delay-sliders-row .h-slider-container {
+    width: 54px;
+}
+.delay-sliders-row .h-slider-lbl {
+    font-size: 6px;
+}
+.delay-sliders-row .h-slider-labels {
+    width: 54px;
+    font-size: 6px;
+}
+.delay-sliders-row .h-slider-labels span {
+    width: auto;
 }
 
-.knob-tick-wrapper .knob-ring {
-    width: 44px;
-    height: 44px;
-    background: url('../knob.png') no-repeat center;
-    background-size: contain;
-    position: relative;
-    cursor: ns-resize;
-}
-
-.knob-tick-wrapper .knob {
-    position: absolute;
-    width: 2px;
-    height: 5px;
-    background: var(--white);
-    left: 50%;
-    top: 12px;
-    transform: translateX(-50%);
-    transform-origin: center 10px;
-    border-radius: 1px;
-}
-
-.knob-tick-lbl {
-    position: absolute;
-    font-size: 7px;
-    font-family: 'Microgramma', sans-serif;
-    color: #888;
-    font-weight: bold;
-    transition: color 0.1s ease;
-}
-
-.knob-tick-lbl.pos-left {
-    left: -4px;
-    bottom: 12px;
-}
-
-.knob-tick-lbl.pos-center {
-    left: 50%;
-    top: -5px;
-    transform: translateX(-50%);
-}
-
-.knob-tick-lbl.pos-right {
-    right: -4px;
-    bottom: 12px;
-}
-
-.knob-tick-lbl.active {
-    color: var(--juno-orange);
-    text-shadow: 0 0 4px rgba(255, 140, 0, 0.5);
-}
-
-

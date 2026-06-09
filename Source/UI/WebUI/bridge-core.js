@@ -17,6 +17,10 @@ let targetPatch = 1;
 let memoryProtectActive = false;
 let globalUserName = "ABD USER";
 let paramValuesCache = {};
+let delaySyncBPM = 120;  // Last known DAW BPM for delay sync display
+
+// Shared sync division names (matches JunoTapeEcho::kDivBeats)
+const K_SYNC_DIV_NAMES = ['1/1','1/2','1/4','1/4T','1/8','1/8T','1/16','1/16T','1/32'];
 
 let sysexMirror = new Array(23).fill(0);
 sysexMirror[0] = 0xF0; sysexMirror[1] = 0x41; sysexMirror[2] = 0x30;
@@ -505,14 +509,26 @@ function initApp() {
         updateModelVisibility(model);
     };
 
-    if (initData && initData.buildVersion) {
-        const vStr = initData.buildVersion;
+    // [FIX] Update version + dismiss splash FIRST — before any risky DOM operations.
+    // If updateUIProductNames / updateModelVisibility throw, splash still hides.
+    const buildVer = (initData && initData.buildVersion) ? initData.buildVersion : null;
+    if (buildVer) {
         document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
-            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + vStr;
-            else el.innerText = "Version " + vStr;
+            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + buildVer;
+            else el.innerText = "Version " + buildVer;
         });
-        updateUIProductNames(currentProductName, currentTargetModel);
     }
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 1000);
+        }
+        // Trigger app fade-in (CSS animation on #synth-app.app-visible)
+        document.getElementById('synth-app')?.classList.add('app-visible');
+    }, 3000);
+
+    updateUIProductNames(currentProductName, currentTargetModel);
 
     listenEvent("onVersionUpdate", (version) => {
         document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
@@ -547,6 +563,68 @@ function initApp() {
         if (wipLed) { wipLed.innerText = data.wip; wipLed.classList.toggle('has-wip', data.wip > 0); }
     });
 
+    listenEvent("onDelayBPMUpdate", (bpm) => {
+        // Store last known BPM for preset-change display
+        delaySyncBPM = Math.round(bpm);
+
+        // --- DELAY SYNC LCD ---
+        const delaySyncSwitch = document.querySelector('.sw-unit.mini[data-param="delaySyncEnabled"]');
+        if (delaySyncSwitch && delaySyncSwitch.getAttribute('data-state') === "1") {
+            updateLCD("SYNC: " + delaySyncBPM + " BPM", true);
+        }
+
+        // Update SVG BPM indicator (delay tab)
+        const bpmEl = document.getElementById('svg-bpm-indicator');
+        if (bpmEl) {
+            const syncEnabled = paramValuesCache['delaySyncEnabled'] !== undefined ?
+                paramValuesCache['delaySyncEnabled'] > 0.5 : false;
+            if (syncEnabled) {
+                bpmEl.textContent = delaySyncBPM + ' BPM';
+            }
+        }
+
+        // --- ARP SYNC BPM INDICATOR (performance panel) ---
+        const arpBpmEl = document.getElementById('arp-bpm-indicator');
+        const arpSync = paramValuesCache['arpSync'] !== undefined ?
+            paramValuesCache['arpSync'] > 0.5 : false;
+
+        if (arpBpmEl) {
+            if (arpSync) {
+                arpBpmEl.textContent = delaySyncBPM + ' BPM';
+                arpBpmEl.classList.remove('arp-bpm-hidden');
+                arpBpmEl.classList.add('arp-bpm-visible');
+            } else {
+                arpBpmEl.classList.remove('arp-bpm-visible');
+                arpBpmEl.classList.add('arp-bpm-hidden');
+            }
+        }
+
+        // --- ARP SYNC BPM INDICATOR (Settings modal) ---
+        const arpBpmSettingsEl = document.getElementById('arp-bpm-indicator-settings');
+        const arpBpmRow = document.getElementById('arp-bpm-row-settings');
+        if (arpBpmSettingsEl && arpBpmRow) {
+            if (arpSync) {
+                arpBpmSettingsEl.textContent = delaySyncBPM + ' BPM';
+                arpBpmRow.style.display = '';
+            } else {
+                arpBpmRow.style.display = 'none';
+            }
+        }
+
+        if (arpSync) {
+            updateLCD("ARP SYNC: " + delaySyncBPM + " BPM", true);
+        }
+
+        // Start ARP sync blink at new tempo
+        if (typeof startArpSyncBlink === 'function') {
+            startArpSyncBlink();
+        }
+
+        // Restart peak LED animation with new tempo when sync is active
+        // Peak LED animation is now controlled by delay effect state (delayEffectActive)
+        // via the delayEchoCancel syncUI handler in ui-sliders.js
+    });
+
     listenEvent("onSysExUpdate", (hex) => {
         const log = document.getElementById('sysex-log');
         if (!log) return;
@@ -572,21 +650,29 @@ function initApp() {
         setTimeout(() => { log.querySelectorAll('.changed').forEach(el => el.classList.remove('changed')); }, 1000);
     });
 
-    setupSliders();
-    setupButtons();
-    setupBender();
-    setupKeyboard();
-    setupMenus();
-    setupOctaveButtons();
+    try {
+        setupSliders();
+        setupButtons();
+        setupBender();
+        setupKeyboard();
+        setupMenus();
+        setupOctaveButtons();
+    } catch (e) {
+        console.error('[JUNiO] Error during UI setup:', e);
+    }
 
-    if (window.ServiceMode && typeof window.ServiceMode.refreshParams === 'function') {
-        window.ServiceMode.refreshParams().then(() => {
+    try {
+        if (window.ServiceMode && typeof window.ServiceMode.refreshParams === 'function') {
+            window.ServiceMode.refreshParams().then(() => {
+                updateThemeAndSkins();
+                updatePainterTapes();
+            });
+        } else {
             updateThemeAndSkins();
             updatePainterTapes();
-        });
-    } else {
-        updateThemeAndSkins();
-        updatePainterTapes();
+        }
+    } catch (e) {
+        console.error('[JUNiO] Error during theme/skin init:', e);
     }
 
     // Expose updateModelVisibility globally so theme-manager.js can call it
@@ -597,30 +683,46 @@ function initApp() {
     console.log(`[DEBUG] initApp complete. targetModel=${currentTargetModel} calibrationProfile=${paramValuesCache['calibrationProfile']}`);
 
     callNative("uiReady");
-
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 1000);
-        }
-    }, 5000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const splashVersion = document.getElementById('splash-version-info');
+
+    // [FIX] Defensive fallback: ALWAYS dismiss splash after 10 seconds,
+    // even if initApp() throws and its internal timer never fires.
+    let splashDismissed = false;
+    function forceDismissSplash() {
+        if (splashDismissed) return;
+        splashDismissed = true;
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.transition = 'opacity 0.5s';
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 600);
+        }
+        // Trigger app fade-in even if initApp() never ran
+        document.getElementById('synth-app')?.classList.add('app-visible');
+    }
+    setTimeout(forceDismissSplash, 10000);
+
     let retries = 0;
     const checkBridge = setInterval(() => {
-        const backend = getBackend();
-        if (backend) {
+        try {
+            const backend = getBackend();
+            if (backend) {
+                clearInterval(checkBridge);
+                if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
+                initApp();
+            } else {
+                retries++;
+                if (retries === 20 && splashVersion) splashVersion.innerText = "WAITING FOR JUCE BRIDGE (Retrying...)";
+                if (retries === 50 && splashVersion) splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
+                if (retries > 100) { clearInterval(checkBridge); initApp(); }
+            }
+        } catch (e) {
+            console.error('[JUNiO] Bridge check / initApp error:', e);
             clearInterval(checkBridge);
-            if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
-            initApp();
-        } else {
-            retries++;
-            if (retries === 20 && splashVersion) splashVersion.innerText = "WAITING FOR JUCE BRIDGE (Retrying...)";
-            if (retries === 50 && splashVersion) splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
-            if (retries > 100) { clearInterval(checkBridge); initApp(); }
+            forceDismissSplash();
         }
     }, 100);
 });

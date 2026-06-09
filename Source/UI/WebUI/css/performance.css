@@ -18,33 +18,6 @@
     - **Positioning**: Moved bender stick slightly lower.
 */
 
-.performance-module {
-    flex: 1;
-    padding: 10px 0 5px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    /* Distribute rows equally */
-    background: transparent;
-    border-top: 2px solid var(--black);
-    margin-top: 0;
-}
-
-.perf-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    position: relative;
-    align-items: flex-start;
-    /* Ensure labels are at the same top level */
-}
-
-.perf-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
 .port-col {
     flex: 1;
     display: flex;
@@ -72,20 +45,6 @@
 .port-col .sw-path,
 .port-col .sw-peg {
     height: 54px;
-}
-
-.sw-lbl {
-    font-family: 'Microgramma', sans-serif;
-    font-size: 9px;
-    font-weight: 900;
-    color: var(--white);
-    margin-bottom: 5px;
-}
-
-.poly-col .main-lbl {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 12px;
 }
 
 .poly-buttons {
@@ -190,11 +149,6 @@
     animation: oct-blink 0.5s ease-in-out infinite;
 }
 
-.oct-led.blink-fast {
-    background: var(--led-red);
-    box-shadow: var(--led-glow);
-    animation: oct-blink 0.25s ease-in-out infinite;
-}
 
 @keyframes oct-blink {
     0%, 100% { opacity: 1; }
@@ -243,39 +197,12 @@
     grid-column: 4;
 }
 
-.perf-knobs {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-}
-
-.knob-pod {
-    width: 33.33%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
 .knob-lbl {
     font-family: 'Microgramma', sans-serif;
     font-size: 9px;
     font-weight: 900;
     color: var(--white);
     text-transform: uppercase;
-}
-
-.perf-switches {
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
-}
-
-.sw-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
 }
 
 #bender-section {
@@ -371,4 +298,692 @@
     border-radius: 3px;
     pointer-events: none;
     border: 1px solid #111;
+}
+
+/* SVG Sync Indicator inside the tape echo display */
+.svg-sync-hidden {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#svg-sync-indicator.svg-sync-visible {
+    opacity: 1;
+    fill: var(--juno-orange);
+    text-shadow: 0 0 4px rgba(255, 140, 0, 0.4);
+}
+
+/* Delay running: sync indicator pulses subtly */
+@keyframes svg-indicator-pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+}
+
+.delay-running #svg-sync-indicator.svg-sync-visible {
+    fill: #ff8800;
+    animation: svg-indicator-pulse 2s ease-in-out infinite;
+}
+
+.delay-stopped #svg-sync-indicator.svg-sync-visible {
+    animation: none;
+}
+
+/* SVG BPM indicator inside the tape echo display */
+.svg-bpm-hidden {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#svg-bpm-indicator.svg-bpm-visible {
+    opacity: 1;
+    fill: #888;
+}
+
+.delay-running #svg-bpm-indicator.svg-bpm-visible {
+    fill: #aaa;
+}
+
+/* ARP RATE knob disabled state when arpSync is active */
+.arp-rate-disabled .knob-ring {
+    opacity: 0.3;
+    filter: grayscale(0.8);
+    pointer-events: none !important;
+    cursor: not-allowed;
+}
+
+.arp-rate-disabled .knob-lbl {
+    opacity: 0.35;
+}
+
+.arp-rate-disabled #val-arpRate-perf {
+    opacity: 0.3;
+}
+
+.arp-rate-disabled .knob-tick-wrapper {
+    pointer-events: none !important;
+    cursor: not-allowed;
+}
+
+/* ARP BPM indicator */
+.arp-bpm-hidden {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+#arp-bpm-indicator.arp-bpm-visible {
+    opacity: 1;
+    font-family: 'Fragment Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--juno-orange, #fa0);
+    text-shadow: 0 0 4px rgba(255, 170, 0, 0.3);
+    text-align: center;
+    letter-spacing: 1px;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 4px 0;
+}
+
+/* SVG playback head highlight: active heads glow when enabled */
+#head-h1.head-active,
+#head-h2.head-active,
+#head-h3.head-active {
+    fill: #ff8800;
+    stroke: #ffaa33;
+    filter: drop-shadow(0 0 3px rgba(255, 136, 0, 0.6));
+}
+
+.delay-running #head-h1.head-active,
+.delay-running #head-h2.head-active,
+.delay-running #head-h3.head-active {
+    fill: #ffaa33;
+    stroke: #ffcc66;
+    filter: drop-shadow(0 0 5px rgba(255, 170, 51, 0.8));
+}
+
+/* SVG Peak LED states */
+#svg-peak-led.peak-led-off {
+    opacity: 0.25;
+    filter: grayscale(1);
+    transition: opacity 0.15s ease;
+}
+
+#svg-peak-led.peak-led-on {
+    opacity: 1;
+    filter: none;
+}
+
+#svg-peak-led.peak-led-active {
+    filter: brightness(1.5) drop-shadow(0 0 6px rgba(255, 68, 68, 0.8));
+    opacity: 1;
+}
+
+.delay-running #svg-peak-led.peak-led-on {
+    filter: drop-shadow(0 0 4px rgba(255, 68, 68, 0.4));
+}
+
+.delay-running #svg-peak-led.peak-led-active {
+    filter: brightness(1.8) drop-shadow(0 0 8px rgba(255, 68, 68, 1.0));
+}
+
+/* Delay panel stopped: dim controls but keep SVG readable */
+#panel-delay.delay-stopped #tape-echo-visual svg {
+    opacity: 1;
+    filter: none;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+#panel-delay.delay-running #tape-echo-visual svg {
+    opacity: 1;
+    filter: none;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Delay navigation LED indicators */
+.nav-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #333;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+}
+
+.nav-led.active {
+    background: var(--led-red, #f44);
+    box-shadow: var(--led-glow, 0 0 6px rgba(255, 68, 68, 0.6));
+}
+
+.delay-nav-unit.active .nav-led {
+    background: var(--led-red, #f44);
+    box-shadow: var(--led-glow, 0 0 6px rgba(255, 68, 68, 0.6));
+}
+
+/* ************************************************************ */
+/* DELAY PANEL — Missing orphan classes                          */
+/* ************************************************************ */
+
+/* ── Performance Tab LEDs (base for all perf tab indicators) ── */
+.tab-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #333;
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: none;
+}
+
+.tab-led.active {
+    background: var(--led-red, #f44);
+    box-shadow: var(--led-glow, 0 0 6px rgba(255, 68, 68, 0.6));
+}
+
+/* Delay-specific tab LED override (same visual, semantic isolation) */
+.delay-tab-led {
+    /* inherits .tab-led base */
+}
+
+/* Make perf-tab-btn position:relative so .tab-led absolute pos works */
+.perf-tab-btn {
+    position: relative;
+}
+
+/* ── Delay panel layout: flex column, nav sticks to bottom ── */
+#panel-delay {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: clip;
+}
+
+#tape-echo-visual {
+    flex-shrink: 0;
+}
+
+#delay-controls-below {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden; /* disable scrollbar completely */
+    padding: 2px 0;
+}
+
+#delay-controls-below.hidden {
+    display: none;
+}
+
+/* ── Subpage containers: stack, one visible at a time ── */
+.delay-subpage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* vertically center content */
+    gap: 4px; /* reduced from 6px */
+    width: 100%;
+    height: 100%; /* fill height */
+    padding: 2px 0;
+    box-sizing: border-box;
+}
+
+/* ── Big RE-201 style preset knob ── */
+.delay-preset-knob {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+/* ── Knob groups: rows of 2-3 knobs ── */
+.delay-knobs-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    padding: 2px 0;
+}
+
+/* ── Individual delay knob container ── */
+.delay-knob-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px; /* increased to space labels farther from the knobs */
+    width: 44px; /* reduced from 48px to prevent horizontal overflow */
+    flex-shrink: 0;
+}
+
+/* ── Delay knob label ── */
+.delay-knob-lbl {
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7px;
+    font-weight: 900;
+    color: var(--white);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Delay knob ring: compact variant of .knob-ring ── */
+.delay-knob-ring {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    position: relative;
+    cursor: ns-resize;
+}
+
+/* ── Echo Cancel LED inside SVG foreignObject ── */
+.delay-ec-led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #333;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.delay-ec-led.active {
+    background: var(--led-red, #f44);
+    box-shadow: 0 0 6px rgba(255, 68, 68, 0.6);
+}
+
+/* ── Sync row: flex row with aligned switch + divider selector ── */
+.delay-sync-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* ── Sync row inline variant: compact ── */
+.delay-sync-row-inline {
+    gap: 6px;
+    padding: 2px 0;
+    flex-wrap: wrap;
+}
+
+/* ── Sync switch label (SYNC / FREE) ── */
+.delay-sync-lbl {
+    font-family: 'Microgramma', sans-serif;
+    font-size: 8px;
+    font-weight: 900;
+    color: var(--white);
+    text-transform: uppercase;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Division selector: row of division labels ── */
+.delay-div-selector {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+}
+
+.delay-div-selector.hidden {
+    display: none;
+}
+
+.delay-div-lbls {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+}
+
+.div-lbl {
+    font-family: 'Fragment Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    color: #666;
+    padding: 2px 4px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+    user-select: none;
+    pointer-events: auto;
+}
+
+.div-lbl:hover {
+    color: #aaa;
+    background: rgba(255,255,255,0.05);
+}
+
+.div-lbl.active {
+    color: var(--juno-orange, #fa0);
+    background: rgba(255, 140, 0, 0.1);
+    text-shadow: 0 0 4px rgba(255, 140, 0, 0.3);
+}
+
+/* ── Navigation bar: fixed at bottom of delay panel ── */
+.delay-nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    width: 100%;
+    padding: 6px 0 2px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: auto;
+    flex-shrink: 0;
+    /* Solid background covers the ::after model-name watermark behind the nav */
+    background: rgba(0, 0, 0, 0.45);
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Navigation unit: LED + label stack ── */
+.delay-nav-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px; /* reduced from 3px */
+    cursor: pointer;
+    padding: 2px 5px; /* reduced from 3px 8px */
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    user-select: none;
+    min-width: 32px; /* reduced from 36px */
+    /* Styled like inactive tab buttons by default (gray) */
+    background: #1e2025;
+    color: #888;
+    border: 1px solid #111;
+    box-shadow: none;
+}
+
+.delay-nav-unit:hover {
+    background: #2a2d34;
+    color: #ccc;
+}
+
+/* Active/selected state (on/off active, or active subpage) */
+.delay-nav-unit.active {
+    background: var(--juno-blue);
+    color: #fff;
+    border: 1px solid #111;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Theme overrides for active state */
+body[data-theme="tr-808"] .delay-nav-unit.active,
+body[data-theme="deepmind"] .delay-nav-unit.active,
+body[data-theme="space-echo"] .delay-nav-unit.active,
+body[data-theme="juno-60"] .delay-nav-unit.active {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
+}
+
+/* Subpage buttons: totally transparent/hidden by default (when delay is OFF) */
+.delay-stopped .delay-nav-unit.delay-subpage-btn {
+    opacity: 0;
+    pointer-events: none;
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+    box-shadow: none;
+}
+
+/* When delay is ON, show subpage buttons (normal style) */
+.delay-running .delay-nav-unit.delay-subpage-btn {
+    opacity: 1;
+    pointer-events: auto;
+    background: #1e2025;
+    color: #888;
+    border: 1px solid #111;
+}
+
+.delay-running .delay-nav-unit.delay-subpage-btn:hover {
+    background: #2a2d34;
+    color: #ccc;
+}
+
+/* Active subpage button state when delay is ON */
+.delay-running .delay-nav-unit.delay-subpage-btn.active {
+    background: var(--juno-blue);
+    color: #fff;
+    border: 1px solid #111;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Theme overrides for active subpage buttons when delay is ON */
+body[data-theme="tr-808"] .delay-running .delay-nav-unit.delay-subpage-btn.active,
+body[data-theme="deepmind"] .delay-running .delay-nav-unit.delay-subpage-btn.active,
+body[data-theme="space-echo"] .delay-running .delay-nav-unit.delay-subpage-btn.active,
+body[data-theme="juno-60"] .delay-running .delay-nav-unit.delay-subpage-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.1);
+}
+
+/* ── Navigation label ── */
+.delay-nav-lbl {
+    font-family: 'Microgramma', sans-serif;
+    font-size: 6px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* ── Reverb Subpage Filmstrip Knob (RE-201 Silver Knob) ── */
+.reverb-filmstrip-knob {
+    width: var(--knob-size);
+    height: var(--knob-size);
+    background-image: url('../silver_re201_normal.png');
+    background-repeat: no-repeat;
+    background-size: 60px 1860px; /* 60px width, 60 * 31 = 1860px height */
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.delay-knob-ring .reverb-filmstrip-knob {
+    width: 40px;
+    height: 40px;
+    background-size: 40px 1240px; /* 40px width, 40 * 31 = 1240px height */
+}
+
+/* ── Space Echo Settings Panels ── */
+.space-echo-panel {
+    background-color: #355923;
+    border-radius: 6px;
+    padding: 4px 4px; /* reduced from 8px 6px */
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* reduced from 8px */
+    align-items: center;
+    width: 96%; /* increased from 90% to fill space horizontally */
+    margin: 0 auto;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
+
+.space-echo-top-row {
+    background-color: #000000;
+    border-radius: 4px;
+    padding: 4px 2px; /* reduced from 8px 4px */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.8);
+}
+
+.space-echo-bottom-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 2px 2px 2px 2px; /* reduced */
+}
+
+/* ── Preset Subpage Filmstrip Selector ── */
+.preset-filmstrip-knob {
+    width: 100px;
+    height: 100px;
+    background-image: url('../silver_re201_preset.png');
+    background-repeat: no-repeat;
+    background-size: 100px 1200px; /* 100px width, 100 * 12 = 1200px height */
+    position: relative;
+    cursor: pointer;
+    margin: 15px auto;
+}
+
+/* ── Main Page Sync Toggle ── */
+.delay-sync-lbl-main {
+    position: absolute;
+    bottom: 4px; /* brought closer to the switch, overlapping transparent area */
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7px;
+    font-weight: 900;
+    color: var(--white);
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Main Page Sync Division Selector ── */
+.delay-div-selector-main {
+    display: none;
+    position: absolute;
+    bottom: 36px;
+    left: 54px; /* moved more to the left to occupy the gap and prevent overlap with echo cancel */
+    z-index: 20; /* higher z-index to stand above switches' bounding boxes */
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Hide SYNC toggle, ECHO CANCEL toggle, and division selector when a subpage is active */
+#panel-delay:not(.delay-main-view) .delay-sync-toggle-main,
+#panel-delay:not(.delay-main-view) .delay-echo-cancel-toggle-main,
+#panel-delay:not(.delay-main-view) .delay-div-selector-main {
+    display: none !important;
+}
+
+.delay-div-lbls-row {
+    display: flex;
+    flex-direction: row;
+    gap: 3px;
+}
+
+/* ECHO CANCEL toggle is ALWAYS visible when on the DELAY tab (Super Six) */
+.delay-echo-cancel-toggle-main {
+    display: block;
+    position: absolute;
+    bottom: 36px;
+    right: 3px;
+    width: 56px;
+    height: 56px;
+    background-image: url('../switch_toggle.png');
+    background-repeat: no-repeat;
+    background-size: 56px 112px;
+    background-position-y: -56px; /* default to off (down) = bypassed */
+    cursor: pointer;
+    z-index: 10;
+}
+
+.delay-echo-cancel-lbl-main {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Microgramma', sans-serif;
+    font-size: 7px;
+    font-weight: 900;
+    color: var(--white);
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* When ECHO CANCEL is ON (effect active), show the toggle in ON position */
+.delay-running .delay-echo-cancel-toggle-main {
+    background-position-y: 0px;
+}
+
+/* SYNC toggle: only visible when ECHO CANCEL is ON (effect active) */
+.delay-sync-toggle-main {
+    display: none;
+    position: absolute;
+    bottom: 36px;
+    left: 3px;
+    width: 56px;
+    height: 56px;
+    background-image: url('../switch_toggle.png');
+    background-repeat: no-repeat;
+    background-size: 56px 112px;
+    background-position-y: -56px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.delay-running .delay-sync-toggle-main {
+    display: block;
+}
+
+/* Sync division selector: only when sync toggle is active */
+.delay-running #delay-controls-below.hidden ~ .delay-div-selector-main:not(.hidden) {
+    display: flex;
+}
+
+/* ── Switch LEDs for Sync and Echo Cancel ── */
+.switch-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #333;
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.switch-led.active {
+    background: var(--led-red, #f44);
+    box-shadow: var(--led-glow, 0 0 6px rgba(255, 68, 68, 0.6));
 }

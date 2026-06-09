@@ -201,6 +201,29 @@ Este documento contiene la documentación completa de todos los parámetros edit
 | `arpSync` | Sincroniza la velocidad del arpegiador al tempo del DAW (Host BPM). | `0` (Off) | `0` / `1` | `1.0` |
 | `arpDivision` | División rítmica del arpegiador sincronizado (Whole, Half, Triplet, 1/16, etc.). | `6` (1/16) | `0` / `8` | `1.0` |
 
+### TAPE ECHO / DELAY *(Super Six)*
+| ID / Parámetro | Descripción | Valor por Defecto | Rango (Mín / Máx) | Paso |
+|---|---|---|---|---|
+| `delayWowRate` <br>**Wow LFO Speed** | Velocidad del LFO para emular wow (fluctuación lenta de velocidad de cinta). | `0.5 Hz` | `0.1 Hz` / `5.0 Hz` | `0.1` |
+| `delayFlutterRate` <br>**Flutter LFO Speed** | Velocidad del LFO para emular flutter (fluctuación rápida de velocidad de cinta). | `8.0 Hz` | `2.0 Hz` / `20.0 Hz` | `0.1` |
+| `delayTapeScrapeRate` <br>**Tape Scrape LFO Speed** | Velocidad de modulación de micro-raspado (tape scrape/micro-jitter) de la cinta. | `12.0 Hz` | `5.0 Hz` / `30.0 Hz` | `0.1` |
+| `delayWowAmp` <br>**Wow Modulation Depth** | Amplitud o profundidad máxima de la modulación lenta de wow. | `0.003` | `0.000` / `0.010` | `0.0005` |
+| `delayFlutterAmp` <br>**Flutter Modulation Depth** | Amplitud o profundidad máxima de la modulación rápida de flutter. | `0.001` | `0.000` / `0.005` | `0.0001` |
+| `delayTapeScrapeAmp` <br>**Tape Scrape Depth** | Amplitud o profundidad máxima del micro-raspado de la cinta. | `0.0005` | `0.0000` / `0.0030` | `0.0001` |
+| `delayWowFlutterScale` <br>**Wow/Flutter Knob Scale** | Multiplicador global de escala para el control frontal WOW/FLUTTER. | `2.0` | `0.5` / `5.0` | `0.1` |
+| `delaySaturationInputGain` <br>**Tape Saturation Drive** | Ganancia de entrada a la etapa de saturación no lineal (`std::tanh`) de la cinta. | `1.5` | `0.5` / `3.0` | `0.1` |
+| `delayHead2Ratio` <br>**Playhead 2 Ratio** | Relación de tiempo/distancia del cabezal 2 respecto al cabezal 1. | `2.0` | `1.1` / `2.9` | `0.05` |
+| `delayHead3Ratio` <br>**Playhead 3 Ratio** | Relación de tiempo/distancia del cabezal 3 respecto al cabezal 1. | `3.0` | `2.0` / `4.0` | `0.05` |
+| `delayBassFreq` <br>**Delay Bass Frequency** | Frecuencia de corte de la banda de graves en el control de tono (Tone Stack). | `300.0 Hz` | `50.0 Hz` / `1000.0 Hz` | `5.0` |
+| `delayTrebleFreq` <br>**Delay Treble Frequency** | Frecuencia de corte de la banda de agudos en el control de tono (Tone Stack). | `3000.0 Hz` | `1000.0 Hz` / `8000.0 Hz` | `50.0` |
+| `delayFeedbackLpfBase` <br>**Feedback LPF Base** | Frecuencia de corte base para el LPF en la línea de retroalimentación de eco. | `5000.0 Hz` | `1000.0 Hz` / `10000.0 Hz` | `100.0` |
+| `delayFeedbackLpfRange` <br>**Feedback LPF Range Scale** | Rango dinámico del corte del LPF según la velocidad de repetición. | `10000.0 Hz` | `0.0 Hz` / `15000.0 Hz` | `100.0` |
+| `delaySpringGain` <br>**Spring Reverb Output Gain** | Ganancia de salida estéreo del motor de reverb de muelles (Type 0). | `3.0` | `0.5` / `5.0` | `0.1` |
+| `delaySpringReflectionScale` <br>**Spring Reflection Scale** | Factor de promediado y atenuación de las guías de onda por muelle. | `0.25` | `0.10` / `0.50` | `0.01` |
+| `delaySchroederLpf` <br>**Schroeder Reverb LPF Cutoff** | Frecuencia de corte de los filtros comb post-reverb en Schroeder (Types 1/2). | `8000.0 Hz` | `2000.0 Hz` / `15000.0 Hz` | `100.0` |
+| `delaySchroederGain` <br>**Schroeder Reverb Output Gain** | Ganancia de salida nominal del motor de reverb Schroeder-Moorer. | `1.5` | `0.5` / `3.0` | `0.1` |
+| `delaySchroederSatDrive` <br>**Schroeder Saturation Drive** | Ganancia de entrada al saturador final de la reverb Schroeder-Moorer. | `1.5` | `0.5` / `3.0` | `0.1` |
+
 ---
 
 

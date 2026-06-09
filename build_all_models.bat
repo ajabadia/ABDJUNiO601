@@ -19,9 +19,15 @@ if not exist "%CMAKE_PATH%" (
     exit /b 1
 )
 
-set MODELS=0 1 2 3
-set NAMES="Super Six" "JUNiO 601" "JUNiO 06" "JUNiO SIX"
-set DIRS=build_supersix build_j106 build_j60 build_j6
+rem --- Increment build number ---
+set "VERSION_FILE=build_no.txt"
+if not exist %VERSION_FILE% echo 0 > %VERSION_FILE%
+set /p build_no=<%VERSION_FILE%
+set /a build_no=%build_no% + 1
+echo %build_no% > %VERSION_FILE%
+
+echo #define JUNO_BUILD_VERSION "%build_no%" > "Source/Core/BuildVersion.h"
+echo #define JUNO_BUILD_TIMESTAMP "%DATE% %TIME%" >> "Source/Core/BuildVersion.h"
 
 set EXIT_CODE=0
 for %%M in (0 1 2 3) do (

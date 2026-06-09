@@ -49,6 +49,7 @@ private:
     int lastPresetIndex = -1;
     int lastLibraryIndex = -1;
     juce::String lastTuningName = "";
+    double lastDispatchedBPM = -1.0;
     std::unique_ptr<juce::FileChooser> fileChooser;
     
     // Pending tape import state

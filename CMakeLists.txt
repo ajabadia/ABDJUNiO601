@@ -186,6 +186,11 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/service.css
     Source/UI/WebUI/fondo.png
     Source/UI/WebUI/fondo_sy.png
+    Source/UI/WebUI/re201_big_knob.png
+    Source/UI/WebUI/silver_re201_normal.png
+    Source/UI/WebUI/switch_toggle.png
+    Source/UI/WebUI/re201_peak_led.png
+    Source/UI/WebUI/re201_vumeter_background.png
     Source/UI/WebUI/knob.png
     Source/UI/WebUI/wood_left.png
     Source/UI/WebUI/wood_right.png
@@ -267,7 +272,7 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/css/settings.css
     Source/UI/WebUI/css/vars.css
 )
-message(STATUS "Registering 37 WebUI assets for BinaryData from Source/UI/WebUI/")
+message(STATUS "Registering 40 WebUI assets for BinaryData from Source/UI/WebUI/")
 
 
 target_include_directories(ABDSimpleJuno106 PRIVATE 
@@ -374,6 +379,7 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/Tests/SmartImportHtmlTests.cpp
     Source/Core/Tests/ModelRoutingTests.cpp
     Source/Core/Tests/TapeEchoTests.cpp
+    Source/Core/Tests/MidiLearnTests.cpp
     Source/Synth/JunoTapeEcho.cpp
     Source/Synth/JunoDCO.cpp
     Source/Synth/JunoADSR.cpp

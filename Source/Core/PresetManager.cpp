@@ -138,6 +138,23 @@ juce::ValueTree PresetManager::bytesToState(const uint8_t* data, int size) const
     vt.setProperty("portamentoOn", false, nullptr);
     vt.setProperty("portamentoLegato", false, nullptr);
 
+    // Delay (RE-201) Defaults
+    vt.setProperty("delayEnabled", false, nullptr);
+    vt.setProperty("delaySetting", 11, nullptr);          // REV ONLY
+    vt.setProperty("delayRepeatRate", 0.5f, nullptr);
+    vt.setProperty("delayIntensity", 0.5f, nullptr);
+    vt.setProperty("delayBass", 0.5f, nullptr);
+    vt.setProperty("delayTreble", 0.5f, nullptr);
+    vt.setProperty("delayReverbVol", 0.5f, nullptr);
+    vt.setProperty("delayEchoVol", 0.5f, nullptr);
+    vt.setProperty("delayEchoCancel", false, nullptr);
+    vt.setProperty("delaySyncEnabled", false, nullptr);
+    vt.setProperty("delaySyncDivision", 2, nullptr);  // default = 1/4 note
+    vt.setProperty("delayReverbType", 0, nullptr);
+    vt.setProperty("delayWowFlutter", 0.5f, nullptr);
+    vt.setProperty("delayReverbDecay", 0.5f, nullptr);
+    vt.setProperty("delayEchoIsolator", 0.5f, nullptr);
+
     return vt;
 }
 

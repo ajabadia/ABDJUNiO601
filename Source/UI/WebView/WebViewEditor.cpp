@@ -227,7 +227,7 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
                 writeLog("[JUNiO] Sending delayed state dump...");
                 
                 // 1. Version Info
-                juce::String versionStr = "1.2.0 (Build " + juce::String(JUNO_BUILD_VERSION) + ")";
+                juce::String versionStr = "1.3.0 (Build " + juce::String(JUNO_BUILD_VERSION) + ")";
                 dispatchToJS ("onVersionUpdate", versionStr);
                 
                 // Send both product name and target model
@@ -277,7 +277,11 @@ WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
         "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
         "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF",
         "modelDCO", "modelHPF", "modelVCF", "modelADSR", "modelChorus", "modelArp", "modelPoly", "modelPorta", "modelUnison",
-        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision"
+        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision",
+        "delayEnabled", "delaySetting", "delayRepeatRate", "delayIntensity",
+        "delayBass", "delayTreble", "delayReverbVol", "delayEchoVol",
+        "delayEchoCancel", "delaySyncEnabled", "delaySyncDivision",
+        "delayReverbType", "delayWowFlutter", "delayReverbDecay", "delayEchoIsolator"
     };
     for (int i = 0; i < paramIDs.size(); ++i)
         audioProcessor.getAPVTS().addParameterListener (paramIDs[i], this);
@@ -299,7 +303,11 @@ WebViewEditor::~WebViewEditor()
         "midiChannel", "benderRange", "velocitySens", "lcdBrightness", "numVoices", "sustainInverted",
         "chorusHiss", "midiFunction", "unisonWidth", "aftertouchToVCF",
         "modelDCO", "modelHPF", "modelVCF", "modelADSR", "modelChorus", "modelArp", "modelPoly", "modelPorta", "modelUnison",
-        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision"
+        "arpEnabled", "arpMode", "arpRange", "arpRate", "arpSync", "arpDivision",
+        "delayEnabled", "delaySetting", "delayRepeatRate", "delayIntensity",
+        "delayBass", "delayTreble", "delayReverbVol", "delayEchoVol",
+        "delayEchoCancel", "delaySyncEnabled", "delaySyncDivision",
+        "delayReverbType", "delayWowFlutter", "delayReverbDecay", "delayEchoIsolator"
     };
     for (int i = 0; i < paramIDs.size(); ++i)
         audioProcessor.getAPVTS().removeParameterListener (paramIDs[i], this);
@@ -383,6 +391,13 @@ void WebViewEditor::timerCallback()
     status->setProperty("ab", audioProcessor.getActiveABSlot() == 0 ? "A" : "B");
     status->setProperty("wip", audioProcessor.getWipCount());
     dispatchToJS("onLCDStatusUpdate", juce::var(status.get()));
+
+    // Delay Sync BPM (only dispatched when non-zero — JS decides whether to display)
+    double currentBPM = audioProcessor.getDelaySyncBPM();
+    if (std::abs(currentBPM - lastDispatchedBPM) > 0.5) {
+        lastDispatchedBPM = currentBPM;
+        dispatchToJS("onDelayBPMUpdate", currentBPM);
+    }
 }
 
 void WebViewEditor::dispatchToJS(const juce::Identifier& eventId, const juce::var& payload)

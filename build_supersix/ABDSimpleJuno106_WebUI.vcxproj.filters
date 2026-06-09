@@ -277,6 +277,21 @@
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData92.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData93.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData94.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData95.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData96.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData97.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\juce_binarydata_ABDSimpleJuno106_WebUI\JuceLibraryCode\BinaryData.h">

@@ -12,6 +12,7 @@ void setParameter(ABDSimpleJuno106AudioProcessor& audioProcessor,
     if (args.size() >= 2) {
         juce::String paramID = args[0].toString();
         float val = (float)args[1];
+        DBG("BridgeActions::setParameter: " + paramID + " = " + juce::String(val));
         if (auto* param = audioProcessor.getAPVTS().getParameter(paramID)) {
             param->setValueNotifyingHost(val);
             completion(juce::var::undefined());

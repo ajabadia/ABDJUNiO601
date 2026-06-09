@@ -46,6 +46,15 @@
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\ModelRoutingTests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\TapeEchoTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\MidiLearnTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoDCO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

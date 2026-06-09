@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <cmath>
+#include "TapeSignalRestorer.h"
 
 class JunoTapeDecoder {
 public:
@@ -727,21 +728,6 @@ public:
         float* samples = buffer.getWritePointer(0);
         int numSamples = buffer.getNumSamples();
         
-        // HPF
-        float y_prev = 0.0f, x_prev = 0.0f;
-        for (int i = 0; i < numSamples; ++i) {
-            float x = samples[i];
-            float y = 0.9943f * (y_prev + x - x_prev);
-            samples[i] = y;
-            y_prev = y;
-            x_prev = x;
-        }
-        
-        // Normalize
-        float peak = buffer.getMagnitude(0, 0, numSamples);
-        if (peak > 0.0001f) buffer.applyGain(1.0f / peak);
-        else { result.errorMessage = "Signal is silence."; return result; }
-        
         // Upsample
         double sr = (double)reader->sampleRate;
         if (sr < 43900.0 && sr > 0.0) {
@@ -756,7 +742,7 @@ public:
             numSamples = buffer.getNumSamples();
             sr = kTargetSr;
         }
-        
+
         // Phase 1: Analyze signal
         log("=== Fase 1: Analizando calidad de la senal... ===");
         auto metrics = analyzeSignal(samples, numSamples, sr);
@@ -768,6 +754,27 @@ public:
         log("  Dropouts: " + juce::String(metrics.dropoutPct, 1) + "%");
         log("  Duracion: " + juce::String(metrics.durationS, 1) + "s");
         log("  Calidad: " + metrics.qualityLabel + " (score: " + juce::String(metrics.qualityScore, 3) + ")");
+        
+        // --- Signal Restoration Phase ---
+        TapeSignalRestorer::RestorationParams restParams;
+        restParams.enableHPF = true;
+        
+        if (metrics.qualityScore < 0.5) {
+            log("=== Restaurando senal degradada (Deep Restore) ===");
+            restParams.enableExpansion = true;
+            restParams.expansionGamma = 0.5;
+            restParams.enableBandpass = true;
+        } else if (metrics.qualityScore < 0.75) {
+            log("=== Restaurando senal (Light Clean) ===");
+            restParams.enableExpansion = true;
+            restParams.expansionGamma = 0.8;
+            restParams.enableBandpass = false;
+        } else {
+            log("=== Senal de alta calidad: Bypass de restauracion ===");
+        }
+        
+        TapeSignalRestorer::process(buffer, restParams);
+        samples = buffer.getWritePointer(0); // Update pointer after processing
         
         // Phase 2: Select strategy
         int baud = metrics.detectedBaudRate;
@@ -803,47 +810,62 @@ public:
         log("=== Fase 2: Estrategia seleccionada ===");
         log("  Estrategia: " + strategyDesc);
         
-        // Phase 3: Decode (try each strategy at both baud rates)
-        log("=== Fase 3: Decodificando... ===");
+        // Phase 3: Decode (try each restoration level, baud rate, and strategy)
+        log("=== Fase 3: Decodificando todas las combinaciones... ===");
         
-        for (auto& strat : strategies) {
-            bool fast = strat.second;
-            juce::String strategyName = strat.first == "fast" ? "Fast" : "BF";
+        struct RestoreLevel {
+            juce::String label;
+            float gamma;
+            bool useBpf;
+        };
+        std::vector<RestoreLevel> levels = {
+            {"Bypass", 1.0f, false},
+            {"Light", 0.8f, false},
+            {"Deep", 0.5f, true}
+        };
+        
+        for (auto& lvl : levels) {
+            // Prepare a fresh buffer for this restoration level
+            juce::AudioBuffer<float> restoredBuf = buffer;
+            TapeSignalRestorer::RestorationParams rp;
+            rp.enableHPF = true;
+            rp.enableExpansion = (lvl.label != "Bypass");
+            rp.expansionGamma = lvl.gamma;
+            rp.enableBandpass = lvl.useBpf;
+            TapeSignalRestorer::process(restoredBuf, rp);
+            
+            float* restoredSamples = restoredBuf.getWritePointer(0);
             
             for (int br : baudRates) {
-                juce::String label = "Goertzel " + strategyName + " @ " + juce::String(br) + " baud";
-                
-                log("  [" + label + "] Decodificando...");
-                
-                double t0 = juce::Time::getMillisecondCounterHiRes();
-                
-                std::vector<uint8_t> decodedBytes;
-                if (fast) {
-                    // Fast strategy: narrow sweep (40 combos, 0.93-1.07 step 0.02)
-                    decodedBytes = decodeFSK(samples, numSamples, sr, (double)br, true);
-                } else {
-                    // Full brute-force: wide sweep (145 combos, 0.86-1.14 step 0.01)
-                    decodedBytes = decodeFSK(samples, numSamples, sr, (double)br, false);
+                for (auto& strat : strategies) {
+                    bool fast = strat.second;
+                    juce::String strategyName = strat.first == "fast" ? "Fast" : "BF";
+                    juce::String label = lvl.label + " | " + strategyName + " @ " + juce::String(br) + " baud";
+                    
+                    log("  [" + label + "] Analizando...");
+                    
+                    double t0 = juce::Time::getMillisecondCounterHiRes();
+                    std::vector<uint8_t> decodedBytes;
+                    if (fast) {
+                        decodedBytes = decodeFSK(restoredSamples, numSamples, sr, (double)br, true);
+                    } else {
+                        decodedBytes = decodeFSK(restoredSamples, numSamples, sr, (double)br, false);
+                    }
+                    
+                    auto validated = validatePatches(decodedBytes);
+                    validated = correctDcbFormat(validated, br);
+                    
+                    double elapsed = (juce::Time::getMillisecondCounterHiRes() - t0) / 1000.0;
+                    int patchCount = (int)validated.size() / 18;
+                    
+                    SmartDecodeResult::DecoderEntry entry;
+                    entry.label = label;
+                    entry.validated = std::move(validated);
+                    entry.patchCount = patchCount;
+                    entry.elapsedS = elapsed;
+                    entry.rawBytes = (int)decodedBytes.size();
+                    result.decoderResults.push_back(std::move(entry));
                 }
-                
-                // Validate and correct using the correct format for this baud rate
-                auto validated = validatePatches(decodedBytes);
-                validated = correctDcbFormat(validated, br);
-                
-                double elapsed = (juce::Time::getMillisecondCounterHiRes() - t0) / 1000.0;
-                int patchCount = (int)validated.size() / 18;
-                
-                log("    -> " + label + ": " + juce::String(patchCount) + " patches " 
-                    + "(" + juce::String(decodedBytes.size()) + " bytes raw, " 
-                    + juce::String(elapsed, 1) + "s)");
-                
-                SmartDecodeResult::DecoderEntry entry;
-                entry.label = label;
-                entry.validated = std::move(validated);
-                entry.patchCount = patchCount;
-                entry.elapsedS = elapsed;
-                entry.rawBytes = (int)decodedBytes.size();
-                result.decoderResults.push_back(std::move(entry));
             }
         }
         

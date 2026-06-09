@@ -31,15 +31,24 @@
         }
     </style>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="service.css">
-    <link rel="stylesheet" href="browser.css">
 </head>
 
 <body class="smooth-fade">
+<!-- SVG filters for painter tape texture -->
+<svg style="position:absolute;width:0;height:0;pointer-events:none" aria-hidden="true">
+    <defs>
+        <filter id="tape-grain" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="3" stitchTiles="stitch" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+            <feBlend in="SourceGraphic" in2="mono" mode="multiply" result="blend"/>
+            <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+        </filter>
+    </defs>
+</svg>
     <div id="splash-screen">
         <div class="splash-content">
             <h1>ABD JUNiO 601</h1>
-            <div id="splash-version-info" class="splash-version">Version 1.2.0 (Build Loading...)</div>
+            <div id="splash-version-info" class="splash-version">Version 1.3.0 (Build Loading...)</div>
             <div class="splash-credit">Built by ABD-IA</div>
         </div>
     </div>
@@ -371,6 +380,8 @@
                                     <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold;">0.50</span>
                                 </div>
                             </div>
+                            <!-- ARP Sync BPM indicator -->
+                            <div id="arp-bpm-indicator" class="arp-bpm-hidden">120 BPM</div>
                     </div>
 
                         <!-- PANEL DELAY -->
@@ -378,6 +389,8 @@
                             <!-- Tape Echo SVG: always visible when tab is active, behind controls -->
                             <div id="tape-echo-visual">
                                 <svg viewBox="0 0 220 85" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Peak Level LED inside the SVG display area -->
+                                    <image href="re201_peak_led.png" id="svg-peak-led" x="2" y="4" width="32" height="17" />
                                     <path d="M 28 38 Q 60 30 95 42 L 135 42 Q 165 30 192 38" fill="none" stroke="#555" stroke-width="2.5" stroke-dasharray="4 3" id="tape-path"/>
                                     <g id="reel-left">
                                         <circle cx="28" cy="48" r="22" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1.5"/>
@@ -398,10 +411,10 @@
                                         <line x1="178" y1="62" x2="206" y2="34" stroke="#303030" stroke-width="1.5"/>
                                     </g>
                                     <g id="playback-heads">
-                                        <rect x="103" y="26" width="24" height="24" rx="2" fill="#222" stroke="#444" stroke-width="1"/>
-                                        <rect x="107" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
-                                        <rect x="115" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
-                                        <rect x="123" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5"/>
+                                        <rect x="103" y="26" width="24" height="24" rx="2" fill="#222" stroke="#444" stroke-width="1" class="heads-bezel"/>
+                                        <rect x="107" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5" id="head-h1"/>
+                                        <rect x="115" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5" id="head-h2"/>
+                                        <rect x="123" y="30" width="5" height="16" rx="1" fill="#555" stroke="#666" stroke-width="0.5" id="head-h3"/>
                                         <text x="115" y="58" text-anchor="middle" fill="#555" font-family="monospace" font-size="6">H1 H2 H3</text>
                                     </g>
                                     <circle cx="152" cy="48" r="5" fill="#2a2a2a" stroke="#555" stroke-width="1" id="capstan"/>
@@ -409,99 +422,147 @@
                                     <circle cx="52" cy="42" r="3" fill="#222" stroke="#3a3a3a" stroke-width="0.8"/>
                                     <circle cx="170" cy="42" r="3" fill="#222" stroke="#3a3a3a" stroke-width="0.8"/>
                                     <text x="110" y="78" text-anchor="middle" fill="#555" font-family="Microgramma, monospace" font-size="8" letter-spacing="3">TAPE ECHO</text>
+                                    <!-- Sync indicator badge: visible above heads when delay sync is active -->
+                                    <text id="svg-sync-indicator" x="115" y="20" text-anchor="middle" fill="#444" font-family="Microgramma, monospace" font-size="6" letter-spacing="1" class="svg-sync-hidden"></text>
+                                    <!-- BPM indicator: visible at bottom-right when sync is active -->
+                                    <text id="svg-bpm-indicator" x="192" y="83" text-anchor="end" fill="#444" font-family="Microgramma, monospace" font-size="7" letter-spacing="2" class="svg-bpm-hidden"></text>
                                 </svg>
+                            </div>                            <!-- Subpage controls: only visible when ON + subpage button clicked -->
+                            <div id="delay-controls-below" class="hidden">
+                                <!-- PRESETS subpage: RE-201 style big knob with 12 positions -->
+                                <div class="delay-subpage" id="delay-sub-settings">
+                                    <div class="space-echo-panel" style="padding: 10px 4px; display: flex; justify-content: center; align-items: center; width: 96%; height: 95%;">
+                                        <div class="delay-preset-knob" id="delay-preset-knob" data-param="delaySetting" style="padding: 0;">
+                                            <div class="preset-filmstrip-knob" id="preset-knob-pointer" data-idx="11" style="margin: 0 auto;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Settings subpage: 6 knobs with custom panels -->
+                                <div class="delay-subpage hidden" id="delay-sub-tone">
+                                    <div class="space-echo-panel">
+                                        <div class="space-echo-top-row">
+                                            <div class="delay-knob-unit" data-param="delayBass">
+                                                <span class="delay-knob-lbl">BASS</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" data-param="delayTreble">
+                                                <span class="delay-knob-lbl">TREBLE</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" data-param="delayReverbVol">
+                                                <span class="delay-knob-lbl">REVERB</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="space-echo-bottom-row">
+                                            <div class="delay-knob-unit" data-param="delayRepeatRate">
+                                                <span class="delay-knob-lbl">REPEAT</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" data-param="delayIntensity">
+                                                <span class="delay-knob-lbl">INTENSE</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" data-param="delayEchoVol">
+                                                <span class="delay-knob-lbl">ECHO</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- REVERB subpage: Advanced settings 2x2 grid -->
+                                <div class="delay-subpage hidden" id="delay-sub-reverb">
+                                    <div class="space-echo-panel" style="padding: 4px 4px 4px 4px; gap: 4px;">
+                                        <div class="space-echo-top-row" style="justify-content: space-evenly; padding: 4px 10px 4px 10px; background: #000; border-radius: 4px; box-shadow: inset 0 1px 4px rgba(0,0,0,0.8);">
+                                            <div class="delay-knob-unit" style="width: 70px; gap: 2px;" data-param="delayReverbType">
+                                                <span class="delay-knob-lbl" style="white-space: nowrap; font-size: 6.5px; display: inline-block; line-height: 8px; height: 8px;">REV TYPE</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" style="width: 70px; gap: 2px;" data-param="delayWowFlutter">
+                                                <span class="delay-knob-lbl" style="white-space: nowrap; font-size: 6.5px; display: inline-block; line-height: 8px; height: 8px;">WOW/FLUTE</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="space-echo-bottom-row" style="justify-content: space-evenly; padding: 2px 10px 2px 10px; align-items: center; margin-top: 0px;">
+                                            <div class="delay-knob-unit" style="width: 70px; gap: 2px;" data-param="delayReverbDecay">
+                                                <span class="delay-knob-lbl" style="white-space: nowrap; font-size: 6.5px; display: inline-block; line-height: 8px; height: 8px;">DECAY</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                            <div class="delay-knob-unit" style="width: 70px; gap: 2px;" data-param="delayEchoIsolator">
+                                                <span class="delay-knob-lbl" style="white-space: nowrap; font-size: 6.5px; display: inline-block; line-height: 8px; height: 8px;">ISOLATOR</span>
+                                                <div class="knob-ring delay-knob-ring">
+                                                    <div class="reverb-filmstrip-knob"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Horizontal nav row: always visible when DELAY tab is active -->
-                            <!-- The ON button must be outside delay-controls-below so the user -->
-                            <!-- can click it to enable the delay and reveal the subpage controls -->
+                            <!-- Main Page Sync Toggle (only visible when delay is running and subpages are hidden) -->
+                            <div class="sw-unit delay-sync-toggle-main" data-param="delaySyncEnabled">
+                                <div class="switch-led" id="led-delay-sync-main"></div>
+                                <span class="delay-sync-lbl-main">SYNC</span>
+                            </div>
+
+                            <!-- Main Page Sync Division Selector (two rows, right of the toggle, visible when sync is active) -->
+                            <div class="delay-div-selector-main hidden" id="delay-div-selector-main">
+                                <div class="delay-div-lbls-row">
+                                    <span data-div="0" class="div-lbl">1/1</span>
+                                    <span data-div="1" class="div-lbl">1/2</span>
+                                    <span data-div="2" class="div-lbl">1/4</span>
+                                    <span data-div="3" class="div-lbl">1/4T</span>
+                                    <span data-div="4" class="div-lbl">1/8</span>
+                                </div>
+                                <div class="delay-div-lbls-row" style="margin-top: 2px;">
+                                    <span data-div="5" class="div-lbl">1/8T</span>
+                                    <span data-div="6" class="div-lbl">1/16</span>
+                                    <span data-div="7" class="div-lbl">1/16T</span>
+                                    <span data-div="8" class="div-lbl">1/32</span>
+                                </div>
+                            </div>
+
+                            <!-- Main Page Echo Cancel Toggle (only visible when delay is running and subpages are hidden) -->
+                            <div class="sw-unit delay-echo-cancel-toggle-main" data-param="delayEnabled">
+                                <div class="switch-led" id="led-delay-echo-cancel-main"></div>
+                                <span class="delay-echo-cancel-lbl-main">POWER</span>
+                            </div>
+
+                            <!-- Horizontal nav row: always fixed at bottom, just above the model name serigraphy -->
                             <div class="delay-nav" id="delay-nav-row">
-                                <div class="delay-nav-unit" id="delay-nav-on" onclick="toggleDelayPower()">
-                                    <div class="nav-led" id="led-delay-on"></div>
-                                    <div class="nav-lbl delay-nav-lbl">ON</div>
+                                <div class="delay-nav-unit" id="delay-nav-gen" onclick="showDelayMainView()">
+                                    <div class="nav-led" id="led-delay-gen"></div>
+                                    <div class="nav-lbl delay-nav-lbl">GEN</div>
                                 </div>
                                 <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-settings" onclick="switchDelaySubpage('settings')">
                                     <div class="nav-led"></div>
-                                    <div class="nav-lbl delay-nav-lbl">DELAY</div>
+                                    <div class="nav-lbl delay-nav-lbl">PRESETS</div>
                                 </div>
                                 <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-tone" onclick="switchDelaySubpage('tone')">
                                     <div class="nav-led"></div>
-                                    <div class="nav-lbl delay-nav-lbl">TONO</div>
+                                    <div class="nav-lbl delay-nav-lbl">Settings</div>
                                 </div>
                                 <div class="delay-nav-unit delay-subpage-btn" id="delay-nav-reverb" onclick="switchDelaySubpage('reverb')">
                                     <div class="nav-led"></div>
-                                    <div class="nav-lbl delay-nav-lbl">REVERB</div>
-                                </div>
-                            </div>
-
-                            <!-- ALL controls visible simultaneously (no subpage hiding) -->
-                            <div id="delay-controls-below" class="hidden">
-                                <!-- Delay setting buttons: 5 columns x 2 rows (5+5+1) -->
-                                <div class="delay-setting-section">
-                                    <div class="delay-setting-selector delay-grid-5col">
-                                        <button class="sq grey delay-setting-btn active" data-idx="0">1</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="1">2</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="2">3</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="3">4</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="4">5</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="5">6</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="6">7</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="7">8</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="8">9</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="9">10</button>
-                                        <button class="sq grey delay-setting-btn" data-idx="10" style="grid-column: 3;">11</button>
-                                    </div>
-                                </div>
-                                <!-- All 5 sliders in a compact row -->
-                                <div class="delay-sliders-row">
-                                    <div class="h-slider-unit" data-param="delayRepeatRate">
-                                        <div class="h-slider-lbl">REPEAT</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>SLOW</span><span></span><span>FAST</span></div>
-                                    </div>
-                                    <div class="h-slider-unit" data-param="delayIntensity">
-                                        <div class="h-slider-lbl">INTENSE</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>MIN</span><span></span><span>MAX</span></div>
-                                    </div>
-                                    <div class="h-slider-unit" data-param="delayBass">
-                                        <div class="h-slider-lbl">BASS</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>CUT</span><span></span><span>BOOST</span></div>
-                                    </div>
-                                    <div class="h-slider-unit" data-param="delayTreble">
-                                        <div class="h-slider-lbl">TREBLE</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>CUT</span><span></span><span>BOOST</span></div>
-                                    </div>
-                                    <div class="h-slider-unit" data-param="delayReverbVol">
-                                        <div class="h-slider-lbl">REVERB</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>OFF</span><span></span><span>MAX</span></div>
-                                    </div>
-                                    <div class="h-slider-unit" data-param="delayEchoVol">
-                                        <div class="h-slider-lbl">ECHO</div>
-                                        <div class="h-slider-container">
-                                            <input type="range" min="0" max="1" step="0.01" value="0.5" class="h-slider-input">
-                                            <div class="h-slider-track"><div class="h-slider-handle"></div></div>
-                                        </div>
-                                        <div class="h-slider-labels"><span>OFF</span><span></span><span>MAX</span></div>
-                                    </div>
+                                    <div class="nav-lbl delay-nav-lbl">Advanced</div>
                                 </div>
                             </div>
                         </div>
@@ -528,7 +589,7 @@
                     <div class="engine-row">
                         <section class="module" id="lfo">
                             <div class="module-bar">LFO</div>
-                            <div class="painter-tape" data-module="lfo" id="tape-lfo">J106</div>
+                            <div class="painter-tape tape-stain" data-module="lfo" id="tape-lfo" style="--tape-rot: -2.3deg; --tape-age: 8deg; --stain-x: 72%; --stain-y: 35%">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="lfoRate">
                                     <div class="lbl">RATE</div>
@@ -548,7 +609,7 @@
                         </section>
                         <section class="module" id="dco">
                             <div class="module-bar">DCO</div>
-                            <div class="painter-tape" data-module="dco" id="tape-dco">J106</div>
+                            <div class="painter-tape tape-crease tape-aged" data-module="dco" id="tape-dco" style="--tape-rot: 1.2deg; --tape-age: -5deg">J106</div>
                             <div class="controls">
                                 <div class="ctrl-group" id="dco-range">
                                     <div class="lbl">RANGE</div>
@@ -643,7 +704,7 @@
                         </section>
                         <section class="module blue" id="hpf">
                             <div class="module-bar">HPF</div>
-                            <div class="painter-tape" data-module="hpf" id="tape-hpf">J106</div>
+                            <div class="painter-tape tape-aged" data-module="hpf" id="tape-hpf" style="--tape-rot: -1.7deg; --tape-age: 12deg">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="hpfFreq">
                                     <div class="lbl">FREQ</div>
@@ -659,7 +720,7 @@
                     <div class="engine-row">
                         <section class="module" id="vcf">
                             <div class="module-bar">VCF</div>
-                            <div class="painter-tape" data-module="vcf" id="tape-vcf">J106</div>
+                            <div class="painter-tape tape-crease" data-module="vcf" id="tape-vcf" style="--tape-rot: 0.9deg; --tape-age: -3deg">J106</div>
                             <div class="controls">
                                 <div class="ctrl-group" id="vcf-core">
                                     <div class="ctrl" data-param="vcfFreq">
@@ -718,7 +779,7 @@
                         </section>
                         <section class="module" id="vca">
                             <div class="module-bar">VCA</div>
-                            <div class="painter-tape" data-module="vca" id="tape-vca">J106</div>
+                            <div class="painter-tape tape-crease" data-module="vca" id="tape-vca" style="--tape-rot: -2.0deg; --tape-age: 6deg">J106</div>
                             <div class="controls">
                                 <div class="ctrl" id="vca-mode">
                                     <div class="lbl">MODE</div>
@@ -741,7 +802,7 @@
                         </section>
                         <section class="module" id="env">
                             <div class="module-bar">ENVELOPE</div>
-                            <div class="painter-tape" data-module="env" id="tape-env">J106</div>
+                            <div class="painter-tape tape-stain" data-module="env" id="tape-env" style="--tape-rot: 1.8deg; --tape-age: -8deg; --stain-x: 38%; --stain-y: 55%">J106</div>
                             <div class="controls">
                                 <div class="ctrl" data-param="attack">
                                     <div class="lbl">A</div>
@@ -775,7 +836,7 @@
                         </section>
                         <section class="module blue" id="chorus">
                             <div class="module-bar">CHORUS</div>
-                            <div class="painter-tape" data-module="chorus" id="tape-chorus">J106</div>
+                            <div class="painter-tape tape-stain" data-module="chorus" id="tape-chorus" style="--tape-rot: -0.3deg; --tape-age: 4deg; --stain-x: 55%; --stain-y: 28%">J106</div>
                             <div class="controls center">
                                 <div class="chorus-group-wrapper">
                                     <div class="chorus-labels-row">
@@ -856,7 +917,7 @@
                 <button class="close-btn" onclick="hideAbout()">&times;</button>
             </div>
             <div class="about-content">
-                <div class="about-version">Version 1.2.0</div>
+                <div class="about-version">Version 1.3.0</div>
                 <p>A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth.</p>
                 <p>Precision-engineered for harmonic richness, thermal variance, and authentic BBD chorus character.</p>
                 <div class="about-credits">

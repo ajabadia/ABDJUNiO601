@@ -96,11 +96,13 @@
     justify-content: center;
 }
 
+/* Switch labels — base styles centralized from performance.css */
 .sw-lbl {
-    font-size: 8px;
+    font-family: 'Microgramma', sans-serif;
+    font-size: 9px;
     font-weight: 900;
     color: var(--white);
-    text-align: center;
+    margin-bottom: 5px;
 }
 
 .sw-lbl.top {
@@ -226,6 +228,17 @@
     background-image: url('../button_red_on.png');
 }
 
+.juno-btn {
+    height: 30px;
+    background: #333;
+    border: 1px solid var(--black);
+    color: #eee;
+    font-size: 8px;
+    font-weight: 900;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
 .juno-btn.pushed,
 .tiny-btn.pushed,
 .num-btn.pushed,
@@ -312,4 +325,52 @@
     display: flex;
     justify-content: center;
     gap: 0;
+}
+
+/* Knob tick wrapper: container for knob + tick labels */
+.knob-tick-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+}
+
+/* Knob tick labels: small text under knobs (e.g. UP/DN/UD, 1/2/3) */
+.knob-tick-lbl {
+    font-family: 'Fragment Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    color: #888;
+    text-align: center;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Position variants for tick labels */
+.knob-tick-lbl.pos-left {
+    align-self: flex-start;
+    margin-left: 6px;
+}
+
+.knob-tick-lbl.pos-center {
+    align-self: center;
+}
+
+.knob-tick-lbl.pos-right {
+    align-self: flex-end;
+    margin-right: 6px;
+}
+
+/* Tiny utility buttons (PROTECT, COPY SYX) — compact variant of .sq.beige */
+.sq.tiny-util {
+    width: 28px;
+    height: 20px;
+    background-size: contain;
+    cursor: pointer;
+}
+
+.sq.tiny-util:active {
+    transform: translateY(1px);
 }

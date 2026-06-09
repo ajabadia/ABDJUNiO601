@@ -475,6 +475,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVoice.cpp" />
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.h" />
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.cpp" />
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.h" />
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.cpp" />
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PluginEditor.h" />

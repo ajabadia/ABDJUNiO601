@@ -124,16 +124,38 @@
     border-right: 1px solid rgba(0, 0, 0, 0.4);
 }
 
-.section-top {
-    background: var(--juno-red);
-    padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 900;
-    font-size: 11px;
+/* ============================================ */
+/* STAGGERED MODULE REVEAL (after splash)       */
+/* Triggered by #synth-app.app-visible          */
+/* Each module fades in left→right, row by row  */
+/* ============================================ */
+
+@keyframes module-reveal {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.section-top.blue {
-    background: var(--juno-blue);
+#synth-app.app-visible .module {
+    opacity: 0;
+    animation: module-reveal 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
+
+/* Row 1: LFO → DCO → HPF */
+#synth-app.app-visible .engine-row:nth-child(1) .module:nth-child(1) { animation-delay: 0.15s; }
+#synth-app.app-visible .engine-row:nth-child(1) .module:nth-child(2) { animation-delay: 0.25s; }
+#synth-app.app-visible .engine-row:nth-child(1) .module:nth-child(3) { animation-delay: 0.35s; }
+
+/* Row 2: VCF → VCA → ENV → CHORUS */
+#synth-app.app-visible .engine-row:nth-child(2) .module:nth-child(1) { animation-delay: 0.45s; }
+#synth-app.app-visible .engine-row:nth-child(2) .module:nth-child(2) { animation-delay: 0.55s; }
+#synth-app.app-visible .engine-row:nth-child(2) .module:nth-child(3) { animation-delay: 0.65s; }
+#synth-app.app-visible .engine-row:nth-child(2) .module:nth-child(4) { animation-delay: 0.75s; }
+
+/* Accessibility: skip animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    #synth-app.app-visible .module {
+        animation: none;
+        opacity: 1;
+    }
+}
+

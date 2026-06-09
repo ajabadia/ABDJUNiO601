@@ -229,6 +229,46 @@
 
 /* ─── Smart Tape Import Dialog ──────────────────────────────────────── */
 
+/* Smart Import Modal container layout */
+.smart-import-container {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    max-width: 780px;
+    width: 92%;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.smart-import-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #222;
+    background: rgba(0,0,0,0.3);
+}
+
+.smart-import-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
+.smart-import-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 20px;
+    border-top: 1px solid #222;
+    background: rgba(0,0,0,0.3);
+}
+
+
+
 #si-progress-log {
     font-family: 'Courier New', monospace;
     font-size: 10px;

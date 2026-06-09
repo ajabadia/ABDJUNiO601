@@ -139,12 +139,14 @@ public:
     void sendParamUpdateToUI();
 
     // [Tape Echo] Prepare delay DSP
-    void prepareTapeEcho();
+    void prepareTapeEcho(double sr);
 
     // [Build 103] Recording Support
     void toggleRecording();
     bool isRecording() const { return threadedWriter != nullptr; }
 
+    // [Delay Sync] Expose current DAW BPM for LCD display
+    double getDelaySyncBPM() const noexcept { return delaySyncBPM_.load(); }
 
 private:
     juce::UndoManager undoManager;
@@ -324,10 +326,18 @@ private:
     std::atomic<float>* fmtDelayTreble = nullptr;
     std::atomic<float>* fmtDelayReverbVol = nullptr;
     std::atomic<float>* fmtDelayEchoVol = nullptr;
+    std::atomic<float>* fmtDelayEchoCancel = nullptr;
+    std::atomic<float>* fmtDelaySyncEnabled = nullptr;
+    std::atomic<float>* fmtDelaySyncDivision = nullptr;
+    std::atomic<float>* fmtDelayReverbType = nullptr;
+    std::atomic<float>* fmtDelayWowFlutter = nullptr;
+    std::atomic<float>* fmtDelayReverbDecay = nullptr;
+    std::atomic<float>* fmtDelayEchoIsolator = nullptr;
 
     JunoTapeEcho tapeEcho;
     SelfTestResult lastSelfTestResult;
 
+    std::atomic<double> delaySyncBPM_{ 120.0 };
     bool firstPrepare_ = true;
 
     bool isSuperSix() const noexcept

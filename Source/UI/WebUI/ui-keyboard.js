@@ -55,6 +55,27 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
+    // Delay preset shortcuts: Alt+1..0, Alt+-, Alt+=
+    // Only when delay tab is visible, delay is ON, and no Ctrl/Meta held
+    if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const delayPanel = document.getElementById('panel-delay');
+        const presetKeys = {
+            '1': 0, '2': 1, '3': 2, '4': 3, '5': 4,
+            '6': 5, '7': 6, '8': 7, '9': 8,
+            '0': 9, '-': 10, 'ArrowLeft': 11
+        };
+        if (delayPanel && !delayPanel.classList.contains('hidden') && delayEffectActive && presetKeys[e.key] !== undefined) {
+            e.preventDefault();
+            const idx = presetKeys[e.key];
+            if (typeof setPresetKnobPosition === 'function') {
+                setPresetKnobPosition(idx);
+            }
+            callNative('setParameter', 'delaySetting', idx / 11.0);
+            return;
+        }
+        return; // Other Alt+key combos are ignored
+    }
+
     // Skip other modifier key presses
     if (e.ctrlKey || e.metaKey || e.altKey) {
         return;

@@ -13,6 +13,9 @@ D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\UnisonTests.cpp;D:\desarr
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\DCBCorrectorTests.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\DCBCorrectorTests.obj
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\SmartImportHtmlTests.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\SmartImportHtmlTests.obj
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\ModelRoutingTests.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\ModelRoutingTests.obj
+D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\TapeEchoTests.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\TapeEchoTests.obj
+D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\MidiLearnTests.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\MidiLearnTests.obj
+D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\JunoTapeEcho.obj
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoDCO.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\JunoDCO.obj
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoADSR.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\JunoADSR.obj
 D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.cpp;D:\desarrollos\ABDSynths\ABDJUNiO601\build_supersix\JunoUnitTests.dir\Release\JunoVCF.obj

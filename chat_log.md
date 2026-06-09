@@ -3543,3 +3543,32 @@ Promote all 19 identified hardcoded parameters of the Space Echo / Delay module 
 ### 46.4 Verification
 
 - Built the standalone plugin for the Super Six model using `build_model.bat`. The build succeeded with zero errors.
+
+---
+
+## 47. Tape Patch Decoder DSP Optimization & Biquad Correctness
+
+*9 Junio 2026*
+
+### 47.1 Problem
+
+1. **Incorrect Biquad Filter in Restorer**: The biquad bandpass filter (BPF) inside `TapeSignalRestorer::applyDualBandpass` was incorrectly sharing state variables for both input feedforward delay elements ($x[n]$) and output feedback elements ($y[n]$). This resulted in mathematically incorrect, unstable filtering during FSK tape restoration.
+2. **Redundant Build Scripts**: The repository root was cluttered with legacy `.bat` files pointing to obsolete build directories (like `build`) and hardcoded MSBuild paths.
+
+### 47.2 Solution
+
+1. **Direct Form I Implementation**:
+   - Modified [TapeSignalRestorer.h](file:///d:/desarrollos/ABDSynths/ABDJUNiO601/Source/Core/TapeSignalRestorer.h): Redesigned the filter algorithm in `applyBPF` to use a mathematically correct Direct Form I Biquad structure. Now, feedforward states (`x1`, `x2`) and feedback states (`y1`, `y2`) are tracked independently, ensuring stable bandpass filtering around the Space and Mark frequencies.
+2. **Root Directory Script Cleanup**:
+   - Deleted 15 obsolete and redundant batch files (such as `_build_cpp.bat`, `build_juno.bat`, `build_j106.bat`, etc.), keeping only the robust, parameterized build scripts (`build_model.bat`, `build_test_model.bat`, etc.).
+
+### 47.3 Files Modified
+
+| File | Change |
+|------|--------|
+| `Source/Core/TapeSignalRestorer.h` | Corrected the IIR biquad bandpass filter mathematical implementation |
+| *(Multiple root files)* | Deleted 15 obsolete `.bat` scripts |
+
+### 47.4 Verification
+
+- Built the project successfully with the updated filter equations using `build_model.bat`.

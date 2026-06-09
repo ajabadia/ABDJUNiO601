@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include <map>
 
@@ -48,17 +48,24 @@ public:
     {
         unbindParam(paramID); // Ensure one-to-one
         ccToParam[ccNumber] = paramID;
+        if (onMappingChanged) onMappingChanged();
     }
     
     /** Unbinds a specific CC */
     void unbindCC(int ccNumber) {
-        ccToParam.erase(ccNumber);
+        if (ccToParam.erase(ccNumber) > 0) {
+            if (onMappingChanged) onMappingChanged();
+        }
     }
     
     /** Unbinds a specific Parameter */
     void unbindParam(const juce::String& paramID) {
+        bool changed = false;
         for (auto it = ccToParam.begin(); it != ccToParam.end(); ) {
-            if (it->second == paramID) it = ccToParam.erase(it);
+            if (it->second == paramID) {
+                it = ccToParam.erase(it);
+                changed = true;
+            }
             else ++it;
         }
     }
@@ -83,7 +90,10 @@ public:
     }
 
     /** Reset all mappings */
-    void clearMappings() { ccToParam.clear(); }
+    void clearMappings() {
+        ccToParam.clear();
+        if (onMappingChanged) onMappingChanged();
+    }
 
     /** Serializes mappings to a ValueTree */
     juce::ValueTree saveState() const
@@ -104,7 +114,10 @@ public:
     {
         ccToParam.clear();
 
-        if (vt.getType().toString() != "MidiLearn") return;
+        if (vt.getType().toString() != "MidiLearn") {
+            if (onMappingChanged) onMappingChanged();
+            return;
+        }
         for (int i = 0; i < vt.getNumChildren(); ++i)
         {
             auto child = vt.getChild(i);
@@ -116,6 +129,7 @@ public:
                     ccToParam[cc] = id;
             }
         }
+        if (onMappingChanged) onMappingChanged();
     }
 
     bool getIsLearning() const { return isLearning; }

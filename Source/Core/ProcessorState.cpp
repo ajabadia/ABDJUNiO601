@@ -91,6 +91,13 @@ SynthParams ABDSimpleJuno106AudioProcessor::getMirrorParameters()
     p.delayTreble     = fmtDelayTreble->load();
     p.delayReverbVol  = fmtDelayReverbVol->load();
     p.delayEchoVol    = fmtDelayEchoVol->load();
+    p.delayEchoCancel = fmtDelayEchoCancel->load() > 0.5f;
+    p.delaySyncEnabled = fmtDelaySyncEnabled->load() > 0.5f;
+    p.delaySyncDivision = (int)std::lround(fmtDelaySyncDivision->load());
+    p.delayReverbType   = (fmtDelayReverbType != nullptr) ? (int)std::lround(fmtDelayReverbType->load()) : 0;
+    p.delayWowFlutter   = (fmtDelayWowFlutter != nullptr) ? fmtDelayWowFlutter->load() : 0.5f;
+    p.delayReverbDecay  = (fmtDelayReverbDecay != nullptr) ? fmtDelayReverbDecay->load() : 0.5f;
+    p.delayEchoIsolator = (fmtDelayEchoIsolator != nullptr) ? fmtDelayEchoIsolator->load() : 0.5f;
     
     // --- Inject Calibration Overrides ---
     p.dcoMixerGain = calibrationSettings->getValueForModel("dcoMixerGain", p.modelDCO);

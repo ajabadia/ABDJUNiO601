@@ -351,6 +351,11 @@ const MODAL_SETTINGS = `
                             </select>
                             <div class="val-lbl">SYNC</div>
                         </div>
+                        <div class="setting-row" id="arp-bpm-row-settings" style="display: none;">
+                            <label>Sync BPM</label>
+                            <div id="arp-bpm-indicator-settings" style="color: var(--juno-orange, #fa0); font-family: 'Fragment Mono', monospace; font-size: 14px; font-weight: bold; letter-spacing: 1px;">120 BPM</div>
+                            <div class="val-lbl">HOST</div>
+                        </div>
 
                         <div class="setting-row">
                             <label>Arp Time Division</label>
@@ -551,9 +556,9 @@ const MODAL_BROWSER = `
 // MODAL: Smart Import
 // ========================================
 const MODAL_SMART_IMPORT = `
-        <div class="smart-import-container" style="background: #111; border: 1px solid #333; border-radius: 8px; max-width: 780px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="smart-import-container">
             <!-- Header -->
-            <div class="smart-import-header" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #222; background: rgba(0,0,0,0.3);">
+            <div class="smart-import-header">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="font-size: 14px; font-weight: bold; color: #fa0; letter-spacing: 1px;">SMART IMPORT</span>
                     <span id="si-format-badge" style="font-size: 10px; font-weight: bold; color: #000; background: #fa0; padding: 2px 8px; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase;">TAPE</span>
@@ -562,7 +567,7 @@ const MODAL_SMART_IMPORT = `
                 <button class="close-btn" onclick="closeSmartImport()" style="color: #666; font-size: 22px;">&times;</button>
             </div>
 
-            <div class="smart-import-body" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+            <div class="smart-import-body">
                 <!-- Progress Log Area -->
                 <div id="si-progress-section" style="border-bottom: 1px solid #1a1a1a;">
                     <div class="si-section-header" style="padding: 8px 20px; font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2);">
@@ -691,7 +696,7 @@ const MODAL_SMART_IMPORT = `
             </div>
 
             <!-- Footer -->
-            <div class="smart-import-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid #222; background: rgba(0,0,0,0.3);">
+            <div class="smart-import-footer">
                 <button class="footer-btn" onclick="closeSmartImport()" style="padding: 8px 20px;">CANCEL</button>
                 <button class="footer-btn primary" onclick="confirmSmartImport()" id="btn-si-import" disabled style="padding: 8px 20px; background: #0a4; border-color: #0a4;">IMPORT SELECTED</button>
             </div>

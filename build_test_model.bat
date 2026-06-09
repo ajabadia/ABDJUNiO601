@@ -30,7 +30,7 @@ call "%VS_PATH%\VC\Auxiliary\Build\vcvarsall.bat" x64
 "%CMAKE_PATH%" -S . -B %BUILD_DIR% -G "Visual Studio 18 2026" -A x64 -DCMAKE_SYSTEM_VERSION=10.0.26100.0 -DJUNO_TARGET_MODEL=%MODEL%
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] CMake configure failed!
-    exit /b 1
+    goto error
 )
 echo [OK] CMake configured.
 
@@ -39,7 +39,7 @@ echo [Step 2] Building JunoUnitTests...
 "%CMAKE_PATH%" --build %BUILD_DIR% --config Release --target JunoUnitTests
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Build failed!
-    exit /b 1
+    goto error
 )
 echo [OK] Build succeeded.
 
@@ -51,7 +51,7 @@ set "TEST_EXE=%BUILD_DIR%\JunoUnitTests_artefacts\Release\JunoUnitTests.exe"
 if not exist "%TEST_EXE%" (
     echo [ERROR] Test executable not found!
     dir /s /b %BUILD_DIR%\JunoUnitTests.exe 2>nul
-    exit /b 1
+    goto error
 )
 
 "%TEST_EXE%"
@@ -61,8 +61,17 @@ echo.
 echo ========================================================
 if %TEST_EXIT% EQU 0 (
     echo [SUCCESS] ALL TESTS PASSED (JUNO_TARGET_MODEL=%MODEL%)
+    echo ========================================================
+    exit /b 0
 ) else (
     echo [FAILURE] Tests failed with exit code %TEST_EXIT% (JUNO_TARGET_MODEL=%MODEL%)
+    echo ========================================================
+    pause
+    exit /b %TEST_EXIT%
 )
-echo ========================================================
-exit /b %TEST_EXIT%
+
+:error
+echo.
+echo [ERROR] An error occurred during the build/test pipeline.
+pause
+exit /b 1

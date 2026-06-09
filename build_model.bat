@@ -27,7 +27,7 @@ if exist "%VC_VARS%" (
 
 if not exist "%CMAKE_PATH%" (
     echo [ERROR] CMake not found at %CMAKE_PATH%
-    exit /b 1
+    goto error
 )
 
 rem --- Parse arguments ---
@@ -57,19 +57,35 @@ echo ========================================
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
+rem --- Increment build number ---
+set "VERSION_FILE=build_no.txt"
+if not exist %VERSION_FILE% echo 0 > %VERSION_FILE%
+set /p build_no=<%VERSION_FILE%
+set /a build_no=%build_no% + 1
+echo %build_no% > %VERSION_FILE%
+
+echo #define JUNO_BUILD_VERSION "%build_no%" > "Source/Core/BuildVersion.h"
+echo #define JUNO_BUILD_TIMESTAMP "%DATE% %TIME%" >> "Source/Core/BuildVersion.h"
+
 echo [INFO] Configuring...
 "%CMAKE_PATH%" -S . -B "%BUILD_DIR%" -G "Visual Studio 18 2026" -A x64 -DCMAKE_SYSTEM_VERSION=10.0.26100.0 -DJUNO_TARGET_MODEL=%MODEL%
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] CMake configuration failed with code %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
+    goto error
 )
 
 echo [INFO] Building standalone...
 "%CMAKE_PATH%" --build "%BUILD_DIR%" --config Release --target ABDSimpleJuno106_Standalone
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Build failed with code %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
+    goto error
 )
 
 echo [SUCCESS] %MODEL_NAME% built successfully.
 exit /b 0
+
+:error
+echo.
+echo [ERROR] Build failed.
+pause
+exit /b 1
