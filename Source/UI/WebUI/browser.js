@@ -664,9 +664,26 @@ const PresetBrowser = {
             if (this.currentCategory === 'User' && !isUser) this.currentCategory = 'All';
         }
 
+        // Show loading state immediately in UI before executing slow native call
+        const presetList = document.getElementById('preset-list');
+        if (presetList) {
+            presetList.innerHTML = '<li style="pointer-events: none; flex-direction: column; justify-content: center; opacity: 0.7; height: 100%; display: flex; align-items: center; font-style: italic; color: #888;">Loading bank presets...<div class="preset-browser-spinner"></div></li>';
+        }
+        updateLCD("LOADING BANK...", true);
+        
+        // Temporarily change cursor to wait
+        document.body.style.cursor = 'wait';
+
+        // Yield execution to allow browser to render DOM changes (visual feedback)
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         try {
             if (window.juce) await juce.selectLibrary(idx);
-        } catch (e) { console.warn("Native selectLibrary fails", e); }
+        } catch (e) { 
+            console.warn("Native selectLibrary fails", e); 
+        } finally {
+            document.body.style.cursor = '';
+        }
         this.render();
     },
 

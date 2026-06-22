@@ -185,6 +185,9 @@ juce_add_binary_data(ABDSimpleJuno106_WebUI SOURCES
     Source/UI/WebUI/style.css
     Source/UI/WebUI/service.css
     Source/UI/WebUI/fondo.png
+    Source/UI/WebUI/interior.jpg
+    Source/UI/WebUI/interior_2.jpg
+    Source/UI/WebUI/interior_3.jpg
     Source/UI/WebUI/fondo_sy.png
     Source/UI/WebUI/re201_big_knob.png
     Source/UI/WebUI/silver_re201_normal.png

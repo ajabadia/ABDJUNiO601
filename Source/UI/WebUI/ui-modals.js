@@ -298,3 +298,81 @@ document.addEventListener('DOMContentLoaded', () => {
     initUserSettingsSync();
     initLibraryPath();
 });
+
+// --- REPAIR EASTER EGG SEQUENCE ---
+let repairSequenceRunning = false;
+function startRepairSequence() {
+    if (repairSequenceRunning) return;
+    repairSequenceRunning = true;
+
+    // 1. Close About modal
+    hideAbout();
+
+    const app = document.getElementById('synth-app');
+    const overlay = document.getElementById('repair-bg-overlay');
+    const slide1 = document.getElementById('repair-bg-1');
+    const slide2 = document.getElementById('repair-bg-2');
+    const slide3 = document.getElementById('repair-bg-3');
+
+    if (!app || !overlay || !slide1 || !slide2 || !slide3) {
+        console.error("Repair overlay or app elements not found!");
+        repairSequenceRunning = false;
+        return;
+    }
+
+    // Disable all pointer events on the app to prevent control interaction
+    app.style.pointerEvents = 'none';
+
+    // Reset classes and slides
+    app.classList.remove('repair-stage-0', 'repair-stage-1', 'repair-stage-2');
+    slide1.classList.remove('visible');
+    slide2.classList.remove('visible');
+    slide3.classList.remove('visible');
+
+    // T = 0s: Fade out chassis panels, show interior.jpg (Slide 1)
+    app.classList.add('repair-stage-0');
+    overlay.classList.add('active');
+    slide1.classList.add('visible');
+
+    // T = 2.5s: Fade out handles, LEDs, screens, keyboard, right buttons, show interior_2.jpg (Slide 2)
+    setTimeout(() => {
+        app.classList.add('repair-stage-1');
+        slide1.classList.remove('visible');
+        slide2.classList.add('visible');
+    }, 2500);
+
+    // T = 5.0s: Fade out sidebar buttons, show interior_3.jpg (Slide 3)
+    setTimeout(() => {
+        app.classList.add('repair-stage-2');
+        slide2.classList.remove('visible');
+        slide3.classList.add('visible');
+    }, 5000);
+
+    // T = 8.5s (Wait 3.5 seconds): Re-assemble sidebar buttons, show interior_2.jpg (Slide 2)
+    setTimeout(() => {
+        app.classList.remove('repair-stage-2');
+        slide3.classList.remove('visible');
+        slide2.classList.add('visible');
+    }, 8500);
+
+    // T = 11.0s: Re-assemble handles, LEDs, screens, keyboard, right buttons, show interior.jpg (Slide 1)
+    setTimeout(() => {
+        app.classList.remove('repair-stage-1');
+        slide2.classList.remove('visible');
+        slide1.classList.add('visible');
+    }, 11000);
+
+    // T = 13.5s: Re-assemble chassis panels, restore theme background, fade out overlay
+    setTimeout(() => {
+        app.classList.remove('repair-stage-0');
+        slide1.classList.remove('visible');
+        overlay.classList.remove('active');
+
+        // T = 14.7s: Restore pointer events after everything has faded back in
+        setTimeout(() => {
+            app.style.pointerEvents = 'auto';
+            repairSequenceRunning = false;
+        }, 1200);
+
+    }, 13500);
+}

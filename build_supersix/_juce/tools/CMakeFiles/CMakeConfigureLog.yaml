@@ -50,6 +50,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -62,7 +64,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -70,7 +71,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -79,7 +84,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -89,6 +93,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -121,7 +128,7 @@ events:
       The output was:
       0
       Versi├│n de MSBuild 18.4.0+6e61e96ac para .NET Framework
-      Compilaci├│n iniciada a las 07/06/2026 1:12:37.
+      Compilaci├│n iniciada a las 22/06/2026 10:13:31.
       
       Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\4.2.3-msvc3\\CompilerIdC\\CompilerIdC.vcxproj" en nodo 1 (destinos predeterminados).
       PrepareForBuild:
@@ -150,7 +157,7 @@ events:
           0 Advertencia(s)
           0 Errores
       
-      Tiempo transcurrido 00:00:01.84
+      Tiempo transcurrido 00:00:01.05
       
       
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
@@ -197,6 +204,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -209,7 +218,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -217,7 +225,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -225,7 +237,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -234,6 +245,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -259,6 +273,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -271,7 +287,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -279,7 +294,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -288,7 +307,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -298,6 +316,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -341,6 +362,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -353,7 +376,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -361,7 +383,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -369,7 +395,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -378,6 +403,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -429,6 +457,12 @@ events:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/lld-link.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/lld-link.exe"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/lld-link"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/lld-link.com"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/lld-link.exe"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/lld-link"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/lld-link.com"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/lld-link.exe"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/lld-link"
       - "C:/Windows/System32/lld-link.com"
       - "C:/Windows/System32/lld-link.exe"
       - "C:/Windows/System32/lld-link"
@@ -465,9 +499,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/lld-link.com"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/lld-link.exe"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/lld-link"
-      - "C:/Program Files/nodejs/lld-link.com"
-      - "C:/Program Files/nodejs/lld-link.exe"
-      - "C:/Program Files/nodejs/lld-link"
       - "C:/ProgramData/chocolatey/bin/lld-link.com"
       - "C:/ProgramData/chocolatey/bin/lld-link.exe"
       - "C:/ProgramData/chocolatey/bin/lld-link"
@@ -489,9 +520,21 @@ events:
       - "C:/Program Files/Git/cmd/lld-link.com"
       - "C:/Program Files/Git/cmd/lld-link.exe"
       - "C:/Program Files/Git/cmd/lld-link"
+      - "C:/Program Files/nodejs/lld-link.com"
+      - "C:/Program Files/nodejs/lld-link.exe"
+      - "C:/Program Files/nodejs/lld-link"
       - "C:/Program Files/Docker/Docker/resources/bin/lld-link.com"
       - "C:/Program Files/Docker/Docker/resources/bin/lld-link.exe"
       - "C:/Program Files/Docker/Docker/resources/bin/lld-link"
+      - "C:/Program Files/Pandoc/lld-link.com"
+      - "C:/Program Files/Pandoc/lld-link.exe"
+      - "C:/Program Files/Pandoc/lld-link"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/lld-link.com"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/lld-link.exe"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/lld-link"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/lld-link.com"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/lld-link.exe"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/lld-link"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/lld-link.com"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/lld-link.exe"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/lld-link"
@@ -513,9 +556,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.com"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.exe"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/lld-link"
-      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link.com"
-      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link.exe"
-      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/lld-link.com"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/lld-link.exe"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/lld-link"
@@ -540,6 +580,15 @@ events:
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/lld-link.com"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/lld-link.exe"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/lld-link"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/lld-link.com"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/lld-link.exe"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/lld-link"
+      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link.com"
+      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link.exe"
+      - "C:/Users/ajaba/AppData/Roaming/npm/lld-link"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/lld-link.com"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/lld-link.exe"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/lld-link"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/lld-link.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/lld-link.exe"
     search_context:
@@ -559,6 +608,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -571,7 +622,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -579,7 +629,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -588,7 +642,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -598,6 +651,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -639,6 +695,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -651,7 +709,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -659,7 +716,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -667,7 +728,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -676,6 +736,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -701,6 +764,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -713,7 +778,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -721,7 +785,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -730,7 +798,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -740,6 +807,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -781,6 +851,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -793,7 +865,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -801,7 +872,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -809,7 +884,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -818,6 +892,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -870,6 +947,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -882,7 +961,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -890,7 +968,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -899,7 +981,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -909,6 +990,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -950,6 +1034,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -962,7 +1048,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -970,7 +1055,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -978,7 +1067,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -987,6 +1075,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -1012,6 +1103,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -1024,7 +1117,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -1032,7 +1124,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -1041,7 +1137,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -1051,6 +1146,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1099,6 +1197,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -1111,7 +1211,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -1119,7 +1218,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -1128,7 +1231,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -1138,6 +1240,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1170,7 +1275,7 @@ events:
       The output was:
       0
       Versi├│n de MSBuild 18.4.0+6e61e96ac para .NET Framework
-      Compilaci├│n iniciada a las 07/06/2026 1:12:40.
+      Compilaci├│n iniciada a las 22/06/2026 10:13:33.
       
       Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\4.2.3-msvc3\\CompilerIdCXX\\CompilerIdCXX.vcxproj" en nodo 1 (destinos predeterminados).
       PrepareForBuild:
@@ -1199,7 +1304,7 @@ events:
           0 Advertencia(s)
           0 Errores
       
-      Tiempo transcurrido 00:00:02.67
+      Tiempo transcurrido 00:00:01.07
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -1247,6 +1352,8 @@ events:
       - "C:/Windows/Microsoft.NET/Framework64/v4.0.30319/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/Tools/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/java8path/"
+      - "C:/Program Files (x86)/Common Files/Oracle/Java/javapath/"
       - "C:/Windows/System32/"
       - "C:/Windows/"
       - "C:/Windows/System32/wbem/"
@@ -1259,7 +1366,6 @@ events:
       - "C:/Program Files (x86)/ZeroTier/One/"
       - "C:/Program Files/Graphviz/bin/"
       - "C:/Users/ajaba/AppData/Local/Muse Hub/lib/"
-      - "C:/Program Files/nodejs/"
       - "C:/ProgramData/chocolatey/bin/"
       - "C:/Program Files/cursor/resources/app/bin/"
       - "C:/Program Files (x86)/IncrediBuild/"
@@ -1267,7 +1373,11 @@ events:
       - "C:/Program Files/Go/bin/"
       - "C:/Program Files/TDM_GCC/bin/"
       - "C:/Program Files/Git/cmd/"
+      - "C:/Program Files/nodejs/"
       - "C:/Program Files/Docker/Docker/resources/bin/"
+      - "C:/Program Files/Pandoc/"
+      - "C:/Users/ajaba/AppData/Local/hermes/hermes-agent/venv/Scripts/"
+      - "C:/Users/ajaba/AppData/Local/hermes/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/OpenAI/Codex/bin/"
       - "C:/Users/ajaba/.local/bin/"
       - "C:/Users/ajaba/AppData/Local/agy/bin/"
@@ -1275,7 +1385,6 @@ events:
       - "C:/Users/ajaba/AppData/Local/Programs/Python/Python313/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WindowsApps/"
       - "C:/Users/ajaba/AppData/Local/Programs/Microsoft VS Code/bin/"
-      - "C:/Users/ajaba/AppData/Roaming/npm/"
       - "C:/Users/ajaba/AppData/Local/GitHubDesktop/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Ollama/"
       - "C:/Users/ajaba/go/bin/"
@@ -1284,6 +1393,9 @@ events:
       - "C:/Users/ajaba/.lmstudio/bin/"
       - "C:/Users/ajaba/AppData/Local/Programs/Antigravity IDE/bin/"
       - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin/"
+      - "C:/Users/ajaba/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-msvc/"
+      - "C:/Users/ajaba/AppData/Roaming/npm/"
+      - "C:/Users/ajaba/.antigravity-ide/extensions/ms-python.debugpy-2026.6.0-win32-x64/bundled/scripts/noConfigScripts/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -1348,6 +1460,8 @@ events:
         - "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path"
+        - "C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath"
         - "C:\\WINDOWS\\system32"
         - "C:\\WINDOWS"
         - "C:\\WINDOWS\\System32\\Wbem"
@@ -1360,7 +1474,6 @@ events:
         - "C:\\Program Files (x86)\\ZeroTier\\One\\"
         - "C:\\Program Files\\Graphviz\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
-        - "C:\\Program Files\\nodejs\\"
         - "C:\\ProgramData\\chocolatey\\bin"
         - "C:\\Program Files\\cursor\\resources\\app\\bin"
         - "C:\\Program Files (x86)\\IncrediBuild"
@@ -1368,7 +1481,11 @@ events:
         - "C:\\Program Files\\Go\\bin"
         - "C:\\Program Files\\TDM_GCC\\bin"
         - "C:\\Program Files\\Git\\cmd"
+        - "C:\\Program Files\\nodejs\\"
         - "C:\\Program Files\\Docker\\Docker\\resources\\bin"
+        - "C:\\Program Files\\Pandoc\\"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts"
+        - "C:\\Users\\ajaba\\AppData\\Local\\hermes\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin"
         - "C:\\Users\\ajaba\\.local\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\agy\\bin"
@@ -1377,7 +1494,6 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Muse Hub\\lib"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
-        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
         - "C:\\Users\\ajaba\\AppData\\Local\\GitHubDesktop\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Ollama"
         - "C:\\Users\\ajaba\\go\\bin"
@@ -1387,6 +1503,9 @@ events:
         - "C:\\Users\\ajaba\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WindowsApps"
         - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1.1-full_build\\bin"
+        - "C:\\Users\\ajaba\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc"
+        - "C:\\Users\\ajaba\\AppData\\Roaming\\npm"
+        - "c:\\Users\\ajaba\\.antigravity-ide\\extensions\\ms-python.debugpy-2026.6.0-win32-x64\\bundled\\scripts\\noConfigScripts"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1407,8 +1526,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-yhzild"
-      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-yhzild"
+      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-29jx4d"
+      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-29jx4d"
     cmakeVariables:
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS"
       CMAKE_C_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
@@ -1417,39 +1536,39 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-yhzild'
+        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-29jx4d'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_6c675.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_84286.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versi├│n de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilaci├│n iniciada a las 07/06/2026 1:12:44.
+        Compilaci├│n iniciada a las 22/06/2026 10:13:35.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-yhzild\\cmTC_6c675.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-29jx4d\\cmTC_84286.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada est├í habilitada. El formato del diagn├│stico del compilador reflejar├í la jerarqu├¡a de errores. Consulte https://aka.ms/cpp/structured-output para obtener m├ís detalles.
-          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-yhzild\\Debug\\".
-          Creando directorio "cmTC_6c675.dir\\Debug\\cmTC_6c675.tlog\\".
+          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-29jx4d\\Debug\\".
+          Creando directorio "cmTC_84286.dir\\Debug\\cmTC_84286.tlog\\".
         InitializeBuildStatus:
-          Se crear├í "cmTC_6c675.dir\\Debug\\cmTC_6c675.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_6c675.dir\\Debug\\cmTC_6c675.tlog\\unsuccessfulbuild".
+          Se crear├í "cmTC_84286.dir\\Debug\\cmTC_84286.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_84286.dir\\Debug\\cmTC_84286.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_6c675.dir\\Debug\\\\" /Fd"cmTC_6c675.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_84286.dir\\Debug\\\\" /Fd"cmTC_84286.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
           Compilador de optimizaci├│n de C/C++ de Microsoft (R) versi├│n 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_6c675.dir\\Debug\\\\" /Fd"cmTC_6c675.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /Fo"cmTC_84286.dir\\Debug\\\\" /Fd"cmTC_84286.dir\\Debug\\vc145.pdb" /external:W1 /TC /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCCompilerABI.c"
           CMakeCCompilerABI.c
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-yhzild\\Debug\\cmTC_6c675.exe" /INCREMENTAL /ILK:"cmTC_6c675.dir\\Debug\\cmTC_6c675.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-yhzild/Debug/cmTC_6c675.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-yhzild/Debug/cmTC_6c675.lib" /MACHINE:X64  /machine:x64 cmTC_6c675.dir\\Debug\\CMakeCCompilerABI.obj
-          cmTC_6c675.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-yhzild\\Debug\\cmTC_6c675.exe
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-29jx4d\\Debug\\cmTC_84286.exe" /INCREMENTAL /ILK:"cmTC_84286.dir\\Debug\\cmTC_84286.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-29jx4d/Debug/cmTC_84286.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-29jx4d/Debug/cmTC_84286.lib" /MACHINE:X64  /machine:x64 cmTC_84286.dir\\Debug\\CMakeCCompilerABI.obj
+          cmTC_84286.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-29jx4d\\Debug\\cmTC_84286.exe
         FinalizeBuildStatus:
-          Se eliminar├í el archivo "cmTC_6c675.dir\\Debug\\cmTC_6c675.tlog\\unsuccessfulbuild".
-          Aplicando tarea Touch a "cmTC_6c675.dir\\Debug\\cmTC_6c675.tlog\\cmTC_6c675.lastbuildstate".
-        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-yhzild\\cmTC_6c675.vcxproj" (destinos predeterminados).
+          Se eliminar├í el archivo "cmTC_84286.dir\\Debug\\cmTC_84286.tlog\\unsuccessfulbuild".
+          Aplicando tarea Touch a "cmTC_84286.dir\\Debug\\cmTC_84286.tlog\\cmTC_84286.lastbuildstate".
+        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-29jx4d\\cmTC_84286.vcxproj" (destinos predeterminados).
         
         Compilaci├│n correcta.
             0 Advertencia(s)
             0 Errores
         
-        Tiempo transcurrido 00:00:01.47
+        Tiempo transcurrido 00:00:01.15
         
       exitCode: 0
   -
@@ -1489,8 +1608,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-h982c9"
-      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-h982c9"
+      source: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-otmvca"
+      binary: "D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-otmvca"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
@@ -1500,39 +1619,39 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-h982c9'
+        Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-otmvca'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_e9fd8.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_98cc4.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versi├│n de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilaci├│n iniciada a las 07/06/2026 1:12:46.
+        Compilaci├│n iniciada a las 22/06/2026 10:13:37.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-h982c9\\cmTC_e9fd8.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-otmvca\\cmTC_98cc4.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada est├í habilitada. El formato del diagn├│stico del compilador reflejar├í la jerarqu├¡a de errores. Consulte https://aka.ms/cpp/structured-output para obtener m├ís detalles.
-          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-h982c9\\Debug\\".
-          Creando directorio "cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.tlog\\".
+          Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-otmvca\\Debug\\".
+          Creando directorio "cmTC_98cc4.dir\\Debug\\cmTC_98cc4.tlog\\".
         InitializeBuildStatus:
-          Se crear├í "cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.tlog\\unsuccessfulbuild".
+          Se crear├í "cmTC_98cc4.dir\\Debug\\cmTC_98cc4.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_98cc4.dir\\Debug\\cmTC_98cc4.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_e9fd8.dir\\Debug\\\\" /Fd"cmTC_e9fd8.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_98cc4.dir\\Debug\\\\" /Fd"cmTC_98cc4.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
           Compilador de optimizaci├│n de C/C++ de Microsoft (R) versi├│n 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_e9fd8.dir\\Debug\\\\" /Fd"cmTC_e9fd8.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_98cc4.dir\\Debug\\\\" /Fd"cmTC_98cc4.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-h982c9\\Debug\\cmTC_e9fd8.exe" /INCREMENTAL /ILK:"cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-h982c9/Debug/cmTC_e9fd8.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-h982c9/Debug/cmTC_e9fd8.lib" /MACHINE:X64  /machine:x64 cmTC_e9fd8.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_e9fd8.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-h982c9\\Debug\\cmTC_e9fd8.exe
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-otmvca\\Debug\\cmTC_98cc4.exe" /INCREMENTAL /ILK:"cmTC_98cc4.dir\\Debug\\cmTC_98cc4.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-otmvca/Debug/cmTC_98cc4.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeScratch/TryCompile-otmvca/Debug/cmTC_98cc4.lib" /MACHINE:X64  /machine:x64 cmTC_98cc4.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_98cc4.vcxproj -> D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-otmvca\\Debug\\cmTC_98cc4.exe
         FinalizeBuildStatus:
-          Se eliminar├í el archivo "cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.tlog\\unsuccessfulbuild".
-          Aplicando tarea Touch a "cmTC_e9fd8.dir\\Debug\\cmTC_e9fd8.tlog\\cmTC_e9fd8.lastbuildstate".
-        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-h982c9\\cmTC_e9fd8.vcxproj" (destinos predeterminados).
+          Se eliminar├í el archivo "cmTC_98cc4.dir\\Debug\\cmTC_98cc4.tlog\\unsuccessfulbuild".
+          Aplicando tarea Touch a "cmTC_98cc4.dir\\Debug\\cmTC_98cc4.tlog\\cmTC_98cc4.lastbuildstate".
+        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeScratch\\TryCompile-otmvca\\cmTC_98cc4.vcxproj" (destinos predeterminados).
         
         Compilaci├│n correcta.
             0 Advertencia(s)
             0 Errores
         
-        Tiempo transcurrido 00:00:01.34
+        Tiempo transcurrido 00:00:00.95
         
       exitCode: 0
   -
@@ -1582,37 +1701,37 @@ events:
       stdout: |
         Change Dir: 'D:/desarrollos/ABDSynths/ABDJUNiO601/build_supersix/_juce/tools/CMakeFiles/CMakeTmp'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_a0b54.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_b42a7.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         Versi├│n de MSBuild 18.4.0+6e61e96ac para .NET Framework
-        Compilaci├│n iniciada a las 07/06/2026 1:12:48.
+        Compilaci├│n iniciada a las 22/06/2026 10:13:38.
         
-        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_a0b54.vcxproj" en nodo 1 (destinos predeterminados).
+        Proyecto "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_b42a7.vcxproj" en nodo 1 (destinos predeterminados).
         PrepareForBuild:
           La salida estructurada est├í habilitada. El formato del diagn├│stico del compilador reflejar├í la jerarqu├¡a de errores. Consulte https://aka.ms/cpp/structured-output para obtener m├ís detalles.
           Creando directorio "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\Debug\\".
-          Creando directorio "cmTC_a0b54.dir\\Debug\\cmTC_a0b54.tlog\\".
+          Creando directorio "cmTC_b42a7.dir\\Debug\\cmTC_b42a7.tlog\\".
         InitializeBuildStatus:
-          Se crear├í "cmTC_a0b54.dir\\Debug\\cmTC_a0b54.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
-          Aplicando tarea Touch a "cmTC_a0b54.dir\\Debug\\cmTC_a0b54.tlog\\unsuccessfulbuild".
+          Se crear├í "cmTC_b42a7.dir\\Debug\\cmTC_b42a7.tlog\\unsuccessfulbuild" porque se especific├│ "AlwaysCreate".
+          Aplicando tarea Touch a "cmTC_b42a7.dir\\Debug\\cmTC_b42a7.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_a0b54.dir\\Debug\\\\" /Fd"cmTC_a0b54.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_b42a7.dir\\Debug\\\\" /Fd"cmTC_b42a7.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
           Compilador de optimizaci├│n de C/C++ de Microsoft (R) versi├│n 19.50.35728 para x64
           (C) Microsoft Corporation. Todos los derechos reservados.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_a0b54.dir\\Debug\\\\" /Fd"cmTC_a0b54.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_b42a7.dir\\Debug\\\\" /Fd"cmTC_b42a7.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp
           juce_runtime_arch_detection.cpp
-        D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_a0b54.vcxproj]
-        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_a0b54.vcxproj" (destinos predeterminados) -- ERROR.
+        D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_b42a7.vcxproj]
+        Compilaci├│n del proyecto terminada "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_b42a7.vcxproj" (destinos predeterminados) -- ERROR.
         
         ERROR al compilar.
         
-        "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_a0b54.vcxproj" (destino predeterminado) (1) ->
+        "D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_b42a7.vcxproj" (destino predeterminado) (1) ->
         (ClCompile destino) -> 
-          D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_a0b54.vcxproj]
+          D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\JUCE\\extras\\Build\\CMake\\juce_runtime_arch_detection.cpp(56,1): error C1189: #error:  JUCE_ARCH x86_64 [D:\\desarrollos\\ABDSynths\\ABDJUNiO601\\build_supersix\\_juce\\tools\\CMakeFiles\\CMakeTmp\\cmTC_b42a7.vcxproj]
         
             0 Advertencia(s)
             1 Errores
         
-        Tiempo transcurrido 00:00:00.81
+        Tiempo transcurrido 00:00:00.64
         
       exitCode: 1
 ...

@@ -22,15 +22,18 @@
 }
 
 .about-modal {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-    width: 480px;
-    border: 2px solid #333;
-    border-radius: 4px;
-    padding: 30px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05);
+    background: linear-gradient(135deg, #1f1f1f 0%, #0c0c0c 100%);
+    width: 500px;
+    border: 2px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 35px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.95), inset 0 1px 1px rgba(255,255,255,0.08);
     position: relative;
     color: #eee;
     font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .about-header {
@@ -39,23 +42,47 @@
     align-items: center;
     border-bottom: 1px solid #333;
     padding-bottom: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .about-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: 1.5px;
     color: #ff3c3c; /* Juno Red */
 }
 
+.about-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.repair-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    padding: 0;
+    line-height: 1;
+    display: none; /* Controlled by JS based on model */
+}
+
+.repair-btn:hover {
+    color: #ffaa00;
+    transform: rotate(20deg) scale(1.15);
+}
+
 .close-btn {
     background: none;
     border: none;
-    color: #666;
+    color: #888;
     font-size: 28px;
     cursor: pointer;
     line-height: 1;
+    transition: color 0.2s;
 }
 
 .close-btn:hover {

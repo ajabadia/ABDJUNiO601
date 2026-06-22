@@ -35,7 +35,7 @@ window.onJuceEvent = (name, data) => {
 };
 
 function getBackend() {
-    return (window.__JUCE__ && window.__JUCE__.backend) || window.juce || window.__juce__ || window.juceBackend;
+    return window.juceBackend || (window.__JUCE__ && window.__JUCE__.backend) || window.__juce__ || (window.juce && typeof window.juce.addEventListener === 'function' ? window.juce : null);
 }
 
 function callNative(name, ...args) {
@@ -44,30 +44,34 @@ function callNative(name, ...args) {
         console.error("No JUCE bridge available for", name);
         return Promise.reject("No bridge");
     }
-    if (typeof backend.callNativeFunction === 'function') {
-        return backend.callNativeFunction(name, args);
-    }
+
+    // Try direct function call on backend (e.g. if WebView2 or other bindings exposed it directly)
     if (typeof backend[name] === 'function') {
-        return backend[name](...args);
-    }
-    if (name === "serviceAction" || name === "getCalibrationParams" || name === "setCalibrationParam") {
-        if (backend.withNativeFunction) {
-             return backend.withNativeFunction(name)(...args);
+        try {
+            return backend[name](...args);
+        } catch (e) {
+            console.warn(`[JS Bridge] Direct call to ${name} failed, falling back to emitEvent:`, e);
         }
     }
-    console.log(`[JS Bridge] Calling ${name} via emitEvent with:`, args);
-    const id = promiseId++;
-    const p = new Promise((resolve) => {
-        const handler = backend.addEventListener("__juce__complete", (data) => {
-            if (data && data.promiseId === id) {
-                backend.removeEventListener(handler);
-                resolve(data.result);
-            }
+
+    // Fallback to emitEvent (which is JUCE 8 standard mechanism)
+    if (typeof backend.emitEvent === 'function') {
+        const id = promiseId++;
+        const p = new Promise((resolve) => {
+            const handler = backend.addEventListener("__juce__complete", (data) => {
+                if (data && data.promiseId === id) {
+                    backend.removeEventListener(handler);
+                    resolve(data.result);
+                }
+            });
+            setTimeout(() => { backend.removeEventListener(handler); resolve(null); }, 5000);
         });
-        setTimeout(() => { backend.removeEventListener(handler); resolve(null); }, 5000);
-    });
-    backend.emitEvent("__juce__invoke", { name, params: args, resultId: id });
-    return p;
+        backend.emitEvent("__juce__invoke", { name, params: args, resultId: id });
+        return p;
+    }
+
+    console.error(`[JS Bridge] Function ${name} not found on backend and emitEvent is not available`);
+    return Promise.reject("Not found");
 }
 
 function listenEvent(eventName, callback) {
@@ -76,7 +80,7 @@ function listenEvent(eventName, callback) {
         eventListenersInternal[eventName].push(callback);
     }
     const backend = getBackend();
-    if (backend) {
+    if (backend && typeof backend.addEventListener === 'function') {
         backend.addEventListener(eventName, callback);
     }
 }
@@ -309,12 +313,13 @@ function initApp() {
             });
         }
         
-        // Header panel grid: adjust columns when sysex-zone is hidden (J-6)
-        // Default grid: 230px 60px 1fr 400px; without sysex: 230px 60px 1fr
+        // Header panel grid: adjust columns when sysex-zone AND protect-zone are hidden (J-6)
+        // Default grid: 230px 60px 1fr 400px; J-6: both protect-zone (60px) and sysex-zone (400px)
+        // are display:none, so grid must be 230px 1fr to avoid lcd-bezel landing in empty 60px track
         const headerPanel = document.getElementById('header-panel');
         if (headerPanel) {
             if (isJ6) {
-                headerPanel.style.gridTemplateColumns = '230px 60px 1fr';
+                headerPanel.style.gridTemplateColumns = '230px 1fr';
             } else {
                 headerPanel.style.gridTemplateColumns = '';
             }
@@ -444,15 +449,6 @@ function initApp() {
         // SysEx zone: hide for J-6 (no hardware SysEx display), keep for J-106, J-60, Super Six
         const sysexZone = document.getElementById('sysex-zone');
         if (sysexZone) sysexZone.classList.toggle('hidden', isJ6);
-        // Also resize LCD bezel width when sysex is hidden (J-6)
-        const lcdBezel = document.getElementById('lcd-bezel');
-        if (lcdBezel) {
-            if (isJ6) {
-                lcdBezel.style.width = '100%';
-            } else {
-                lcdBezel.style.width = '';
-            }
-        }
         
         // Patch grid (1-8 buttons)
         const patchGrid = document.getElementById('patch-grid-container');
@@ -504,6 +500,12 @@ function initApp() {
                 li.innerText = "About " + name + "...";
             }
         });
+
+        // Show wrench button only on Super Six (model 0)
+        const repairBtn = document.getElementById('about-repair-btn');
+        if (repairBtn) {
+            repairBtn.style.display = (model === 0) ? 'inline-block' : 'none';
+        }
         
         // Update model-specific visibility
         updateModelVisibility(model);

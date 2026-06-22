@@ -5,7 +5,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: #000;
+    background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.80)), url('../interior.jpg') no-repeat center center;
+    background-size: cover;
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -110,7 +111,7 @@ body {
     width: 20px;
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    z-index: 10;
+    z-index: 1500;
     pointer-events: none;
 }
 
@@ -160,4 +161,163 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+/* REPAIR EASTER EGG BACKGROUND OVERLAY */
+#repair-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    bottom: 0;
+    z-index: 1; /* Behind controls, but above synth-app default background */
+    pointer-events: none;
+    opacity: 0;
+    background: #000;
+    transition: opacity 1.5s ease-in-out;
+    overflow: hidden;
+}
+
+#repair-bg-overlay.active {
+    opacity: 1;
+}
+
+.repair-bg-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.repair-bg-slide.visible {
+    opacity: 1;
+}
+
+/* REPAIR SEQUENCE STAGES */
+
+/* Stage 0: Hide chassis/panels (keep float elements: caps, buttons, displays, keyboard) */
+#synth-app.repair-stage-0 .lbl,
+#synth-app.repair-stage-0 .btn-lbl,
+#synth-app.repair-stage-0 .zone-label,
+#synth-app.repair-stage-0 .zone-label-mini,
+#synth-app.repair-stage-0 .module-bar,
+#synth-app.repair-stage-0 .off-line,
+#synth-app.repair-stage-0 .chorus-lbl,
+#synth-app.repair-stage-0 .b-lbl-top,
+#synth-app.repair-stage-0 .oct-lbl,
+#synth-app.repair-stage-0 .menu-nav,
+#synth-app.repair-stage-0 .nav-lbl-mini,
+#synth-app.repair-stage-0 .nav-lbl,
+#synth-app.repair-stage-0 .util-lbl-mini,
+#synth-app.repair-stage-0 .sw-lbl,
+#synth-app.repair-stage-0 .knob-lbl,
+#synth-app.repair-stage-0 .painter-tape,
+#synth-app.repair-stage-0 header#top-bar,
+#synth-app.repair-stage-0 #header-panel,
+#synth-app.repair-stage-0 aside#sidebar-panel,
+#synth-app.repair-stage-0 #bottom-row,
+#synth-app.repair-stage-0 main#engine-layout,
+#synth-app.repair-stage-0 .sunken-performance-panel,
+#synth-app.repair-stage-0 #lcd-bezel,
+#synth-app.repair-stage-0 .bender-controls,
+#synth-app.repair-stage-0 #stick-housing,
+#synth-app.repair-stage-0 .b-track,
+#synth-app.repair-stage-0 .track,
+#synth-app.repair-stage-0 .separator,
+#synth-app.repair-stage-0 .menu-item {
+    opacity: 0 !important;
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    pointer-events: none !important;
+}
+
+/* Stage 1: Also hide slider handles, knobs, LEDs, displays, keyboard, right-side buttons */
+#synth-app.repair-stage-1 .handle,
+#synth-app.repair-stage-1 .b-handle,
+#synth-app.repair-stage-1 .knob,
+#synth-app.repair-stage-1 .knob-ring,
+#synth-app.repair-stage-1 .led,
+#synth-app.repair-stage-1 .switch-led,
+#synth-app.repair-stage-1 .tab-led,
+#synth-app.repair-stage-1 .arp-led,
+#synth-app.repair-stage-1 .oct-led,
+#synth-app.repair-stage-1 #front-midi-badge,
+#synth-app.repair-stage-1 #seven-segment-display,
+#synth-app.repair-stage-1 #lcd-screen,
+#synth-app.repair-stage-1 #sysex-log,
+#synth-app.repair-stage-1 #keyboard-container,
+#synth-app.repair-stage-1 #engine-layout button,
+#synth-app.repair-stage-1 #engine-layout .sq,
+#synth-app.repair-stage-1 #bottom-row button,
+#synth-app.repair-stage-1 #bottom-row .sq,
+#synth-app.repair-stage-1 .performance-panel button,
+#synth-app.repair-stage-1 .performance-panel .sq,
+#synth-app.repair-stage-1 #top-bar button {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Stage 2: Also hide left-side buttons (sidebar buttons) -> total disassembly */
+#synth-app.repair-stage-2 aside#sidebar-panel button,
+#synth-app.repair-stage-2 aside#sidebar-panel .sq {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Setup smooth transitions for all parts */
+#synth-app,
+#synth-app .lbl,
+#synth-app .btn-lbl,
+#synth-app .zone-label,
+#synth-app .zone-label-mini,
+#synth-app .module-bar,
+#synth-app .off-line,
+#synth-app .chorus-lbl,
+#synth-app .b-lbl-top,
+#synth-app .oct-lbl,
+#synth-app .menu-nav,
+#synth-app .nav-lbl-mini,
+#synth-app .nav-lbl,
+#synth-app .util-lbl-mini,
+#synth-app .sw-lbl,
+#synth-app .knob-lbl,
+#synth-app .painter-tape,
+#synth-app header#top-bar,
+#synth-app #header-panel,
+#synth-app aside#sidebar-panel,
+#synth-app #bottom-row,
+#synth-app main#engine-layout,
+#synth-app .sunken-performance-panel,
+#synth-app #lcd-bezel,
+#synth-app .bender-controls,
+#synth-app #stick-housing,
+#synth-app .b-track,
+#synth-app .track,
+#synth-app .separator,
+#synth-app .menu-item,
+#synth-app .handle,
+#synth-app .b-handle,
+#synth-app .knob,
+#synth-app .knob-ring,
+#synth-app .led,
+#synth-app .switch-led,
+#synth-app .tab-led,
+#synth-app .arp-led,
+#synth-app .oct-led,
+#synth-app #front-midi-badge,
+#synth-app #seven-segment-display,
+#synth-app #lcd-screen,
+#synth-app #sysex-log,
+#synth-app #keyboard-container,
+#synth-app button,
+#synth-app .sq {
+    transition: opacity 1.2s ease-in-out, background 1.2s ease-in-out, border 1.2s ease-in-out, border-color 1.2s ease-in-out, box-shadow 1.2s ease-in-out !important;
 }

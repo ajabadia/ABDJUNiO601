@@ -54,6 +54,13 @@
     </div>
 
     <div id="synth-app">
+        <!-- Repair Overlay Easter Egg -->
+        <div id="repair-bg-overlay">
+            <div class="repair-bg-slide" id="repair-bg-1" style="background-image: url('interior.jpg');"></div>
+            <div class="repair-bg-slide" id="repair-bg-2" style="background-image: url('interior_2.jpg');"></div>
+            <div class="repair-bg-slide" id="repair-bg-3" style="background-image: url('interior_3.jpg');"></div>
+        </div>
+
         <!-- 1. TOP BAR (FULL MENU) -->
         <header id="top-bar">
             <div class="menu-nav">
@@ -911,10 +918,13 @@
 
     <!-- 4. MODALS -->
     <div id="modal-about" class="modal-overlay">
-        <div id="about-modal">
+        <div id="about-modal" class="about-modal">
             <div class="about-header">
                 <span class="about-title">ABD JUNiO 601</span>
-                <button class="close-btn" onclick="hideAbout()">&times;</button>
+                <div class="about-header-actions">
+                    <button id="about-repair-btn" class="repair-btn" onclick="startRepairSequence()">🔧</button>
+                    <button class="close-btn" onclick="hideAbout()">&times;</button>
+                </div>
             </div>
             <div class="about-content">
                 <div class="about-version">Version 1.3.0</div>
