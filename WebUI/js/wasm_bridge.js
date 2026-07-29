@@ -135,6 +135,15 @@
                 window.onJuceEvent('onBankPatchUpdate', { group: Math.floor(index / 8), bank: Math.floor((index % 64) / 8) + 1, patch: (index % 8) + 1 });
                 window.onJuceEvent('onLCDUpdate', p.name);
             }
+        },
+
+        updateAudioButtonUI(active) {
+            const btn = document.getElementById('wasm-audio-toggle-btn');
+            if (btn) {
+                btn.style.borderColor = active ? '#00ffcc' : '#ff4444';
+                btn.style.color = active ? '#00ffcc' : '#ff4444';
+                btn.innerText = active ? '🔊 WEB AUDIO: ON' : '🔇 ACTIVAR AUDIO WEB';
+            }
         }
     };
 
@@ -193,16 +202,6 @@
                 }
             }
             return Promise.resolve(true);
-        }
-    };
-
-        updateAudioButtonUI(active) {
-            const btn = document.getElementById('wasm-audio-toggle-btn');
-            if (btn) {
-                btn.style.borderColor = active ? '#00ffcc' : '#ff4444';
-                btn.style.color = active ? '#00ffcc' : '#ff4444';
-                btn.innerText = active ? '🔊 WEB AUDIO: ON' : '🔇 ACTIVAR AUDIO WEB';
-            }
         }
     };
 
