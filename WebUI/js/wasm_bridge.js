@@ -134,6 +134,8 @@
     };
 
     // Inject window.juce mock immediately before script.js runs
+    let midiTxEnabled = true;
+
     window.juce = {
         isWasmMock: true,
         initialisationData: { productName: "ABD JUNiO Super SIX" },
@@ -141,6 +143,8 @@
         setParameter: (id, val) => window.WasmBridgeInstance.setParameter(id, val),
         beginGesture: () => {},
         endGesture: () => {},
+        pianoNoteOn: (note, vel) => window.WasmBridgeInstance.noteOn(note, vel),
+        pianoNoteOff: (note) => window.WasmBridgeInstance.noteOff(note),
         loadPreset: (idx) => window.WasmBridgeInstance.loadPreset(idx),
         loadLibraryPreset: (libIdx, prstIdx) => window.WasmBridgeInstance.loadPreset(prstIdx),
         getBrowserData: () => Promise.resolve({
@@ -160,6 +164,11 @@
                 if (window.showBrowser) window.showBrowser();
             } else if (action === "handleAbout") {
                 if (window.showAbout) window.showAbout();
+            } else if (action === "toggleMidiOut") {
+                midiTxEnabled = !midiTxEnabled;
+                const checkMark = document.querySelector('#menu-midi-tx .check-mark');
+                if (checkMark) checkMark.style.display = midiTxEnabled ? 'inline' : 'none';
+                if (window.updateLCD) window.updateLCD(midiTxEnabled ? "MIDI TX: ON" : "MIDI TX: OFF", true);
             } else if (action === "panic") {
                 if (window.WasmBridgeInstance.module) {
                     try { window.WasmBridgeInstance.module.ccall('wasm_panic', null, [], []); } catch(e){}
