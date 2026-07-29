@@ -417,16 +417,29 @@ function initApp() {
 
     callNative("uiReady");
 
-    // Splash screen fade out & hide immediately
+// Smooth Fade Out of Splash Screen
+function hideSplashUnconditional() {
     const splash = document.getElementById('splash-screen');
-    if (splash) {
+    if (splash && splash.style.display !== 'none') {
+        splash.style.transition = 'opacity 0.8s ease-out';
         splash.style.opacity = '0';
-        splash.style.display = 'none';
         splash.style.pointerEvents = 'none';
+        setTimeout(() => {
+            splash.style.display = 'none';
+        }, 800);
     }
 }
+setTimeout(hideSplashUnconditional, 800);
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Unconditional fail-safe at 1 second
+    setTimeout(hideSplashUnconditional, 1000);
+
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.addEventListener('click', hideSplashUnconditional);
+    }
+
     const splashVersion = document.getElementById('splash-version-info');
     let retries = 0;
     
@@ -434,6 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (getBackend() || window.WasmBridgeInstance) {
         if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
         initApp();
+        hideSplashUnconditional();
         return;
     }
 
@@ -443,17 +457,16 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(checkBridge);
             if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
             initApp();
+            hideSplashUnconditional();
         } else {
             retries++;
-            if (retries === 20 && splashVersion) {
+            if (retries === 10 && splashVersion) {
                 splashVersion.innerText = "WAITING FOR JUCE BRIDGE (Retrying...)";
             }
-            if (retries === 50 && splashVersion) {
-                splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
-            }
-            if (retries > 60) {
+            if (retries >= 20) {
                 clearInterval(checkBridge);
                 initApp(); // Fallback anyway
+                hideSplashUnconditional();
             }
         }
     }, 50);

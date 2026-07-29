@@ -117,7 +117,7 @@
         loadPreset(index) {
             this.currentPresetIndex = index;
             const p = embeddedPresets[index % embeddedPresets.length] || embeddedPresets[0];
-            console.log([WASM Bridge] Loading preset : );
+            console.log(`[WASM Bridge] Loading preset ${index}: ${p.name}`);
 
             for (let key in p) {
                 if (key !== 'name') {
@@ -136,7 +136,7 @@
     // Inject window.juce mock immediately before script.js runs
     window.juce = {
         isWasmMock: true,
-        initialisationData: { productName: ABD JUNiO Super SIX },
+        initialisationData: { productName: "ABD JUNiO Super SIX" },
         callNativeFunction: (name, args) => Promise.resolve(null),
         setParameter: (id, val) => window.WasmBridgeInstance.setParameter(id, val),
         beginGesture: () => {},
@@ -144,7 +144,7 @@
         loadPreset: (idx) => window.WasmBridgeInstance.loadPreset(idx),
         loadLibraryPreset: (libIdx, prstIdx) => window.WasmBridgeInstance.loadPreset(prstIdx),
         getBrowserData: () => Promise.resolve({
-            libraries: [{ name: SUPERSIX FACTORY, patches: embeddedPresets.map((p, i) => ({ id: i, name: p.name, category: Factory, favorite: false })) }],
+            libraries: [{ name: "SUPERSIX FACTORY", patches: embeddedPresets.map((p, i) => ({ id: i, name: p.name, category: "Factory", favorite: false })) }],
             currentLib: 0,
             currentPatch: window.WasmBridgeInstance.currentPresetIndex
         }),
