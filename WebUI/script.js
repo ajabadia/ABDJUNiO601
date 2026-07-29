@@ -429,9 +429,17 @@ function initApp() {
 document.addEventListener('DOMContentLoaded', () => {
     const splashVersion = document.getElementById('splash-version-info');
     let retries = 0;
+    
+    // Immediate check
+    if (getBackend() || window.WasmBridgeInstance) {
+        if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
+        initApp();
+        return;
+    }
+
     const checkBridge = setInterval(() => {
         const backend = getBackend();
-        if (backend) {
+        if (backend || window.WasmBridgeInstance) {
             clearInterval(checkBridge);
             if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
             initApp();
@@ -443,12 +451,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (retries === 50 && splashVersion) {
                 splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
             }
-            if (retries > 100) {
+            if (retries > 60) {
                 clearInterval(checkBridge);
                 initApp(); // Fallback anyway
             }
         }
-    }, 100);
+    }, 50);
 });
 
 function copySysExToClipboard() {
