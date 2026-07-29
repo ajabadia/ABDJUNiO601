@@ -35,7 +35,12 @@
             if (this.module) return true;
             try {
                 console.log('[WASM Bridge] Loading abdjunio601_wasm.js...');
-                const mod = await import('../wasm/abdjunio601_wasm.js');
+                let mod;
+                try {
+                    mod = await import('../wasm/abdjunio601_wasm.js');
+                } catch(e) {
+                    mod = await import('./wasm/abdjunio601_wasm.js');
+                }
                 this.module = await mod.default();
                 console.log('[WASM Bridge] WASM module loaded.');
 
@@ -191,17 +196,46 @@
         }
     };
 
-    // Auto-init on page load
-    window.addEventListener('DOMContentLoaded', () => {
+        updateAudioButtonUI(active) {
+            const btn = document.getElementById('wasm-audio-toggle-btn');
+            if (btn) {
+                btn.style.borderColor = active ? '#00ffcc' : '#ff4444';
+                btn.style.color = active ? '#00ffcc' : '#ff4444';
+                btn.innerText = active ? '🔊 WEB AUDIO: ON' : '🔇 ACTIVAR AUDIO WEB';
+            }
+        }
+    };
+
+    // Auto-resume AudioContext on ANY user gesture (like ABDEep)
+    const resumeAudioOnGesture = function() {
+        if (window.WasmBridgeInstance) {
+            window.WasmBridgeInstance.startAudio().then(active => {
+                if (active) window.WasmBridgeInstance.updateAudioButtonUI(true);
+            });
+        }
+    };
+
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+        window.addEventListener('mousedown', resumeAudioOnGesture, { capture: true, passive: true });
+        window.addEventListener('pointerdown', resumeAudioOnGesture, { capture: true, passive: true });
+        window.addEventListener('touchstart', resumeAudioOnGesture, { capture: true, passive: true });
+        window.addEventListener('keydown', resumeAudioOnGesture, { capture: true, passive: true });
+        window.addEventListener('click', resumeAudioOnGesture, { capture: true, passive: true });
+    }
+
+    // Auto-init and wire top-bar button on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
         console.log('[WASM Bridge] Browser standalone mode: initializing WASM SuperSix engine...');
         window.WasmBridgeInstance.init();
 
-        const unlock = () => {
-            window.WasmBridgeInstance.startAudio();
-            window.removeEventListener('click', unlock);
-            window.removeEventListener('keydown', unlock);
-        };
-        window.addEventListener('click', unlock);
-        window.addEventListener('keydown', unlock);
+        const audioBtn = document.getElementById('wasm-audio-toggle-btn');
+        if (audioBtn) {
+            audioBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.WasmBridgeInstance.startAudio().then(active => {
+                    window.WasmBridgeInstance.updateAudioButtonUI(active);
+                });
+            });
+        }
     });
 })();
