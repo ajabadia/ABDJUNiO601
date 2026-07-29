@@ -14,8 +14,8 @@ void ABDSimpleJuno106AudioProcessor::loadPreset(int index)
             applyPresetState(state);
             
             updateParamsFromAPVTS(); 
-            voiceManager.updateParams(currentParams);
-            voiceManager.forceUpdate(); 
+            engine->getVoiceManager().updateParams(currentParams);
+            engine->getVoiceManager().forceUpdate(); 
             paramsAreDirty.store(true); 
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
@@ -40,8 +40,8 @@ void ABDSimpleJuno106AudioProcessor::loadLibraryPreset(int libIdx, int presetIdx
             applyPresetState(state);
             
             updateParamsFromAPVTS();
-            voiceManager.updateParams(currentParams);
-            voiceManager.forceUpdate();
+            engine->getVoiceManager().updateParams(currentParams);
+            engine->getVoiceManager().forceUpdate();
             paramsAreDirty.store(true);
             needsVoiceReset.store(true);
             patchDumpRequested.store(true);
@@ -59,8 +59,8 @@ void ABDSimpleJuno106AudioProcessor::randomizeSound()
         
         // Ensure engine is zero-latency updated
         updateParamsFromAPVTS();
-        voiceManager.updateParams(currentParams);
-        voiceManager.forceUpdate();
+        engine->getVoiceManager().updateParams(currentParams);
+        engine->getVoiceManager().forceUpdate();
         
         paramsAreDirty.store(true);
         requestPatchDump(); // Force full SysEx/WebUI refresh

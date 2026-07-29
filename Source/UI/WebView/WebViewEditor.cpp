@@ -17,6 +17,7 @@
 WebViewEditor::WebViewEditor (ABDSimpleJuno106AudioProcessor& p)
     : juce::AudioProcessorEditor (&p), audioProcessor (p)
 {
+    setWantsKeyboardFocus(false);
     auto options = juce::WebBrowserComponent::Options{}
         .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
         .withInitialisationData ("buildVersion", juce::String(JUNO_BUILD_VERSION))

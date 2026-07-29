@@ -20,7 +20,7 @@ void ABDSimpleJuno106AudioProcessor::loadTuningFile()
         auto file = fc.getResult();
         if (file.existsAsFile()) {
             if (tuningManager.parseSCL(file)) {
-                voiceManager.setTuningTable(tuningManager.getTuningTable());
+                engine->getVoiceManager().setTuningTable(tuningManager.getTuningTable());
                 currentTuningName = file.getFileName();
                 juce::Logger::writeToLog("[JUNiO] Custom Tuning Loaded: " + currentTuningName);
             }
@@ -33,7 +33,7 @@ void ABDSimpleJuno106AudioProcessor::resetTuning()
 {
     DBG("ABDSimpleJuno106AudioProcessor::resetTuning CALLED");
     tuningManager.resetToStandard();
-    voiceManager.setTuningTable(tuningManager.getTuningTable());
+    engine->getVoiceManager().setTuningTable(tuningManager.getTuningTable());
     currentTuningName = "Standard Tuning";
     DBG("Standard Tuning Restored");
 }
@@ -42,7 +42,7 @@ void ABDSimpleJuno106AudioProcessor::resetTuning()
 bool ABDSimpleJuno106AudioProcessor::loadScalaTuning(const juce::File& file)
 {
     if (file.existsAsFile() && tuningManager.parseSCL(file)) {
-        voiceManager.setTuningTable(tuningManager.getTuningTable());
+        engine->getVoiceManager().setTuningTable(tuningManager.getTuningTable());
         currentTuningName = file.getFileName();
         juce::Logger::writeToLog("[JUNiO] SCL loaded via WebView: " + currentTuningName);
         return true;

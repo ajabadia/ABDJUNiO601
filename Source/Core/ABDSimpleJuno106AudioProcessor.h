@@ -8,16 +8,13 @@
 #include <cmath>
 #include <algorithm>
 #include "../Synth/JunoVoice.h"
-#include "JunoVoiceManager.h"
 #include "JunoSysEx.h"
 #include "MidiLearnHandler.h"
 #include "JunoSysExEngine.h"
-#include "PerformanceState.h"
 #include "TuningManager.h"
 #include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
-#include "../Synth/ChorusBBD.h"
-#include "../Synth/JunoTapeEcho.h"
+#include "JunoEngine.h"
 class PresetManager;
 
 class ABDSimpleJuno106AudioProcessor : public juce::AudioProcessor,
@@ -30,6 +27,7 @@ public:
     void releaseResources() override;
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::MidiBuffer midiOutBuffer;
     MidiLearnHandler midiLearnHandler;
@@ -71,9 +69,8 @@ public:
     
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
     class PresetManager* getPresetManager();
-    const ABD::JunoVoiceManager& getVoiceManager() const { return voiceManager; }
-    ABD::JunoVoiceManager& getVoiceManagerNC() { return voiceManager; } 
-    ABD::PerformanceState& getPerformanceState() { return performanceState; }
+    ABD::JunoVoiceManager& getVoiceManager() { return engine->getVoiceManager(); }
+    ABD::PerformanceState& getPerformanceState() { return engine->getPerformanceState(); }
     
     juce::MidiKeyboardState keyboardState;
 
@@ -95,7 +92,7 @@ public:
     SynthParams getMirrorParameters(); // [Fidelidad] Block-consistent mirror
 
     float getChorusLfoPhase(int mode) const { 
-        return (mode == 1) ? chorusLfoPhaseI : chorusLfoPhaseII; 
+        return engine->getChorusLfoPhase(mode); 
     }
 
     bool isTestMode = false;
@@ -138,9 +135,6 @@ public:
     int getActiveABSlot() const { return activeSlot; }
     void sendParamUpdateToUI();
 
-    // [Tape Echo] Prepare delay DSP
-    void prepareTapeEcho(double sr);
-
     // [Build 103] Recording Support
     void toggleRecording();
     bool isRecording() const { return threadedWriter != nullptr; }
@@ -155,9 +149,6 @@ private:
     
     void applyPresetState(const juce::ValueTree& vt);
 
-    ABD::JunoVoiceManager voiceManager;
-    class JunoArpeggiator* arpeggiatorPtr = nullptr; // Forward declared or included
-    std::unique_ptr<class JunoArpeggiator> arpeggiator;
     SynthParams currentParams;
     SynthParams lastParams;
     
@@ -187,7 +178,7 @@ private:
     void startRecording();
     void stopRecording();
 
-    ABD::PerformanceState performanceState;
+    std::unique_ptr<JunoEngine> engine;
     bool sustainInverted = false;
     
     // Store last SysEx for Echo Protection and Display
@@ -196,30 +187,8 @@ private:
     
     void sendSysEx(const juce::MidiMessage& msg);
 
-    // [Fidelidad] Authentic MN3009 BBD Emulation
-    ChorusBBD chorus; 
-    juce::Random chorusNoiseGen; 
-    juce::Random masterNoiseGen; 
-    AnalogFloorNoise dryNoise;
-    RailRipple dryRipple; 
-    
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> dcBlocker; 
-    
-    // [VCA/Chorus Audit] Dynamic noise buffer
-    juce::AudioBuffer<float> chorusNoiseBuffer;
-
-#include "../Synth/JunoLFO.h"
-
-    JunoLFO masterLFO;
-    
-    // [Fidelidad] Chorus LFOs para Leakage y LED
-    float chorusLfoPhaseI = 0.0f;
-    float chorusLfoPhaseII = 0.0f;
-    
     std::atomic<bool> panicRequested { false };
-    juce::LinearSmoothedValue<float> smoothedSagGain;
     
-    float currentPowerSag = 0.0f;
     std::atomic<float> currentAftertouch { 0.0f };
     std::atomic<float> modWheelValue { 0.0f };
     float chorusFade = 0.0f;
@@ -228,19 +197,6 @@ private:
 
     void handleMidiEvents(juce::MidiBuffer& midiMessages);
     void updateParamsAndModulations();
-    void renderAudio(juce::AudioBuffer<float>& buffer, int numSamples);
-    void applyChorus(juce::AudioBuffer<float>& buffer, int numSamples);
-    void processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples);
-
-    int powerOnDelaySamples = 0;
-    bool wasAnyNoteHeld = false;
-    
-    double warmUpTime = 0.0;
-    float globalDriftAudible = 0.0f;
-    int thermalCounter = 0;
-    float thermalTarget = 0.0f;
-
-    std::vector<float> lfoBuffer;
 
     // [Optimization] Cached Parameter Pointers (Audio Thread Safe)
     std::atomic<float>* fmtDcoRange = nullptr;
@@ -334,20 +290,11 @@ private:
     std::atomic<float>* fmtDelayReverbDecay = nullptr;
     std::atomic<float>* fmtDelayEchoIsolator = nullptr;
 
-    JunoTapeEcho tapeEcho;
     SelfTestResult lastSelfTestResult;
 
     std::atomic<double> delaySyncBPM_{ 120.0 };
-    bool firstPrepare_ = true;
 
-    bool isSuperSix() const noexcept
-    {
-#if JUNO_TARGET_MODEL == 0
-        return true;
-#else
-        return false;
-#endif
-    }
+    bool isSuperSix() const noexcept { return engine ? engine->isSuperSix() : true; }
 
 public:
     // User Settings

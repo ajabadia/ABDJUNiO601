@@ -95,6 +95,8 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/ProcessorPresets.cpp
     Source/Core/ProcessorSysEx.cpp
     Source/Core/ProcessorMisc.cpp
+    Source/Core/JunoEngine.h
+    Source/Core/JunoEngine.cpp
 
     Source/Core/Importers/TalImporter.h
     Source/Core/Importers/TalImporter.cpp

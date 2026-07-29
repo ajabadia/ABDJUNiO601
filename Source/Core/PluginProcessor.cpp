@@ -10,8 +10,7 @@
 #include "CalibrationSettings.h"
 #include "ServiceModeManager.h"
 #include "JunoProtocol.h"
-#include "../Synth/ChorusBBD.h"
-#include "../Synth/JunoArpeggiator.h"
+#include "JunoEngine.h"
 
 using namespace JunoConstants;
 
@@ -178,7 +177,7 @@ ABDSimpleJuno106AudioProcessor::ABDSimpleJuno106AudioProcessor()
     // [Build 103] Recording Setup
     formatManager.registerBasicFormats();
     backgroundThread.startThread();
-    arpeggiator = std::make_unique<JunoArpeggiator>();
+    engine = std::make_unique<JunoEngine>();
 }
 
 ABDSimpleJuno106AudioProcessor::~ABDSimpleJuno106AudioProcessor() {
@@ -210,48 +209,34 @@ void ABDSimpleJuno106AudioProcessor::prepareToPlay (double sr, int samplesPerBlo
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay START (sr=" + juce::String(sr) + ")");
     setLatencySamples(0);
 
-    voiceManager.prepare(sr, samplesPerBlock);
-    if (arpeggiator != nullptr) {
-        arpeggiator->SetSampleRate((float)sr);
-        arpeggiator->Reset();
-    }
-    voiceManager.setTuningTable(tuningManager.getTuningTable());
-    juce::dsp::ProcessSpec spec { sr, (juce::uint32)samplesPerBlock, 2 };
-    chorus.prepare(sr, samplesPerBlock);
-    
-    // [Fideltiy Fix] Safe DC Blocker Initialization
-    dcBlocker.state = new juce::dsp::IIR::Coefficients<float>(1.0f, -1.0f, 1.0f, -0.995f);
-    dcBlocker.prepare(spec);
-    dcBlocker.reset();
-    
-    chorusNoiseBuffer.setSize(2, samplesPerBlock);
+    engine->prepare(sr, samplesPerBlock);
+    engine->getVoiceManager().setTuningTable(tuningManager.getTuningTable());
+    engine->setLfoCalibration(calibrationSettings.get());
 
-    lfoBuffer.assign(samplesPerBlock + 128, 0.0f); 
-    
-    smoothedSagGain.reset(sr, 0.02);
-    smoothedSagGain.setCurrentAndTargetValue(1.0f);
-
-    masterLFO.prepare(sr, samplesPerBlock);
-    masterLFO.setCalibrationSettings(calibrationSettings.get());
-    wasAnyNoteHeld = false;
-
-    // Initialize dry noise & mains ripple
-    dryNoise.Init((float)sr);
-    dryNoise.mPinkEnabled = true;
-    dryNoise.SetHighShelf(500.0f, -16.0f, (float)sr);
-    dryRipple.SetMainsHz(60.0f, (float)sr);
-    dryRipple.SetAmplitudes(1.8e-5f, 8.9e-6f, 6.3e-6f);
-
-    // [Tape Echo] Prepare delay DSP for Super Six
-    prepareTapeEcho(sr);
-
-    // [Startup] Always start at Bank A, Patch 1 (index 0) on first launch only
-    // This overrides any saved preset from the last session
-    if (firstPrepare_) {
-        firstPrepare_ = false;
-        if (presetManager) {
-            loadPreset(0);
-        }
+    if (calibrationSettings != nullptr) {
+        JunoEngine::TapeEchoCal cal;
+        cal.delayInputLevel = calibrationSettings->getValue("delayInputLevel");
+        cal.delayWetDry = calibrationSettings->getValue("delayWetDry");
+        cal.delayWowRate = calibrationSettings->getValue("delayWowRate");
+        cal.delayFlutterRate = calibrationSettings->getValue("delayFlutterRate");
+        cal.delayTapeScrapeRate = calibrationSettings->getValue("delayTapeScrapeRate");
+        cal.delayWowAmp = calibrationSettings->getValue("delayWowAmp");
+        cal.delayFlutterAmp = calibrationSettings->getValue("delayFlutterAmp");
+        cal.delayTapeScrapeAmp = calibrationSettings->getValue("delayTapeScrapeAmp");
+        cal.delayWowFlutterScale = calibrationSettings->getValue("delayWowFlutterScale");
+        cal.delaySaturationInputGain = calibrationSettings->getValue("delaySaturationInputGain");
+        cal.delayHead2Ratio = calibrationSettings->getValue("delayHead2Ratio");
+        cal.delayHead3Ratio = calibrationSettings->getValue("delayHead3Ratio");
+        cal.delayBassFreq = calibrationSettings->getValue("delayBassFreq");
+        cal.delayTrebleFreq = calibrationSettings->getValue("delayTrebleFreq");
+        cal.delayFeedbackLpfBase = calibrationSettings->getValue("delayFeedbackLpfBase");
+        cal.delayFeedbackLpfRange = calibrationSettings->getValue("delayFeedbackLpfRange");
+        cal.delaySpringGain = calibrationSettings->getValue("delaySpringGain");
+        cal.delaySpringReflectionScale = calibrationSettings->getValue("delaySpringReflectionScale");
+        cal.delaySchroederLpf = calibrationSettings->getValue("delaySchroederLpf");
+        cal.delaySchroederGain = calibrationSettings->getValue("delaySchroederGain");
+        cal.delaySchroederSatDrive = calibrationSettings->getValue("delaySchroederSatDrive");
+        engine->setTapeEchoCalibration(cal);
     }
 
     DBG("ABDSimpleJuno106AudioProcessor::prepareToPlay END");
@@ -268,6 +253,7 @@ bool ABDSimpleJuno106AudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    if (buffer.getNumChannels() == 0 || buffer.getNumSamples() == 0) return;
     const int numSamples = buffer.getNumSamples();
     // Update Service mode (TuningManager is static)
     if (serviceModeManager) serviceModeManager->update(getSampleRate(), buffer.getNumSamples());
@@ -277,10 +263,7 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
 
     // Check for parameter changes
     if (panicRequested.exchange(false)) {
-        voiceManager.resetAllVoices();
-        chorus.reset();
-        performanceState.noteOffFifo.reset(); 
-        performanceState.noteOffBuffer.fill(0); 
+        engine->panic();
     }
     
     if (paramsAreDirty.exchange(false) || patchDumpRequested.load()) {
@@ -323,7 +306,7 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
             else if (message.getControllerNumber() == 64) {
                  int val = message.getControllerValue();
                  if (currentParams.sustainInverted) val = 127 - val;
-                 performanceState.handleSustain(val);
+                 engine->getPerformanceState().handleSustain(val);
             }
             else midiLearnHandler.handleIncomingCC(message.getControllerNumber(), message.getControllerValue(), apvts);
             continue;
@@ -341,58 +324,19 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
             if (message.getControllerNumber() == 64) { // Sustain
                 int val = message.getControllerValue();
                 if (currentParams.sustainInverted) val = 127 - val;
-                performanceState.handleSustain(val >= 64);
+                engine->getPerformanceState().handleSustain(val >= 64);
                 continue; // Handled
             }
         }
 
         if (message.isNoteOn()) {
-            if (arpeggiator != nullptr && currentParams.arpEnabled) {
-                arpeggiator->NoteOn(message.getNoteNumber());
-            } else {
-                voiceManager.noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
-            }
+            engine->noteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
         }
         else if (message.isNoteOff()) {
-            if (arpeggiator != nullptr && currentParams.arpEnabled) {
-                arpeggiator->NoteOff(message.getNoteNumber());
-            } else {
-                performanceState.handleNoteOff(message.getNoteNumber(), voiceManager);
-            }
+            engine->noteOff(message.getChannel(), message.getNoteNumber(), message.getVelocity());
         }
     }
-    performanceState.flushSustain(voiceManager);
-
-    if (arpeggiator != nullptr) {
-        arpeggiator->mEnabled = currentParams.arpEnabled && (currentParams.modelArp != 2);
-        arpeggiator->mMode = currentParams.arpMode;
-        arpeggiator->mRange = currentParams.arpRange;
-        arpeggiator->mRate = JunoArpeggiator::arpRate(currentParams.arpRate);
-        
-        arpeggiator->mSyncToHost = currentParams.arpSync;
-        if (currentParams.arpSync) {
-            if (auto* playHead = getPlayHead()) {
-                juce::AudioPlayHead::CurrentPositionInfo posInfo;
-                if (playHead->getCurrentPosition(posInfo)) {
-                    arpeggiator->mHostPlaying = posInfo.isPlaying;
-                    arpeggiator->mHostBPM = posInfo.bpm;
-                    arpeggiator->mHostBeatPos = posInfo.ppqPosition;
-                    arpeggiator->mDivision = currentParams.arpDivision;
-                }
-            } else {
-                arpeggiator->mSyncToHost = false;
-            }
-        }
-        
-        arpeggiator->Process(numSamples,
-            [this](int note, int /*sampleOffset*/) {
-                voiceManager.noteOn(0, note, 0.8f);
-            },
-            [this](int note, int /*sampleOffset*/) {
-                voiceManager.noteOff(0, note, 0.0f);
-            }
-        );
-    }
+    engine->flushSustain();
 
     if (patchDumpRequested.exchange(false)) {
         sendPatchDump();
@@ -490,107 +434,54 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         currentParams.chorusCycleMode = serviceModeManager->getChorusCycleMode();
     }
     
-    if (++thermalCounter > currentParams.thermalInertia) {
-        thermalCounter = 0;
-        thermalTarget = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * currentParams.thermalIntensity;
-    }
-    globalDriftAudible += (thermalTarget - globalDriftAudible) * currentParams.thermalMigration;
-    currentParams.thermalDrift = globalDriftAudible;
-
-    voiceManager.updateParams(currentParams);
     if (needsVoiceReset.exchange(false)) {
-        voiceManager.forceUpdate();
+        engine->getVoiceManager().forceUpdate();
     }
 
-    bool resolvedPortamentoOn = currentParams.portamentoOn;
-    voiceManager.setPortamentoEnabled(resolvedPortamentoOn);
-    voiceManager.setPortamentoTime(currentParams.portamentoTime);
-    voiceManager.setPortamentoLegato(currentParams.portamentoLegato);
-    voiceManager.setBenderAmount(currentParams.benderValue); // Removed globalDriftAudible (applied in updatePitch)
+    // [Tape echo calibration from settings]
+    if (calibrationSettings != nullptr && isSuperSix()) {
+        JunoEngine::TapeEchoCal cal;
+        cal.delayInputLevel = calibrationSettings->getValue("delayInputLevel");
+        cal.delayWetDry = calibrationSettings->getValue("delayWetDry");
+        cal.delayWowRate = calibrationSettings->getValue("delayWowRate");
+        cal.delayFlutterRate = calibrationSettings->getValue("delayFlutterRate");
+        cal.delayTapeScrapeRate = calibrationSettings->getValue("delayTapeScrapeRate");
+        cal.delayWowAmp = calibrationSettings->getValue("delayWowAmp");
+        cal.delayFlutterAmp = calibrationSettings->getValue("delayFlutterAmp");
+        cal.delayTapeScrapeAmp = calibrationSettings->getValue("delayTapeScrapeAmp");
+        cal.delayWowFlutterScale = calibrationSettings->getValue("delayWowFlutterScale");
+        cal.delaySaturationInputGain = calibrationSettings->getValue("delaySaturationInputGain");
+        cal.delayHead2Ratio = calibrationSettings->getValue("delayHead2Ratio");
+        cal.delayHead3Ratio = calibrationSettings->getValue("delayHead3Ratio");
+        cal.delayBassFreq = calibrationSettings->getValue("delayBassFreq");
+        cal.delayTrebleFreq = calibrationSettings->getValue("delayTrebleFreq");
+        cal.delayFeedbackLpfBase = calibrationSettings->getValue("delayFeedbackLpfBase");
+        cal.delayFeedbackLpfRange = calibrationSettings->getValue("delayFeedbackLpfRange");
+        cal.delaySpringGain = calibrationSettings->getValue("delaySpringGain");
+        cal.delaySpringReflectionScale = calibrationSettings->getValue("delaySpringReflectionScale");
+        cal.delaySchroederLpf = calibrationSettings->getValue("delaySchroederLpf");
+        cal.delaySchroederGain = calibrationSettings->getValue("delaySchroederGain");
+        cal.delaySchroederSatDrive = calibrationSettings->getValue("delaySchroederSatDrive");
+        engine->setTapeEchoCalibration(cal);
+    }
 
-    renderAudio(buffer, numSamples);
-    applyChorus(buffer, numSamples);
-    processMasterEffects(buffer, numSamples);
-
-    // Tape Echo / Delay (Super Six only, applied at end of chain)
-    if (isSuperSix())
-    {
-        if (currentParams.delayEnabled)
-        {
-            tapeEcho.setEnabled(true);
-            tapeEcho.setDelaySetting(currentParams.delaySetting);
-            tapeEcho.setRepeatRate(currentParams.delayRepeatRate);
-            tapeEcho.setIntensity(currentParams.delayIntensity);
-            tapeEcho.setBass(currentParams.delayBass);
-            tapeEcho.setTreble(currentParams.delayTreble);
-            tapeEcho.setReverbVol(currentParams.delayReverbVol);
-            tapeEcho.setEchoVol(currentParams.delayEchoVol);
-            tapeEcho.setEchoCancel(currentParams.delayEchoCancel);
-            tapeEcho.setSyncEnabled(currentParams.delaySyncEnabled);
-            tapeEcho.setSyncDivision(currentParams.delaySyncDivision);
-
-            // Read DAW tempo for sync
-            if (currentParams.delaySyncEnabled) {
-                if (auto* playHead = getPlayHead()) {
-                    juce::AudioPlayHead::CurrentPositionInfo posInfo;
-                    if (playHead->getCurrentPosition(posInfo)) {
-                        tapeEcho.setHostBPM(posInfo.bpm);
-                        delaySyncBPM_.store(posInfo.bpm);
-                    }
-                }
-            }
-
-            // Read calibration-linked params
-            tapeEcho.setInputLevel(calibrationSettings->getValue("delayInputLevel"));
-            tapeEcho.setWetDry(calibrationSettings->getValue("delayWetDry"));
-            tapeEcho.setReverbType(currentParams.delayReverbType);
-            tapeEcho.setWowFlutter(currentParams.delayWowFlutter);
-            tapeEcho.setReverbDecay(currentParams.delayReverbDecay);
-            tapeEcho.setEchoIsolator(currentParams.delayEchoIsolator);
-
-            tapeEcho.setWowRate(calibrationSettings->getValue("delayWowRate"));
-            tapeEcho.setFlutterRate(calibrationSettings->getValue("delayFlutterRate"));
-            tapeEcho.setTapeScrapeRate(calibrationSettings->getValue("delayTapeScrapeRate"));
-            tapeEcho.setWowAmp(calibrationSettings->getValue("delayWowAmp"));
-            tapeEcho.setFlutterAmp(calibrationSettings->getValue("delayFlutterAmp"));
-            tapeEcho.setTapeScrapeAmp(calibrationSettings->getValue("delayTapeScrapeAmp"));
-            tapeEcho.setWowFlutterScale(calibrationSettings->getValue("delayWowFlutterScale"));
-            tapeEcho.setSaturationInputGain(calibrationSettings->getValue("delaySaturationInputGain"));
-            tapeEcho.setHead2Ratio(calibrationSettings->getValue("delayHead2Ratio"));
-            tapeEcho.setHead3Ratio(calibrationSettings->getValue("delayHead3Ratio"));
-            tapeEcho.setBassFreq(calibrationSettings->getValue("delayBassFreq"));
-            tapeEcho.setTrebleFreq(calibrationSettings->getValue("delayTrebleFreq"));
-            tapeEcho.setFeedbackLpfBase(calibrationSettings->getValue("delayFeedbackLpfBase"));
-            tapeEcho.setFeedbackLpfRange(calibrationSettings->getValue("delayFeedbackLpfRange"));
-            tapeEcho.setSpringGain(calibrationSettings->getValue("delaySpringGain"));
-            tapeEcho.setSpringReflectionScale(calibrationSettings->getValue("delaySpringReflectionScale"));
-            tapeEcho.setSchroederLpf(calibrationSettings->getValue("delaySchroederLpf"));
-            tapeEcho.setSchroederGain(calibrationSettings->getValue("delaySchroederGain"));
-            tapeEcho.setSchroederSatDrive(calibrationSettings->getValue("delaySchroederSatDrive"));
-
-            tapeEcho.process(buffer);
-        }
-        else
-        {
-            tapeEcho.setEnabled(false);
+    // [Host info for arp/delay sync]
+    if (auto* playHead = getPlayHead()) {
+        juce::AudioPlayHead::CurrentPositionInfo posInfo;
+        if (playHead->getCurrentPosition(posInfo)) {
+            engine->setHostInfo(posInfo.bpm, posInfo.isPlaying, posInfo.ppqPosition);
+            delaySyncBPM_.store(posInfo.bpm);
         }
     }
 
-    // Apply Master Noise Floor and Mains Ripple after the delay/reverb processing
-    {
-        float dbScale = std::pow(10.0f, (currentParams.masterNoise + 80.0f) / 20.0f);
-        float dryNoiseVol = 0.0015f * currentParams.noiseFloorMul * dbScale;
-        float rippleVol = currentParams.mainsRippleMul;
-
-        for (int i = 0; i < numSamples; ++i) {
-            float n = dryNoise.Process() * dryNoiseVol;
-            n += dryRipple.Process() * rippleVol;
-            
-            for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-                buffer.getWritePointer(ch)[i] += n;
-            }
-        }
+    // [LFO trigger]
+    bool lfoTrigRequested = fmtLfoTrig->load() > 0.5f;
+    if (lfoTrigRequested) {
+        fmtLfoTrig->store(0.0f);
     }
+
+    // [Engine process — all DSP in one call]
+    engine->process(currentParams, buffer, numSamples, lfoTrigRequested);
 
     // [Build 103] Recording Capture (Post-Process)
     {
@@ -601,150 +492,17 @@ void ABDSimpleJuno106AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     }
 }
 
-void ABDSimpleJuno106AudioProcessor::renderAudio(juce::AudioBuffer<float>& buffer, int numSamples) {
-    using namespace JunoConstants;
-    const double sr = getSampleRate();
-
-    bool lfoTrigRequested = fmtLfoTrig->load() > 0.5f;
-    bool anyHeld = voiceManager.isAnyNoteHeld();
-    
-    masterLFO.setDepth(1.0f);
-    masterLFO.setDelay(currentParams.lfoDelay * currentParams.lfoDelayMax);
-    masterLFO.updateGateState(anyHeld, lfoTrigRequested);
-    
-    if (lfoTrigRequested) {
-        fmtLfoTrig->store(0.0f);
-    }
-    
-    // Ticking the digital LFO at tick rate
-    // mcuRateFactor is in ms (default 4.2335ms)
-    float tickRateMs = 4.2335f;
-    if (calibrationSettings != nullptr) {
-        tickRateMs = calibrationSettings->getValue("lfoTickRateMs");
-    }
-    double tickRateHz = 1000.0 / (double)tickRateMs;
-    double samplesPerTick = sr / tickRateHz;
-    
-    static double lfoTimeAccumulator = 0.0;
-    
-    for (int i = 0; i < numSamples; ++i) {
-        lfoTimeAccumulator += 1.0;
-        if (lfoTimeAccumulator >= samplesPerTick) {
-            lfoTimeAccumulator -= samplesPerTick;
-            masterLFO.tick106();
-        }
-        
-        float lfoVal = masterLFO.process(currentParams.lfoRate);
-        
-        // Apply LFO Resolution stepping if configured
-        float res = currentParams.lfoResolution;
-        if (res > 1.0f) {
-            lfoVal = std::round(lfoVal * res) / res;
-        }
-        
-        lfoBuffer[i] = lfoVal;
-    }
-
-    voiceManager.renderNextBlock(buffer, 0, numSamples, lfoBuffer);
-}
-
-void ABDSimpleJuno106AudioProcessor::applyChorus (juce::AudioBuffer<float>& buffer, int /*numSamples*/)
+void ABDSimpleJuno106AudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // [Model Select] Chorus is only available on Juno-106 model
-    // J6 and J60 have no chorus in the original hardware
-    int chorusModel = GET_MODEL_CHORUS(currentParams);
-    if (chorusModel != 2) return;
-    
-    // [Build 29] Chorus Cycle Diagnostic Override
-    int activeMode = (currentParams.chorusCycleMode >= 0) ? currentParams.chorusCycleMode : currentParams.chorusMode;
-    ChorusBBD::Mode mode = static_cast<ChorusBBD::Mode>(activeMode);
-    
-    chorus.setMode(mode);
-    chorus.setHissLevel(currentParams.chorusHissLvl);
-    chorus.setHissMultiplier(currentParams.chorusHiss); // Add preference scaling
-    
-    if (mode == ChorusBBD::Mode::Off)
-        return;
-
-    // [Build 29] Dynamic Calibration Overrides
-    chorus.setCalibrationParams(currentParams.chorusDelayI, 
-                                currentParams.chorusDelayII, 
-                                currentParams.chorusGainDry,
-                                currentParams.chorusGainWet,
-                                currentParams.chorusModDepth, 
-                                currentParams.chorusSatBoost, 
-                                currentParams.chorusFilterCutoff,
-                                currentParams.chorusBothRate);
-
-    // Map hardware-authentic rates (I=0.47Hz, II=0.78Hz)
-    float rate = (mode == ChorusBBD::Mode::ChorusII) ? currentParams.chorusLfoRateII : currentParams.chorusLfoRate;
-    if (mode == ChorusBBD::Mode::ChorusBoth) rate = currentParams.chorusBothRate; 
-    
-    chorus.setRate(rate);
-    chorus.setDepth(1.0f); 
-    chorus.setMix(currentParams.chorusMix);
-    
-    chorus.process(buffer);
+    if (buffer.getNumChannels() == 0 || buffer.getNumSamples() == 0) return;
+    for (auto i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i)
+        buffer.clear(i, 0, buffer.getNumSamples());
+    midiMessages.clear();
+    if (engine) engine->panic();
 }
 
-void ABDSimpleJuno106AudioProcessor::processMasterEffects(juce::AudioBuffer<float>& buffer, int numSamples) {
-    float masterVol = currentParams.masterVolume * currentParams.masterOutputGain;
-    float envSum = voiceManager.getTotalEnvelopeLevel();
-    float finalSag = 1.0f - (envSum * currentParams.vcaSagAmt);
-    finalSag = juce::jlimit(0.7f, 1.0f, finalSag);
-    smoothedSagGain.setTargetValue(finalSag);
-    
-    buffer.applyGain(smoothedSagGain.getNextValue() * masterVol);
-
-    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-        float* d = buffer.getWritePointer(ch);
-        if (currentParams.lowCpuMode) {
-            // Cubic saturation: x - x^3/3 (approx tanh)
-            for (int i = 0; i < numSamples; ++i) {
-                float x = juce::jlimit(-1.5f, 1.5f, d[i] * 1.1f);
-                d[i] = x - (x * x * x) * 0.333333f;
-            }
-        } else {
-            for (int i = 0; i < numSamples; ++i) {
-                d[i] = std::tanh(d[i] * 1.1f); 
-            }
-        }
-    }
-
-    if (buffer.getNumChannels() > 1) {
-        float* l = buffer.getWritePointer(0);
-        float* r = buffer.getWritePointer(1);
-        float bleed = currentParams.stereoBleed;
-        for (int i = 0; i < numSamples; ++i) {
-            float vL = l[i], vR = r[i];
-            l[i] = vL + vR * bleed;
-            r[i] = vR + vL * bleed;
-        }
-    }
-
-    if (powerOnDelaySamples < (int)(0.080f * getSampleRate())) {
-        if (powerOnDelaySamples == 0) {
-            for (int ch = 0; ch < buffer.getNumChannels(); ++ch) buffer.addSample(ch, 0, 4.0f);
-        }
-        powerOnDelaySamples += numSamples;
-    }
-
-    juce::dsp::AudioBlock<float> block(buffer);
-    juce::dsp::ProcessContextReplacing<float> context(block);
-    dcBlocker.process(context);
-}
-
-// Tape Echo prepare helper
-void ABDSimpleJuno106AudioProcessor::prepareTapeEcho(double sr)
-{
-    if (isSuperSix()) {
-        tapeEcho.prepare(sr, 2, 512);
-    }
-}
-
-
-void ABDSimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float velocity) { voiceManager.noteOn(0, midiNoteNumber, velocity); }
-void ABDSimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int /*channel*/, int midiNoteNumber, float /*velocity*/) { performanceState.handleNoteOff(midiNoteNumber, voiceManager); }
+void ABDSimpleJuno106AudioProcessor::handleNoteOn(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { engine->noteOn(channel, midiNoteNumber, velocity); }
+void ABDSimpleJuno106AudioProcessor::handleNoteOff(juce::MidiKeyboardState*, int channel, int midiNoteNumber, float velocity) { engine->noteOff(channel, midiNoteNumber, velocity); }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ABDSimpleJuno106AudioProcessor::createParameterLayout() {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
@@ -906,8 +664,8 @@ void ABDSimpleJuno106AudioProcessor::setStateInformation(const void* data, int s
         }
 
         updateParamsFromAPVTS();
-        voiceManager.updateParams(currentParams);
-        voiceManager.forceUpdate();
+        engine->getVoiceManager().updateParams(currentParams);
+        engine->getVoiceManager().forceUpdate();
         notifyUIOfStateChange();
     }
 }
