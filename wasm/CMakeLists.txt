@@ -62,7 +62,7 @@ target_include_directories(abdjunio601_wasm PRIVATE
 target_compile_definitions(abdjunio601_wasm PRIVATE
     JUCE_STANDALONE_APPLICATION=1
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
-    JUNO_TARGET_MODEL=1
+    JUNO_TARGET_MODEL=0
     JUNO_IS_WASM=1
     NDEBUG
 )
