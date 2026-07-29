@@ -1657,10 +1657,31 @@ function updatePainterTapes() {
     formatTape('chorus', getVal('modelChorus'));
 }
 
-// Click listener to filter calibration modal
+// Click listener to toggle models or open calibration modal
 document.querySelectorAll('.painter-tape').forEach(tape => {
     tape.addEventListener('click', (e) => {
         const module = tape.getAttribute('data-module').toLowerCase();
+        
+        // Web Standalone direct cycling of models on tape click
+        const paramMap = {
+            'lfo': 'modelPoly',
+            'dco': 'modelDCO',
+            'hpf': 'modelHPF',
+            'vcf': 'modelVCF',
+            'vca': 'modelPoly',
+            'env': 'modelADSR',
+            'chorus': 'modelChorus'
+        };
+        const paramId = paramMap[module];
+        if (paramId && window.juce && window.juce.isWasmMock) {
+            const currentVal = paramValuesCache[paramId] !== undefined ? paramValuesCache[paramId] : 1.0;
+            const nextVal = currentVal === 0 ? 0.5 : (currentVal === 0.5 ? 1.0 : 0);
+            window.juce.setParameter(paramId, nextVal);
+            syncUI(paramId, nextVal);
+            updatePainterTapes();
+            return;
+        }
+
         showGlobalSettings('calibration');
         
         setTimeout(() => {

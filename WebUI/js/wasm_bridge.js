@@ -153,7 +153,33 @@
         exportBank: () => {},
         importBank: () => {},
         serviceAction: () => Promise.resolve({}),
-        getCalibrationParams: () => Promise.resolve({})
+        getCalibrationParams: () => Promise.resolve([]),
+        menuAction: (action, ...args) => {
+            console.log(`[WASM Bridge] Executing menuAction: ${action}`, args);
+            if (action === "showBrowser") {
+                if (window.showBrowser) window.showBrowser();
+            } else if (action === "handleAbout") {
+                if (window.showAbout) window.showAbout();
+            } else if (action === "panic") {
+                if (window.WasmBridgeInstance.module) {
+                    try { window.WasmBridgeInstance.module.ccall('wasm_panic', null, [], []); } catch(e){}
+                }
+                if (window.updateLCD) window.updateLCD("PANIC", true);
+            } else if (action === "handleRandomize") {
+                const randomPatchIdx = Math.floor(Math.random() * embeddedPresets.length);
+                window.WasmBridgeInstance.loadPreset(randomPatchIdx);
+                if (window.updateLCD) window.updateLCD("RANDOMIZED", true);
+            } else if (action === "handleWriteArm") {
+                if (window.updateLCD) window.updateLCD("WRITE ARMED", true);
+            } else if (action === "handleImportSysex") {
+                alert("SysEx / JNO import is available in VST3/Standalone native mode.");
+            } else if (action === "exit") {
+                if (window.confirm("Close ABD JUNiO 601 Web Application?")) {
+                    window.close();
+                }
+            }
+            return Promise.resolve(true);
+        }
     };
 
     // Auto-init on page load
