@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ABD JUNiO 601 — WASM Test</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { background: #111; color: #ddd; font-family: 'Courier New', monospace; margin: 20px; }
+        h1 { color: #0af; font-size: 18px; margin: 0 0 8px; }
+        h2 { color: #0cf; font-size: 14px; margin: 16px 0 4px; }
+        pre { background: #1a1a1a; padding: 8px; border-radius: 4px; font-size: 12px; overflow-x: auto; }
+        .success { color: #0f0; }
+        .fail    { color: #f44; }
+        .info    { color: #fa0; }
+        #log     { max-height: 300px; overflow-y: auto; border: 1px solid #333; padding: 8px; margin-bottom: 12px; }
+        #log div { margin: 2px 0; }
+        canvas   { display: block; margin: 8px 0; background: #0a0a0a; border: 1px solid #333; width: 740px; height: 120px; image-rendering: pixelated; }
+        button   { background: #0af; color: #111; border: none; padding: 6px 14px; cursor: pointer; font-family: inherit; font-weight: bold; border-radius: 3px; }
+        button:disabled { opacity: 0.4; cursor: default; }
+        button:hover:not(:disabled) { background: #0cf; }
+        #stats   { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; }
+        #stats .label { color: #888; }
+        #stats .value { color: #0af; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>ABD JUNiO 601 — WASM DSP Module Test</h1>
+
+<div id="log"></div>
+
+<button id="btnRun" disabled>Run Test</button>
+<button id="btnPlay" disabled>Play 1s Audio</button>
+
+<h2>Waveform</h2>
+<canvas id="waveform" width="740" height="120"></canvas>
+
+<h2>Statistics</h2>
+<div id="stats">
+    <span class="label">Status:</span><span class="value" id="s-status">—</span>
+    <span class="label">Engine:</span><span class="value" id="s-engine">—</span>
+    <span class="label">Sample rate:</span><span class="value" id="s-sr">—</span>
+    <span class="label">Block size:</span><span class="value" id="s-block">—</span>
+    <span class="label">Duration:</span><span class="value" id="s-dur">—</span>
+    <span class="label">Peak (L):</span><span class="value" id="s-peakL">—</span>
+    <span class="label">Peak (R):</span><span class="value" id="s-peakR">—</span>
+    <span class="label">RMS (L):</span><span class="value" id="s-rmsL">—</span>
+    <span class="label">RMS (R):</span><span class="value" id="s-rmsR">—</span>
+    <span class="label">DC offset (L):</span><span class="value" id="s-dcL">—</span>
+    <span class="label">Samples rendered:</span><span class="value" id="s-samples">—</span>
+</div>
+
+<script type="module">
+    const log = document.getElementById('log');
+    const btnRun = document.getElementById('btnRun');
+    const btnPlay = document.getElementById('btnPlay');
+    const canvas = document.getElementById('waveform');
+    const ctx = canvas.getContext('2d');
+
+    function appendLog(msg, cls = '') {
+        const d = document.createElement('div');
+        d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        if (cls) d.className = cls;
+        log.appendChild(d);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function setStat(id, val) {
+        document.getElementById(id).textContent = val;
+    }
+
+    const SAMPLE_RATE = 44100;
+    const BLOCK_SIZE = 256;
+    const NUM_BLOCKS = Math.ceil(SAMPLE_RATE / BLOCK_SIZE); // ~173 blocks = 1s
+    const TOTAL_SAMPLES = NUM_BLOCKS * BLOCK_SIZE;
+    const OUTPUT_LEN = TOTAL_SAMPLES * 2; // stereo interleaved
+
+    let wasmModule = null;
+    let outputPtr = null;
+    let allSamples = null;
+
+    async function loadModule() {
+        appendLog('Loading WASM module...', 'info');
+        try {
+            const mod = await import('./wasm/abdjunio601_wasm.js');
+            const Module = await mod.default({
+                onRuntimeInitialized() {
+                    appendLog('WASM runtime initialised', 'success');
+                },
+                print(msg) { appendLog(`[wasm] ${msg}`); },
+                printErr(msg) { appendLog(`[wasm-err] ${msg}`, 'fail'); },
+            });
+            wasmModule = Module;
+            appendLog('WASM module loaded successfully', 'success');
+            btnRun.disabled = false;
+            setStat('s-status', 'Loaded (ready)');
+            return Module;
+        } catch (err) {
+            appendLog(`Failed to load WASM module: ${err.message}`, 'fail');
+            setStat('s-status', `ERROR: ${err.message}`);
+            throw err;
+        }
+    }
+
+    async function runTest() {
+        btnRun.disabled = true;
+        const Module = wasmModule;
+        if (!Module) return;
+
+        appendLog('--- Test Start ---', 'info');
+
+        // 1. Init engine
+        const model = 1; // Juno-106
+        Module.ccall('wasm_init_engine', null, ['number','number','number'], [SAMPLE_RATE, BLOCK_SIZE, model]);
+        appendLog(`Engine initialised: ${SAMPLE_RATE} Hz, ${BLOCK_SIZE} block, model=${model}`, 'success');
+        setStat('s-engine', `OK (model ${model})`);
+        setStat('s-sr', `${SAMPLE_RATE} Hz`);
+        setStat('s-block', `${BLOCK_SIZE}`);
+
+        // 2. Set parameters (typical Juno-106 patch: saw, filter half-open, medium env)
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['masterVolume', 0.8]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['vcaLevel', 0.8]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['sawOn', 1.0]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['pulseOn', 0.0]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['vcfFreq', 0.5]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['resonance', 0.2]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['attack', 0.01]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['decay', 0.3]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['sustain', 0.7]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['release', 0.2]);
+        Module.ccall('wasm_set_parameter', null, ['string','number'], ['vcaMode', 1.0]); // envelope mode
+        appendLog('Parameters set', 'success');
+
+        // 3. Allocate output buffer
+        outputPtr = Module._malloc(OUTPUT_LEN * 4); // float32
+        if (!outputPtr) {
+            appendLog('Failed to allocate output buffer', 'fail');
+            return;
+        }
+        appendLog(`Output buffer allocated at ${outputPtr} (${OUTPUT_LEN * 4} bytes)`, 'info');
+
+        // 4. Trigger note
+        Module.ccall('wasm_note_on', null, ['number','number','number'], [0, 60, 0.8]); // middle-C, vel 0.8
+        appendLog('Note-on: MIDI 60, velocity 0.8', 'success');
+
+        // 5. Process audio (render 1 second)
+        allSamples = new Float32Array(OUTPUT_LEN);
+        const startTime = performance.now();
+
+        for (let i = 0; i < NUM_BLOCKS; i++) {
+            const lfoTrig = (i === 0) ? 1 : 0;
+            Module.ccall('wasm_process_audio', null, ['number','number','number'], [outputPtr, BLOCK_SIZE, lfoTrig]);
+            const block = Module.HEAPF32.subarray(outputPtr / 4, outputPtr / 4 + BLOCK_SIZE * 2);
+            allSamples.set(block, i * BLOCK_SIZE * 2);
+        }
+
+        const elapsed = performance.now() - startTime;
+        appendLog(`Processed ${NUM_BLOCKS} blocks (${TOTAL_SAMPLES} frames) in ${elapsed.toFixed(1)} ms`, 'success');
+
+        // 6. Release note
+        Module.ccall('wasm_note_off', null, ['number','number','number'], [0, 60, 0.0]);
+        appendLog('Note-off sent', 'info');
+
+        // 7. Compute statistics
+        const left  = new Float32Array(TOTAL_SAMPLES);
+        const right = new Float32Array(TOTAL_SAMPLES);
+        for (let i = 0; i < TOTAL_SAMPLES; i++) {
+            left[i]  = allSamples[i * 2];
+            right[i] = allSamples[i * 2 + 1];
+        }
+
+        const peakL = Math.max(...left.map(Math.abs), 1e-10);
+        const peakR = Math.max(...right.map(Math.abs), 1e-10);
+        const rmsL  = Math.sqrt(left.reduce((s, v) => s + v * v, 0) / TOTAL_SAMPLES);
+        const rmsR  = Math.sqrt(right.reduce((s, v) => s + v * v, 0) / TOTAL_SAMPLES);
+        const dcL   = left.reduce((s, v) => s + v, 0) / TOTAL_SAMPLES;
+        const dcR   = right.reduce((s, v) => s + v, 0) / TOTAL_SAMPLES;
+
+        setStat('s-peakL',   peakL.toFixed(6));
+        setStat('s-peakR',   peakR.toFixed(6));
+        setStat('s-rmsL',    rmsL.toFixed(6));
+        setStat('s-rmsR',    rmsR.toFixed(6));
+        setStat('s-dcL',     dcL.toFixed(8));
+        setStat('s-dcR',     dcR.toFixed(8));
+        setStat('s-samples', `${TOTAL_SAMPLES}`);
+        setStat('s-dur',     `${(TOTAL_SAMPLES / SAMPLE_RATE).toFixed(2)} s`);
+
+        if (peakL > 0.001 && peakR > 0.001) {
+            setStat('s-status', 'PASS (audio output detected)');
+            appendLog('TEST PASSED: audio output detected', 'success');
+            btnPlay.disabled = false;
+        } else {
+            setStat('s-status', 'FAIL (no audio output)');
+            appendLog('TEST FAILED: no audio output (peak near zero)', 'fail');
+        }
+
+        // 8. Draw waveform
+        drawWaveform(left, right);
+
+        // 9. Free buffer
+        Module._free(outputPtr);
+        outputPtr = null;
+        appendLog('--- Test Complete ---', 'info');
+        btnRun.disabled = false;
+    }
+
+    function drawWaveform(left, right) {
+        const w = canvas.width, h = canvas.height;
+        const half = h / 2;
+        ctx.clearRect(0, 0, w, h);
+
+        // Grid lines
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 1;
+        for (let y = 0; y <= h; y += half / 2) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+
+        // Downsample to canvas width
+        const step = Math.floor(left.length / w);
+        if (step < 1) return;
+
+        // Left channel (top half, green)
+        ctx.strokeStyle = '#0f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < w; x++) {
+            const idx = Math.min(x * step, left.length - 1);
+            const val = Math.max(-1, Math.min(1, left[idx]));
+            const y = half * 0.45 * (1 - val);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Right channel (bottom half, cyan)
+        ctx.strokeStyle = '#0af';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < w; x++) {
+            const idx = Math.min(x * step, right.length - 1);
+            const val = Math.max(-1, Math.min(1, right[idx]));
+            const y = h - half * 0.45 * (1 + val);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Center line
+        ctx.strokeStyle = '#444';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(0, half); ctx.lineTo(w, half); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function playAudio() {
+        if (!allSamples) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const buf = ctx.createBuffer(2, TOTAL_SAMPLES, SAMPLE_RATE);
+
+            const chL = buf.getChannelData(0);
+            const chR = buf.getChannelData(1);
+            for (let i = 0; i < TOTAL_SAMPLES; i++) {
+                chL[i] = allSamples[i * 2];
+                chR[i] = allSamples[i * 2 + 1];
+            }
+
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+            appendLog('Playing 1s audio via Web Audio API', 'info');
+        } catch (err) {
+            appendLog(`Playback failed: ${err.message}`, 'fail');
+        }
+    }
+
+    btnRun.addEventListener('click', runTest);
+    btnPlay.addEventListener('click', playAudio);
+
+    // Bootstrap
+    await loadModule();
+</script>
+</body>
+</html>
