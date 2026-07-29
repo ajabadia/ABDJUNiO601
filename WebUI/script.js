@@ -416,17 +416,19 @@ function initApp() {
     }
 
     callNative("uiReady");
+    hideSplashUnconditional();
+}
 
 // Smooth Fade Out of Splash Screen
 function hideSplashUnconditional() {
     const splash = document.getElementById('splash-screen');
     if (splash && splash.style.display !== 'none') {
-        splash.style.transition = 'opacity 0.8s ease-out';
+        splash.style.transition = 'opacity 0.5s ease-out';
         splash.style.opacity = '0';
         splash.style.pointerEvents = 'none';
         setTimeout(() => {
             splash.style.display = 'none';
-        }, 800);
+        }, 500);
     }
 }
 setTimeout(hideSplashUnconditional, 800);
