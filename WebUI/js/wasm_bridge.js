@@ -198,9 +198,32 @@
                 }
                 if (window.updateLCD) window.updateLCD("PANIC", true);
             } else if (action === "handleRandomize") {
-                const randomPatchIdx = Math.floor(Math.random() * embeddedPresets.length);
-                window.WasmBridgeInstance.loadPreset(randomPatchIdx);
-                if (window.updateLCD) window.updateLCD("RANDOMIZED", true);
+                const randomParams = {
+                    lfoRate: Math.random(),
+                    lfoDelay: Math.random() * 0.5,
+                    lfoToDCO: Math.random() * 0.4,
+                    pwmAmount: Math.random(),
+                    noiseLevel: Math.random() * 0.3,
+                    vcfFreq: 0.1 + Math.random() * 0.8,
+                    resonance: Math.random() * 0.7,
+                    envAmount: Math.random() * 0.8,
+                    lfoToVCF: Math.random() * 0.3,
+                    vcfKeyTrack: Math.random(),
+                    vcaLevel: 0.7 + Math.random() * 0.3,
+                    attack: Math.random() * 0.6,
+                    decay: 0.1 + Math.random() * 0.7,
+                    sustain: Math.random(),
+                    release: 0.1 + Math.random() * 0.6,
+                    subOscLevel: Math.random() * 0.5,
+                    sawOn: Math.random() > 0.3 ? 1 : 0,
+                    pulseOn: Math.random() > 0.5 ? 1 : 0,
+                    vcaMode: Math.random() > 0.5 ? 1 : 0
+                };
+                for (let key in randomParams) {
+                    window.WasmBridgeInstance.setParameter(key, randomParams[key]);
+                    if (window.syncUI) window.syncUI(key, randomParams[key]);
+                }
+                if (window.updateLCD) window.updateLCD("RANDOM SYNTH", true);
             } else if (action === "handleWriteArm") {
                 if (window.updateLCD) window.updateLCD("WRITE ARMED", true);
             } else if (action === "handleImportSysex") {
