@@ -42,7 +42,6 @@
                 this.module.ccall('wasm_init_engine', null, ['number', 'number', 'number'], [this.sampleRate, this.bufferSize, this.model]);
                 console.log([WASM Bridge] Engine initialized at  Hz (SuperSix mode));
 
-                this.registerJuceMocks();
                 this.loadPreset(0);
                 return true;
             } catch (err) {
@@ -131,45 +130,43 @@
                 window.onJuceEvent('onBankPatchUpdate', { group: Math.floor(index / 8), bank: Math.floor((index % 64) / 8) + 1, patch: (index % 8) + 1 });
                 window.onJuceEvent('onLCDUpdate', p.name);
             }
-        },
-
-        registerJuceMocks() {
-            if (window.juce && window.juce.isWasmMock) return;
-
-            window.juce = {
-                isWasmMock: true,
-                setParameter: (id, val) => this.setParameter(id, val),
-                beginGesture: () => {},
-                endGesture: () => {},
-                loadPreset: (idx) => this.loadPreset(idx),
-                loadLibraryPreset: (libIdx, prstIdx) => this.loadPreset(prstIdx),
-                getBrowserData: () => Promise.resolve({
-                    libraries: [{ name: SUPERSIX FACTORY, patches: embeddedPresets.map((p, i) => ({ id: i, name: p.name, category: Factory, favorite: false })) }],
-                    currentLib: 0,
-                    currentPatch: this.currentPresetIndex
-                }),
-                setFavorite: () => Promise.resolve(true),
-                updateMetadata: () => Promise.resolve(true),
-                exportBank: () => {},
-                importBank: () => {},
-                serviceAction: () => Promise.resolve({}),
-                getCalibrationParams: () => Promise.resolve({})
-            };
         }
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
-        if (!window.juce || window.juce.isWasmMock) {
-            console.log('[WASM Bridge] Running in Standalone Browser WASM Mode...');
-            window.WasmBridgeInstance.init();
+    // Inject window.juce mock immediately before script.js runs
+    window.juce = {
+        isWasmMock: true,
+        initialisationData: { productName: ABD JUNiO Super SIX },
+        callNativeFunction: (name, args) => Promise.resolve(null),
+        setParameter: (id, val) => window.WasmBridgeInstance.setParameter(id, val),
+        beginGesture: () => {},
+        endGesture: () => {},
+        loadPreset: (idx) => window.WasmBridgeInstance.loadPreset(idx),
+        loadLibraryPreset: (libIdx, prstIdx) => window.WasmBridgeInstance.loadPreset(prstIdx),
+        getBrowserData: () => Promise.resolve({
+            libraries: [{ name: SUPERSIX FACTORY, patches: embeddedPresets.map((p, i) => ({ id: i, name: p.name, category: Factory, favorite: false })) }],
+            currentLib: 0,
+            currentPatch: window.WasmBridgeInstance.currentPresetIndex
+        }),
+        setFavorite: () => Promise.resolve(true),
+        updateMetadata: () => Promise.resolve(true),
+        exportBank: () => {},
+        importBank: () => {},
+        serviceAction: () => Promise.resolve({}),
+        getCalibrationParams: () => Promise.resolve({})
+    };
 
-            const unlock = () => {
-                window.WasmBridgeInstance.startAudio();
-                window.removeEventListener('click', unlock);
-                window.removeEventListener('keydown', unlock);
-            };
-            window.addEventListener('click', unlock);
-            window.addEventListener('keydown', unlock);
-        }
+    // Auto-init on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        console.log('[WASM Bridge] Browser standalone mode: initializing WASM SuperSix engine...');
+        window.WasmBridgeInstance.init();
+
+        const unlock = () => {
+            window.WasmBridgeInstance.startAudio();
+            window.removeEventListener('click', unlock);
+            window.removeEventListener('keydown', unlock);
+        };
+        window.addEventListener('click', unlock);
+        window.addEventListener('keydown', unlock);
     });
 })();

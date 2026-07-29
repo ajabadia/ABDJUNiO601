@@ -1,0 +1,1740 @@
+/**
+ * ABD JUNiO 601 - WebUI Bridge (JUCE 8 Native Integration)
+ */
+
+let lastPresetName = "INITIAL PATCH";
+let lcdTimer = null;
+let promiseId = 0;
+let octaveShift = 0;
+let lastSysExHex = "";
+let currentGroupGlobal = 0; // 0-25 (A-Z)
+let currentBankGlobal = 1;  // 1-8
+let currentPatchGlobal = 1; // 1-8
+let isWriteArmed = false;
+let targetBank = 1;
+let targetPatch = 1;
+let memoryProtectActive = false;
+let globalUserName = "ABD USER";
+let paramValuesCache = {};
+
+// [Audit] Persistent SysEx Mirror for stable UI display
+let sysexMirror = new Array(23).fill(0);
+sysexMirror[0] = 0xF0; sysexMirror[1] = 0x41; sysexMirror[2] = 0x30; // Default Header
+sysexMirror[22] = 0xF7; // Default Tail
+
+const eventListenersInternal = {};
+window.onJuceEvent = (name, data) => {
+    console.log(`[JS Bridge] Received Event: ${name}`, data);
+    if (eventListenersInternal[name]) {
+        eventListenersInternal[name].forEach(cb => cb(data));
+    }
+};
+
+// Native Bridge Detection
+const nativeBackend = window.juce || (window.__JUCE__ && window.__JUCE__.backend) || window.__juce__ || window.juceBackend; 
+
+// [Audit] Capture and bind original native functions to prevent recursion if window.juce is overwritten
+// WebView2 host object proxies (like window.juce) have non-enumerable properties, so we must fetch them explicitly by name.
+const nativeFunctions = {};
+if (nativeBackend) {
+    const nativeFunctionNames = [
+        "setParameter", "beginGesture", "endGesture", "getCalibrationParams",
+        "setCalibrationParam", "serviceAction", "loadPreset", "loadLibraryPreset",
+        "runSelfTest", "menuAction", "setBrowserData", "getSynthState",
+        "getBrowserData", "setFavorite", "updateMetadata", "exportBank",
+        "importBank", "savePreviewSnapshot", "restorePreviewSnapshot",
+        "savePresetDetailed", "saveAsNewPresetDetailed", "confirmImportFile",
+        "confirmTapeImport", "pianoNoteOn", "pianoNoteOff", "chooseDirectory",
+        "getLibraryPath", "setLibraryPath", "uiReady"
+    ];
+    nativeFunctionNames.forEach(key => {
+        try {
+            if (typeof nativeBackend[key] === 'function') {
+                nativeFunctions[key] = nativeBackend[key].bind(nativeBackend);
+            }
+        } catch (e) {
+            console.warn(`[JS Bridge] Could not bind native function ${key}:`, e);
+        }
+    });
+}
+
+function getBackend() {
+    return window.juce || nativeBackend || (window.__JUCE__ && window.__JUCE__.backend) || window.__juce__ || window.juceBackend;
+}
+
+function callNative(name, ...args) {
+    const backend = getBackend();
+    if (backend && typeof backend[name] === 'function') {
+        return backend[name](...args);
+    }
+    const nativeFn = nativeFunctions[name];
+    if (typeof nativeFn === 'function') {
+        return nativeFn(...args);
+    }
+
+    if (!backend) {
+        console.error("No JUCE bridge available for", name);
+        return Promise.reject("No bridge");
+    }
+
+    if (typeof backend.callNativeFunction === 'function') {
+        return backend.callNativeFunction(name, args);
+    }
+    // [Build 34] Support direct window bridge functions if backend is proxy
+    if (typeof backend[name] === 'function') {
+        return backend[name](...args);
+    }
+    // [New] Support withNativeFunction protocol directly if exposed
+    if (name === "serviceAction" || name === "getCalibrationParams" || name === "setCalibrationParam") {
+        if (backend.withNativeFunction) {
+             return backend.withNativeFunction(name)(...args);
+        }
+    }
+
+    // Fallback for emitEvent protocol if needed, though withNativeFunction should handle it
+    console.log(`[JS Bridge] Calling ${name} via emitEvent with:`, args);
+    const id = promiseId++;
+    const p = new Promise((resolve) => {
+        const handler = backend.addEventListener("__juce__complete", (data) => {
+            if (data && data.promiseId === id) {
+                backend.removeEventListener(handler);
+                resolve(data.result);
+            }
+        });
+        setTimeout(() => { backend.removeEventListener(handler); resolve(null); }, 5000);
+    });
+
+    backend.emitEvent("__juce__invoke", {
+        name: name,
+        params: args,
+        resultId: id
+    });
+    return p;
+}
+
+function listenEvent(eventName, callback) {
+    if (!eventListenersInternal[eventName]) eventListenersInternal[eventName] = [];
+    if (!eventListenersInternal[eventName].includes(callback)) {
+        eventListenersInternal[eventName].push(callback);
+    }
+    
+    const backend = nativeBackend;
+    if (backend && typeof backend.addEventListener === 'function') {
+        backend.addEventListener(eventName, callback);
+    }
+}
+
+// [Build 22/23] Global bridge convenience for index.html handlers
+window.juce = {
+    menuAction: (action, ...args) => callNative("menuAction", action, ...args),
+    setParameter: (id, val) => callNative("setParameter", id, val),
+    beginGesture: (id) => callNative("beginGesture", id),
+    endGesture: (id) => callNative("endGesture", id),
+    loadPreset: (idx) => callNative("loadPreset", idx),
+    getCalibrationParams: () => callNative("getCalibrationParams"),
+    setCalibrationParam: (id, val) => callNative("setCalibrationParam", id, val),
+    serviceAction: (data) => callNative("serviceAction", data),
+    getBrowserData: () => callNative("getBrowserData"),
+    setFavorite: (lib, prst, fav) => callNative("setFavorite", lib, prst, fav),
+    updateMetadata: (lib, prst, name, aut, tag, nts) => callNative("updateMetadata", lib, prst, name, aut, tag, nts),
+    switchAB: (slot) => callNative("switchAB", slot),
+    copyAB: () => callNative("copyAB"),
+    exportBank: (lib) => callNative("exportBank", lib),
+    importBank: () => callNative("importBank"),
+    setBrowserData: (data) => callNative("setBrowserData", data),
+    loadLibraryPreset: (libIdx, prstIdx) => callNative("loadLibraryPreset", libIdx, prstIdx),
+    savePresetDetailed: (libIdx, prstIdx) => callNative("savePresetDetailed", libIdx, prstIdx),
+    saveAsNewPresetDetailed: (name, cat, aut, tag, nts) => callNative("saveAsNewPresetDetailed", name, cat, aut, tag, nts)
+};
+
+// =============================
+// DOM READY
+// =============================
+function initApp() {
+    listenEvent("onParameterChanged", (data) => syncUI(data.id, data.value));
+    listenEvent("parameterSetUpdate", (data) => {
+        if (data) {
+            for (let id in data) {
+                syncUI(id, data[id]);
+            }
+        }
+    });
+    listenEvent("showModal", (data) => {
+        if (data === "preferences") showGlobalSettings('general');
+        else if (data === "about") showAbout();
+        else if (data === "serviceMode") showGlobalSettings('calibration');
+        else if (data === "browser") showBrowser();
+    });
+    listenEvent("onShowAbout", () => showAbout());
+    listenEvent("onShowSettings", () => showSettings());
+    listenEvent("onTuningUpdate", (name) => {
+        const info = document.getElementById('tuning-info');
+        if (info) info.innerText = name.toUpperCase();
+    });
+    listenEvent("sysexLog", (hex) => updateSysExLog(hex));
+    
+    function updateSysExLog(hex) {
+        const log = document.getElementById('sysex-log');
+        if (!log) return;
+        const parts = hex.split(' ');
+        let formatted = '';
+        parts.forEach((p, i) => {
+            if (i === 0 || i === parts.length - 1) formatted += `<span style="color: #fa0">${p}</span> `;
+            else formatted += p + ' ';
+        });
+        log.innerHTML = formatted;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    const updateDigit = (elementId, char) => {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        let filename = char.toString().toUpperCase();
+        if (filename === " ") filename = "SPACE";
+        if (filename === "-") filename = "DASH";
+        const spritePath = `assets/led/${filename}.png`;
+        
+        // 1. Text Fallback (Independent node)
+        let textSpan = el.querySelector('.led-text-fallback');
+        if (!textSpan) {
+            textSpan = document.createElement('span');
+            textSpan.className = 'led-text-fallback';
+            el.appendChild(textSpan);
+        }
+        textSpan.innerText = char;
+        
+        // 2. Image Sprite (Independent node)
+        let img = el.querySelector('img.led-sprite');
+        if (!img) {
+            img = document.createElement('img');
+            img.className = 'led-sprite';
+            img.style.height = "100%";
+            img.style.display = "none";
+            img.onerror = () => { img.style.display = "none"; textSpan.style.display = "inline"; };
+            img.onload = () => { img.style.display = "block"; textSpan.style.display = "none"; };
+            el.appendChild(img);
+        }
+        if (img.src.indexOf(spritePath) === -1) img.src = spritePath;
+    };
+
+    const handleBankPatch = (data) => {
+        if (!data) return;
+        
+        // A-Z Bank (data.group: 0-25)
+        currentGroupGlobal = data.group || 0;
+        const groupChar = String.fromCharCode(65 + currentGroupGlobal);
+        updateDigit('bank-digit', groupChar);
+        
+        // Patch Ten (data.bank: 1-8)
+        currentBankGlobal = data.bank || 1;
+        updateDigit('patch-digit-1', currentBankGlobal);
+        
+        // Patch Unit (data.patch: 1-8)
+        currentPatchGlobal = data.patch || 1;
+        updateDigit('patch-digit-2', currentPatchGlobal);
+    };
+    listenEvent("onBankPatchUpdate", handleBankPatch);
+
+    listenEvent("onLCDUpdate", (text) => {
+        // 1. Update the LCD text bezel
+        updateLCD(text, false);
+        
+        // 2. Fallback: Parse "P: 1-11" for Bank/Patch individual updates
+        // This is legacy but kept for safety. Modern is onBankPatchUpdate.
+    });
+
+    listenEvent("onMidiTraffic", (active) => {
+        const led = document.getElementById('front-midi-badge');
+        if (led) {
+            led.classList.toggle('active', active);
+            // Auto-off after 100ms
+            if (active) setTimeout(() => led.classList.remove('active'), 100);
+        }
+    });
+
+    const backend = getBackend();
+    const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
+                    (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
+
+    let currentProductName = "ABD JUNiO 601";
+    if (initData && initData.productName) {
+        currentProductName = initData.productName;
+    }
+
+    const updateUIProductNames = (name) => {
+        currentProductName = name;
+        document.title = name + " - Gold Standard";
+        const splashH1 = document.querySelector('#splash-screen h1');
+        if (splashH1) splashH1.innerText = name;
+        const aboutTitle = document.querySelector('.about-title');
+        if (aboutTitle) aboutTitle.innerText = name;
+        
+        // Update About description based on model
+        const aboutP = document.querySelector('.about-content p');
+        if (aboutP) {
+            if (name.includes("Super")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" hybrid emulation combining Juno-6, Juno-60 and Juno-106 circuits.';
+            } else if (name.includes("601")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1984 analog poly-synth (Juno-106).';
+            } else if (name.includes("06")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth (Juno-60).';
+            } else if (name.includes("SIX")) {
+                aboutP.innerText = 'A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth (Juno-6).';
+            }
+        }
+
+        const miniTitle = document.getElementById('app-title-mini');
+        if (miniTitle) {
+            const vMatch = miniTitle.innerText.match(/v\d+\.\d+\.\d+/);
+            const vStr = vMatch ? " " + vMatch[0] : "";
+            miniTitle.innerText = name + vStr;
+        }
+
+        document.querySelectorAll('.dropdown li').forEach(li => {
+            if (li.innerText.startsWith("About ABD") || li.innerText.startsWith("About JUNiO")) {
+                li.innerText = "About " + name + "...";
+            }
+        });
+
+        // Show wrench button only on Super Six (when name contains 'Super')
+        const repairBtn = document.getElementById('about-repair-btn');
+        if (repairBtn) {
+            repairBtn.style.display = name.includes("Super") ? 'inline-block' : 'none';
+        }
+    };
+
+    if (initData && initData.buildVersion) {
+        const vStr = initData.buildVersion;
+        document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
+            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + vStr;
+            else el.innerText = "Version " + vStr;
+        });
+        updateUIProductNames(currentProductName);
+    }
+
+    listenEvent("onVersionUpdate", (version) => {
+        document.querySelectorAll('.splash-version, #app-title-mini, .about-version').forEach(el => {
+            if (el.id === 'app-title-mini') el.innerText = currentProductName + " v" + version;
+            else el.innerText = "Version " + version;
+        });
+    });
+
+    listenEvent("onProductNameUpdate", (name) => {
+        updateUIProductNames(name);
+    });
+
+    listenEvent("onVisualUpdate", (data) => {
+        const c1Led = document.getElementById('led-chorus1');
+        const c2Led = document.getElementById('led-chorus2');
+        if (c1Led && c1Led.classList.contains('active')) {
+            c1Led.style.opacity = 0.5 + Math.sin(data.c1 * Math.PI * 2) * 0.5;
+        } else if (c1Led) c1Led.style.opacity = 1;
+
+        if (c2Led && c2Led.classList.contains('active')) {
+            c2Led.style.opacity = 0.5 + Math.sin(data.c2 * Math.PI * 2) * 0.5;
+        } else if (c2Led) c2Led.style.opacity = 1;
+    });
+
+    listenEvent("onLCDStatusUpdate", (data) => {
+        const lcLed = document.getElementById('badge-lc');
+        const abLed = document.getElementById('badge-ab');
+        const wipLed = document.getElementById('badge-wip');
+        
+        if (lcLed) {
+            lcLed.classList.toggle('active', data.lc);
+            lcLed.innerText = data.lc ? 'LRN' : 'LC';
+        }
+        if (abLed) {
+            abLed.innerText = data.ab;
+            abLed.classList.toggle('b-slot', data.ab === 'B');
+        }
+        if (wipLed) {
+            wipLed.innerText = data.wip;
+            wipLed.classList.toggle('has-wip', data.wip > 0);
+        }
+    });
+
+    listenEvent("onSysExUpdate", (hex) => {
+        const log = document.getElementById('sysex-log');
+        if (!log) return;
+        
+        const parts = hex.trim().split(' ');
+        const bytes = parts.filter(p => p.length > 0).map(h => parseInt(h, 16));
+        
+        // [Audit Fix] Handle Patch Dump (23 bytes) vs Param Change (7 bytes)
+        if (bytes.length === 23) {
+            sysexMirror = [...bytes];
+        } else if (bytes.length === 7 && bytes[2] === 0x32) {
+            // Param Change: ID at bytes[4], VAL at bytes[5]
+            const paramId = bytes[4];
+            const paramVal = bytes[5];
+            const bodyIndex = 4 + paramId; 
+            if (bodyIndex < sysexMirror.length - 1) { // -1 to avoid F7
+                sysexMirror[bodyIndex] = paramVal;
+            }
+        }
+
+        // Render mirror as hex grid
+        let html = '';
+        sysexMirror.forEach((byte, i) => {
+            const h = byte.toString(16).toUpperCase().padStart(2, '0');
+            const label = i === 20 ? 'SW1' : (i === 21 ? 'SW2' : '');
+            const highlight = (bytes.length === 7 && (i === (4 + bytes[4]))) ? 'changed' : 'normal';
+            
+            html += `<span class="hex-byte ${highlight}" title="Index ${i} ${label}">${h}</span> `;
+            if (i === 11) html += '<br>';
+        });
+        
+        log.innerHTML = html;
+        lastSysExHex = hex;
+        
+        // Remove highlights after a while
+        setTimeout(() => {
+            log.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
+        }, 1000);
+    });
+
+    setupSliders();
+    setupButtons();
+    setupBender();
+    setupKeyboard();
+    setupMenus();
+    setupOctaveButtons();
+
+    // Load calibration settings on startup to sync skin theme and profile label
+    if (window.ServiceMode && typeof window.ServiceMode.refreshParams === 'function') {
+        window.ServiceMode.refreshParams().then(() => {
+            updateThemeAndSkins();
+            updatePainterTapes();
+        });
+    } else {
+        updateThemeAndSkins();
+        updatePainterTapes();
+    }
+
+    callNative("uiReady");
+
+    // Splash screen fade out & hide immediately
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.style.opacity = '0';
+        splash.style.display = 'none';
+        splash.style.pointerEvents = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const splashVersion = document.getElementById('splash-version-info');
+    let retries = 0;
+    const checkBridge = setInterval(() => {
+        const backend = getBackend();
+        if (backend) {
+            clearInterval(checkBridge);
+            if (splashVersion) splashVersion.innerText = "BRIDGE DETECTED, INITIALIZING...";
+            initApp();
+        } else {
+            retries++;
+            if (retries === 20 && splashVersion) {
+                splashVersion.innerText = "WAITING FOR JUCE BRIDGE (Retrying...)";
+            }
+            if (retries === 50 && splashVersion) {
+                splashVersion.innerText = "NO BRIDGE DETECTED - CONTACT SUPPORT";
+            }
+            if (retries > 100) {
+                clearInterval(checkBridge);
+                initApp(); // Fallback anyway
+            }
+        }
+    }, 100);
+});
+
+function copySysExToClipboard() {
+    if (lastSysExHex) {
+        navigator.clipboard.writeText(lastSysExHex).then(() => {
+            updateLCD("SYSEX COPIED", true);
+        }).catch(err => {
+            console.error('Clipboard error:', err);
+            updateLCD("COPY ERROR", true);
+        });
+    } else {
+        updateLCD("NO SYSEX DATA", true);
+    }
+}
+
+// =============================
+// LCD
+// =============================
+function updateLCD(text, isTemporary) {
+    const lcd = document.getElementById('lcd-text');
+    if (!lcd) return;
+    if (lcdTimer) clearTimeout(lcdTimer);
+
+    // Helper to apply marquee if text is long
+    const applyText = (target, str) => {
+        if (str.length > 16) {
+            target.innerHTML = `<div class="marquee-scroller">${str} &nbsp;&nbsp;&nbsp;&nbsp; ${str}</div>`;
+        } else {
+            target.innerText = str;
+        }
+    };
+
+    if (isTemporary) {
+        applyText(lcd, text);
+        lcd.style.color = "#ff8888";
+        lcdTimer = setTimeout(() => {
+            applyText(lcd, lastPresetName);
+            lcd.style.color = "#ff3c3c";
+            lcdTimer = null;
+        }, 3000); // 3 seconds per user request
+    } else {
+        lastPresetName = text;
+        applyText(lcd, text);
+        lcd.style.color = "#ff3c3c";
+        if (lcdTimer) {
+            clearTimeout(lcdTimer);
+            lcdTimer = null;
+        }
+    }
+}
+
+// =============================
+// SLIDERS & KNOBS (INTERACTION)
+// =============================
+function setupSliders() {
+    document.querySelectorAll('.v-slider, .v-slider-mini, .b-track').forEach(container => {
+        const pod = container.closest('[data-param]');
+        if (!pod) return;
+        const paramID = pod.getAttribute('data-param');
+
+        const move = (e) => {
+            const rect = container.getBoundingClientRect();
+            let val = 1.0 - (e.clientY - rect.top) / rect.height;
+            val = Math.max(0, Math.min(1, val));
+
+            if (paramID === 'hpfFreq') val = Math.round(val * 3) / 3;
+            if (paramID === 'dcoRange') val = Math.round(val * 2) / 2;
+
+            // Immediate local feedback
+            syncUI(paramID, val);
+            callNative("setParameter", paramID, val);
+
+            let displayVal = val.toFixed(2);
+            if (paramID === 'hpfFreq') displayVal = Math.round(val * 3);
+            updateLCD(paramID.toUpperCase() + ": " + displayVal, true);
+        };
+
+        container.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            container.setPointerCapture(e.pointerId);
+            callNative("beginGesture", paramID);
+            move(e);
+            const onMove = (ev) => move(ev);
+            const onUp = () => {
+                container.removeEventListener('pointermove', onMove);
+                container.removeEventListener('pointerup', onUp);
+                callNative("endGesture", paramID);
+            };
+            container.addEventListener('pointermove', onMove);
+            container.addEventListener('pointerup', onUp);
+        });
+    });
+
+    document.querySelectorAll('.knob-ring').forEach(ring => {
+        const pod = ring.closest('[data-param]');
+        if (!pod) return;
+        const paramID = pod.getAttribute('data-param');
+        let startY = 0;
+        let startVal = 0;
+
+        ring.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            ring.setPointerCapture(e.pointerId);
+            startY = e.clientY;
+            callNative("beginGesture", paramID);
+
+            // Fix rotation resets: pull current value from cache instead of parsing transform string
+            startVal = paramValuesCache[paramID] !== undefined ? paramValuesCache[paramID] : 0.5;
+
+            const onMove = (ev) => {
+                const deltaY = startY - ev.clientY;
+                const isDiscrete = (paramID === 'arpMode' || paramID === 'arpRange');
+                const divisor = (paramID === 'tune') ? 3000 : (isDiscrete ? 150 : 500);
+                let val = startVal + (deltaY / divisor);
+                val = Math.max(0, Math.min(1, val));
+
+                if (isDiscrete) {
+                    val = Math.round(val * 2) / 2;
+                }
+                
+                syncUI(paramID, val);
+                callNative("setParameter", paramID, val);
+
+                let displayVal = val.toFixed(2);
+                if (paramID === 'tune') displayVal = ((val * 100) - 50).toFixed(1);
+                updateLCD(paramID.toUpperCase() + ": " + displayVal, true);
+            };
+
+            const onUp = () => {
+                ring.removeEventListener('pointermove', onMove);
+                ring.removeEventListener('pointerup', onUp);
+                callNative("endGesture", paramID);
+            };
+            ring.addEventListener('pointermove', onMove);
+            ring.addEventListener('pointerup', onUp);
+        });
+    });
+
+    // Premium Interaction: Allow clicking labels directly to switch modes/ranges
+    document.querySelectorAll('.knob-tick-lbl').forEach(lbl => {
+        lbl.style.cursor = 'pointer';
+        lbl.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const wrapper = lbl.closest('.knob-tick-wrapper[data-param]');
+            if (!wrapper) return;
+            const paramID = wrapper.getAttribute('data-param');
+            let val = 0.0;
+            if (lbl.classList.contains('pos-center')) val = 0.5;
+            else if (lbl.classList.contains('pos-right')) val = 1.0;
+
+            syncUI(paramID, val);
+            callNative("setParameter", paramID, val);
+
+            const displayNames = {
+                'arpMode': { 0.0: 'UP', 0.5: 'DN', 1.0: 'U/D' },
+                'arpRange': { 0.0: '1 OCT', 0.5: '2 OCT', 1.0: '3 OCT' }
+            };
+            const labelStr = displayNames[paramID] ? displayNames[paramID][val] : val.toFixed(2);
+            updateLCD(paramID.toUpperCase() + ": " + labelStr, true);
+        });
+    });
+}
+
+function setupOctaveButtons() {
+    const upBtn = document.querySelector('.perf-octave-zone .oct-btn.up');
+    const downBtn = document.querySelector('.perf-octave-zone .oct-btn.down');
+
+    if (upBtn) {
+        upBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            octaveShift = Math.min(2, octaveShift + 1);
+            updateLCD("OCTAVE: " + octaveShift, true);
+        });
+    }
+    if (downBtn) {
+        downBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            octaveShift = Math.max(-2, octaveShift - 1);
+            updateLCD("OCTAVE: " + octaveShift, true);
+        });
+    }
+}
+
+// =============================
+// BUTTONS (MOMENTARY & TOGGLE)
+// =============================
+function setupButtons() {
+    document.querySelectorAll('.sq[data-param], .tiny-btn[data-param], .juno-btn[data-param], .poly-btn[data-param]').forEach(btn => {
+        const paramID = btn.getAttribute('data-param');
+
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            btn.classList.add('pushed');
+
+            if (paramID === 'memoryProtect') {
+                const nextVal = memoryProtectActive ? 0 : 1;
+                callNative("setParameter", paramID, nextVal);
+                return;
+            }
+
+            if (btn.classList.contains('range-btn')) {
+                const val = parseFloat(btn.getAttribute('data-val'));
+                syncUI("dcoRange", val);
+                callNative("setParameter", "dcoRange", val);
+            } else {
+                const isActive = btn.getAttribute('data-active') === 'true';
+                const nextVal = isActive ? 0 : 1;
+                syncUI(paramID, nextVal);
+                callNative("setParameter", paramID, nextVal);
+            }
+        });
+
+        btn.addEventListener('pointerup', () => btn.classList.remove('pushed'));
+        btn.addEventListener('pointerleave', () => btn.classList.remove('pushed'));
+    });
+
+    document.querySelectorAll('.nav-arrow, .num-btn, #random-btn, #panic-btn, [data-action]').forEach(btn => {
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            btn.classList.add('pushed');
+
+            const actionID = btn.getAttribute('data-action');
+            if (actionID) {
+                if (actionID === 'handleSave' || actionID === 'handleWriteArm') {
+                    if (memoryProtectActive) {
+                        updateLCD("MEMORY PROTECTED", true);
+                        return;
+                    }
+
+                    if (btn.id === 'write-btn') {
+                        isWriteArmed = !isWriteArmed;
+                        if (isWriteArmed) {
+                            targetBank = currentBankGlobal;
+                            targetPatch = currentPatchGlobal; // Sync with current on arm
+                            updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                        } else {
+                            updateLCD(lastPresetName, false);
+                        }
+                        callNative("menuAction", "handleWriteArm"); // Exclusive arm action, no file dialog
+                    } else if (btn.id === 'save-patch-btn') {
+                        if (isWriteArmed) {
+                            showSaveModal(targetBank, targetPatch);
+                        } else {
+                            updateLCD("PRESS WRITE FIRST", true);
+                        }
+                    }
+                    return;
+                }
+
+                if (actionID === 'handleManual' || actionID === 'handleTest') {
+                    const isActive = btn.getAttribute('data-active') === 'true';
+                    document.querySelectorAll('[data-action="handleManual"], [data-action="handleTest"]').forEach(b => {
+                        b.setAttribute('data-active', 'false');
+                        b.classList.remove('active-mode');
+                    });
+                    if (!isActive) {
+                        btn.setAttribute('data-active', 'true');
+                        btn.classList.add('active-mode');
+                    }
+                }
+                callNative("menuAction", actionID);
+                return;
+            }
+
+            if (btn.classList.contains('num-btn')) {
+                const idx = parseInt(btn.getAttribute('data-bank')) + 1; // 1-8
+                
+                if (isWriteArmed) {
+                    targetPatch = idx;
+                    updateLCD("WRITE TO? " + String.fromCharCode(65 + currentGroupGlobal) + targetBank + "-" + targetPatch, false);
+                    return;
+                }
+
+                const isPatchButton = btn.classList.contains('patch-btn');
+                const isBankButton = btn.classList.contains('bank-btn');
+
+                if (isPatchButton) {
+                    const absIdx = (currentGroupGlobal * 64) + ((currentBankGlobal - 1) * 8) + (idx - 1);
+                    callNative("loadPreset", absIdx);
+                } else if (isBankButton) {
+                    const absIdx = (currentGroupGlobal * 64) + ((idx - 1) * 8) + (currentPatchGlobal - 1);
+                    callNative("loadPreset", absIdx);
+                } else {
+                    const presetToLoad = (currentGroupGlobal * 64) + (currentBankGlobal - 1) * 8 + (idx - 1);
+                    callNative("loadPreset", presetToLoad);
+                }
+            } else if (btn.id === 'random-btn') {
+                callNative("menuAction", "handleRandomize");
+            } else if (btn.id === 'panic-btn') {
+                callNative("menuAction", "panic");
+            } else {
+                const actionMap = { 'bank-dec': 'handleBankDec', 'bank-inc': 'handleBankInc', 'patch-dec': 'handlePatchDec', 'patch-inc': 'handlePatchInc' };
+                if (actionMap[btn.id]) {
+                    if (isWriteArmed) {
+                        if (btn.id === 'bank-inc') targetBank = (targetBank % 16) + 1;
+                        if (btn.id === 'bank-dec') targetBank = targetBank === 1 ? 16 : targetBank - 1;
+                        if (btn.id === 'patch-inc') targetPatch = (targetPatch % 8) + 1;
+                        if (btn.id === 'patch-dec') targetPatch = targetPatch === 1 ? 8 : targetPatch - 1;
+                        updateLCD("WRITE TO? " + targetBank + "-" + targetPatch, false);
+                    } else {
+                        callNative("menuAction", actionMap[btn.id]);
+                    }
+                }
+            }
+        });
+
+        btn.addEventListener('pointerup', () => btn.classList.remove('pushed'));
+        btn.addEventListener('pointerleave', () => btn.classList.remove('pushed'));
+    });
+
+    document.querySelectorAll('.poly-mode-btn').forEach(btn => {
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const val = parseFloat(btn.getAttribute('data-poly-val'));
+            const isActive = btn.getAttribute('data-active') === 'true';
+            const nextVal = isActive ? 0.0 : val;
+            syncUI("polyMode", nextVal);
+            callNative("setParameter", "polyMode", nextVal);
+        });
+    });
+
+    document.querySelectorAll('.sw-unit[data-param], .sw-col[data-param]').forEach(sw => {
+        const paramID = sw.getAttribute('data-param');
+        sw.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const current = parseFloat(sw.getAttribute('data-state') || "0");
+            const next = current > 0.5 ? 0.0 : 1.0;
+            syncUI(paramID, next);
+            callNative("setParameter", paramID, next);
+        });
+    });
+
+    const offBtn = document.getElementById('chorus-off-btn');
+    if (offBtn) {
+        offBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            offBtn.classList.add('pushed');
+            syncUI("chorus1", 0.0);
+            syncUI("chorus2", 0.0);
+            callNative("setParameter", "chorus1", 0.0);
+            callNative("setParameter", "chorus2", 0.0);
+            updateLCD("CHORUS: OFF", true);
+        });
+        offBtn.addEventListener('pointerup', () => offBtn.classList.remove('pushed'));
+        offBtn.addEventListener('pointerleave', () => offBtn.classList.remove('pushed'));
+    }
+}
+
+function setupBender() {
+    const stick = document.getElementById('bender-stick');
+    const housing = document.getElementById('stick-housing');
+    if (!stick || !housing) return;
+
+    housing.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        housing.setPointerCapture(e.pointerId);
+        const move = (ev) => {
+            const rect = housing.getBoundingClientRect();
+            let x = (ev.clientX - rect.left) / rect.width;
+            x = Math.max(0, Math.min(1, x));
+            stick.style.left = (x * 100) + '%';
+            callNative("setParameter", "bender", x);
+        };
+        move(e);
+        const onMove = (ev) => move(ev);
+        const onUp = () => {
+            housing.removeEventListener('pointermove', onMove);
+            housing.removeEventListener('pointerup', onUp);
+            stick.style.left = '50%';
+            callNative("setParameter", "bender", 0.5);
+        };
+        housing.addEventListener('pointermove', onMove);
+        housing.addEventListener('pointerup', onUp);
+    });
+}
+
+function setupKeyboard() {
+    const bed = document.getElementById('ivory-keys-bed');
+    if (!bed) return;
+    bed.innerHTML = '';
+    const whiteNotes = [];
+    for (let i = 0; i < 48; i++) {
+        const note = 36 + i;
+        const pc = note % 12;
+        if (![1, 3, 6, 8, 10].includes(pc)) whiteNotes.push({ note, i });
+    }
+    const totalWhite = whiteNotes.length;
+    whiteNotes.forEach(({ note }, idx) => {
+        const k = document.createElement('div');
+        k.className = 'key white';
+        k.setAttribute('data-note', note);
+        k.style.width = (100 / totalWhite) + '%';
+
+        k.addEventListener('pointerdown', (e) => {
+            k.setPointerCapture(e.pointerId);
+            k.classList.add('pushed');
+            callNative("pianoNoteOn", note + (octaveShift * 12), 0.8);
+        });
+        const release = () => { k.classList.remove('pushed'); callNative("pianoNoteOff", note + (octaveShift * 12)); };
+        k.addEventListener('pointerup', release);
+        k.addEventListener('pointerleave', release);
+        bed.appendChild(k);
+
+        const pc = note % 12;
+        if ([0, 2, 5, 7, 9].includes(pc)) {
+            const bNote = note + 1;
+            const b = document.createElement('div');
+            b.className = 'key black';
+            b.setAttribute('data-note', bNote);
+            b.style.left = (((idx + 0.68) / totalWhite) * 100) + '%';
+            b.style.width = (0.7 / totalWhite * 100) + '%';
+            b.addEventListener('pointerdown', (e) => {
+                b.setPointerCapture(e.pointerId);
+                b.classList.add('pushed');
+                callNative("pianoNoteOn", bNote + (octaveShift * 12), 0.8);
+            });
+            const bRel = () => { b.classList.remove('pushed'); callNative("pianoNoteOff", bNote + (octaveShift * 12)); };
+            b.addEventListener('pointerup', bRel);
+            b.addEventListener('pointerleave', bRel);
+            bed.appendChild(b);
+        }
+    });
+}
+
+function setupMenus() {
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('.dropdown')) return;
+            e.stopPropagation();
+            const dd = item.querySelector('.dropdown');
+            const wasOpen = dd.style.display === 'flex';
+            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            if (!wasOpen) dd.style.display = 'flex';
+        });
+    });
+    document.addEventListener('pointerdown', (e) => {
+        if (!e.target.closest('.menu-item')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+    });
+}
+
+// =============================
+// UI SYNC
+// =============================
+function syncUI(id, val) {
+    paramValuesCache[id] = val;
+
+    // Highlight labels for discrete knobs
+    if (id === 'arpMode' || id === 'arpRange') {
+        const wrapper = document.querySelector(`.knob-tick-wrapper[data-param="${id}"]`);
+        if (wrapper) {
+            const labels = wrapper.querySelectorAll('.knob-tick-lbl');
+            const activeIdx = Math.round(val * 2);
+            labels.forEach((lbl, idx) => {
+                lbl.classList.toggle('active', idx === activeIdx);
+            });
+        }
+    }
+
+    document.querySelectorAll('[data-param="' + id + '"]').forEach(pod => {
+        const handle = pod.querySelector('.handle, .b-handle');
+        if (handle) {
+            const track = pod.querySelector('.track, .b-track') || pod;
+            const containerH = track.getBoundingClientRect().height;
+            const handleH = handle.getBoundingClientRect().height;
+            const availableSpace = Math.max(0, containerH - handleH);
+            if (availableSpace >= 0) {
+                const top = (1.0 - val) * availableSpace;
+                handle.style.top = top + 'px';
+            }
+        }
+
+        const knob = pod.querySelector('.knob');
+        if (knob) knob.style.transform = 'translateX(-50%) rotate(' + ((val * 270) - 135) + 'deg)';
+
+        const peg = pod.querySelector('.sw-peg');
+        if (peg) {
+            if (id === 'vcaMode') {
+                peg.style.bottom = (val > 0.5) ? '38px' : '0px';
+            } else {
+                peg.style.bottom = (val > 0.5) ? '0px' : '38px';
+            }
+            pod.setAttribute('data-state', val > 0.5 ? "1" : "0");
+        }
+
+        const btn = pod.tagName === 'BUTTON' ? pod : pod.querySelector('button');
+        if (btn) {
+            const isActive = val > 0.5;
+            btn.setAttribute('data-active', isActive ? 'true' : 'false');
+            if (btn.classList.contains('sq') || btn.classList.contains('juno-btn')) {
+                btn.classList.toggle('active-mode', isActive);
+            }
+            if (id === 'power') btn.innerText = isActive ? "ON" : "OFF";
+        }
+
+        if (pod.tagName === 'SELECT') {
+            let denormalized = val;
+            if (id === 'midiChannel') denormalized = Math.round(val * 15 + 1);
+            else if (id === 'benderRange') denormalized = Math.round(val * 11 + 1);
+            else if (id === 'numVoices') denormalized = Math.round(val * 15 + 1);
+            else if (id === 'sustainInverted') denormalized = val > 0.5 ? 1 : 0;
+            else if (id.startsWith('model') || id === 'arpMode' || id === 'arpRange') denormalized = Math.round(val * 2) / 2;
+            else if (id === 'arpDivision') denormalized = Math.round(val * 8) / 8;
+            else if (id === 'arpEnabled' || id === 'arpSync') denormalized = val > 0.5 ? 1 : 0;
+            pod.value = denormalized;
+        }
+        if (pod.tagName === 'INPUT' && pod.type === 'range') {
+            pod.value = val;
+            const lbl = document.getElementById('val-' + id);
+            if (lbl) {
+                if (id === 'velocitySens' || id === 'lcdBrightness' || id === 'unisonWidth' || id === 'chorusMix' || id === 'aftertouchToVCF') {
+                    lbl.innerText = Math.round(val * 100) + '%';
+                } else if (id === 'chorusHiss') {
+                    lbl.innerText = Math.round(val * 50) + '%';
+                } else if (id === 'unisonDetune') {
+                    lbl.innerText = Math.round(val * 50) + 'c';
+                } else {
+                    lbl.innerText = val.toFixed(2);
+                }
+            }
+        }
+    });
+
+    if (id === 'arpRate') {
+        const rateValEl = document.getElementById('val-arpRate-perf');
+        if (rateValEl) rateValEl.innerText = val.toFixed(2);
+    }
+
+    if (id === 'chorus1' || id === 'chorus2') {
+        const c1 = id === 'chorus1' ? val : (paramValuesCache['chorus1'] || 0.0);
+        const c2 = id === 'chorus2' ? val : (paramValuesCache['chorus2'] || 0.0);
+        const isOff = (c1 < 0.5 && c2 < 0.5);
+        const offBtn = document.getElementById('chorus-off-btn');
+        if (offBtn) {
+            offBtn.setAttribute('data-active', isOff ? 'true' : 'false');
+            offBtn.classList.toggle('active-mode', isOff);
+        }
+    }
+
+    if (id === 'memoryProtect') {
+        memoryProtectActive = val > 0.5;
+        const pBtn = document.getElementById('protect-btn');
+        if (pBtn) {
+            pBtn.classList.toggle('active-mode', memoryProtectActive);
+            pBtn.setAttribute('data-active', memoryProtectActive ? 'true' : 'false');
+        }
+    }
+
+    if (id === 'polyMode') {
+        document.querySelectorAll('.poly-mode-btn').forEach(btn => {
+            const btnVal = parseFloat(btn.getAttribute('data-poly-val'));
+            const match = Math.abs(val - btnVal) < 0.2;
+            btn.setAttribute('data-active', match ? 'true' : 'false');
+            btn.classList.toggle('active-mode', match);
+        });
+    }
+
+    const led = document.getElementById('led-' + id);
+    if (led) led.classList.toggle('active', val > 0.5);
+
+    if (id === "midiOut") {
+        const item = document.getElementById("menu-midi-tx");
+        if (item) item.classList.toggle("checked", val > 0.5);
+    }
+    if (id === 'dcoRange') {
+        document.querySelectorAll('.range-btn').forEach(b => {
+            const btnVal = parseFloat(b.getAttribute('data-val'));
+            const match = Math.abs(val - btnVal) < 0.15;
+            b.setAttribute('data-active', match ? 'true' : 'false');
+            const rLed = document.getElementById('led-dcoRange-' + Math.round(btnVal * 2));
+            if (rLed) rLed.classList.toggle('active', match);
+        });
+    }
+
+    // Dynamic LEDs synchronization
+    if (id === 'portamentoOn') {
+        const led = document.getElementById('led-tab-port');
+        if (led) led.classList.toggle('active', val > 0.5);
+    }
+    if (id === 'arpEnabled') {
+        const led = document.getElementById('led-tab-arp');
+        if (led) led.classList.toggle('active', val > 0.5);
+    }
+    if (id === 'polyMode') {
+        const led1 = document.getElementById('led-tab-poly1');
+        const led2 = document.getElementById('led-tab-poly2');
+        if (led1) led1.classList.toggle('active', Math.abs(val - 0.5) < 0.2);
+        if (led2) led2.classList.toggle('active', Math.abs(val - 1.0) < 0.2);
+    }
+
+    if (id === 'calibrationProfile' || id === 'skinType') {
+        updateThemeAndSkins();
+    }
+    if (id.startsWith('model') || id === 'polyMode') {
+        updatePainterTapes();
+    }
+}
+
+function updateSevenSegment() {
+    const b = document.getElementById('bank-digit');
+    const p = document.getElementById('patch-digit');
+    if (b) b.innerText = currentBankGlobal;
+    if (p) p.innerText = currentPatchGlobal;
+}
+
+// =============================
+// GLOBAL SETTINGS & TABS
+// =============================
+function showGlobalSettings(tabName) {
+    const el = document.getElementById('modal-globalSettings');
+    if (el) {
+        el.style.display = 'flex';
+        if (tabName) switchTab(tabName);
+    }
+}
+
+function hideGlobalSettings() {
+    const el = document.getElementById('modal-globalSettings');
+    if (el) el.style.display = 'none';
+}
+
+function showAbout() {
+    const el = document.getElementById('modal-about');
+    if (el) el.style.display = 'flex';
+}
+
+function hideAbout() {
+    const el = document.getElementById('modal-about');
+    if (el) el.style.display = 'none';
+}
+
+function showBrowser() {
+    const el = document.getElementById('modal-browser');
+    if (el && window.PresetBrowser) {
+        el.style.display = 'flex';
+        window.PresetBrowser.init();
+    }
+}
+
+function hideBrowser() {
+    const el = document.getElementById('modal-browser');
+    if (el) el.style.display = 'none';
+}
+
+function switchTab(tabName) {
+    // Reset hidden sections if going to calibration
+    if (tabName === 'calibration') {
+        document.querySelectorAll('.service-section').forEach(sec => {
+            sec.style.display = 'block';
+        });
+    }
+
+    // 1. Update Buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.innerText.toLowerCase() === tabName.toLowerCase();
+        btn.classList.toggle('active', isActive);
+    });
+
+    // 2. Update Content Sections
+    document.querySelectorAll('.settings-content').forEach(section => {
+        const sectionId = section.id;
+        const isActive = sectionId === 'tab-' + tabName;
+        section.classList.toggle('active', isActive);
+        
+        // Trigger ServiceMode refresh if entering general, calibration or diagnostics
+        if (isActive && (tabName === 'general' || tabName === 'calibration' || tabName === 'diagnostics')) {
+            if (window.ServiceMode && typeof window.ServiceMode.init === 'function') {
+                window.ServiceMode.init();
+            }
+        }
+    });
+
+    updateLCD("MODE: " + tabName.toUpperCase(), true);
+}
+
+function updatePref(el) {
+    const id = el.getAttribute('data-param');
+    let val = parseFloat(el.value);
+    
+    // [Build 35] Route through ServiceMode if it's a calibration/pref parameter
+    if (window.ServiceMode && window.ServiceMode.params && window.ServiceMode.params.some(p => p.id === id)) {
+        window.ServiceMode.updateParam(id, val);
+        return;
+    }
+
+    let normalized = val;
+    // ... legacy normalization logic if needed for non-calibration params ...
+    
+    if (window.juce && typeof window.juce.setParameter === 'function') {
+        window.juce.setParameter(id, parseFloat(normalized));
+    } else {
+        callNative("setParameter", id, parseFloat(normalized));
+    }
+    syncUI(id, parseFloat(normalized));
+}
+
+function handleTuningClick(type) {
+    console.log("handleTuningClick:", type);
+    const info = document.getElementById('tuning-info');
+    if (type === 'load') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.menuAction('handleLoadTuning');
+    } else {
+        juce.menuAction('handleResetTuning');
+        if (info) info.innerText = "RESETTING...";
+    }
+}
+
+function handleDacTableClick(type) {
+    const info = document.getElementById('dac-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importDacTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportDacTable' });
+    }
+}
+
+function handleVcaTableClick(type) {
+    const info = document.getElementById('vca-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importVcaTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportVcaTable' });
+    }
+}
+
+function handleLfoSpeedTableClick(type) {
+    const info = document.getElementById('lfo-speed-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importLfoSpeedTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportLfoSpeedTable' });
+    }
+}
+
+function handleLfoRampTableClick(type) {
+    const info = document.getElementById('lfo-ramp-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importLfoRampTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportLfoRampTable' });
+    }
+}
+
+function handleSubLevelTableClick(type) {
+    const info = document.getElementById('sub-level-table-info');
+    if (type === 'import') {
+        if (info) info.innerText = "OPENING FILE SELECTOR...";
+        juce.serviceAction({ action: 'importSubLevelTable' });
+    } else {
+        if (info) info.innerText = "SAVING...";
+        juce.serviceAction({ action: 'exportSubLevelTable' });
+    }
+}
+
+// Handle tuning load result from C++
+listenEvent('onTuningLoaded', (data) => {
+    const info = document.getElementById('tuning-info');
+    if (!info) return;
+    if (data === 'reset' || (typeof data === 'string' && data === 'reset')) {
+        info.innerText = 'Standard Tuning';
+    } else if (data && typeof data === 'object') {
+        info.innerText = data.ok ? ('Loaded: ' + data.name) : 'ERROR loading .scl';
+    }
+});
+
+// Handle DAC table import result
+listenEvent('onDacTableImport', (ok) => {
+    const info = document.getElementById('dac-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (4096 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle VCA table import result
+listenEvent('onVcaTableImport', (ok) => {
+    const info = document.getElementById('vca-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (256 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle LFO Speed table import result
+listenEvent('onLfoSpeedTableImport', (ok) => {
+    const info = document.getElementById('lfo-speed-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (128 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle LFO Ramp table import result
+listenEvent('onLfoRampTableImport', (ok) => {
+    const info = document.getElementById('lfo-ramp-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (8 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// Handle Sub Level table import result
+listenEvent('onSubLevelTableImport', (ok) => {
+    const info = document.getElementById('sub-level-table-info');
+    if (info) info.innerText = ok ? 'Custom Table Loaded (11 values)' : 'IMPORT FAILED - Check CSV format';
+});
+
+// --- SAVE MODAL LOGIC ---
+let pendingSaveSlot = -1;
+
+function showSaveModal(bank, patch) {
+    const slot = (bank - 1) * 8 + (patch - 1);
+    pendingSaveSlot = slot;
+    
+    document.getElementById('save-target-display').innerText = `BANK ${bank} - PATCH ${patch}`;
+    
+    // Suggest name: "NEW " + lastPresetName
+    const nameInput = document.getElementById('save-patch-name');
+    nameInput.value = "NEW " + lastPresetName.substring(0, 12);
+    
+    // Set author from global settings
+    document.getElementById('save-patch-author').value = globalUserName;
+    
+    document.getElementById('modal-savePatch').classList.add('active');
+    nameInput.focus();
+    nameInput.select();
+}
+
+function hideSaveModal() {
+    document.getElementById('modal-savePatch').classList.remove('active');
+    isWriteArmed = false;
+    updateLCD(lastPresetName.toUpperCase().substring(0, 16));
+}
+
+function commitInternalSave() {
+    const name = document.getElementById('save-patch-name').value || "NEW PATCH";
+    const author = document.getElementById('save-patch-author').value || globalUserName;
+    
+    if (pendingSaveSlot >= 0) {
+        callNative("menuAction", "writeToInternalSlot", pendingSaveSlot, name, author);
+        
+        // Visual feedback
+        updateLCD("WRITTEN TO RAM");
+        setTimeout(() => {
+            updateLCD(name.toUpperCase().substring(0, 16));
+            isWriteArmed = false;
+        }, 1500);
+    }
+    
+    document.getElementById('modal-savePatch').classList.remove('active');
+}
+
+// --- SETTINGS SYNC ---
+function initUserSettingsSync() {
+    // Fetch initial user name
+    callNative("menuAction", "getUserName").then(name => {
+        if (name) {
+            globalUserName = name;
+            const input = document.getElementById('setting-userName');
+            if (input) input.value = name;
+        }
+    });
+
+    const userNameInput = document.getElementById('setting-userName');
+    if (userNameInput) {
+        userNameInput.addEventListener('change', (e) => {
+            globalUserName = e.target.value;
+            callNative("menuAction", "setUserName", globalUserName);
+        });
+    }
+}
+
+// --- GLOBAL NOTIFICATIONS ---
+function showNotification(message, type = 'success') {
+    const toast = document.getElementById('notification-toast');
+    const msg = document.getElementById('notification-message');
+    if (!toast || !msg) return;
+
+    msg.innerText = message;
+    toast.className = `notification-toast active ${type}`;
+
+    setTimeout(() => {
+        toast.className = 'notification-toast';
+    }, 4000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // initKeyboard(); // If it exists elsewhere, otherwise I'll just init settings
+    initUserSettingsSync();
+});
+
+// --- GLOBAL KEYBOARD SHORTCUTS AND QWERTY PIANO PLAYBACK ---
+let qwertyBaseNote = 48; // C3 (note 48)
+const activeQwertyNotes = {};
+
+const QWERTY_KEYS = {
+    // Lower octave naturals
+    'z': 0, 'x': 2, 'c': 4, 'v': 5, 'b': 7, 'n': 9, 'm': 11,
+    ',': 12, '.': 14, '/': 16,
+    // Lower octave sharps
+    's': 1, 'd': 3, 'g': 6, 'h': 8, 'j': 10, 'l': 13, ';': 15, "'": 17,
+    
+    // Upper octave naturals
+    'q': 12, 'w': 14, 'e': 16, 'r': 17, 't': 19, 'y': 21, 'u': 23,
+    'i': 24, 'o': 26, 'p': 28, '[': 29, ']': 31,
+    // Upper octave sharps
+    '2': 13, '3': 15, '5': 18, '6': 20, '7': 22, '9': 25, '0': 27, '-': 30, '=': 32
+};
+
+function allQwertyNotesOff() {
+    Object.keys(activeQwertyNotes).forEach(n => {
+        const note = parseInt(n);
+        callNative("pianoNoteOff", note);
+        const keyOffset = note - (octaveShift * 12);
+        const keyEl = document.querySelector(`.key[data-note="${keyOffset}"]`);
+        if (keyEl) keyEl.classList.remove('pushed');
+    });
+    for (let key in activeQwertyNotes) {
+        delete activeQwertyNotes[key];
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    // 1. Skip if user is typing in inputs or textareas
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // 2. Handle Ctrl/Cmd Shortcuts (Undo/Redo)
+    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        if (e.key === 'z' || e.key === 'Z') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                callNative("menuAction", "redo");
+            } else {
+                callNative("menuAction", "undo");
+            }
+        } else if (e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            callNative("menuAction", "redo");
+        }
+        return;
+    }
+
+    // 3. Skip other modifier key presses to allow default OS actions
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+    }
+
+    // 4. Handle Octave Shifting
+    if (e.key === '`') {
+        e.preventDefault();
+        qwertyBaseNote = Math.max(12, qwertyBaseNote - 12);
+        allQwertyNotesOff();
+        return;
+    }
+    if (e.key === '1') {
+        e.preventDefault();
+        qwertyBaseNote = Math.min(96, qwertyBaseNote + 12);
+        allQwertyNotesOff();
+        return;
+    }
+
+    // 5. Handle Note On
+    const keyChar = e.key.toLowerCase();
+    if (QWERTY_KEYS[keyChar] !== undefined) {
+        const note = qwertyBaseNote + QWERTY_KEYS[keyChar];
+        if (note >= 0 && note <= 127 && !activeQwertyNotes[note]) {
+            e.preventDefault();
+            activeQwertyNotes[note] = true;
+            callNative("pianoNoteOn", note, 0.8);
+            
+            // Visual feedback on the onscreen keyboard if matching current octave layout
+            const keyOffset = note - (octaveShift * 12);
+            const keyEl = document.querySelector(`.key[data-note="${keyOffset}"]`);
+            if (keyEl) keyEl.classList.add('pushed');
+        }
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    // Skip if user is typing in inputs or textareas
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    const keyChar = e.key.toLowerCase();
+    if (QWERTY_KEYS[keyChar] !== undefined) {
+        const note = qwertyBaseNote + QWERTY_KEYS[keyChar];
+        if (activeQwertyNotes[note]) {
+            e.preventDefault();
+            delete activeQwertyNotes[note];
+            callNative("pianoNoteOff", note);
+            
+            // Remove visual highlight
+            const keyOffset = note - (octaveShift * 12);
+            const keyEl = document.querySelector(`.key[data-note="${keyOffset}"]`);
+            if (keyEl) keyEl.classList.remove('pushed');
+        }
+    }
+});
+
+// ==========================================
+// NEW: DYNAMIC PERFORMANCE TABS & SKINS LFO
+// ==========================================
+
+function switchPerformanceTab(tabName) {
+    // 1. Update buttons active state
+    document.querySelectorAll('.perf-tab-btn').forEach(btn => {
+        const isTarget = btn.id === 'tab-btn-' + tabName;
+        btn.classList.toggle('active', isTarget);
+    });
+
+    // 2. Update panel contents visibility
+    document.querySelectorAll('.perf-tab-content').forEach(panel => {
+        const isTarget = panel.id === 'panel-' + tabName;
+        panel.classList.toggle('hidden', !isTarget);
+    });
+}
+
+function updateThemeAndSkins() {
+    const profileVal = paramValuesCache['calibrationProfile'] !== undefined ? paramValuesCache['calibrationProfile'] : 2.0;
+
+    let targetModel = 0; 
+    const backend = getBackend();
+    const initData = window.__JUCE__ ? window.__JUCE__.initialisationData : 
+                    (backend ? (backend.initialisationData || (typeof backend.getInitialisationData === 'function' ? backend.getInitialisationData() : null)) : null);
+    
+    if (initData && initData.targetModel !== undefined) {
+        targetModel = parseInt(initData.targetModel);
+    }
+
+    const appSpec = document.getElementById('active-model-spec');
+    
+    document.body.removeAttribute('data-theme');
+    
+    let skinTheme = "juno-106";
+    let labelText = "SUPER SIX HYBRID";
+
+    if (targetModel === 1) {
+        skinTheme = "juno-106";
+        labelText = "JUNO-106 MODE";
+    } else if (targetModel === 2) {
+        skinTheme = "juno-60";
+        labelText = "JUNO-60 MODE";
+    } else if (targetModel === 3) {
+        skinTheme = "juno-6";
+        labelText = "JUNO-6 MODE";
+    } else {
+        labelText = "SUPER SIX HYBRID";
+        const skinVal = paramValuesCache['skinType'] !== undefined ? paramValuesCache['skinType'] : 0.0;
+        const themesMap = {
+            0: 'classic',
+            1: 'juno-60',
+            2: 'juno-6',
+            3: 'juno-106',
+            4: 'dark-106s',
+            5: 'tr-808',
+            6: 'deepmind',
+            7: 'space-echo',
+            8: 'arp-2600'
+        };
+        skinTheme = themesMap[Math.round(skinVal)] || 'classic';
+
+        if (profileVal === 0.0) {
+            labelText = "SUPER SIX (JUNO-6 PROFILE)";
+        } else if (profileVal === 1.0) {
+            labelText = "SUPER SIX (JUNO-60 PROFILE)";
+        } else if (profileVal === 2.0) {
+            labelText = "SUPER SIX (JUNO-106 PROFILE)";
+        } else {
+            labelText = "SUPER SIX (HYBRID MODE)";
+        }
+    }
+
+    document.body.setAttribute('data-theme', skinTheme);
+    if (appSpec) appSpec.innerText = labelText;
+
+    document.querySelectorAll('.painter-tape').forEach(tape => {
+        tape.classList.toggle('hidden', targetModel !== 0);
+        if (profileVal === 3.0) {
+            tape.style.pointerEvents = 'auto';
+            tape.style.cursor = 'pointer';
+        } else {
+            tape.style.pointerEvents = 'none';
+            tape.style.cursor = 'default';
+        }
+    });
+
+    const btnArp = document.getElementById('tab-btn-arp');
+    const btnPort = document.getElementById('tab-btn-port');
+    const btnPoly = document.getElementById('tab-btn-poly');
+
+    if (targetModel === 1) { // J106 VST
+        if (btnArp) btnArp.classList.add('hidden');
+        if (btnPort) btnPort.classList.remove('hidden');
+        if (btnPoly) btnPoly.classList.remove('hidden');
+    } else if (targetModel === 2 || targetModel === 3) { // J60/J6 VST
+        if (btnArp) btnArp.classList.remove('hidden');
+        if (btnPort) btnPort.classList.add('hidden');
+        if (btnPoly) btnPoly.classList.add('hidden');
+    } else { // Super SIX VST (targetModel === 0)
+        if (profileVal === 0.0 || profileVal === 1.0) { // J6 or J60 profile
+            if (btnArp) btnArp.classList.remove('hidden');
+            if (btnPort) btnPort.classList.add('hidden');
+            if (btnPoly) btnPoly.classList.add('hidden');
+        } else if (profileVal === 2.0) { // J106 profile
+            if (btnArp) btnArp.classList.add('hidden');
+            if (btnPort) btnPort.classList.remove('hidden');
+            if (btnPoly) btnPoly.classList.remove('hidden');
+        } else { // SUPER SIX (profileVal === 3.0)
+            if (btnArp) btnArp.classList.remove('hidden');
+            if (btnPort) btnPort.classList.remove('hidden');
+            if (btnPoly) btnPoly.classList.remove('hidden');
+        }
+    }
+
+    // Hide/show the ROUTING tab button in settings
+    const tabRoutingBtn = document.querySelector('button[onclick="switchTab(\'routing\')"]');
+    if (tabRoutingBtn) {
+        if (profileVal === 3.0) {
+            tabRoutingBtn.style.display = '';
+        } else {
+            tabRoutingBtn.style.display = 'none';
+        }
+    }
+
+    const activeTabBtn = document.querySelector('.perf-tab-btn.active');
+    if (activeTabBtn && activeTabBtn.classList.contains('hidden')) {
+        switchPerformanceTab('voltune');
+    }
+}
+
+function updatePainterTapes() {
+    const getVal = (paramId) => {
+        const el = document.querySelector(`[data-param="${paramId}"]`);
+        return el ? parseFloat(el.value) : 1.0;
+    };
+
+    const formatTape = (module, val) => {
+        const tape = document.getElementById('tape-' + module);
+        if (!tape) return;
+        
+        // Scope the selected model value to the parent module block in HTML
+        const moduleEl = document.getElementById(module);
+        if (moduleEl) {
+            moduleEl.setAttribute('data-model', val.toString());
+        }
+        
+        tape.classList.remove('tape-j6', 'tape-j60', 'tape-j106');
+        if (val === 0) {
+            tape.classList.add('tape-j6');
+        } else if (val === 0.5) {
+            tape.classList.add('tape-j60');
+        } else {
+            tape.classList.add('tape-j106');
+        }
+
+        let txt = '';
+        if (module === 'lfo') {
+            txt = val === 0 ? "J6 (Analog)" : (val === 0.5 ? "J60 (LFO)" : "J106 (uPD7811)");
+        } else if (module === 'dco') {
+            txt = val === 0 ? "J6 (DCO)" : (val === 0.5 ? "J60 (DCO)" : "J106 (8253)");
+        } else if (module === 'hpf') {
+            txt = val === 0 ? "J6 (Cont)" : (val === 0.5 ? "J60 (122Hz)" : "J106 (Boost)");
+        } else if (module === 'vcf') {
+            txt = val === 0 ? "J6 (IR3109)" : (val === 0.5 ? "J60 (IR3109)" : "J106 (80017A)");
+        } else if (module === 'vca') {
+            txt = val === 0 ? "J6 (Shockley)" : (val === 0.5 ? "J60 (Shockley)" : "J106 (Boaris)");
+        } else if (module === 'env') {
+            txt = val === 0 ? "J6 (Analog RC)" : (val === 0.5 ? "J60 (RC)" : "J106 (Linear)");
+        } else if (module === 'chorus') {
+            txt = val === 0 ? "J6 (BBD)" : (val === 0.5 ? "J60 (MN3009)" : "J106 (Hiss)");
+        }
+        tape.innerText = txt;
+    };
+
+    formatTape('lfo', getVal('modelPoly'));
+    formatTape('dco', getVal('modelDCO'));
+    formatTape('hpf', getVal('modelHPF'));
+    formatTape('vcf', getVal('modelVCF'));
+    formatTape('vca', getVal('modelPoly'));
+    formatTape('env', getVal('modelADSR'));
+    formatTape('chorus', getVal('modelChorus'));
+}
+
+// Click listener to filter calibration modal
+document.querySelectorAll('.painter-tape').forEach(tape => {
+    tape.addEventListener('click', (e) => {
+        const module = tape.getAttribute('data-module').toLowerCase();
+        showGlobalSettings('calibration');
+        
+        setTimeout(() => {
+            document.querySelectorAll('.service-section').forEach(sec => {
+                const title = sec.querySelector('.service-cat-header span');
+                if (title) {
+                    const catName = title.innerText.toLowerCase();
+                    let match = catName.includes(module);
+                    if (module === 'env' && catName.includes('adsr')) {
+                        match = true;
+                    }
+                    sec.style.display = match ? 'block' : 'none';
+                    if (match) {
+                        const selectEl = sec.querySelector('.model-selector-row select, select');
+                        if (selectEl) selectEl.focus();
+                    }
+                }
+            });
+            const listContainer = document.getElementById('service-params-list');
+            if (listContainer) listContainer.scrollTop = 0;
+        }, 100);
+    });
+});
+
+// --- REPAIR EASTER EGG SEQUENCE ---
+let repairSequenceRunning = false;
+function startRepairSequence() {
+    if (repairSequenceRunning) return;
+    repairSequenceRunning = true;
+
+    // 1. Close About modal
+    hideAbout();
+
+    const app = document.getElementById('synth-app');
+    const overlay = document.getElementById('repair-bg-overlay');
+    const slide1 = document.getElementById('repair-bg-1');
+    const slide2 = document.getElementById('repair-bg-2');
+    const slide3 = document.getElementById('repair-bg-3');
+
+    if (!app || !overlay || !slide1 || !slide2 || !slide3) {
+        console.error("Repair overlay or app elements not found!");
+        repairSequenceRunning = false;
+        return;
+    }
+
+    // Disable all pointer events on the app to prevent control interaction
+    app.style.pointerEvents = 'none';
+
+    // Reset classes and slides
+    app.classList.remove('repair-stage-0', 'repair-stage-1', 'repair-stage-2');
+    slide1.classList.remove('visible');
+    slide2.classList.remove('visible');
+    slide3.classList.remove('visible');
+
+    // T = 0s: Fade out chassis panels, show interior.jpg (Slide 1)
+    app.classList.add('repair-stage-0');
+    overlay.classList.add('active');
+    slide1.classList.add('visible');
+
+    // T = 2.5s: Fade out handles, LEDs, screens, keyboard, right buttons, show interior_2.jpg (Slide 2)
+    setTimeout(() => {
+        app.classList.add('repair-stage-1');
+        slide1.classList.remove('visible');
+        slide2.classList.add('visible');
+    }, 2500);
+
+    // T = 5.0s: Fade out sidebar buttons, show interior_3.jpg (Slide 3)
+    setTimeout(() => {
+        app.classList.add('repair-stage-2');
+        slide2.classList.remove('visible');
+        slide3.classList.add('visible');
+    }, 5000);
+
+    // T = 8.5s (Wait 3.5 seconds): Re-assemble sidebar buttons, show interior_2.jpg (Slide 2)
+    setTimeout(() => {
+        app.classList.remove('repair-stage-2');
+        slide3.classList.remove('visible');
+        slide2.classList.add('visible');
+    }, 8500);
+
+    // T = 11.0s: Re-assemble handles, LEDs, screens, keyboard, right buttons, show interior.jpg (Slide 1)
+    setTimeout(() => {
+        app.classList.remove('repair-stage-1');
+        slide2.classList.remove('visible');
+        slide1.classList.add('visible');
+    }, 11000);
+
+    // T = 13.5s: Re-assemble chassis panels, restore theme background, fade out overlay
+    setTimeout(() => {
+        app.classList.remove('repair-stage-0');
+        slide1.classList.remove('visible');
+        overlay.classList.remove('active');
+
+        // T = 14.7s: Restore pointer events after everything has faded back in
+        setTimeout(() => {
+            app.style.pointerEvents = 'auto';
+            repairSequenceRunning = false;
+        }, 1200);
+
+    }, 13500);
+}
+
