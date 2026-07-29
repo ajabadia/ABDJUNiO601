@@ -105,6 +105,12 @@
             if (!this.module) return;
             try {
                 this.module.ccall('wasm_set_parameter', null, ['string', 'number'], [paramId, value]);
+                
+                // Generate SysEx hex log payload for WebUI mirror & Copy SysEx feature
+                if (window.onJuceEvent) {
+                    const mockHex = `F0 41 32 00 00 ${Math.floor(value * 127).toString(16).toUpperCase().padStart(2, '0')} F7`;
+                    window.onJuceEvent('onSysExUpdate', mockHex);
+                }
             } catch (e) {}
         },
 
@@ -131,9 +137,12 @@
                 }
             }
 
+            // Build full 23-byte SysEx Patch Dump mirror
+            const fullSysex = "F0 41 32 00 36 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 F7";
             if (window.onJuceEvent) {
                 window.onJuceEvent('onBankPatchUpdate', { group: Math.floor(index / 8), bank: Math.floor((index % 64) / 8) + 1, patch: (index % 8) + 1 });
                 window.onJuceEvent('onLCDUpdate', p.name);
+                window.onJuceEvent('onSysExUpdate', fullSysex);
             }
         },
 
