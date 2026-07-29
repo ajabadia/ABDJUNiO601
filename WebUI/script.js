@@ -404,7 +404,9 @@ function initApp() {
 
     // Load calibration settings on startup to sync skin theme and profile label
     if (window.ServiceMode && typeof window.ServiceMode.refreshParams === 'function') {
-        window.ServiceMode.refreshParams().then(() => {
+        window.ServiceMode.refreshParams().catch(err => {
+            console.warn("[Bridge] Calibration params deferred or unavailable:", err);
+        }).finally(() => {
             updateThemeAndSkins();
             updatePainterTapes();
         });
