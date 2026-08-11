@@ -1,0 +1,20 @@
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\BUILD_J60\CMAKEFILES\01EEA599A014A981B99A31F6D375ADCA\JUCEHEADER.H.RULE
+setlocal
+_juce\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe header D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/ABDSimpleJuno106_artefacts/JuceLibraryCode/Release/Defs.txt D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/ABDSimpleJuno106_artefacts/JuceLibraryCode/JuceHeader.h
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\DESARROLLOS\ABDSYNTHS\ABDJUNIO601\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/desarrollos/ABDSynths/ABDJUNiO601 -BD:/desarrollos/ABDSynths/ABDJUNiO601/build_j60 --check-stamp-file D:/desarrollos/ABDSynths/ABDJUNiO601/build_j60/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

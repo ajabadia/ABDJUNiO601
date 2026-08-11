@@ -5,10 +5,11 @@
 using namespace JunoConstants;
 
 JunoEngine::JunoEngine()
-    : arpeggiator(std::make_unique<JunoArpeggiator>())
+    : arpeggiator(std::make_unique<JunoArpeggiator>()),
+      chorusNoiseGen(6789),
+      masterNoiseGen(9876)
 {
-    auto coeffs = juce::dsp::IIR::Coefficients<float>(1.0f, -1.0f, 1.0f, -0.995f);
-    dcBlocker.state = &coeffs;
+    dcBlocker.state = juce::dsp::IIR::Coefficients<float>::makeHighPass((double)44100.0, 10.0);
 }
 
 void JunoEngine::prepare(double sr, int maxBlockSize)

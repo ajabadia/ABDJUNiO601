@@ -1,0 +1,175 @@
+/* --- SIDEBAR PANEL with Navigation and Patches --- */
+
+#sidebar-panel {
+    width: var(--sidebar-width);
+    background: transparent;
+    border-right: 3px solid var(--black);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-top-section {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.nav-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+}
+
+.nav-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-lbl-mini {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+}
+
+#preset-list-mini {
+    flex: 1;
+    min-height: 80px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--black);
+    border-radius: 3px;
+    overflow-y: auto;
+    font-size: 10px;
+    padding: 5px;
+    color: #0f0;
+    font-family: 'Microgramma', 'Fragment Mono', monospace;
+}
+
+.nav-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.nav-arrow {
+    height: 28px;
+    background: var(--metal-highlight);
+    border: 1px solid var(--black);
+    color: #aaa;
+    font-size: 9px;
+    font-weight: 900;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.bank-footer-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--black);
+}
+
+.juno-btn {
+    height: 30px;
+    background: #333;
+    border: 1px solid var(--black);
+    color: #eee;
+    font-size: 8px;
+    font-weight: 900;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.util-grid-4x2 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px 8px;
+    /* Reduced from 15px */
+    padding: 0px 0 5px;
+    /* Reduced from 10px */
+}
+
+.util-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.util-lbl-mini {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+}
+
+.util-lbl-mini.top {
+    margin-bottom: 2px;
+}
+
+.util-lbl-mini.bot {
+    margin-top: 2px;
+}
+
+.patch-grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.patch-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.num-grid-8 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 15px 8px;
+    margin-top: 5px;
+}
+
+.patch-lbl-mini {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--white);
+    text-align: center;
+}
+
+.patch-lbl-mini.top {
+    margin-bottom: 2px;
+}
+
+.patch-lbl-mini.bot {
+    margin-top: 2px;
+}
+
+.shadow-grid {
+    padding: 5px 8px;
+    /* Reduced from 10px */
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.num-btn[data-active="true"] {
+    background: linear-gradient(to bottom, #ccc, #888);
+    color: var(--black);
+}
+
+.juno-btn[data-active="true"] {
+    background: var(--juno-blue);
+    color: var(--white);
+}

@@ -78,8 +78,8 @@ The script:
 
 | File | Description |
 |---|---|
-| `WebUI/wasm/abdjunio601_wasm.js` | ES module loader + JS glue (~2.5 kB) |
-| `WebUI/wasm/abdjunio601_wasm.wasm` | Compiled WASM binary (~1.5 MB compiled, gzip ~250 kB) |
+| `WebUI/wasm/abdjunio601_wasm.js` | ES module loader + JS glue (11.5 KB) |
+| `WebUI/wasm/abdjunio601_wasm.wasm` | Compiled WASM binary (147 KB) |
 
 ### Rebuild (fast path)
 

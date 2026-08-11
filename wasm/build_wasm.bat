@@ -65,6 +65,6 @@ if %ERRORLEVEL% NEQ 0 (
 echo.
 echo ========================================
 echo  Build complete!
-echo  Output: WebUI\wasm\abdjunio601_wasm.js
-echo          WebUI\wasm\abdjunio601_wasm.wasm
+echo  Output: Source\UI\WebUI\wasm\abdjunio601_wasm.js
+echo          Source\UI\WebUI\wasm\abdjunio601_wasm.wasm
 echo ========================================

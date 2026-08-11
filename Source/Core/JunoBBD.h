@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <JuceHeader.h>
 #include <vector>
 #include <cmath>
@@ -153,6 +153,6 @@ namespace JunoDSP
         double sampleRate = 44100.0;
         
         juce::dsp::IIR::Filter<float> lpFilter;
-        juce::Random random;
+        juce::Random random { 24680 };
     };
 }

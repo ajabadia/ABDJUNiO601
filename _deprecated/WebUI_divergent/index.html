@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ABD JUNiO 601 - Gold Standard</title>
+    <!-- Immediate black background to prevent white flash during bridge initialization -->
+    <style>
+        html, body { background-color: #111 !important; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        .hidden { display: none !important; }
+        #modal-saveas { z-index: 20000 !important; }
+        .record-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #f00;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 5px #f00;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .recording .record-dot {
+            opacity: 1;
+            animation: record-blink 1s infinite linear;
+        }
+        @keyframes record-blink {
+            0% { opacity: 1; box-shadow: 0 0 8px #f00; }
+            50% { opacity: 0.1; box-shadow: 0 0 2px #f00; }
+    </style>
+    <script src="js/wasm_bridge_audio.js"></script>
+    <script src="js/wasm_bridge_synth.js"></script>
+    <script src="js/wasm_bridge.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="service.css">
+    <link rel="stylesheet" href="browser.css">
+</head>
+
+<body class="smooth-fade">
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>ABD JUNiO 601</h1>
+            <div id="splash-version-info" class="splash-version">Version 1.2.0 (Build Loading...)</div>
+            <div class="splash-credit">Built by ABD-IA</div>
+        </div>
+    </div>
+
+    <div id="synth-app">
+        <!-- Repair Overlay Easter Egg -->
+        <div id="repair-bg-overlay">
+            <div class="repair-bg-slide" id="repair-bg-1" style="background-image: url('interior.jpg');"></div>
+            <div class="repair-bg-slide" id="repair-bg-2" style="background-image: url('interior_2.jpg');"></div>
+            <div class="repair-bg-slide" id="repair-bg-3" style="background-image: url('interior_3.jpg');"></div>
+        </div>
+
+        <!-- 1. TOP BAR (FULL MENU) -->
+        <header id="top-bar">
+            <div class="menu-nav">
+                <div class="menu-item">
+                    File
+                    <ul class="dropdown">
+                        <li onclick="juce.menuAction('showBrowser')">Preset Browser...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('handleImportSysex')">Import SysEx / JNO...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('exit')">Exit</li>
+                    </ul>
+                </div>
+                <div class="menu-item">
+                    Edit
+                    <ul class="dropdown">
+                        <li onclick="juce.menuAction('undo')">Undo</li>
+                        <li onclick="juce.menuAction('redo')">Redo</li>
+                        <li class="divider"></li>
+                        <li onclick="copySysExToClipboard()">Copy SysEx Data</li>
+                        <li onclick="juce.menuAction('handleRandomize')">Randomize Sound</li>
+                        <li onclick="juce.menuAction('panic')">Panic (All Notes Off)</li>
+                        <li class="divider"></li>
+                        <li id="menu-midi-tx" onclick="juce.menuAction('toggleMidiOut')">
+                            MIDI TX <span class="check-mark">✔</span>
+                        </li>
+                        <li class="divider"></li>
+                        <li onclick="switchTab('general'); showGlobalSettings('general')">General Settings...</li>
+                    </ul>
+                </div>
+                <div class="menu-item">
+                    Service
+                    <ul class="dropdown">
+                        <li onclick="switchTab('calibration'); showGlobalSettings('calibration')">Calibration Settings...</li>
+                        <li onclick="switchTab('diagnostics'); showGlobalSettings('diagnostics')">Voice Diagnostics...</li>
+                        <li class="divider"></li>
+                        <li onclick="juce.menuAction('handleAbout')">About ABD JUNiO 601...</li>
+                    </ul>
+                </div>
+                <div class="menu-item" onclick="showBrowser()" style="color: var(--juno-blue); font-weight: bold; margin-left: 20px;">[ BROWSER ]</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px; margin-right: 10px;">
+                <button id="wasm-audio-toggle-btn" class="topbar-audio-btn" style="background:#1e1e1e;border:1px solid #00ffcc;color:#00ffcc;font-family:monospace;font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:bold;transition:all 0.2s ease;">🔊 WEB AUDIO: ON</button>
+                <select id="model-profile-select" data-ctrl-tooltip="Select voice-card personality profile">
+                    <option value="0">JUNO-6</option>
+                    <option value="1">JUNO-60</option>
+                    <option value="2">JUNO-106</option>
+                    <option value="3" selected>SUPER SIX HYBRID</option>
+                </select>
+                <div id="active-model-spec" class="model-spec-badge">SUPER SIX HYBRID</div>
+                <div id="app-title-mini">ABD JUNiO 601</div>
+            </div>
+        </header>
+
+        <!-- 2. HEADER: DISPLAY, LCD, SYSEX -->
+        <div id="header-panel">
+            <div id="top-left-display">
+                <div class="zone-label">BANK / PATCH</div>
+                <div class="display-with-telemetry" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="front-midi-badge" id="front-midi-badge"></div>
+                    <div id="seven-segment-display">
+                        <div class="digit" id="bank-digit">A</div>
+                        <div class="digit" id="patch-digit-1">1</div>
+                        <div class="digit" id="patch-digit-2">1</div>
+                    </div>
+                </div>
+            </div>
+            <div id="protect-zone">
+                <div class="zone-label-mini">PROTECT</div>
+                <button class="sq beige tiny-util" id="protect-btn" data-param="memoryProtect" data-active="true"></button>
+            </div>
+
+            <div id="lcd-bezel">
+                <div id="lcd-screen">
+                    <span id="lcd-text">INITIAL PATCH</span>
+                </div>
+            </div>
+
+            <div id="sysex-zone">
+                <div class="sysex-copy-column">
+                    <div class="zone-label-mini">COPY SYX</div>
+                    <button class="sq beige tiny-util" id="copy-syx-btn" onclick="copySysExToClipboard()"></button>
+                </div>
+                <div class="sysex-display-col">
+                    <div class="zone-label">SYSEX STREAM</div>
+                    <div id="sysex-log" class="styled-scroll"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CONTENT AREA: SIDEBAR + (ENGINE + KBD) -->
+        <div id="content-row">
+            <!-- SIDEBAR: BANK & PERFORMANCE -->
+            <aside id="sidebar-panel">
+                <section class="sidebar-top-section">
+
+                    <div class="nav-row">
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">BK-</div>
+                            <button class="sq beige nav-arrow" id="bank-dec"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">BK+</div>
+                            <button class="sq beige nav-arrow" id="bank-inc"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">PT-</div>
+                            <button class="sq beige nav-arrow" id="patch-dec"></button>
+                        </div>
+                        <div class="nav-unit">
+                            <div class="nav-lbl-mini">PT+</div>
+                            <button class="sq beige nav-arrow" id="patch-inc"></button>
+                        </div>
+                    </div>
+
+                    <div class="patch-grid-container">
+                        <div class="num-grid-8 patch-grid shadow-grid">
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">1</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="0"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">2</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="1"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">3</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="2"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <div class="patch-lbl-mini top">4</div>
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="3"></button>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="4"></button>
+                                <div class="patch-lbl-mini bot">5</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="5"></button>
+                                <div class="patch-lbl-mini bot">6</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="6"></button>
+                                <div class="patch-lbl-mini bot">7</div>
+                            </div>
+                            <div class="patch-unit">
+                                <button class="num-btn sq patch-blue patch-btn" data-bank="7"></button>
+                                <div class="patch-lbl-mini bot">8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Utility Buttons 4x2 Grid -->
+                    <div class="util-grid-4x2">
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">MANUAL</div>
+                            <button class="sq orange" id="manual-btn" data-action="handleManual"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">WRITE</div>
+                            <button class="sq orange" id="write-btn" data-action="handleWriteArm"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">SAVE</div>
+                            <button class="sq grey" id="save-patch-btn" data-action="handleSave"></button>
+                        </div>
+                        <div class="util-unit">
+                            <div class="util-lbl-mini top">VERIFY</div>
+                            <button class="sq grey" id="verify-patch-btn" data-action="handleExportBank"></button>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="load-patch-btn" data-action="handleLoad"></button>
+                            <div class="util-lbl-mini bot">LOAD</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="random-btn" data-action="handleRandomize"></button>
+                            <div class="util-lbl-mini bot">RANDOM</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq red" id="panic-btn" data-action="panic"></button>
+                            <div class="util-lbl-mini bot">PANIC</div>
+                        </div>
+                        <div class="util-unit">
+                            <button class="sq grey" id="test-btn" data-action="handleTest"></button>
+                            <div class="util-lbl-mini bot">TEST</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ROW 1: TABBED PERFORMANCE PANEL -->
+                <section class="performance-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <div class="sunken-performance-panel" style="margin-top: 0;">
+                        <div class="performance-tabs">
+                            <div class="perf-tab-btn active" id="tab-btn-voltune" onclick="switchPerformanceTab('voltune')">
+                                VOL/TUNE
+                            </div>
+                            <div class="perf-tab-btn" id="tab-btn-port" onclick="switchPerformanceTab('port')">
+                                <div class="tab-led" id="led-tab-port"></div>
+                                PORTA
+                            </div>
+                            <div class="perf-tab-btn" id="tab-btn-poly" onclick="switchPerformanceTab('poly')">
+                                <div class="tab-led" id="led-tab-poly1" style="left: 30%;"></div>
+                                <div class="tab-led" id="led-tab-poly2" style="left: 70%;"></div>
+                                POLY
+                            </div>
+                            <div class="perf-tab-btn" id="tab-btn-arp" onclick="switchPerformanceTab('arp')">
+                                <div class="tab-led" id="led-tab-arp"></div>
+                                ARP
+                            </div>
+                        </div>
+
+                        <!-- Sub Panels -->
+                        <div class="perf-tab-content" id="panel-voltune">
+                            <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
+                                <div class="knob-unit" data-param="masterVolume" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <span class="knob-lbl">VOLUME</span>
+                                    <div class="knob-ring">
+                                        <div class="knob"></div>
+                                    </div>
+                                </div>
+                                <div class="knob-unit" data-param="tune" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <span class="knob-lbl">TUNE</span>
+                                    <div class="knob-ring">
+                                        <div class="knob" style="transform: translateX(-50%) rotate(0deg);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perf-tab-content hidden" id="panel-port">
+                            <div style="display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; padding-top: 20px;">
+                                <div class="knob-unit" data-param="portamentoTime" style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none;">
+                                    <span class="knob-lbl">TIME</span>
+                                    <div class="knob-ring">
+                                        <div class="knob"></div>
+                                    </div>
+                                </div>
+                                <div class="port-col" style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none;">
+                                    <div class="sw-lbl" style="margin-bottom: 0;">ON/OFF</div>
+                                    <div class="sw-unit" data-param="portamentoOn" style="height: 60px !important; margin-top: 0; width: 50px; display: flex; justify-content: center; align-items: center;">
+                                        <div class="sw-path" style="height: 54px; width: 30px;">
+                                            <div class="sw-peg" style="height: 54px; width: 30px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perf-tab-content hidden" id="panel-poly">
+                            <div class="poly-col" style="align-items: center; justify-content: center; display: flex; flex-direction: column; width: 100%;">
+                                <div class="sw-lbl" style="font-size: 8px;">POLY MODE</div>
+                                <div class="poly-buttons" style="margin-top: 8px;">
+                                    <div class="poly-unit">
+                                        <button class="sq beige poly-mode-btn" data-poly-val="0.5"></button>
+                                        <div class="poly-lit">I</div>
+                                    </div>
+                                    <div class="poly-unit">
+                                        <button class="sq beige poly-mode-btn" data-poly-val="1.0"></button>
+                                        <div class="poly-lit">II</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perf-tab-content hidden" id="panel-arp" style="gap: 5px; padding-top: 10px;">
+                            <div style="display: flex; gap: 20px; align-items: center; justify-content: center; width: 100%;">
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
+                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">ON/OFF</div>
+                                    <div class="led" id="led-arpEnabled" style="margin-bottom: 2px;"></div>
+                                    <button class="sq orange" data-param="arpEnabled"></button>
+                                </div>
+                                <div class="unit" style="display: flex; flex-direction: column; align-items: center; height: auto !important; gap: 4px; flex: none;">
+                                    <div class="btn-lbl" style="font-size: 8.5px; color: #fff;">SYNC</div>
+                                    <div class="led" id="led-arpSync" style="margin-bottom: 2px;"></div>
+                                    <button class="sq orange" data-param="arpSync"></button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; justify-content: center; align-items: flex-start; width: 100%; margin-top: 15px;">
+                                <!-- MODE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">MODE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpMode">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                        <span class="knob-tick-lbl pos-left">UP</span>
+                                        <span class="knob-tick-lbl pos-center">DN</span>
+                                        <span class="knob-tick-lbl pos-right">U/D</span>
+                                    </div>
+                                </div>
+                                <!-- RANGE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">RANGE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpRange">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                        <span class="knob-tick-lbl pos-left">1</span>
+                                        <span class="knob-tick-lbl pos-center">2</span>
+                                        <span class="knob-tick-lbl pos-right">3</span>
+                                    </div>
+                                </div>
+                                <!-- RATE -->
+                                <div class="knob-column" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 68px;">
+                                    <span class="knob-lbl" style="font-size: 8px;">RATE</span>
+                                    <div class="knob-tick-wrapper" data-param="arpRate" style="height: 52px;">
+                                        <div class="knob-ring">
+                                            <div class="knob"></div>
+                                        </div>
+                                    </div>
+                                    <span id="val-arpRate-perf" style="font-size: 8px; color: #fff; font-family: monospace; font-weight: bold; margin-top: -6px;">0.50</span>
+                                </div>
+                            </div>
+                    </div>
+                    </div>
+
+                    <!-- ROW 3: DEDICATED OCTAVE ZONE -->
+                    <div class="perf-octave-zone" style="margin-top: auto;">
+                        <span class="oct-lbl col-1">OCT -</span>
+                        <button class="sq grey oct-btn down col-2" data-action="octaveDown"></button>
+                        <button class="sq grey oct-btn up col-3" data-action="octaveUp"></button>
+                        <span class="oct-lbl col-4">OCT +</span>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- MAIN WORKING AREA -->
+            <div id="main-working-area">
+                <!-- ENGINE TOP ROW -->
+                <main id="engine-layout">
+                    <div class="engine-row">
+                        <section class="module" id="lfo">
+                            <div class="module-bar">LFO</div>
+                            <div class="painter-tape" data-module="lfo" id="tape-lfo">J106</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="lfoRate">
+                                    <div class="lbl">RATE</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="lfoDelay">
+                                    <div class="lbl">DELAY</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="dco">
+                            <div class="module-bar">DCO</div>
+                            <div class="painter-tape" data-module="dco" id="tape-dco">J106</div>
+                            <div class="controls">
+                                <div class="ctrl-group" id="dco-range">
+                                    <div class="lbl">RANGE</div>
+                                    <div class="btn-stack horizontal">
+                                        <div class="unit">
+                                            <div class="btn-lbl">16'</div>
+                                            <div class="led" id="led-dcoRange-0"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="0"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">8'</div>
+                                            <div class="led" id="led-dcoRange-1"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="0.5"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">4'</div>
+                                            <div class="led" id="led-dcoRange-2"></div>
+                                            <button class="sq range-btn beige" data-param="dcoRange"
+                                                data-val="1"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-lfo-pwm">
+                                    <div class="ctrl" data-param="lfoToDCO">
+                                        <div class="lbl">LFO</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="pwm">
+                                        <div class="lbl">PWM</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl">
+                                        <div class="lbl">MODE</div>
+                                        <div class="sw-unit small" data-param="pwmMode">
+                                            <div class="sw-lbl top">LFO</div>
+                                            <div class="sw-path">
+                                                <div class="sw-peg"></div>
+                                            </div>
+                                            <div class="sw-lbl bot">MAN</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-wave">
+                                    <div class="lbl">WAVE</div>
+                                    <div class="btn-stack horizontal">
+                                        <div class="unit">
+                                            <div class="btn-lbl">PULSE</div>
+                                            <div class="led" id="led-pulseOn"></div>
+                                            <button class="sq beige" data-param="pulseOn"></button>
+                                        </div>
+                                        <div class="unit">
+                                            <div class="btn-lbl">SAW</div>
+                                            <div class="led" id="led-sawOn"></div>
+                                            <button class="sq beige" data-param="sawOn"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="separator"></div>
+
+                                <div class="ctrl-group" id="dco-mix">
+                                    <div class="ctrl" data-param="subOsc">
+                                        <div class="lbl">SUB</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="noise">
+                                        <div class="lbl">NOISE</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module blue" id="hpf">
+                            <div class="module-bar">HPF</div>
+                            <div class="painter-tape" data-module="hpf" id="tape-hpf">J106</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="hpfFreq">
+                                    <div class="lbl">FREQ</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="engine-row">
+                        <section class="module" id="vcf">
+                            <div class="module-bar">VCF</div>
+                            <div class="painter-tape" data-module="vcf" id="tape-vcf">J106</div>
+                            <div class="controls">
+                                <div class="ctrl-group" id="vcf-core">
+                                    <div class="ctrl" data-param="vcfFreq">
+                                        <div class="lbl">FREQ</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="resonance">
+                                        <div class="lbl">RES</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ctrl-group center">
+                                    <div class="ctrl">
+                                        <div class="lbl">POL</div>
+                                        <div class="sw-unit small" data-param="vcfPolarity">
+                                            <div class="sw-lbl top">POS</div>
+                                            <div class="sw-path">
+                                                <div class="sw-peg"></div>
+                                            </div>
+                                            <div class="sw-lbl bot">NEG</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ctrl-group" id="vcf-mod">
+                                    <div class="ctrl" data-param="envAmount">
+                                        <div class="lbl">ENV</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="lfoToVCF">
+                                        <div class="lbl">LFO</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ctrl" data-param="kybdTracking">
+                                        <div class="lbl">KYBD</div>
+                                        <div class="v-slider">
+                                            <div class="track"></div>
+                                            <div class="handle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="vca">
+                            <div class="module-bar">VCA</div>
+                            <div class="painter-tape" data-module="vca" id="tape-vca">J106</div>
+                            <div class="controls">
+                                <div class="ctrl">
+                                    <div class="lbl">MODE</div>
+                                    <div class="sw-unit" data-param="vcaMode">
+                                        <div class="sw-lbl top">GATE</div>
+                                        <div class="sw-path">
+                                            <div class="sw-peg"></div>
+                                        </div>
+                                        <div class="sw-lbl bot">ENV</div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="vcaLevel">
+                                    <div class="lbl">LEVEL</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module" id="env">
+                            <div class="module-bar">ENVELOPE</div>
+                            <div class="painter-tape" data-module="env" id="tape-env">J106</div>
+                            <div class="controls">
+                                <div class="ctrl" data-param="attack">
+                                    <div class="lbl">A</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="decay">
+                                    <div class="lbl">D</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="sustain">
+                                    <div class="lbl">S</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                                <div class="ctrl" data-param="release">
+                                    <div class="lbl">R</div>
+                                    <div class="v-slider">
+                                        <div class="track"></div>
+                                        <div class="handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="module blue" id="chorus">
+                            <div class="module-bar">CHORUS</div>
+                            <div class="painter-tape" data-module="chorus" id="tape-chorus">J106</div>
+                            <div class="controls center">
+                                <div class="chorus-group-wrapper">
+                                    <div class="chorus-labels-row">
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">OFF</span>
+                                            <div class="off-line"></div>
+                                        </div>
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">I</span>
+                                            <div class="led" id="led-chorus1"></div>
+                                        </div>
+                                        <div class="chorus-col">
+                                            <span class="chorus-lbl">II</span>
+                                            <div class="led" id="led-chorus2"></div>
+                                        </div>
+                                    </div>
+                                    <div class="chorus-buttons-row">
+                                        <button class="sq beige" id="chorus-off-btn" data-active="true"></button>
+                                        <button class="sq orange" data-param="chorus1"></button>
+                                        <button class="sq orange" data-param="chorus2"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </main>
+
+                <!-- BOTTOM BAR: BENDER + KEYBOARD -->
+                <footer id="bottom-row">
+                    <section id="bender-section">
+                        <div class="bender-top-row">
+                            <div class="bender-sliders">
+                                <div class="b-pod" data-param="benderToDCO">
+                                    <span class="b-lbl-top">DCO</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                                <div class="b-pod" data-param="benderToVCF">
+                                    <span class="b-lbl-top">VCF</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                                <div class="b-pod" data-param="benderToLFO">
+                                    <span class="b-lbl-top">LFO</span>
+                                    <div class="b-track">
+                                        <div class="b-handle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lfo-trig-col">
+                                <div class="b-lbl-top">LFO TRIG</div>
+                                <button id="lfo-trig-btn" class="sq grey" data-action="handleLfoTrig"></button>
+                            </div>
+                        </div>
+
+                        <div class="bender-controls">
+                            <div id="stick-housing">
+                                <div id="bender-stick"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div id="keyboard-container">
+                        <div id="ivory-keys-bed"></div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODALS -->
+    <div id="modal-about" class="modal-overlay">
+        <div id="about-modal" class="about-modal">
+            <div class="about-header">
+                <span class="about-title">ABD JUNiO 601</span>
+                <div class="about-header-actions">
+                    <button id="about-repair-btn" class="repair-btn" onclick="startRepairSequence()">🔧</button>
+                    <button class="close-btn" onclick="hideAbout()">&times;</button>
+                </div>
+            </div>
+            <div class="about-content">
+                <div class="about-version">Version 1.2.0</div>
+                <p>A meticulous "Gold Standard" emulation of the classic 1982 analog poly-synth.</p>
+                <p>Precision-engineered for harmonic richness, thermal variance, and authentic BBD chorus character.</p>
+                <div class="about-credits">
+                    <div class="credit-line">Built by <span class="brand">ABD-IA</span></div>
+                    <div class="credit-desc">Gold Standard Recreation</div>
+                </div>
+            </div>
+            <div class="about-footer">
+                <button class="sq beige" onclick="hideAbout()">OK</button>
+            </div>
+        </div>
+    </div>
+    <!-- UNIFIED SETTINGS & CALIBRATION MODAL -->
+    <div id="modal-globalSettings" class="modal-overlay">
+        <div class="settings-container">
+            <div class="settings-header">
+                <span class="settings-title">SYSTEM SETTINGS</span>
+                <button class="close-btn" onclick="hideGlobalSettings()">&times;</button>
+            </div>
+
+            <div class="settings-tabs">
+                <button class="tab-btn active" onclick="switchTab('general')">GENERAL</button>
+                <button class="tab-btn" onclick="switchTab('calibration')">CALIBRATION</button>
+                <button class="tab-btn" onclick="switchTab('routing')">ROUTING</button>
+                <button class="tab-btn" onclick="switchTab('diagnostics')">DIAGNOSTICS</button>
+            </div>
+
+            <div class="settings-inner">
+                <div id="tab-general" class="settings-content active single-col">
+                    <div id="general-params-list" class="service-param-list styled-scroll"></div>
+                    
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>User Identity</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px; display: flex; flex-direction: column; align-items: flex-start;">
+                                <label style="font-size: 10px; color: #888; margin-bottom: 5px;">AUTHOR NAME (DEFAULT)</label>
+                                <input type="text" id="setting-userName" maxlength="20" placeholder="Your Name..." style="width: 100%; background: #111; border: 1px solid #333; color: #eee; padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>Microtuning (SCL)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('load')">LOAD .SCL</button>
+                                    <button class="tuning-btn" style="flex: 1;" onclick="handleTuningClick('reset')">RESET TUNING</button>
+                                </div>
+                                <div id="tuning-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Standard Tuning</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CALIBRATION PARAMS -->
+                <div id="tab-calibration" class="settings-content single-col">
+                    <div style="background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Calibration Parameters</span>
+                        <label style="font-size: 10px; display: flex; align-items: center; gap: 8px; color: var(--juno-orange); cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="chk-show-all-params" onchange="ServiceMode.toggleShowAllParams(this.checked)" style="cursor: pointer; accent-color: var(--juno-orange);">
+                            SHOW ALL (SUPER SIX MODE)
+                        </label>
+                    </div>
+                    <div id="service-params-list" style="padding-right: 15px;"></div>
+                    <div class="service-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                         <button class="tuning-btn primary" id="btn-auto-tune-cal" onclick="ServiceMode.startAutoTune()" style="background: #a50; color: white;">RUN AUTO-VCF TUNE</button>
+                    </div>
+
+                    <!-- DAC Hz Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>DAC Hz Table (J106DACHzTable)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-dac" onclick="handleDacTableClick('import')">IMPORT DAC TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-dac" onclick="handleDacTableClick('export')">EXPORT DAC TABLE (.CSV)</button>
+                                </div>
+                                <div id="dac-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (4096 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VCA Gain Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>VCA Gain Table (J106VCAGainTable)</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-vca" onclick="handleVcaTableClick('import')">IMPORT VCA TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-vca" onclick="handleVcaTableClick('export')">EXPORT VCA TABLE (.CSV)</button>
+                                </div>
+                                <div id="vca-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (256 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LFO Speed Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>LFO Speed Table</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-speed" onclick="handleLfoSpeedTableClick('import')">IMPORT LFO SPEED TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-speed" onclick="handleLfoSpeedTableClick('export')">EXPORT LFO SPEED TABLE (.CSV)</button>
+                                </div>
+                                <div id="lfo-speed-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (128 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LFO Ramp Table CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>LFO Ramp Table</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-lfo-ramp" onclick="handleLfoRampTableClick('import')">IMPORT LFO RAMP TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-lfo-ramp" onclick="handleLfoRampTableClick('export')">EXPORT LFO RAMP TABLE (.CSV)</button>
+                                </div>
+                                <div id="lfo-ramp-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (8 values)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Osc Level Curve CSV Import/Export -->
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-cat-header"><span>Sub-Osc Level Curve</span></div>
+                        <div class="service-param-grid" style="grid-template-columns: 1fr;">
+                            <div class="service-param-row" style="padding: 10px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-import-sub-level" onclick="handleSubLevelTableClick('import')">IMPORT SUB-OSC LEVEL TABLE (.CSV)</button>
+                                    <button class="tuning-btn" style="flex: 1;" id="btn-export-sub-level" onclick="handleSubLevelTableClick('export')">EXPORT SUB-OSC LEVEL TABLE (.CSV)</button>
+                                </div>
+                                <div id="sub-level-table-info" style="font-size: 11px; color: #888; text-align: center; margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">Default Factory Table (11 values)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: ENGINE MODEL ROUTING & ARPEGGIATOR -->
+                <div id="tab-routing" class="settings-content single-col">
+                    <div class="service-section">
+                        <div class="service-section-title">Engine Section Model Routing</div>
+                        
+                        <div class="setting-row">
+                            <label>DCO Model</label>
+                            <select data-param="modelDCO" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Classic Continuous DCO)</option>
+                                <option value="0.5">Juno-60 (Standard DCO)</option>
+                                <option value="1">Juno-106 (Hybrid DCO / Quartz Clock)</option>
+                            </select>
+                            <div class="val-lbl">DCO</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>HPF Model</label>
+                            <select data-param="modelHPF" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Continuous Slider HPF)</option>
+                                <option value="0.5">Juno-60 (Discrete 4-Position HPF)</option>
+                                <option value="1">Juno-106 (Discrete HPF with Active Bass Boost)</option>
+                            </select>
+                            <div class="val-lbl">HPF</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>VCF Model</label>
+                            <select data-param="modelVCF" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (IR3109 ResK & SoftClip)</option>
+                                <option value="0.5">Juno-60 (Classic IR3109 Filter)</option>
+                                <option value="1">Juno-106 (80017A Integrated Filter)</option>
+                            </select>
+                            <div class="val-lbl">VCF</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>ADSR Model</label>
+                            <select data-param="modelADSR" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Analog RC Curves)</option>
+                                <option value="0.5">Juno-60 (Analog RC Envelope)</option>
+                                <option value="1">Juno-106 (Digital uPD7811G Linear Ticks)</option>
+                            </select>
+                            <div class="val-lbl">ADSR</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Chorus Model</label>
+                            <select data-param="modelChorus" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Classic BBD Character)</option>
+                                <option value="0.5">Juno-60 (Wide Analog MN3009 BBD)</option>
+                                <option value="1">Juno-106 (Standard BBD Chorus & specific hiss)</option>
+                            </select>
+                            <div class="val-lbl">CHORUS</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arpeggiator Model</label>
+                            <select data-param="modelArp" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Analog Rate Osc & Schmitt Trigger)</option>
+                                <option value="0.5">Juno-60 (Standard Sync Clock Arpeggiator)</option>
+                                <option value="1">Juno-106 (No Arpeggiator / Disabled)</option>
+                            </select>
+                            <div class="val-lbl">ARP</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Voice Allocator</label>
+                            <select data-param="modelPoly" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (Rotary voicelimit direct)</option>
+                                <option value="0.5">Juno-60 (Classic rotary allocator)</option>
+                                <option value="1">Juno-106 (Digital allocator)</option>
+                            </select>
+                            <div class="val-lbl">POLY</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Portamento Model</label>
+                            <select data-param="modelPorta" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (No Portamento)</option>
+                                <option value="0.5">Juno-60 (No Portamento)</option>
+                                <option value="1">Juno-106 (Portamento Glide)</option>
+                            </select>
+                            <div class="val-lbl">PORTA</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Unison Model</label>
+                            <select data-param="modelUnison" onchange="updatePref(this)">
+                                <option value="0">Juno-6 (No Unison)</option>
+                                <option value="0.5">Juno-60 (No Unison)</option>
+                                <option value="1">Juno-106 (Unison Mode)</option>
+                            </select>
+                            <div class="val-lbl">UNISON</div>
+                        </div>
+                    </div>
+
+                    <div class="service-section" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <div class="service-section-title">Arpeggiator Settings</div>
+                        
+                        <div class="setting-row">
+                            <label>Arpeggiator Enable</label>
+                            <select data-param="arpEnabled" onchange="updatePref(this)">
+                                <option value="0">OFF</option>
+                                <option value="1">ON</option>
+                            </select>
+                            <div class="val-lbl">ARP</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Mode</label>
+                            <select data-param="arpMode" onchange="updatePref(this)">
+                                <option value="0">UP</option>
+                                <option value="0.5">DOWN</option>
+                                <option value="1">UP & DOWN</option>
+                            </select>
+                            <div class="val-lbl">MODE</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Range</label>
+                            <select data-param="arpRange" onchange="updatePref(this)">
+                                <option value="0">1 OCTAVE</option>
+                                <option value="0.5">2 OCTAVES</option>
+                                <option value="1">3 OCTAVES</option>
+                            </select>
+                            <div class="val-lbl">RANGE</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Rate (Free Run)</label>
+                            <input type="range" class="service-slider" data-param="arpRate" min="0" max="1" step="0.01" value="0.5" oninput="updatePref(this)">
+                            <div class="val-lbl" id="val-arpRate">0.50</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Sync to Host</label>
+                            <select data-param="arpSync" onchange="updatePref(this)">
+                                <option value="0">OFF (Free Run)</option>
+                                <option value="1">ON (Tempo Sync)</option>
+                            </select>
+                            <div class="val-lbl">SYNC</div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>Arp Time Division</label>
+                            <select data-param="arpDivision" onchange="updatePref(this)">
+                                <option value="0">1/1 (Whole Note)</option>
+                                <option value="0.125">1/2 (Half Note)</option>
+                                <option value="0.25">1/2T (Half Triplet)</option>
+                                <option value="0.375">1/4 (Quarter Note)</option>
+                                <option value="0.5">1/4T (Quarter Triplet)</option>
+                                <option value="0.625">1/8 (Eighth Note)</option>
+                                <option value="0.75">1/8T (Eighth Triplet)</option>
+                                <option value="0.875">1/16 (Sixteenth Note)</option>
+                                <option value="1">1/16T (Sixteenth Triplet)</option>
+                            </select>
+                            <div class="val-lbl">DIV</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: DIAGNOSTICS & TOOLS -->
+                <div id="tab-diagnostics" class="settings-content single-col">
+                    <div class="service-section">
+                        <div class="service-section-title">Voice Diagnostics</div>
+                        <div id="voice-test-grid" class="voice-test-grid"></div>
+                    </div>
+                    <div class="service-section" style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+                         <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="tuning-btn" id="btn-test-scale" onclick="ServiceMode.playTestScale()">PLAY TEST SCALE</button>
+                            <button class="tuning-btn" id="btn-record-audio" onclick="ServiceMode.toggleRecord()">
+                                <span class="record-dot"></span><span id="record-text">RECORD AUDIO</span>
+                            </button>
+                         </div>
+                          <button class="tuning-btn" onclick="ServiceMode.startSweep()">VCF SWEEP</button>
+                         <button class="tuning-btn" onclick="ServiceMode.exportCalibration()">EXPORT CALIBRATION JSON</button>
+                         <button class="tuning-btn" onclick="ServiceMode.importCalibration()">IMPORT CALIBRATION JSON</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-footer" style="gap: 15px; padding: 20px; border-top: 1px solid #222; background: rgba(0,0,0,0.2);">
+                <button class="tuning-btn" style="max-width: 180px; background: #600;" onclick="ServiceMode.resetCalibration()">FACTORY RESET</button>
+                <button class="tuning-btn" style="max-width: 140px; background: #333; font-size: 14px;" onclick="hideGlobalSettings()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal browser moved down -->
+
+    <div id="modal-browser" class="modal-overlay">
+        <div class="browser-container">
+            <div class="browser-header">
+                <div class="browser-title-zone">
+                    <span class="browser-title">PRESET BROWSER</span>
+                    <div id="browser-status-badges">
+                        <div class="badge-unit"><div class="badge" id="badge-lc">LC</div><div class="badge-lbl">MIDI</div></div>
+                        <div class="badge-unit"><div class="badge" id="badge-ab">A</div><div class="badge-lbl">SLOT</div></div>
+                        <div class="badge-unit"><div class="badge" id="badge-wip">0</div><div class="badge-lbl">WIP</div></div>
+                    </div>
+                </div>
+                <div class="browser-search-zone">
+                    <input type="text" id="browser-search" placeholder="Search presets, authors, tags...">
+                    <button class="close-btn" onclick="hideBrowser()">&times;</button>
+                </div>
+            </div>
+
+            <div class="browser-main">
+                <!-- PANE 1: CATEGORIES -->
+                <div class="browser-pane" id="pane-categories">
+                    <div class="pane-header">
+                        CATEGORIES
+                        <div class="pane-actions">
+                            <button class="icon-btn" onclick="PresetBrowser.addCategory()" title="Add Category">+</button>
+                            <button class="icon-btn" onclick="PresetBrowser.editCategory()" title="Edit Selected">✎</button>
+                            <button class="icon-btn" onclick="PresetBrowser.deleteCategory()" title="Delete Selected">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="cat-list" tabindex="0">
+                        <li class="active" data-cat="All">All</li>
+                        <li data-cat="Factory">Factory</li>
+                        <li data-cat="User">User</li>
+                        <li data-cat="WIP">WIP (Work in Progress)</li>
+                        <li data-cat="Favorites">Favorites</li>
+                    </ul>
+                </div>
+
+                <!-- PANE 2: LIBRARIES / BANKS -->
+                <div class="browser-pane" id="pane-libraries">
+                    <div class="pane-header">
+                        LIBRARIES / BANKS
+                        <div class="pane-actions">
+                            <button class="icon-btn" onclick="PresetBrowser.addLibrary()" title="Add Library">+</button>
+                            <button class="icon-btn" id="lib-edit-btn" onclick="PresetBrowser.editLibrary()" title="Rename Library">✎</button>
+                            <button class="icon-btn" id="lib-delete-btn" onclick="PresetBrowser.deleteLibrary()" title="Delete Library">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="lib-list" tabindex="0"></ul>
+                    <div class="pane-footer-actions bank-ops-grid">
+                        <button class="footer-action-btn" onclick="juce.menuAction('handleImportSysex')">IMPORT PRESET/S</button>
+                        <button class="footer-action-btn" onclick="PresetBrowser.importLibrary()">IMPORT .JSON</button>
+                        <button class="footer-action-btn" onclick="PresetBrowser.exportLibrary()">EXPORT .JSON</button>
+                        <button class="footer-action-btn" id="btn-save-tape" onclick="PresetBrowser.saveTape()">SAVE TAPE (.WAV)</button>
+                        <button class="footer-action-btn" id="btn-load-tape" onclick="PresetBrowser.loadTape()">LOAD TAPE (.WAV)</button>
+                    </div>
+                </div>
+
+                <!-- PANE 3: PRESETS -->
+                <div class="browser-pane" id="pane-presets">
+                    <div class="pane-header">
+                        PRESETS
+                        <div class="pane-actions">
+                            <button class="icon-btn" id="preset-add-btn" onclick="PresetBrowser.addPreset()" title="New Preset">+</button>
+                            <button class="icon-btn" id="preset-dup-btn" onclick="PresetBrowser.duplicatePreset()" title="Duplicate Selected">⧉</button>
+                            <button class="icon-btn" id="preset-move-btn" onclick="PresetBrowser.movePresetToLibrary()" title="Move to another Bank">➔</button>
+                            <button class="icon-btn" onclick="PresetBrowser.movePreset(-1)" title="Move Up">▲</button>
+                            <button class="icon-btn" onclick="PresetBrowser.movePreset(1)" title="Move Down">▼</button>
+                            <button class="icon-btn" id="preset-delete-btn" onclick="PresetBrowser.deletePreset()" title="Delete Selected">×</button>
+                        </div>
+                    </div>
+                    <ul class="pane-list styled-scroll" id="preset-list" tabindex="0"></ul>
+                    <div class="pane-footer-actions">
+                        <div class="preset-count" id="preset-count-label">0 Presets</div>
+                    </div>
+                </div>
+
+                <!-- PANE 4: METADATA & PREVIEW -->
+                <div id="pane-info">
+                    <div class="info-header">METADATA</div>
+                    <div class="info-content">
+                        <div class="meta-row">
+                            <label>Name</label>
+                            <input type="text" id="meta-name" readonly>
+                        </div>
+                        <div class="meta-row">
+                            <label>Author</label>
+                            <input type="text" id="meta-author">
+                        </div>
+                        <div class="meta-row">
+                            <label>Category</label>
+                            <select id="meta-category">
+                                <option>Bass</option>
+                                <option>Lead</option>
+                                <option>Pad</option>
+                                <option>Strings</option>
+                                <option>Brass</option>
+                                <option>FX</option>
+                                <option>Keys</option>
+                                <option>Organ</option>
+                                <option>Arp</option>
+                                <option>User</option>
+                            </select>
+                        </div>
+                        <div class="meta-row">
+                            <label>Tags</label>
+                            <input type="text" id="meta-tags" placeholder="80s, analog, warm...">
+                        </div>
+                        <div class="meta-row stack">
+                            <label>Notes</label>
+                            <textarea id="meta-notes" class="styled-scroll"></textarea>
+                        </div>
+                        <div class="meta-footer-info">
+                            <span id="meta-date">Created: --/--/----</span>
+                        </div>
+                        <div class="meta-actions">
+                            <button class="footer-action-btn primary" onclick="PresetBrowser.applyMetadata()">UPDATE METADATA</button>
+                            <button class="footer-action-btn" id="preset-saveas-btn" onclick="PresetBrowser.showSaveAsModal()">SAVE AS...</button>
+                            <button class="footer-action-btn" id="preset-write-btn" onclick="PresetBrowser.saveSynthToPreset()">SAVE CURRENT SOUND (WRITE)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ab-compare-zone">
+                        <div class="ab-header">A/B COMPARE</div>
+                        <div class="ab-buttons">
+                            <button id="btn-slot-a" class="ab-btn active" onclick="PresetBrowser.switchAB(0)">SLOT A</button>
+                            <button id="btn-slot-b" class="ab-btn" onclick="PresetBrowser.switchAB(1)">SLOT B</button>
+                            <button id="btn-copy-ab" class="ab-btn" onclick="PresetBrowser.copyAB()">COPY A➔B</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="browser-footer">
+                <div class="footer-right" style="width: 100%; display: flex; justify-content: flex-end; padding: 10px 20px;">
+                    <button class="footer-btn cancel" onclick="hideBrowser()">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-saveas" class="modal-overlay hidden" style="z-index: 20000;">
+        <div class="modal-content" style="max-width: 400px; background: #111; border: 1px solid #333; padding: 30px;">
+            <h3 style="margin-top:0; color: #0f0; border-bottom: 1px solid #222; padding-bottom: 10px;">SAVE PRESET AS</h3>
+            <div class="meta-row stack" style="margin: 20px 0;">
+                <label>New Preset Name</label>
+                <input type="text" id="saveas-name-input" style="width: 100%; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; padding: 10px;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="footer-btn" onclick="PresetBrowser.closeSaveAsModal()">CANCEL</button>
+                <button class="footer-btn primary" onclick="PresetBrowser.confirmSaveAs()">SAVE AS NEW</button>
+            </div>
+        </div>
+    </div>
+    <!-- SAVE PATCH METADATA MODAL -->
+    <div id="modal-savePatch" class="modal-overlay">
+        <div class="about-modal">
+            <div class="about-header">
+                <span class="about-title">WRITE TO INTERNAL RAM</span>
+                <button class="close-btn" onclick="hideSaveModal()">&times;</button>
+            </div>
+            <div id="save-modal-body" class="about-content" style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="font-size: 0.9rem; font-weight: bold; color: #fa0; background: rgba(255,170,0,0.1); padding: 5px 10px; border-radius: 4px; text-align: center;">TARGET: <span id="save-target-display">BANK 1 - PATCH 1</span></div>
+                
+                <div class="save-field" style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.7rem; color: #888; font-weight: bold;">PATCH NAME</label>
+                    <input type="text" id="save-patch-name" maxlength="16" style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 1rem;">
+                </div>
+                
+                <div class="save-field" style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.7rem; color: #888; font-weight: bold;">AUTHOR</label>
+                    <input type="text" id="save-patch-author" maxlength="16" style="background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 1rem;">
+                </div>
+
+                <p style="font-size: 0.65rem; color: #666; font-style: italic; margin: 0;">This operation will permanently overwrite the memory slot with current settings.</p>
+            </div>
+            <div class="about-footer" style="justify-content: flex-end; gap: 10px;">
+                <button class="footer-btn" onclick="hideSaveModal()">CANCEL</button>
+                <button class="footer-btn primary" onclick="commitInternalSave()">COMMIT</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="notification-toast" class="notification-toast">
+        <span id="notification-message"></span>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="service.js"></script>
+    <script src="browser.js"></script>
+</body>
+
+</html>

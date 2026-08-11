@@ -37,6 +37,9 @@
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorMisc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -193,6 +196,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PerformanceState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.h">

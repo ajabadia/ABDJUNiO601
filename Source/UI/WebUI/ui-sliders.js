@@ -365,6 +365,7 @@ function setupMenus() {
             if (e.target.closest('.dropdown')) return;
             e.stopPropagation();
             const dd = item.querySelector('.dropdown');
+            if (!dd) return;
             const wasOpen = dd.style.display === 'flex';
             document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             if (!wasOpen) dd.style.display = 'flex';

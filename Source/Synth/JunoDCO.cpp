@@ -5,7 +5,7 @@
 
 using namespace JunoConstants;
 
-JunoDCO::JunoDCO() {
+JunoDCO::JunoDCO() : noiseGen (12345) {
     masterClockHz = 8000000.0f;
     updateRangeMultiplier();
     reset();

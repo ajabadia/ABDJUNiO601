@@ -440,6 +440,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorPresets.cpp" />
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorSysEx.cpp" />
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\ProcessorMisc.cpp" />
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoEngine.h" />
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoEngine.cpp" />
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.h" />
     <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.cpp" />
     <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoTapeImporter.h" />

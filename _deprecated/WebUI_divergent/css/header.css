@@ -1,0 +1,348 @@
+/* --- HEADER PANEL with LCD, MENU, and SYSEX --- */
+
+#top-bar {
+    height: 26px;
+    background: #222;
+    border-bottom: 2px solid var(--black);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 11px;
+}
+
+.menu-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.menu-item {
+    position: relative;
+    cursor: pointer;
+    color: #bbb;
+    padding: 4px 0;
+}
+
+.menu-item:hover {
+    color: var(--white);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #222;
+    border: 1px solid #444;
+    width: 180px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown li {
+    padding: 8px 12px;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown li:hover {
+    background: var(--juno-blue);
+    color: var(--white);
+}
+
+.check-mark {
+    display: none;
+    color: var(--juno-blue);
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.dropdown li:hover .check-mark {
+    color: var(--white);
+}
+
+.checked .check-mark {
+    display: inline;
+}
+
+.divider {
+    height: 1px;
+    background: #444;
+    margin: 4px 0;
+    pointer-events: none;
+}
+
+#app-title-mini {
+    font-weight: 900;
+    font-style: italic;
+    color: #555;
+}
+
+#model-profile-select {
+    background: #222;
+    border: 1px solid #555;
+    color: #fa0;
+    font-family: 'Fragment Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: border-color 0.15s;
+}
+#model-profile-select:hover {
+    border-color: #fa0;
+}
+#model-profile-select option {
+    background: #222;
+    color: #fa0;
+}
+
+.model-spec-badge {
+    font-family: 'Fragment Mono', monospace;
+    font-size: 10px;
+    color: #fa0;
+    letter-spacing: 1px;
+    font-weight: bold;
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+#header-panel {
+    height: var(--header-height);
+    background: rgba(0, 0, 0, 0.4);
+    display: grid;
+    grid-template-columns: 230px 60px 1fr 400px;
+    align-items: center;
+    padding: 0 15px;
+    gap: 15px;
+    border-bottom: 2px solid var(--black);
+    box-shadow: var(--panel-shadow);
+}
+
+#sysex-zone {
+    height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sysex-copy-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.sysex-display-col {
+    flex: 1;
+    height: 100%;
+    border: 1px solid #333;
+    background: var(--black);
+    border-radius: 4px;
+    padding: 3px 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.zone-label-mini {
+    font-size: 9px;
+    font-weight: 900;
+    color: #555;
+    text-transform: uppercase;
+    font-family: var(--main-font);
+}
+
+#copy-syx-btn {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+#copy-syx-btn.beige {
+    background: var(--beige-btn);
+    border: 2px solid #888;
+    box-shadow: 0 2px 0 #444;
+}
+
+#copy-syx-btn.beige:active, #copy-syx-btn.beige.pushed {
+    background: #fff;
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(2px);
+}
+
+#copy-syx-btn:active {
+    background: var(--juno-blue);
+    color: var(--white);
+    transform: translateY(1px);
+}
+
+.zone-label {
+    font-size: 9px;
+    font-weight: 900;
+    color: #555;
+    margin-bottom: 1px;
+    text-transform: uppercase;
+}
+
+#sysex-log {
+    font-family: 'Fragment Mono', monospace;
+    font-size: 11px;
+    color: #2ecc71;
+    opacity: 0.9;
+    line-height: 1.2;
+    height: 2.4em;
+    overflow: hidden;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+#protect-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-right: 10px;
+}
+
+#protect-btn {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.1s;
+    background: var(--beige-btn);
+    border: 2px solid #888;
+    box-shadow: 0 2px 0 #444;
+}
+
+#protect-btn.active-mode {
+    background: #f1c40f; /* Yellowish to match 'protected' warning */
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    border-color: #fff;
+}
+
+#protect-btn:active, #protect-btn.pushed {
+    background: #fff;
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(2px);
+}
+
+#lcd-bezel {
+    width: 420px;
+    height: 55px;
+    background: var(--black);
+    border: 4px solid #333;
+    border-radius: 6px;
+    padding: 6px;
+    justify-self: center;
+    box-shadow: inset 0 0 20px var(--black), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+#lcd-screen {
+    height: 100%;
+    background: #200;
+    border: 1px solid #400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#lcd-text {
+    font-family: 'SevenSegment', 'Fragment Mono', monospace;
+    font-size: 32px;
+    color: var(--lcd-red);
+    text-shadow: 0 0 15px var(--lcd-red);
+    letter-spacing: 4px;
+    white-space: nowrap;
+}
+
+.marquee-scroller {
+    display: inline-block;
+    animation: marquee-scroll 8s linear infinite;
+    padding-left: 20px;
+}
+
+@keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    10% { transform: translateX(0); } /* Initial wait */
+    100% { transform: translateX(-50%); }
+}
+
+#top-left-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+#top-left-display .zone-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--juno-blue);
+    text-transform: uppercase;
+}
+
+#seven-segment-display {
+    display: flex;
+    gap: 3px;
+    background: var(--black);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 2px solid #555;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+.digit {
+    position: relative;
+    font-family: 'SevenSegment', 'Courier New', monospace;
+    font-size: 36px;
+    color: #1a1a1a; /* Very dark grey for 'unlit' segments */
+    text-shadow: none; 
+    width: 26px;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+    background: var(--black);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.led-sprite {
+    position: absolute;
+    top: -2px; /* Slight adjustment to move them UP */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.led-text-fallback {
+    position: relative;
+    z-index: 1;
+}
+
+/* Front MIDI Badge - Inside Bezel */
+.front-midi-badge {
+    width: 8px;
+    height: 8px;
+    background: #200;
+    border-radius: 50%;
+    transition: background 0.05s, box-shadow 0.05s;
+    border: 1px solid #111;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+}
+.front-midi-badge.active {
+    background: #f11;
+    box-shadow: 0 0 10px #f00;
+}

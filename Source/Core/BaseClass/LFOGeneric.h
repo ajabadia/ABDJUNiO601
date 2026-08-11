@@ -1,4 +1,4 @@
-﻿// ABD-SynthEngine/Core/LFO/LFOGeneric.h
+// ABD-SynthEngine/Core/LFO/LFOGeneric.h
 #pragma once
 #include <JuceHeader.h>
 #include <cmath>
@@ -118,13 +118,18 @@ private:
         case Shape::SampleHold:
             // Nuevo ciclo → nuevo valor aleatorio
             if (phase_ < prevPhase_)
-                sampleHoldValue_ = juce::Random::getSystemRandom()
-                                   .nextFloat() * 2.f - 1.f;
+            {
+                lcgSeed = lcgSeed * 196314165u + 907633515u;
+                sampleHoldValue_ = (2.f * (float)lcgSeed / (float)0xFFFFFFFFu) - 1.f;
+            }
             prevPhase_ = phase_;
             return sampleHoldValue_;
         }
         return 0.f;
     }
+
+private:
+    uint32_t lcgSeed { 0x98765432u };
 };
 
 } // namespace ABD

@@ -17,7 +17,19 @@
 #include "../Core/JunoEngine.h"
 #include "../Core/SynthParams.h"
 #include "../Core/JunoModelConfig.h"
+#include "../Core/JunoVoiceManager.h"
+#include "../Core/PerformanceState.h"
+#include "../Synth/ChorusBBD.h"
+#include "../Synth/JunoLFO.h"
+#include "../Synth/JunoTapeEcho.h"
+#include "../Synth/JunoArpeggiator.h"
+#include "../Synth/JunoVoice.h"
+#include "../Synth/JunoDCO.h"
+#include "../Synth/JunoADSR.h"
+#include "../Synth/JunoVCF.h"
+#include "../Synth/JunoHPF.h"
 
+#include <cmath>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -26,7 +38,7 @@
 // ------------------------------------------------------------------
 // Globals
 // ------------------------------------------------------------------
-static std::unique_ptr<JunoEngine> gEngine;
+static JunoEngine* gEngine = nullptr;
 static SynthParams gParams;
 static std::map<std::string, float> gParamMap;
 static std::map<std::string, int> gIntParamMap;
@@ -86,25 +98,30 @@ static void syncParamsFromMap()
     gParams.chorusMode     = (int)getMap("chorusMode", 0.0f);
 
     gParams.vcaMode        = (int)getMap("vcaMode", 1.0f);
-    gParams.polyMode       = (int)getMap("polyMode", 1.0f);
+    gParams.polyMode       = (int)std::lround(getMap("polyMode", 0.0f) * 2.0f) + 1;
 
     gParams.portamentoOn   = getMap("portamentoOn", 0.0f) > 0.5f;
     gParams.portamentoTime = getMap("portamentoTime", 0.2f);
     gParams.benderValue    = getMap("bender", 0.0f);
 
-    gParams.hpfFreq        = (int)getMap("hpfCutoff", 0.0f);
+    gParams.hpfFreq        = (int)getMap("hpfFreq", getMap("hpfCutoff", 0.0f));
 
     // Dynamic model routing per component
-    gParams.modelDCO       = (int)getMap("modelDCO", 2.0f);
-    gParams.modelHPF       = (int)getMap("modelHPF", 2.0f);
-    gParams.modelVCF       = (int)getMap("modelVCF", 2.0f);
-    gParams.modelADSR      = (int)getMap("modelADSR", 2.0f);
-    gParams.modelChorus    = (int)getMap("modelChorus", 2.0f);
-    gParams.modelPoly      = (int)getMap("modelPoly", 2.0f);
+    // JS sends 0.0 (J6), 0.5 (J60), 1.0 (J106) normalized values.
+    // C++ expects int 0/1/2 — multiply by 2 and round to match native APVTS.
+    gParams.modelDCO       = (int)std::lround(getMap("modelDCO", 1.0f) * 2.0f);
+    gParams.modelHPF       = (int)std::lround(getMap("modelHPF", 1.0f) * 2.0f);
+    gParams.modelVCF       = (int)std::lround(getMap("modelVCF", 1.0f) * 2.0f);
+    gParams.modelADSR      = (int)std::lround(getMap("modelADSR", 1.0f) * 2.0f);
+    gParams.modelChorus    = (int)std::lround(getMap("modelChorus", 1.0f) * 2.0f);
+    gParams.modelPoly      = (int)std::lround(getMap("modelPoly", 1.0f) * 2.0f);
+    gParams.modelArp       = (int)std::lround(getMap("modelArp", 1.0f) * 2.0f);
+    gParams.modelPorta     = (int)std::lround(getMap("modelPorta", 1.0f) * 2.0f);
+    gParams.modelUnison    = (int)std::lround(getMap("modelUnison", 1.0f) * 2.0f);
 
     // Tape Echo / Delay FX (SuperSix Engine)
     gParams.delayEnabled     = getMap("delayEnabled", 0.0f) > 0.5f;
-    gParams.delaySetting     = (int)getMap("delaySetting", 11.0f);
+    gParams.delaySetting     = (int)std::lround(getMap("delaySetting", 0.0f) * 11.0f);
     gParams.delayRepeatRate  = getMap("delayRepeatRate", 0.5f);
     gParams.delayIntensity   = getMap("delayIntensity", 0.5f);
     gParams.delayBass        = getMap("delayBass", 0.5f);
@@ -113,13 +130,23 @@ static void syncParamsFromMap()
     gParams.delayEchoVol     = getMap("delayEchoVol", 0.5f);
     gParams.delayEchoCancel  = getMap("delayEchoCancel", 0.0f) > 0.5f;
     gParams.delaySyncEnabled = getMap("delaySyncEnabled", 0.0f) > 0.5f;
-    gParams.delaySyncDivision= (int)getMap("delaySyncDivision", 2.0f);
-    gParams.delayReverbType  = (int)getMap("delayReverbType", 0.0f);
+    gParams.delaySyncDivision= (int)std::lround(getMap("delaySyncDivision", 0.25f) * 8.0f);
+    gParams.delayReverbType  = (int)std::lround(getMap("delayReverbType", 0.0f) * 2.0f);
     gParams.delayWowFlutter  = getMap("delayWowFlutter", 0.5f);
     gParams.delayReverbDecay = getMap("delayReverbDecay", 0.5f);
     gParams.delayEchoIsolator= getMap("delayEchoIsolator", 0.5f);
 
+    // Arpeggiator Engine
+    gParams.arpEnabled       = getMap("arpEnabled", 0.0f) > 0.5f;
+    gParams.arpMode          = (int)getMap("arpMode", 0.0f);
+    gParams.arpRange         = (int)getMap("arpRange", 0.0f);
+    gParams.arpRate          = getMap("arpRate", 0.5f);
+    gParams.arpSync          = getMap("arpSync", 0.0f) > 0.5f;
+    gParams.arpDivision      = (int)getMap("arpDivision", 2.0f);
+
     gParams.noiseFloorMul  = getMap("noiseFloor", 1.0f);
+    gParams.mainsRippleMul = getMap("mainsRipple", 1.0f);
+    gParams.masterNoise    = getMap("masterNoise", -80.0f);
     gParams.thermalIntensity = getMap("thermalIntensity", 1.5f);
     gParams.thermalInertia = getMap("thermalInertia", 1024.0f);
     gParams.thermalMigration = getMap("thermalMigration", 0.0005f);
@@ -127,19 +154,24 @@ static void syncParamsFromMap()
     gParams.unisonDetune   = getMap("detuningAmount", 0.5f);
 }
 
-// ------------------------------------------------------------------
-// Public C API
-// ------------------------------------------------------------------
+#include <cstdio>
 
 void wasm_init_engine(float sampleRate, int blockSize, int model)
 {
-    gEngine = std::make_unique<JunoEngine>();
+    if (!gEngine) {
+        gEngine = new JunoEngine();
+    }
     gEngine->setTargetModel(model);
+    
+    // Force default Space Echo calibration
+    JunoEngine::TapeEchoCal cal;
+    gEngine->setTapeEchoCalibration(cal);
+    
     gEngine->prepare(static_cast<double>(sampleRate), blockSize);
 
     gParamMap.clear();
     gIntParamMap.clear();
-    std::memset(&gParams, 0, sizeof(gParams));
+    gParams = SynthParams();
 }
 
 void wasm_process_audio(float* output, int numSamples, int lfoTrig)
@@ -157,11 +189,11 @@ void wasm_process_audio(float* output, int numSamples, int lfoTrig)
 
     gEngine->process(gParams, buffer, numSamples, lfoTrig != 0);
 
-    for (int i = 0; i < numSamples; ++i)
-    {
-        output[i * 2 + 0] = buffer.getSample(0, i);
-        output[i * 2 + 1] = buffer.getSample(1, i);
-    }
+    // Flat contiguous non-interleaved copy (L L ... R R ...) for fast zero-copy JS subarray copies
+    const float* srcL = buffer.getReadPointer(0);
+    const float* srcR = buffer.getReadPointer(1);
+    std::memcpy(output, srcL, numSamples * sizeof(float));
+    std::memcpy(output + numSamples, srcR, numSamples * sizeof(float));
 }
 
 void wasm_set_parameter(const char* key, float value)

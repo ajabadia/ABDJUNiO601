@@ -447,7 +447,7 @@ PresetManager::ImportResult PresetManager::importPresetsFromFile(const juce::Fil
 
 void PresetManager::randomizeCurrentParameters(
     juce::AudioProcessorValueTreeState &apvts) {
-  auto &random = juce::Random::getSystemRandom();
+  juce::Random random (56789);
 
   // Whitelist for musical randomization (excluding system, master and hidden
   // settings)

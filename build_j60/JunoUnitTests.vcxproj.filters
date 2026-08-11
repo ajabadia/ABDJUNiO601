@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoUnitTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\DCOTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\PresetBrowserTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\ADSRTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\VCFTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\ChorusTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\SysExTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\TapeTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\FormatConverterTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\SmartTapeTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\MemoryTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\UnisonTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\DCBCorrectorTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\SmartImportHtmlTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\ModelRoutingTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\TapeEchoTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Tests\MidiLearnTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoTapeEcho.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoDCO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoADSR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVCF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\ChorusBBD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoLFO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Synth\JunoVoice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoSysExEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\CalibrationSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PresetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\JunoVoiceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\PerformanceState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\TalImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoTapeImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoSysexImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoFormatConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\Source\Core\Importers\JunoCsvImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_basics\juce_audio_basics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_core\juce_core.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_core\juce_core_CompilationTime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors\juce_audio_processors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_gui_extra\juce_gui_extra.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_gui_basics\juce_gui_basics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics_Harfbuzz.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_graphics\juce_graphics_Sheenbidi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_events\juce_events.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_data_structures\juce_data_structures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless_ara.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_processors_headless\juce_audio_processors_headless_lv2_libs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_audio_formats\juce_audio_formats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\desarrollos\ABDSynths\ABDJUNiO601\JUCE\modules\juce_dsp\juce_dsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j60\JunoUnitTests_artefacts\JuceLibraryCode\JuceHeader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j60\CMakeFiles\7df21f5f58466ed2679b5ea3d9fdccba\JuceHeader.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="D:\desarrollos\ABDSynths\ABDJUNiO601\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="D:\desarrollos\ABDSynths\ABDJUNiO601\build_j60\JunoUnitTests_rc_lib.dir\$(Configuration)\JunoUnitTests_resources.res">
+      <Filter>Object Libraries</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{633B9B2B-2324-3AAC-B1E4-E1EE2E577C6B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{98F75DE1-624B-321E-9A8C-B40BAE7D4387}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object Libraries">
+      <UniqueIdentifier>{C0F130D5-35CA-3FC1-8294-6C937722F8BD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{FD5D333E-D0E8-3549-AF52-90ADBD40AE45}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,234 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ABDJUNiO601 Parameter Registry Schema",
+  "version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "default": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "float",
+              "int"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "min",
+          "max",
+          "default",
+          "type"
+        ]
+      }
+    }
+  },
+  "data": {
+    "parameters": [
+      {
+        "id": "master_volume",
+        "name": "Master Volume",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "type": "float"
+      },
+      {
+        "id": "dco_saw",
+        "name": "DCO Sawtooth",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "type": "float"
+      },
+      {
+        "id": "dco_pulse",
+        "name": "DCO Pulse/PWM",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "dco_sub",
+        "name": "DCO Sub Oscillator",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "dco_noise",
+        "name": "DCO Noise Level",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "dco_pwm_mod",
+        "name": "DCO PWM Modulation",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "type": "float"
+      },
+      {
+        "id": "dco_pwm_mode",
+        "name": "DCO PWM Mode",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "int"
+      },
+      {
+        "id": "dco_lfo_mod",
+        "name": "DCO LFO Modulation",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "vcf_cutoff",
+        "name": "VCF Cutoff Frequency",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "type": "float"
+      },
+      {
+        "id": "vcf_resonance",
+        "name": "VCF Resonance",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "vcf_env_mod",
+        "name": "VCF Envelope Modulation",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "vcf_lfo_mod",
+        "name": "VCF LFO Modulation",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "vcf_kybd_mod",
+        "name": "VCF Keyboard Tracking",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "vcf_hpf",
+        "name": "HPF Cutoff Frequency",
+        "min": 0,
+        "max": 3,
+        "default": 0,
+        "type": "int"
+      },
+      {
+        "id": "vca_mode",
+        "name": "VCA Mode",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "int"
+      },
+      {
+        "id": "vca_level",
+        "name": "VCA Level",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "type": "float"
+      },
+      {
+        "id": "env_attack",
+        "name": "Envelope Attack",
+        "min": 0,
+        "max": 1,
+        "default": 0.01,
+        "type": "float"
+      },
+      {
+        "id": "env_decay",
+        "name": "Envelope Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "type": "float"
+      },
+      {
+        "id": "env_sustain",
+        "name": "Envelope Sustain",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "type": "float"
+      },
+      {
+        "id": "env_release",
+        "name": "Envelope Release",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "type": "float"
+      },
+      {
+        "id": "lfo_rate",
+        "name": "LFO Rate",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "type": "float"
+      },
+      {
+        "id": "lfo_delay",
+        "name": "LFO Delay Time",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "type": "float"
+      },
+      {
+        "id": "chorus_mode",
+        "name": "BBD Chorus Mode",
+        "min": 0,
+        "max": 3,
+        "default": 0,
+        "type": "int"
+      }
+    ]
+  }
+}

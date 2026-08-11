@@ -31,7 +31,7 @@ static inline float getVCAMappedGain(float envVal, int curveType, const Calibrat
     return kr106::kVCATableHW[(size_t)i0] + frac * (kr106::kVCATableHW[(size_t)i0 + 1] - kr106::kVCATableHW[(size_t)i0]);
 }
 
-Voice::Voice() : ABD::VoiceBase() {
+Voice::Voice() : ABD::VoiceBase(), noiseGen (54321) {
     lastOutputLevel = 0.0f;
 }
 
@@ -82,6 +82,7 @@ void Voice::onNoteOn(int midiNote, float vel) {
 }
 
 void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison) {
+    bool wasIdle = (currentNote == -1);
     currentNote = midiNote;
     velocity = vel;
     isGateOn = true;
@@ -100,7 +101,7 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
         targetFrequency *= std::pow(2.0f, detuneSemitones / 12.0f);
     }
 
-    bool runGlide = params.portamentoOn && (GET_MODEL_PORTA(params) == 2);
+    bool runGlide = params.portamentoOn && (GET_MODEL_PORTA(params) == 2) && !wasIdle;
     if (params.portamentoLegato) runGlide = runGlide && isLegato;
     
     adsr.setAttackRaw(params.attack);
@@ -115,7 +116,6 @@ void Voice::noteOn(int midiNote, float vel, bool isLegato, int numVoicesInUnison
     stealPending = false;
     
     if (!isLegato) {
-        bool wasIdle = (currentNote == -1);
         adsr.reset(); 
         adsr.noteOn();
         dco.reset(); 

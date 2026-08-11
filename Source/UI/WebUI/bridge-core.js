@@ -682,6 +682,14 @@ function initApp() {
     // (chorus, VCF polarity, VCA mode, etc.) to the selected profile.
     window.__updateModelVisibility = updateModelVisibility;
 
+    try {
+        if (typeof switchPerformanceTab === 'function') {
+            switchPerformanceTab('voltune');
+        }
+    } catch (e) {
+        console.error('[JUNiO] Error initializing performance tab:', e);
+    }
+
     console.log(`[DEBUG] initApp complete. targetModel=${currentTargetModel} calibrationProfile=${paramValuesCache['calibrationProfile']}`);
 
     callNative("uiReady");

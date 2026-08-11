@@ -3,6 +3,7 @@
 namespace ABD {
 JunoVoiceManager::JunoVoiceManager() {
     currentActiveVoices.store(8);
+    polyMode = 1;
     for (auto& ts : voiceTimestamps) ts.store(0);
 }
 
@@ -138,7 +139,8 @@ void JunoVoiceManager::noteOn(int /*midiChannel*/, int midiNote, float velocity)
     }
     
     if (voiceIndex != -1) {
-        voices[voiceIndex].noteOn(midiNote, velocity, false, 1);
+        bool isLegato = (polyMode == 2) && isAnyNoteHeld();
+        voices[voiceIndex].noteOn(midiNote, velocity, isLegato, 1);
         voiceTimestamps[voiceIndex].store(currentTimestamp.load());
         lastAllocatedVoiceIndex.store(voiceIndex);
     }

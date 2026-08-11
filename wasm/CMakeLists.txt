@@ -74,9 +74,9 @@ target_compile_options(abdjunio601_wasm PRIVATE
     -msimd128
 )
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORT_NAME=createABDJUNiO601 -s \"EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue']\" -s SINGLE_FILE=0 -s MAXIMUM_MEMORY=268435456 -s STACK_SIZE=1048576 -s NO_EXIT_RUNTIME=1 -s ENVIRONMENT=web,worker -fwasm-exceptions -O3 --strip-all --no-entry")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s INITIAL_MEMORY=134217728 -s MODULARIZE=1 -s EXPORT_ES6=1 -s EXPORT_NAME=createABDJUNiO601 -s \"EXPORTED_FUNCTIONS=['_wasm_init_engine','_wasm_process_audio','_wasm_set_parameter','_wasm_set_model','_wasm_note_on','_wasm_note_off','_wasm_panic','_malloc','_free']\" -s \"EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue','HEAPF32']\" -s MALLOC=emmalloc -s SINGLE_FILE=1 -s MAXIMUM_MEMORY=268435456 -s STACK_SIZE=4194304 -s NO_EXIT_RUNTIME=1 -s ENVIRONMENT=web,worker,shell -s ASSERTIONS=1 -fwasm-exceptions --no-entry")
 
 set_target_properties(abdjunio601_wasm PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../WebUI/wasm"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../Source/UI/WebUI/wasm"
     SUFFIX ".js"
 )
