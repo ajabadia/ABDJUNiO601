@@ -44,6 +44,13 @@ endif()
 
 add_subdirectory(${JUCE_PATH} _juce)
 
+# --- ABDSharedCode Integration ---
+set(ABDSHARED_CODE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ABDSharedCode")
+if(EXISTS "${ABDSHARED_CODE_DIR}/CMakeLists.txt")
+    message(STATUS "ABDSharedCode: Using local at ${ABDSHARED_CODE_DIR}")
+    add_subdirectory("${ABDSHARED_CODE_DIR}" "${CMAKE_BINARY_DIR}/ABDSharedCode")
+endif()
+
 option(BUILD_HEADLESS "Build headless version (no GUI)" OFF)
 
 if(BUILD_HEADLESS)
@@ -71,43 +78,31 @@ juce_add_plugin(ABDSimpleJuno106
     NEEDS_WEBVIEW2 TRUE
 )
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/DspSources.cmake")
+
 target_sources(ABDSimpleJuno106 PRIVATE
+    # Lista DSP compartida con el build WASM (single-source, anti-drift):
+    # DspSources.cmake define JUNO_DSP_SOURCES y JUNO_DSP_SOURCES_WASM.
+    # Los .cpp viven en la lista; aqui solo headers y el bloque UI de abajo.
+
     Source/Core/ABDSimpleJuno106AudioProcessor.h
-    Source/Core/PluginProcessor.cpp
     Source/Core/PresetManager.h
-    Source/Core/PresetManager.cpp
     Source/Core/SynthParams.h
     Source/Core/JunoVoiceManager.h
-    Source/Core/JunoVoiceManager.cpp
     Source/Core/JunoTapeDecoder.h
     Source/Core/MidiLearnHandler.h
     Source/Core/JunoSysEx.h
     Source/Core/JunoSysExEngine.h
-    Source/Core/JunoSysExEngine.cpp
     Source/Core/JunoProtocol.h
     Source/Core/JunoTests.h
-    Source/Core/JunoTests.cpp
     Source/Core/PerformanceState.h
-    Source/Core/PerformanceState.cpp
-    Source/Core/ServiceModeManager.cpp
-    Source/Core/CalibrationSettings.cpp
-    Source/Core/ProcessorState.cpp
-    Source/Core/ProcessorPresets.cpp
-    Source/Core/ProcessorSysEx.cpp
-    Source/Core/ProcessorMisc.cpp
     Source/Core/JunoEngine.h
-    Source/Core/JunoEngine.cpp
 
     Source/Core/Importers/TalImporter.h
-    Source/Core/Importers/TalImporter.cpp
     Source/Core/Importers/JunoTapeImporter.h
-    Source/Core/Importers/JunoTapeImporter.cpp
     Source/Core/Importers/JunoSysexImporter.h
-    Source/Core/Importers/JunoSysexImporter.cpp
     Source/Core/Importers/JunoFormatConverter.h
-    Source/Core/Importers/JunoFormatConverter.cpp
     Source/Core/Importers/JunoCsvImporter.h
-    Source/Core/Importers/JunoCsvImporter.cpp
 
     Source/Core/BaseClass/PresetManagerBase.h
     Source/Core/BaseClass/VoiceBase.h
@@ -116,30 +111,19 @@ target_sources(ABDSimpleJuno106 PRIVATE
     Source/Core/BaseClass/LFOGeneric.h
 
     Source/UI/WebView/WebViewEditor.h
-    Source/UI/WebView/WebViewEditor.cpp
     Source/UI/WebView/BridgeActions.h
-    Source/UI/WebView/BridgeActions.cpp
     Source/UI/WebView/BridgeImport.h
-    Source/UI/WebView/BridgeImport.cpp
     Source/UI/WebView/BridgeService.h
-    Source/UI/WebView/BridgeService.cpp
     Source/UI/WebView/BridgeMenu.h
-    Source/UI/WebView/BridgeMenu.cpp
 
     Source/Synth/JunoADSR.h
-    Source/Synth/JunoADSR.cpp
     Source/Synth/JunoDCO.h
-    Source/Synth/JunoDCO.cpp
     Source/Synth/JunoLFO.h
-    Source/Synth/JunoLFO.cpp
     Source/Synth/JunoVoice.h
-    Source/Synth/JunoVoice.cpp
     Source/Synth/JunoVCF.h
-    Source/Synth/JunoVCF.cpp
     Source/Synth/JunoTapeEcho.h
-    Source/Synth/JunoTapeEcho.cpp
     Source/Synth/ChorusBBD.h
-    Source/Synth/ChorusBBD.cpp
+    ${JUNO_DSP_SOURCES}
 )
 
 if(NOT BUILD_HEADLESS)
@@ -342,6 +326,8 @@ endif()
 
 target_link_libraries(ABDSimpleJuno106
     PRIVATE
+        ABDShared::LutDSP
+        ABDShared::HardwareDrivers
         ABDSimpleJuno106_WebUI
         juce::juce_audio_utils
         juce::juce_audio_processors
@@ -405,6 +391,8 @@ target_sources(JunoUnitTests PRIVATE
 )
 
 target_link_libraries(JunoUnitTests PRIVATE
+    ABDShared::LutDSP
+    ABDShared::HardwareDrivers
     juce::juce_audio_basics
     juce::juce_audio_processors
     juce::juce_audio_formats
@@ -426,3 +414,5 @@ target_include_directories(JunoUnitTests PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}/JunoUnitTests_artefacts/JuceLibraryCode"
 )
 juce_generate_juce_header(JunoUnitTests)
+
+

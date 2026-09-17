@@ -40,8 +40,17 @@ powershell -NoProfile -Command "Copy-Item -Path 'C:\JUCE\modules\juce_audio_basi
 REM 6. Añadir CMake al PATH (no está en PATH por defecto)
 set "PATH=C:\Program Files\CMake\bin;%PATH%"
 
-REM 7. Activar Emscripten
-call C:\emsdk\emsdk_env.bat >nul 2>nul
+REM 7. Activar Emscripten.
+REM    Quirk conocido (documentado en ABDCZ101/wasm/build_wasm.bat): llamar
+REM    emsdk_env.bat con >nul silencia TAMBIEN su set PATH, y bajo Git Bash
+REM    emite exports sh que cmd no ejecuta. Montar el PATH a mano si el SDK
+REM    esta donde se espera; fallback a emsdk_env si no.
+if exist "C:\emsdk\upstream\emscripten\emcmake.exe" (
+    set "PATH=C:\emsdk;C:\emsdk\upstream\emscripten;C:\emsdk\node\22.16.0_64bit\bin;C:\emsdk\python\3.13.3_64bit;%PATH%"
+    set "EM_CONFIG=C:\emsdk\.emscripten"
+) else (
+    call C:\emsdk\emsdk_env.bat >nul 2>nul
+)
 
 REM 8. Crear directorio de build
 if not exist "wasm\build" mkdir wasm\build

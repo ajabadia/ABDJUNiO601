@@ -8,6 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SRC_ROOT ${CMAKE_SOURCE_DIR}/../Source)
 set(SHIM_ROOT ${CMAKE_SOURCE_DIR}/juce_shim)
 
+# --- Lista compartida single-source (anti-drift) con el build nativo ---
+# DspSources.cmake define JUNO_DSP_SOURCES y JUNO_DSP_SOURCES_WASM; la
+# diferencia (PresetManager/ValueTree, importers, tests...) esta documentada alli.
+include("${CMAKE_CURRENT_LIST_DIR}/../DspSources.cmake")
+
 set(JUCE_CORE_SRC
     ${CMAKE_SOURCE_DIR}/juce_core/juce_core.cpp
 )
@@ -21,17 +26,8 @@ set(JUCE_AUDIO_BASICS_SRC
 )
 
 set(DSP_SRC
-    ${SRC_ROOT}/Core/JunoEngine.cpp
-    ${SRC_ROOT}/Core/JunoVoiceManager.cpp
-    ${SRC_ROOT}/Core/PerformanceState.cpp
-    ${SRC_ROOT}/Synth/JunoVoice.cpp
-    ${SRC_ROOT}/Synth/JunoDCO.cpp
-    ${SRC_ROOT}/Synth/JunoVCF.cpp
-    ${SRC_ROOT}/Synth/JunoADSR.cpp
-    ${SRC_ROOT}/Synth/JunoLFO.cpp
-    ${SRC_ROOT}/Synth/ChorusBBD.cpp
-    ${SRC_ROOT}/Synth/JunoTapeEcho.cpp
-    ${SRC_ROOT}/Wasm/WasmBridge.cpp
+    # Subconjunto WASM-eligible de la lista compartida (ver DspSources.cmake)
+    ${JUNO_DSP_SOURCES_WASM}
 )
 
 set(STUB_SRC
@@ -57,6 +53,9 @@ target_include_directories(abdjunio601_wasm PRIVATE
     ${CMAKE_SOURCE_DIR}/juce_dsp
     ${CMAKE_SOURCE_DIR}/juce_audio_basics
     C:/JUCE/modules
+    # CalibrationSettings.h incluye <LutDSP/VoiceDispersionModel.h> (header-only,
+    # solo necesita juce_core — vendado aqui)
+    ${CMAKE_CURRENT_LIST_DIR}/../../ABDSharedCode
 )
 
 target_compile_definitions(abdjunio601_wasm PRIVATE
