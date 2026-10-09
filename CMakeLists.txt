@@ -327,6 +327,7 @@ endif()
 target_link_libraries(ABDSimpleJuno106
     PRIVATE
         ABDShared::LutDSP
+        ABDShared::DspCore
         ABDShared::HardwareDrivers
         ABDSimpleJuno106_WebUI
         juce::juce_audio_utils
@@ -392,6 +393,7 @@ target_sources(JunoUnitTests PRIVATE
 
 target_link_libraries(JunoUnitTests PRIVATE
     ABDShared::LutDSP
+    ABDShared::DspCore
     ABDShared::HardwareDrivers
     juce::juce_audio_basics
     juce::juce_audio_processors
