@@ -1,0 +1,154 @@
+name: ABDJUNiO601 CI
+
+# =============================================================================
+# POR QUE ESTE WORKFLOW EXISTE
+# =============================================================================
+# Este repo no tenia ninguna puerta: el plugin se compilaba solo en la
+# maquina de desarrollo. Este workflow pone el build a bloquear en Linux y
+# Windows con TODO fijado, y deja escrito lo que aun no existe todavia.
+#
+# DEPENDENCIAS, TODO FIJADO
+# -------------------------
+# - JUCE 8.0.12: es la version del checkout que ya vive en el repo en
+#   ./JUCE (primer eslabon de la cadena de discovery del CMakeLists) y con
+#   la que esta medido el build local. En el runner se clona ahi mismo.
+#   No es 9.0.3 como MS2000/Neural: aqui el proyecto no se ha portado a
+#   JUCE 9, y fijar otra version seria una apuesta.
+# - ABDSharedCode como hermano del workspace, a SHA. El CMakeLists linka
+#   ABDShared::LutDSP, ABDShared::DspCore y ABDShared::HardwareDrivers y NO
+#   tiene fallback FetchContent: sin el hermano al lado, el configure muere
+#   en "target not found". Es el mismo motivo y el mismo reparto que CZ101.
+# - WebView2 SDK en Windows: juce_add_plugin(NEEDS_WEBVIEW2 TRUE) exige
+#   find_package(WebView2) al configurar y el runner no trae el SDK.
+#
+# HIGIENE
+# -------
+# clang-format no entra: este repo no tiene .clang-format ni hooks de
+# formato, asi que no hay config que validar. cppcheck entra informativo
+# (0 hallazgos MEDIDOS con cppcheck 2.21 sobre Source/), como en el resto
+# de la familia.
+#
+# LO QUE NO EXISTE TODAVIA: unit tests. El CMakeLists no define ni un
+# add_executable de test ni un add_test, asi que no hay nada que ctest
+# pueda correr, y una puerta que no tiene que abrir no es una puerta. El
+# alcance de hoy es que el plugin COMPILE en verde en las dos plataformas;
+# cuando haya targets de test, el paso de abajo pasa a ctest bloqueante.
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: junio601-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JUCE_TAG: '8.0.12'
+  SHA_SHARED: '180cf7866fca43fdc5035ebab9d4cc7f9713ff80'  # ABDSharedCode master
+
+jobs:
+  build:
+    name: Build plugin (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+        working-directory: ABDJUNiO601
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Checkout ABDJUNiO601
+      uses: actions/checkout@v7
+      with:
+        path: ABDJUNiO601
+
+    - name: Checkout ABDSharedCode (hermano, SHA fijo)
+      uses: actions/checkout@v7
+      with:
+        repository: ajabadia/ABDSharedCode
+        ref: ${{ env.SHA_SHARED }}
+        path: ABDSharedCode
+        fetch-depth: 1
+
+    # ./JUCE es el primer eslabon de la cadena de discovery; el repo ya
+    # trabaja con 8.0.12 ahi en local.
+    - name: Fetch JUCE ${{ env.JUCE_TAG }} into ./JUCE
+      run: |
+        git clone --depth 1 --branch "$JUCE_TAG" https://github.com/juce-framework/JUCE.git ABDJUNiO601/JUCE
+
+    # Lista de dependencias JUCE en Linux copiada de la que ya esta medida
+    # verde en la suite de CZ101 (libwebkit2gtk-4.1, no 4.0: el 4.0 se
+    # elimino de Ubuntu y `ubuntu-latest` ya no lo trae).
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libasound2-dev libjack-jackd2-dev \
+          ladspa-sdk \
+          libcurl4-openssl-dev \
+          libfreetype6-dev \
+          libx11-dev libxcomposite-dev libxcursor-dev libxcursor1 libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
+          libwebkit2gtk-4.1-dev \
+          libgtk-3-dev \
+          libglu1-mesa-dev mesa-common-dev
+
+    - name: Set up MSBuild (Windows)
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v3
+
+    - name: Install WebView2 SDK (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $version = "1.0.4258.31"
+        $root = Join-Path $env:RUNNER_TEMP "webview2"
+        $pkg = Join-Path $root "Microsoft.Web.WebView2"
+        New-Item -ItemType Directory -Force -Path $pkg | Out-Null
+        $zip = Join-Path $env:RUNNER_TEMP "webview2.zip"
+        Invoke-WebRequest -Uri "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$version/microsoft.web.webview2.$version.nupkg" -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath $pkg -Force
+        if (-not (Test-Path (Join-Path $pkg "build/native/include/WebView2.h"))) {
+          Write-Error "Falta WebView2.h: la descarga del SDK ha fallado"
+          exit 1
+        }
+        "WEBVIEW2_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+    - name: Configure CMake
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="${WEBVIEW2_ROOT:-}"
+        else
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        fi
+
+    # BLOQUEANTE: el plugin entero (Standalone + VST3; AU solo se define en
+    # Apple, JUCE lo ignora en Linux).
+    - name: Build Plugin (Release)
+      run: cmake --build build --config Release --parallel
+
+  cppcheck:
+    name: cppcheck (informativo, no bloqueante)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Static analysis (cppcheck) - informativo
+      run: |
+        set +e
+        sudo apt-get update -qq && sudo apt-get install -y -qq cppcheck
+        salida=$(cppcheck --enable=warning,performance,portability --std=c++20 --suppress=missingIncludeSystem --template='{severity}|{file}|{line}|{message}' Source/ 2>&1)
+        hallazgos=$(printf '%s\n' "$salida" | grep -cE '^(warning|performance|portability|error)\|')
+        printf '%s\n' "$salida" | grep -E '^(warning|performance|portability|error)\|' | sed -n '1,30p'
+        echo "::warning title=cppcheck::${hallazgos} hallazgos en Source/ (MEDIDO en local con cppcheck 2.21: 0; informativo hasta que CI lo confirme y pase a bloquear)."
+        exit 0
