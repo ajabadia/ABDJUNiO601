@@ -44,11 +44,26 @@ endif()
 
 add_subdirectory(${JUCE_PATH} _juce)
 
-# --- ABDSharedCode Integration ---
-set(ABDSHARED_CODE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ABDSharedCode")
-if(EXISTS "${ABDSHARED_CODE_DIR}/CMakeLists.txt")
-    message(STATUS "ABDSharedCode: Using local at ${ABDSHARED_CODE_DIR}")
+# ============================================================
+# ABDShared — DspCore, LutDSP, HardwareDrivers, SynthCore
+# Prioriza el repositorio canonico ABDShared/Code, con fallback a ABDSharedCode.
+# ============================================================
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../ABDShared/Code/CMakeLists.txt")
+    set(ABDSHARED_CODE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ABDShared/Code")
+    message(STATUS "ABDShared: Using canonical Code at ${ABDSHARED_CODE_DIR}")
+    add_subdirectory("${ABDSHARED_CODE_DIR}" "${CMAKE_BINARY_DIR}/ABDShared_build")
+elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../ABDSharedCode/CMakeLists.txt")
+    set(ABDSHARED_CODE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ABDSharedCode")
+    message(STATUS "ABDShared: Using legacy sibling at ${ABDSHARED_CODE_DIR}")
     add_subdirectory("${ABDSHARED_CODE_DIR}" "${CMAKE_BINARY_DIR}/ABDSharedCode")
+else()
+    include(FetchContent)
+    FetchContent_Declare(
+      ABDShared
+      GIT_REPOSITORY https://github.com/ajabadia/ABDShared.git
+      GIT_TAG        main
+    )
+    FetchContent_MakeAvailable(ABDShared)
 endif()
 
 option(BUILD_HEADLESS "Build headless version (no GUI)" OFF)
