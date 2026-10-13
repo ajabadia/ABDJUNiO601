@@ -1,0 +1,35 @@
+# Baseline cppcheck de ABDJUNiO601 — generado midiendo HEAD (53f638e) con el
+# comando exacto de la CI (cppcheck 2.21) ya CON las exclusiones
+# --suppress='*:BuildVersion.h' (estampado) y --suppress='*:*.gen.*'
+# (ParameterRegistry.gen.h), verificadas con cppcheck 2.21 el 2026-10-13.
+# Firma: severidad|archivo|mensaje (sin linea, paths con /). El gate solo
+# bloquea hallazgos que NO esten aqui.
+performance|Source/Core/CalibrationSettings.cpp|Function parameter 'category' should be passed by const reference.
+performance|Source/Core/CalibrationSettings.cpp|Function parameter 'id' should be passed by const reference.
+performance|Source/Core/CalibrationSettings.cpp|Function parameter 'label' should be passed by const reference.
+performance|Source/Core/CalibrationSettings.cpp|Function parameter 'tooltip' should be passed by const reference.
+performance|Source/Core/CalibrationSettings.cpp|Function parameter 'unit' should be passed by const reference.
+performance|Source/Core/CalibrationSettings.h|Function 'getLibraryPath()' should return member 'libraryPath' by const reference.
+performance|Source/Core/PerformanceState.cpp|Variable 'sustainPedalActive' is assigned in constructor body. Consider performing initialization in initialization list.
+warning|Source/Core/CalibrationParam.h|Member variable 'CalibrationParam::currentValue' has no initializer.
+warning|Source/Core/CalibrationParam.h|Member variable 'CalibrationParam::defaultValue' has no initializer.
+warning|Source/Core/CalibrationParam.h|Member variable 'CalibrationParam::maxValue' has no initializer.
+warning|Source/Core/CalibrationParam.h|Member variable 'CalibrationParam::minValue' has no initializer.
+warning|Source/Core/CalibrationParam.h|Member variable 'CalibrationParam::stepSize' has no initializer.
+warning|Source/Core/CalibrationSettings.cpp|Member variable 'CalibrationSettings::customDacTable' is not initialized in the constructor.
+warning|Source/Core/CalibrationSettings.cpp|Member variable 'CalibrationSettings::customLfoRampTable' is not initialized in the constructor.
+warning|Source/Core/CalibrationSettings.cpp|Member variable 'CalibrationSettings::customLfoSpeedTable' is not initialized in the constructor.
+warning|Source/Core/CalibrationSettings.cpp|Member variable 'CalibrationSettings::customSubLevelTable' is not initialized in the constructor.
+warning|Source/Core/CalibrationSettings.cpp|Member variable 'CalibrationSettings::customVcaTable' is not initialized in the constructor.
+warning|Source/Core/JunoTapeDecoder.h|Member variable 'RestoreLevel::gamma' has no initializer.
+warning|Source/Core/JunoTapeDecoder.h|Member variable 'RestoreLevel::useBpf' has no initializer.
+warning|Source/Core/PerformanceState.cpp|Member variable 'PerformanceState::noteOffBuffer' is not initialized in the constructor.
+warning|Source/Core/PresetManager.h|The class 'PresetManager' defines member function with name 'getCurrentPresetIndex' also defined in its parent class 'PresetManagerBase'.
+warning|Source/Core/Tests/MidiLearnTests.cpp|Member variable 'ParameterChange::newValue' has no initializer.
+warning|Source/Core/Tests/MidiLearnTests.cpp|Member variable 'ParameterChange::oldValue' has no initializer.
+warning|Source/Core/Tests/SmartTapeTests.cpp|Member variable 'TapeFileSpec::forcedBaud' has no initializer.
+warning|Source/Core/Tests/SmartTapeTests.cpp|Member variable 'TapeFileSpec::minPatchesDecodeWav' has no initializer.
+warning|Source/Core/Tests/SmartTapeTests.cpp|Member variable 'TapeFileSpec::minPatchesSmart' has no initializer.
+warning|Source/Core/Tests/SmartTapeTests.cpp|Return value of function outStream.release() is not used.
+warning|Source/Synth/JunoTapeEcho.h|Member variable 'SpringReverb::delayTimes_' is not initialized in the constructor.
+warning|Source/Synth/JunoVoice.h|The class 'Voice' defines member function with name 'isActive' also defined in its parent class 'VoiceBase'.
