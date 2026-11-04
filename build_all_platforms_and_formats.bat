@@ -1,29 +1,27 @@
 @echo off
 setlocal enabledelayedexpansion
 
+rem ============================================================================
+rem build_all_platforms_and_formats.bat - Compila TODOS los formatos (Standalone,
+rem VST3, ...) para los 4 modelos. Deteccion de VS/CMake en scripts\build_env.bat.
+rem ============================================================================
+
+call "%~dp0scripts\build_env.bat"
+if errorlevel 1 exit /b 1
+
 echo =======================================================================
-2: JUNiO 601 - BUILD ALL MODELS AND ALL FORMATS (Windows)
+echo JUNiO 601 - BUILD ALL MODELS AND ALL FORMATS (Windows)
 echo =======================================================================
+echo [INFO] VS:    %VS_PATH%
+echo [INFO] CMake: %CMAKE_PATH%
 
-set "VC_VARS=C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat"
-set "CMAKE_PATH=C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-
-if exist "%VC_VARS%" (
-    call "%VC_VARS%" x64
-) else (
-    echo [WARNING] vcvarsall.bat not found at %VC_VARS%
-)
-
-if not exist "%CMAKE_PATH%" (
-    echo [ERROR] CMake not found at %CMAKE_PATH%
-    exit /b 1
-)
+call "%VC_VARS%" x64 >nul
 
 rem --- Increment build number ---
 set "VERSION_FILE=build_no.txt"
 if not exist %VERSION_FILE% echo 0 > %VERSION_FILE%
 set /p build_no=<%VERSION_FILE%
-set /a build_no=%build_no% + 1
+set /a build_no=build_no + 1
 echo %build_no% > %VERSION_FILE%
 
 echo #define JUNO_BUILD_VERSION "%build_no%" > "Source/Core/BuildVersion.h"
@@ -61,17 +59,22 @@ echo =======================================================================
 echo Building all formats for: !NAME! (JUNO_TARGET_MODEL=%MODEL%)
 echo =======================================================================
 
-if not exist %DIR% mkdir %DIR%
+if not exist !DIR! mkdir !DIR!
 
-"%CMAKE_PATH%" -S . -B %DIR% -G "Visual Studio 18 2026" -A x64 -DCMAKE_SYSTEM_VERSION=10.0.26100.0 -DJUNO_TARGET_MODEL=%MODEL%
+"%CMAKE_PATH%" -S . -B !DIR! -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%" -DJUNO_TARGET_MODEL=%MODEL%
 if !ERRORLEVEL! NEQ 0 (
-    echo [ERROR] CMake configuration failed for !NAME!
-    endlocal & set EXIT_CODE=1
-    goto :eof
+    echo [WARN] Configuracion fallida; reintentando con --fresh...
+    if exist "!DIR!\_juce" rmdir /s /q "!DIR!\_juce"
+    "%CMAKE_PATH%" --fresh -S . -B !DIR! -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%" -DJUNO_TARGET_MODEL=%MODEL%
+    if !ERRORLEVEL! NEQ 0 (
+        echo [ERROR] CMake configuration failed for !NAME!
+        endlocal & set EXIT_CODE=1
+        goto :eof
+    )
 )
 
 echo [INFO] Compiling Standalone, VST3 and other configured formats...
-"%CMAKE_PATH%" --build %DIR% --config Release
+"%CMAKE_PATH%" --build !DIR! --config Release
 if !ERRORLEVEL! NEQ 0 (
     echo [ERROR] Build failed for !NAME!
     endlocal & set EXIT_CODE=1

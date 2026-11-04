@@ -8,6 +8,8 @@ setlocal enabledelayedexpansion
 ::   build_and_test.bat              Full pipeline (build + test)
 ::   build_and_test.bat --test-only  Skip build, just launch + test
 ::   build_and_test.bat --help       Show this help
+::
+:: La deteccion de Visual Studio / CMake vive en scripts\build_env.bat.
 :: ============================================================================
 
 set "SCRIPT_DIR=%~dp0"
@@ -18,24 +20,10 @@ set "APP_PATH=%APP_REL_DIR%\%APP_NAME%"
 set "CDP_PORT=9222"
 set "EXIT_CODE=0"
 
-:: Detect CMake path
-set "CMAKE="
-if exist "%SCRIPT_DIR%CMake\CMake\bin\cmake.exe" (
-    set "CMAKE=%SCRIPT_DIR%CMake\CMake\bin\cmake.exe"
-) else if exist "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" (
-    set "CMAKE=C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-) else (
-    where cmake >nul 2>&1 && set "CMAKE=cmake" || (
-        echo [CI] ERROR: CMake not found
-        exit /b 1
-    )
-)
-echo [CI] Using CMake: %CMAKE%
-
 :: Parse args
 set "SKIP_BUILD="
-if /i "%1"=="--test-only" set "SKIP_BUILD=1"
-if /i "%1"=="--help" (
+if /i "%~1"=="--test-only" set "SKIP_BUILD=1"
+if /i "%~1"=="--help" (
     echo Usage: %~nx0 [--test-only] [--help]
     echo   --test-only  Skip the build step, just launch and test
     echo   --help       Show this message
@@ -55,11 +43,31 @@ if defined SKIP_BUILD (
     echo.
     echo [CI] Step 1/5: Building standalone app...
     echo.
-    if exist "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" (
-        call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+    call "%SCRIPT_DIR%scripts\build_env.bat"
+    if errorlevel 1 (
+        echo [CI] BUILD FAILED: no se encontro Visual Studio / CMake
+        exit /b 1
     )
-    "%CMAKE%" --build "%BUILD_DIR%" --config Release --target ABDSimpleJuno106_Standalone
-    if !ERRORLEVEL! neq 0 (
+    echo [CI] Using CMake: %CMAKE_PATH%
+    call "%VC_VARS%" x64 >nul
+
+    if not exist "%BUILD_DIR%\CMakeCache.txt" (
+        echo [CI] No hay cache de CMake; configurando...
+        "%CMAKE_PATH%" -S "%SCRIPT_DIR%." -B "%BUILD_DIR%" -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%"
+        if !ERRORLEVEL! NEQ 0 (
+            echo [CI] Configuracion fallida; reintentando con --fresh...
+            if exist "%BUILD_DIR%\_juce" rmdir /s /q "%BUILD_DIR%\_juce"
+            "%CMAKE_PATH%" --fresh -S "%SCRIPT_DIR%." -B "%BUILD_DIR%" -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%"
+            if !ERRORLEVEL! NEQ 0 (
+                echo [CI] BUILD FAILED: CMake configure error
+                exit /b 1
+            )
+        )
+    )
+
+    "%CMAKE_PATH%" --build "%BUILD_DIR%" --config Release --target ABDSimpleJuno106_Standalone
+    if !ERRORLEVEL! NEQ 0 (
         echo [CI] BUILD FAILED (exit code: !ERRORLEVEL!)
         exit /b !ERRORLEVEL!
     )

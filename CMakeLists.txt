@@ -27,11 +27,17 @@ endif()
 
 message(STATUS "Building model: ${PRODUCT_DISPLAY_NAME} (JUNO_TARGET_MODEL=${JUNO_TARGET_MODEL})")
 
+# Orden de busqueda: -DJUCE_PATH, JUCE_PATH del entorno, D:/desarrollos/juce
+# (SDK de referencia, JUCE 9), la copia del repo y, por ultimo, C:/JUCE.
+# Los .bat pasan -DJUCE_PATH desde scripts\build_env.bat, asi que en la practica
+# siempre se compila contra el SDK de referencia.
 if(NOT DEFINED JUCE_PATH)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
-        set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
-    elseif(DEFINED ENV{JUCE_PATH})
+    if(DEFINED ENV{JUCE_PATH})
         set(JUCE_PATH "$ENV{JUCE_PATH}")
+    elseif(EXISTS "D:/desarrollos/juce/CMakeLists.txt")
+        set(JUCE_PATH "D:/desarrollos/juce")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE/CMakeLists.txt")
+        set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/JUCE")
     else()
         set(JUCE_PATH "C:/JUCE" CACHE PATH "Path to JUCE")
     endif()
@@ -145,6 +151,13 @@ if(NOT BUILD_HEADLESS)
     target_sources(ABDSimpleJuno106 PRIVATE
         Source/Core/PluginEditor.h
         Source/Core/PluginEditor.cpp
+        # UI WebView: el editor real del plugin. Sin estos .cpp el VST3
+        # enlaza con 4 simbolos de WebViewEditor sin resolver.
+        Source/UI/WebView/WebViewEditor.cpp
+        Source/UI/WebView/BridgeActions.cpp
+        Source/UI/WebView/BridgeImport.cpp
+        Source/UI/WebView/BridgeService.cpp
+        Source/UI/WebView/BridgeMenu.cpp
         
         Source/UI/JunoBender.h
         Source/UI/JunoBender.cpp
@@ -386,6 +399,7 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/Tests/SmartImportHtmlTests.cpp
     Source/Core/Tests/ModelRoutingTests.cpp
     Source/Core/Tests/TapeEchoTests.cpp
+    Source/Core/Tests/LfoTablesTests.cpp
     Source/Core/Tests/MidiLearnTests.cpp
     Source/Synth/JunoTapeEcho.cpp
     Source/Synth/JunoDCO.cpp
@@ -395,6 +409,7 @@ target_sources(JunoUnitTests PRIVATE
     Source/Synth/JunoLFO.cpp
     Source/Synth/JunoVoice.cpp
     Source/Core/JunoSysExEngine.cpp
+    Source/Core/LfoTables.cpp
     Source/Core/CalibrationSettings.cpp
     Source/Core/PresetManager.cpp
     Source/Core/JunoVoiceManager.cpp

@@ -1,80 +1,45 @@
 @echo off
 setlocal enabledelayedexpansion
 
-rem --- Rutas canónicas de vcvars para varias ediciones/versiones de Visual Studio ---
-set "VC_VARS="
-for %%A in (
-    "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\17\Community\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\17\Professional\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files\Microsoft Visual Studio\17\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files (x86)\Microsoft Visual Studio\17\Community\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files (x86)\Microsoft Visual Studio\17\Professional\VC\Auxiliary\Build\vcvarsall.bat"
-    "C:\Program Files (x86)\Microsoft Visual Studio\17\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
-) do (
-    if not defined VC_VARS if exist %%A set "VC_VARS=%%~A"
-)
+rem ============================================================================
+rem build_tests.bat - Compila y ejecuta JunoUnitTests con el modelo Super Six.
+rem   build_tests.bat            compila y ejecuta
+rem   build_tests.bat --clean    borra build_supersix antes de compilar
+rem La deteccion de Visual Studio / CMake vive en scripts\build_env.bat.
+rem ============================================================================
 
-if not defined VC_VARS (
-    echo [ERROR] vcvarsall.bat no encontrado.
-    exit /b 1
-)
+call "%~dp0scripts\build_env.bat"
+if errorlevel 1 exit /b 1
 
-set "CMAKE_PATH="
-where cmake >nul 2>&1
-if %ERRORLEVEL%==0 (
-    for /f "delims=" %%F in ('where cmake') do (
-        if not defined CMAKE_PATH set "CMAKE_PATH=%%F"
-    )
-)
-if not defined CMAKE_PATH (
-    set "CMAKE_PATH=cmake"
-)
+echo [INFO] VS:    %VS_PATH%
+echo [INFO] CMake: %CMAKE_PATH%
+call "%VC_VARS%" x64 >nul
 
-echo === Building JunoUnitTests (Super Six model, JUNO_TARGET_MODEL=0) ===
-call "%VC_VARS%" x64
+set "BUILD_DIR=build_supersix"
+set "MODEL=0"
 
-rem Limpieza completa si se solicita --clean o si se detecta configuracion obsoleta de VS
-if "%~1"=="--clean" (
-    if exist "build_supersix" (
-        echo [INFO] Flag --clean detectado. Eliminando build_supersix...
-        rmdir /s /q "build_supersix"
+if /i "%~1"=="--clean" (
+    if exist "%BUILD_DIR%" (
+        echo [INFO] Flag --clean detectado. Eliminando %BUILD_DIR%...
+        rmdir /s /q "%BUILD_DIR%"
     )
 )
 
-if exist "build_supersix" (
-    set "NEED_CLEAN="
-    if exist "build_supersix\CMakeCache.txt" (
-        findstr /C:"C:/Program Files/Microsoft Visual Studio/18/Community" "build_supersix\CMakeCache.txt" >nul 2>&1
-        if !ERRORLEVEL!==0 set "NEED_CLEAN=1"
-    )
-    if exist "build_supersix\_juce\tools\CMakeCache.txt" (
-        findstr /C:"C:/Program Files/Microsoft Visual Studio/18/Community" "build_supersix\_juce\tools\CMakeCache.txt" >nul 2>&1
-        if !ERRORLEVEL!==0 set "NEED_CLEAN=1"
-    )
-    if exist "build_supersix\_juce\tools\ZERO_CHECK.vcxproj" (
-        findstr /C:"Community" "build_supersix\_juce\tools\ZERO_CHECK.vcxproj" >nul 2>&1
-        if !ERRORLEVEL!==0 set "NEED_CLEAN=1"
-    )
-    if defined NEED_CLEAN (
-        echo [INFO] Detectada instancia obsoleta de VS en build_supersix. Eliminando directorio completo...
-        rmdir /s /q "build_supersix"
+echo.
+echo === Building JunoUnitTests (Super Six model, JUNO_TARGET_MODEL=%MODEL%) ===
+"%CMAKE_PATH%" -S . -B "%BUILD_DIR%" -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%" -DJUNO_TARGET_MODEL=%MODEL%
+if !ERRORLEVEL! NEQ 0 (
+    echo [WARN] Configuracion fallida ^(cache de otra instalacion de VS?^). Reintentando con --fresh...
+    if exist "%BUILD_DIR%\_juce" rmdir /s /q "%BUILD_DIR%\_juce"
+    "%CMAKE_PATH%" --fresh -S . -B "%BUILD_DIR%" -G "%VS_GENERATOR%" -A x64 -DCMAKE_GENERATOR_INSTANCE="%VS_INSTANCE%" -DJUCE_PATH="%JUCE_PATH%" -DJUNO_TARGET_MODEL=%MODEL%
+    if !ERRORLEVEL! NEQ 0 (
+        echo [ERROR] CMake configuration failed!
+        exit /b 1
     )
 )
 
-echo [INFO] Configurando CMake para build_supersix...
-"%CMAKE_PATH%" -S . -B build_supersix -D JUNO_TARGET_MODEL=0
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] CMake configuration failed!
-    exit /b 1
-)
-
-"%CMAKE_PATH%" --build build_supersix --config Release --target JunoUnitTests
-if %ERRORLEVEL% NEQ 0 (
+"%CMAKE_PATH%" --build "%BUILD_DIR%" --config Release --target JunoUnitTests
+if !ERRORLEVEL! NEQ 0 (
     echo [ERROR] Build failed!
     exit /b 1
 )
@@ -82,14 +47,21 @@ echo [SUCCESS] Build OK.
 echo.
 
 echo === Running JunoUnitTests ===
-if exist "build_supersix\JunoUnitTests_artefacts\Release\JunoUnitTests.exe" (
-    build_supersix\JunoUnitTests_artefacts\Release\JunoUnitTests.exe
-) else if exist "build_supersix\Release\JunoUnitTests.exe" (
-    build_supersix\Release\JunoUnitTests.exe
-) else (
-    echo Searching for JunoUnitTests.exe...
-    dir /s /b build_supersix\JunoUnitTests.exe 2>nul
+set "TEST_EXE=%BUILD_DIR%\JunoUnitTests_artefacts\Release\JunoUnitTests.exe"
+if not exist "!TEST_EXE!" (
+    echo [ERROR] No se encontro !TEST_EXE!
+    dir /s /b "%BUILD_DIR%\JunoUnitTests.exe" 2>nul
+    exit /b 1
 )
 
+"%TEST_EXE%"
+set "TEST_EXIT=!ERRORLEVEL!"
+
 echo.
+if !TEST_EXIT! EQU 0 (
+    echo [SUCCESS] ALL TESTS PASSED
+) else (
+    echo [FAILURE] Tests failed ^(exit code: !TEST_EXIT!^)
+)
 echo === Done ===
+exit /b !TEST_EXIT!

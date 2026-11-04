@@ -8,21 +8,44 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SRC_ROOT ${CMAKE_SOURCE_DIR}/../Source)
 set(SHIM_ROOT ${CMAKE_SOURCE_DIR}/juce_shim)
 
+# --- Modulos JUCE: se compilan desde el SDK, sin copias vendadas -------------
+# wasm\build_wasm.bat pasa JUCE_MODULES_DIR resuelto por scripts\build_env.bat
+# (D:\desarrollos\juce\modules). El repo ya no guarda copias de juce_core,
+# juce_dsp ni juce_audio_basics: JUCE 9 trae soporte WebAssembly propio
+# (JUCE_WASM, incluida la tabla de prioridades de hilo), asi que basta con
+# apuntar al SDK y no hay ningun parche que aplicar sobre los modulos.
+if(NOT DEFINED JUCE_MODULES_DIR)
+    if(DEFINED ENV{JUCE_PATH})
+        set(JUCE_MODULES_DIR "$ENV{JUCE_PATH}/modules")
+    elseif(EXISTS "D:/desarrollos/juce/modules")
+        set(JUCE_MODULES_DIR "D:/desarrollos/juce/modules")
+    else()
+        set(JUCE_MODULES_DIR "C:/JUCE/modules")
+    endif()
+endif()
+
+# Normaliza separadores (el .bat pasa una ruta con '\'). El include root de
+# <juce_core/juce_core.h> es el propio directorio de modulos.
+file(TO_CMAKE_PATH "${JUCE_MODULES_DIR}" JUCE_MODULES_DIR)
+
+foreach(JUCE_MODULE juce_core juce_dsp juce_audio_basics)
+    if(NOT EXISTS "${JUCE_MODULES_DIR}/${JUCE_MODULE}/${JUCE_MODULE}.cpp")
+        message(FATAL_ERROR
+            "Modulo JUCE no encontrado en ${JUCE_MODULES_DIR}/${JUCE_MODULE}.\n"
+            "Pasa -DJUCE_MODULES_DIR=<ruta a JUCE>/modules o revisa scripts\\build_env.bat.")
+    endif()
+endforeach()
+message(STATUS "Using JUCE modules from: ${JUCE_MODULES_DIR}")
+
 # --- Lista compartida single-source (anti-drift) con el build nativo ---
 # DspSources.cmake define JUNO_DSP_SOURCES y JUNO_DSP_SOURCES_WASM; la
 # diferencia (PresetManager/ValueTree, importers, tests...) esta documentada alli.
 include("${CMAKE_CURRENT_LIST_DIR}/../DspSources.cmake")
 
-set(JUCE_CORE_SRC
-    ${CMAKE_SOURCE_DIR}/juce_core/juce_core.cpp
-)
-
-set(JUCE_DSP_SRC
-    ${CMAKE_SOURCE_DIR}/juce_dsp/juce_dsp.cpp
-)
-
-set(JUCE_AUDIO_BASICS_SRC
-    ${CMAKE_SOURCE_DIR}/juce_audio_basics/juce_audio_basics.cpp
+set(JUCE_MODULE_SRC
+    ${JUCE_MODULES_DIR}/juce_core/juce_core.cpp
+    ${JUCE_MODULES_DIR}/juce_dsp/juce_dsp.cpp
+    ${JUCE_MODULES_DIR}/juce_audio_basics/juce_audio_basics.cpp
 )
 
 set(DSP_SRC
@@ -38,9 +61,7 @@ set(STUB_SRC
 add_executable(abdjunio601_wasm
     ${DSP_SRC}
     ${STUB_SRC}
-    ${JUCE_CORE_SRC}
-    ${JUCE_DSP_SRC}
-    ${JUCE_AUDIO_BASICS_SRC}
+    ${JUCE_MODULE_SRC}
 )
 
 target_include_directories(abdjunio601_wasm PRIVATE
@@ -49,10 +70,8 @@ target_include_directories(abdjunio601_wasm PRIVATE
     ${SRC_ROOT}/Synth
     ${SRC_ROOT}/Wasm
     ${SHIM_ROOT}
-    ${CMAKE_SOURCE_DIR}/juce_core
-    ${CMAKE_SOURCE_DIR}/juce_dsp
-    ${CMAKE_SOURCE_DIR}/juce_audio_basics
-    C:/JUCE/modules
+    # Resuelve <juce_core/juce_core.h>, <juce_dsp/...>, etc.
+    ${JUCE_MODULES_DIR}
     # CalibrationSettings.h incluye <LutDSP/VoiceDispersionModel.h> (header-only,
     # solo necesita juce_core — vendado aqui)
     ${CMAKE_CURRENT_LIST_DIR}/../../ABDSharedCode

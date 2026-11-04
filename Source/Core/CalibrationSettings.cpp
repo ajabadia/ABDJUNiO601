@@ -1,8 +1,9 @@
-#include <JuceHeader.h>
 #include "CalibrationSettings.h"
-#include "JunoConstants.h"
 #include "../Synth/DacHzTable.h"
 #include "../Synth/J106VCATable.h"
+#include "JunoConstants.h"
+#include "LfoTables.h"
+#include <JuceHeader.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -38,9 +39,18 @@ void CalibrationSettings::buildParameterList()
     // Simplified registration call
     auto reg = [this](std::string id, std::string label, std::string category, std::string unit, std::string tooltip, float def, float min, float max, float step, bool isInt = false) {
         Cal::CalibrationParam p;
-        p.id = id; p.label = label; p.category = category; p.unit = unit; p.tooltip = tooltip;
-        p.defaultValue = def; p.currentValue = def; p.minValue = min; p.maxValue = max; p.stepSize = step; p.isInteger = isInt;
-        idToIndex[id] = (int)params.size();
+        p.id           = id;
+        p.label        = label;
+        p.category     = category;
+        p.unit         = unit;
+        p.tooltip      = tooltip;
+        p.defaultValue = def;
+        p.currentValue = def;
+        p.minValue     = min;
+        p.maxValue     = max;
+        p.stepSize     = step;
+        p.isInteger    = isInt;
+        idToIndex[id]  = (int)params.size();
         params.push_back(p);
     };
 
@@ -95,16 +105,16 @@ void CalibrationSettings::buildParameterList()
     regTriple("pwmMaxDuty", "PWM Maximum Duty", "DCO", "%", "Calibration of the maximum pulse width (factory=95%).", 0.95f, 0.9f, 0.99f, 0.01f);
     regTriple("pwmMinDuty", "PWM Minimum Duty", "DCO", "%", "Calibration of the minimum pulse width (factory=5%).", 0.05f, 0.01f, 0.1f, 0.01f);
     regTriple("pwmOffset", "PWM Tuning Offset", "DCO", "%", "Shifts the center point of the Pulse Width modulation.", 0.0f, -10.0f, 10.0f, 0.5f);
-    regTripleWithDefaults("sawMixAmp",         "Saw Wave Mix Level",     "DCO","x","Mix amplitude for Sawtooth.",                  0.50f,  0.50f,  0.60f,  0.1f, 2.0f, 0.05f);
-    regTripleWithDefaults("pulseMixAmp",       "Pulse Wave Mix Level",   "DCO","x","Mix amplitude for Pulse wave.",                0.50f,  0.50f,  0.50f,  0.1f, 2.0f, 0.05f);
-    regTripleWithDefaults("subMixAmp",         "Sub-Osc Mix Level",      "DCO","x","Mix amplitude for Sub-oscillator.",           0.5942f, 0.5942f, 0.75f,  0.1f, 2.0f, 0.05f);
-    regTripleWithDefaults("noiseMixAmp",       "Noise Mix Level",        "DCO","x","Mix amplitude for Noise gen.",                 1.00f,  1.00f,  1.20f,  0.1f, 3.0f, 0.05f);
-    regTriple("audioTaperScale",   "Audio Taper Scale",      "DCO","","Exp scale for sub/noise taper: (exp(k*x)-1)/(exp(k)-1), factory k=3.", 3.0f, 1.0f, 6.0f, 0.1f);
-    regTriple("dcoLfoShuntK",      "DCO-LFO Shunt Factor",   "DCO","","Taper denominator: k=Rpot/Rshunt (50K/10K=5, factory).", 5.0f, 1.0f, 10.0f, 0.5f);
-    regTriple("dcoLfoMaxSemitones","DCO-LFO Max Depth",      "DCO","st","Max pitch mod depth at full slider (J106 factory: ±4 st).", 4.0f, 1.0f, 12.0f, 0.5f);
-    regTriple("oscSwitchRampMs",   "Osc Switch Ramp Time",   "DCO","ms","Crossfade time for waveform on/off switching (factory: 1.45ms).", 1.45f, 0.1f, 10.0f, 0.1f);
-    regTriple("dcoSawCurvature",   "DCO Sawtooth Curvature", "DCO","",  "Non-linear charge curve of the analog integrators (Factory 0.15).",  0.15f, 0.0f, 0.5f, 0.01f);
-    
+    regTripleWithDefaults("sawMixAmp", "Saw Wave Mix Level", "DCO", "x", "Mix amplitude for Sawtooth.", 0.50f, 0.50f, 0.60f, 0.1f, 2.0f, 0.05f);
+    regTripleWithDefaults("pulseMixAmp", "Pulse Wave Mix Level", "DCO", "x", "Mix amplitude for Pulse wave.", 0.50f, 0.50f, 0.50f, 0.1f, 2.0f, 0.05f);
+    regTripleWithDefaults("subMixAmp", "Sub-Osc Mix Level", "DCO", "x", "Mix amplitude for Sub-oscillator.", 0.5942f, 0.5942f, 0.75f, 0.1f, 2.0f, 0.05f);
+    regTripleWithDefaults("noiseMixAmp", "Noise Mix Level", "DCO", "x", "Mix amplitude for Noise gen.", 1.00f, 1.00f, 1.20f, 0.1f, 3.0f, 0.05f);
+    regTriple("audioTaperScale", "Audio Taper Scale", "DCO", "", "Exp scale for sub/noise taper: (exp(k*x)-1)/(exp(k)-1), factory k=3.", 3.0f, 1.0f, 6.0f, 0.1f);
+    regTriple("dcoLfoShuntK", "DCO-LFO Shunt Factor", "DCO", "", "Taper denominator: k=Rpot/Rshunt (50K/10K=5, factory).", 5.0f, 1.0f, 10.0f, 0.5f);
+    regTriple("dcoLfoMaxSemitones", "DCO-LFO Max Depth", "DCO", "st", "Max pitch mod depth at full slider (J106 factory: ±4 st).", 4.0f, 1.0f, 12.0f, 0.5f);
+    regTriple("oscSwitchRampMs", "Osc Switch Ramp Time", "DCO", "ms", "Crossfade time for waveform on/off switching (factory: 1.45ms).", 1.45f, 0.1f, 10.0f, 0.1f);
+    regTriple("dcoSawCurvature", "DCO Sawtooth Curvature", "DCO", "", "Non-linear charge curve of the analog integrators (Factory 0.15).", 0.15f, 0.0f, 0.5f, 0.01f);
+
     // --- VCA ---
     regTriple("vcaMasterGain", "VCA Master Gain", "VCA", "", "Overall gain trim for each voice.", 1.0f, 0.1f, 3.0f, 0.05f);
     regTriple("vcaBleed", "VCA Bleed Level", "VCA", "dB", "Constant signal leakage from oscillators even when VCA is closed.", -85.0f, -100.0f, -60.0f, 0.5f);
@@ -124,7 +134,7 @@ void CalibrationSettings::buildParameterList()
     regTriple("adsrOvershoot", "Attack Overshoot", "ADSR", "V", "Voltage spike at the end of the attack phase due to capacitor charging inertia.", 1.08f, 1.0f, 1.25f, 0.01f);
     regTriple("adsrCurveExponent", "ADSR Curve Exponent", "ADSR", "", "Non-linear scaling of ADSR sliders (factory/2.2 is recommended).", 2.2f, 1.0f, 4.0f, 0.1f);
     regTriple("adsrVariance", "ADSR Time Variance", "AGING", "%", "Static timing variance of the envelope components between voices.", 0.05f, 0.0f, 0.15f, 0.01f);
-    
+
     // --- CHORUS ---
     regTriple("chorusMix", "Chorus Dry/Wet Mix", "CHORUS", "%", "Balance between dry signal and the analog BBD chorus output.", 1.0f, 0.0f, 1.0f, 0.01f);
     regTriple("chorusHiss", "Analog Hiss Level", "CHORUS", "dB", "Baseline analog noise level of the BBD delay lines.", -68.0f, -96.0f, -30.0f, 0.5f);
@@ -148,9 +158,13 @@ void CalibrationSettings::buildParameterList()
     regTriple("lfoMinRate", "LFO Min Frequency", "LFO", "Hz", "Min frequency at slider 0.", 0.1f, 0.01f, 5.0f, 0.05f);
     regTriple("lfoDelayMax", "LFO Max DelayTime", "LFO", "s", "Max delay time at slider 10.", 3.0f, 0.1f, 10.0f, 0.1f);
     regTriple("lfoResolution", "LFO DAC Steps (7.5=4bit)", "LFO", "", "Resolution of LFO (higher = cleaner).", 7.5f, 1.0f, 128.0f, 0.5f);
-    regTriple("lfoTickRateMs",     "LFO MCU Tick Period",    "LFO","ms","Firmware main-loop period driving LFO steps (calibrated: 4.2335ms).", 4.2335f, 1.0f, 10.0f, 0.001f);
-    regTriple("lfoAccumMax",       "LFO Accumulator Max",    "LFO","","LFO 16-bit accumulator ceiling (firmware: 0x1FFF = 8191).", 8191.0f, 4095.0f, 16383.0f, 1.0f, true);
-    regTriple("lfoHoldoffThresh",  "LFO Holdoff Threshold",  "LFO","","Accumulator value at which Holdoff ends (firmware: 0x4000 = 16384).", 16384.0f, 4096.0f, 32767.0f, 1.0f, true);
+    regTriple("lfoTickRateMs", "LFO MCU Tick Period", "LFO", "ms", "Firmware main-loop period driving LFO steps (calibrated: 4.2335ms = 236.2Hz).", 4.2335f, 1.0f, 10.0f, 0.001f);
+    regTriple("lfoAccumMax", "LFO Accumulator Max", "LFO", "", "LFO 16-bit accumulator ceiling (firmware: 0x1FFF = 8191).", 8191.0f, 4095.0f, 16383.0f, 1.0f, true);
+    regTriple("lfoHoldoffThresh", "LFO Holdoff Threshold", "LFO", "", "Accumulator value at which Holdoff ends (firmware: 0x4000 = 16384).", 16384.0f, 4096.0f, 32767.0f, 1.0f, true);
+    // Provenance (master ROM ic37): 0x1FFF appears at 0x0792 (and 0x3FFF at
+    // 0x073E/0x077E, 0x2000 at 0x0766/0x07A2). The 14-bit accumulator wraps
+    // modulo 0x4000, so 16384 is the wrap modulus rather than a value the
+    // running accumulator can reach. Revisit before changing the default (FW.3).
 
     // --- VCF ---
     regTriple("vcfMinHz", "VCF Min Frequency", "VCF", "Hz", "Lowest possible cutoff frequency.", 10.0f, 5.0f, 100.0f, 1.0f);
@@ -171,13 +185,13 @@ void CalibrationSettings::buildParameterList()
     regTriple("vcfResKModel", "VCF ResK Model Curve", "VCF", "", "Resonance feedback curve model: 0=Juno-60 (IR3109), 1=Juno-106 (80017A).", 1.0f, 0.0f, 1.0f, 1.0f, true);
 
     // --- HPF ---
-    regTripleWithDefaults("hpfFreq1",         "HPF Pos 1 Frequency",     "HPF", "Hz",  "HPF cutoff at pos 1 (CD4051B selects C=.022µF). Hardware: 122 Hz.",     122.0f, 122.0f, 0.0f,    0.0f,  500.0f,  1.0f);
-    regTripleWithDefaults("hpfFreq2",         "HPF Pos 2 Frequency",     "HPF", "Hz",  "HPF cutoff at pos 2 (C=.015µF, R_eff=44.9K). Hardware: 236 Hz.",     269.0f, 269.0f, 236.0f,   50.0f,  1000.0f, 1.0f);
-    regTripleWithDefaults("hpfFreq3",         "HPF Pos 3 Frequency",     "HPF", "Hz",  "HPF cutoff at pos 3 (C=.0047µF, R_eff=44.9K). Hardware: 754 Hz.",   571.0f, 571.0f, 754.0f,   300.0f, 2500.0f, 5.0f);
-    regTriple("hpfBassBoostGain", "Bass Boost Output Scale",  "HPF", "x",   "Post-gain scale for Bass Boost (pos 0). 1.0 = hardware (+10.5 dB DC, ~59 Hz shelf). Increase for more bass.", 1.0f, 0.1f, 3.0f, 0.05f);
-    regTriple("hpfShelfFreq",     "HPF Pos 0 Shelf Freq",    "HPF", "Hz",  "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.",   70.0f,  20.0f,  300.0f,  1.0f);
-    regTriple("hpfShelfGain",     "HPF Pos 0 Shelf Gain",    "HPF", "dB",  "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.",    3.0f,   0.0f,   12.0f,   0.1f);
-    regTriple("hpfQ",             "HPF Filter Q",             "HPF", "",    "[Legacy] Not used by 1-pole TPT. Kept for UI compatibility.",        0.707f, 0.1f,   2.0f,    0.01f);
+    regTripleWithDefaults("hpfFreq1", "HPF Pos 1 Frequency", "HPF", "Hz", "HPF cutoff at pos 1 (CD4051B selects C=.022µF). Hardware: 122 Hz.", 122.0f, 122.0f, 0.0f, 0.0f, 500.0f, 1.0f);
+    regTripleWithDefaults("hpfFreq2", "HPF Pos 2 Frequency", "HPF", "Hz", "HPF cutoff at pos 2 (C=.015µF, R_eff=44.9K). Hardware: 236 Hz.", 269.0f, 269.0f, 236.0f, 50.0f, 1000.0f, 1.0f);
+    regTripleWithDefaults("hpfFreq3", "HPF Pos 3 Frequency", "HPF", "Hz", "HPF cutoff at pos 3 (C=.0047µF, R_eff=44.9K). Hardware: 754 Hz.", 571.0f, 571.0f, 754.0f, 300.0f, 2500.0f, 5.0f);
+    regTriple("hpfBassBoostGain", "Bass Boost Output Scale", "HPF", "x", "Post-gain scale for Bass Boost (pos 0). 1.0 = hardware (+10.5 dB DC, ~59 Hz shelf). Increase for more bass.", 1.0f, 0.1f, 3.0f, 0.05f);
+    regTriple("hpfShelfFreq", "HPF Pos 0 Shelf Freq", "HPF", "Hz", "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.", 70.0f, 20.0f, 300.0f, 1.0f);
+    regTriple("hpfShelfGain", "HPF Pos 0 Shelf Gain", "HPF", "dB", "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.", 3.0f, 0.0f, 12.0f, 0.1f);
+    regTriple("hpfQ", "HPF Filter Q", "HPF", "", "[Legacy] Not used by 1-pole TPT. Kept for UI compatibility.", 0.707f, 0.1f, 2.0f, 0.01f);
 
     // --- THERMAL DRIFT ---
     regTriple("thermalIntensity", "Thermal Intensity Scale", "THERMAL", "x", "Global scale for thermal pitch drift instability.", 1.5f, 0.1f, 3.0f, 0.1f);
@@ -201,7 +215,7 @@ void CalibrationSettings::buildParameterList()
     regTriple("pwmOffThreshold", "PWM Cut-off Threshold", "DCO", "", "Point where pulse width becomes silent (Factory 0.05).", 0.05f, 0.0f, 0.15f, 0.01f);
     regTriple("pwmSlewRateManual", "PWM Manual Slew", "DCO", "", "Mechanical lag simulation for manual PWM.", 0.05f, 0.005f, 0.2f, 0.005f);
     regTriple("pwmSlewRateLFO", "PWM LFO Slew", "DCO", "", "Smoothing for LFO-driven PWM.", 0.1f, 0.01f, 0.5f, 0.01f);
-    
+
     // --- ADDITIONAL REGISTRATIONS ---
     regTriple("noiseFloorMul", "Analog Noise Floor Multiplier", "AGING", "x", "User-adjustable analog broadband noise floor multiplier.", 1.0f, 0.0f, 5.0f, 0.1f);
     regTriple("mainsRippleMul", "Mains Ripple Multiplier", "AGING", "x", "User-adjustable mains ripple amplitude multiplier.", 1.0f, 0.0f, 5.0f, 0.1f);
@@ -216,31 +230,31 @@ void CalibrationSettings::buildParameterList()
     reg("delayReverbType", "Space Echo Reverb Type", "SPACE ECHO", "", "Reverb algorithm type: 0=Waveguide (Spring), 1=Schroeder (Dark), 2=Schroeder (Hybrid).", 0.0f, 0.0f, 2.0f, 1.0f, true);
 
     // --- Tape Modulation (Wow, Flutter, Scrape) ---
-    reg("delayWowRate",         "Wow LFO Speed",            "SPACE ECHO", "Hz",  "Speed of slow tape-speed wow oscillation (RE-201 factory: 0.5 Hz).",                0.5f,   0.1f,    5.0f,    0.1f);
-    reg("delayFlutterRate",     "Flutter LFO Speed",        "SPACE ECHO", "Hz",  "Speed of rapid tape-speed flutter oscillation (RE-201 factory: 8 Hz).",              8.0f,   2.0f,   20.0f,    0.1f);
-    reg("delayTapeScrapeRate",  "Tape Scrape LFO Speed",    "SPACE ECHO", "Hz",  "Speed of micro-jitter scrape modulation (RE-201 factory: 12 Hz).",                  12.0f,   5.0f,   30.0f,    0.1f);
-    reg("delayWowAmp",          "Wow Modulation Depth",     "SPACE ECHO", "",    "Maximum depth of the slow wow modulation (RE-201 factory: 0.003).",                 0.003f,  0.000f,  0.010f,  0.0005f);
-    reg("delayFlutterAmp",      "Flutter Modulation Depth", "SPACE ECHO", "",    "Maximum depth of the rapid flutter modulation (RE-201 factory: 0.001).",            0.001f,  0.000f,  0.005f,  0.0001f);
-    reg("delayTapeScrapeAmp",   "Tape Scrape Depth",        "SPACE ECHO", "",    "Maximum depth of tape-scrape micro-jitter (RE-201 factory: 0.0005).",              0.0005f,  0.0000f, 0.0030f,  0.0001f);
-    reg("delayWowFlutterScale", "Wow/Flutter Knob Scale",   "SPACE ECHO", "x",   "Global multiplier applied to the front-panel WOW/FLUTTER knob value.",               2.0f,   0.5f,    5.0f,    0.1f);
+    reg("delayWowRate", "Wow LFO Speed", "SPACE ECHO", "Hz", "Speed of slow tape-speed wow oscillation (RE-201 factory: 0.5 Hz).", 0.5f, 0.1f, 5.0f, 0.1f);
+    reg("delayFlutterRate", "Flutter LFO Speed", "SPACE ECHO", "Hz", "Speed of rapid tape-speed flutter oscillation (RE-201 factory: 8 Hz).", 8.0f, 2.0f, 20.0f, 0.1f);
+    reg("delayTapeScrapeRate", "Tape Scrape LFO Speed", "SPACE ECHO", "Hz", "Speed of micro-jitter scrape modulation (RE-201 factory: 12 Hz).", 12.0f, 5.0f, 30.0f, 0.1f);
+    reg("delayWowAmp", "Wow Modulation Depth", "SPACE ECHO", "", "Maximum depth of the slow wow modulation (RE-201 factory: 0.003).", 0.003f, 0.000f, 0.010f, 0.0005f);
+    reg("delayFlutterAmp", "Flutter Modulation Depth", "SPACE ECHO", "", "Maximum depth of the rapid flutter modulation (RE-201 factory: 0.001).", 0.001f, 0.000f, 0.005f, 0.0001f);
+    reg("delayTapeScrapeAmp", "Tape Scrape Depth", "SPACE ECHO", "", "Maximum depth of tape-scrape micro-jitter (RE-201 factory: 0.0005).", 0.0005f, 0.0000f, 0.0030f, 0.0001f);
+    reg("delayWowFlutterScale", "Wow/Flutter Knob Scale", "SPACE ECHO", "x", "Global multiplier applied to the front-panel WOW/FLUTTER knob value.", 2.0f, 0.5f, 5.0f, 0.1f);
 
     // --- Tape Saturation & Head Ratios ---
-    reg("delaySaturationInputGain", "Tape Saturation Drive",   "SPACE ECHO", "x",  "Input drive into the tape tanh() saturator (RE-201 factory: 1.5).",                 1.5f,   0.5f,    3.0f,    0.1f);
-    reg("delayHead2Ratio",           "Playhead 2 Ratio",        "SPACE ECHO", "x",  "Delay time ratio of playhead 2 relative to head 1 (RE-201 factory: 2.0).",           2.0f,   1.1f,    2.9f,    0.05f);
-    reg("delayHead3Ratio",           "Playhead 3 Ratio",        "SPACE ECHO", "x",  "Delay time ratio of playhead 3 relative to head 1 (RE-201 factory: 3.0).",           3.0f,   2.0f,    4.0f,    0.05f);
+    reg("delaySaturationInputGain", "Tape Saturation Drive", "SPACE ECHO", "x", "Input drive into the tape tanh() saturator (RE-201 factory: 1.5).", 1.5f, 0.5f, 3.0f, 0.1f);
+    reg("delayHead2Ratio", "Playhead 2 Ratio", "SPACE ECHO", "x", "Delay time ratio of playhead 2 relative to head 1 (RE-201 factory: 2.0).", 2.0f, 1.1f, 2.9f, 0.05f);
+    reg("delayHead3Ratio", "Playhead 3 Ratio", "SPACE ECHO", "x", "Delay time ratio of playhead 3 relative to head 1 (RE-201 factory: 3.0).", 3.0f, 2.0f, 4.0f, 0.05f);
 
     // --- Tone Stack & Feedback Filters ---
-    reg("delayBassFreq",           "Delay Bass Frequency",       "SPACE ECHO", "Hz", "Bass shelving filter centre frequency in the delay tone stack (factory: 300 Hz).",  300.0f,  50.0f, 1000.0f,   5.0f);
-    reg("delayTrebleFreq",         "Delay Treble Frequency",     "SPACE ECHO", "Hz", "Treble shelving filter centre frequency in the delay tone stack (factory: 3000 Hz).", 3000.0f, 1000.0f, 8000.0f,  50.0f);
-    reg("delayFeedbackLpfBase",    "Feedback LPF Base",          "SPACE ECHO", "Hz", "Baseline cutoff of the feedback loop low-pass filter (factory: 5000 Hz).",          5000.0f, 1000.0f,10000.0f, 100.0f);
-    reg("delayFeedbackLpfRange",   "Feedback LPF Range Scale",   "SPACE ECHO", "Hz", "Dynamic cutoff range added by repeat-rate position (factory: 10000 Hz).",          10000.0f,   0.0f,15000.0f, 100.0f);
+    reg("delayBassFreq", "Delay Bass Frequency", "SPACE ECHO", "Hz", "Bass shelving filter centre frequency in the delay tone stack (factory: 300 Hz).", 300.0f, 50.0f, 1000.0f, 5.0f);
+    reg("delayTrebleFreq", "Delay Treble Frequency", "SPACE ECHO", "Hz", "Treble shelving filter centre frequency in the delay tone stack (factory: 3000 Hz).", 3000.0f, 1000.0f, 8000.0f, 50.0f);
+    reg("delayFeedbackLpfBase", "Feedback LPF Base", "SPACE ECHO", "Hz", "Baseline cutoff of the feedback loop low-pass filter (factory: 5000 Hz).", 5000.0f, 1000.0f, 10000.0f, 100.0f);
+    reg("delayFeedbackLpfRange", "Feedback LPF Range Scale", "SPACE ECHO", "Hz", "Dynamic cutoff range added by repeat-rate position (factory: 10000 Hz).", 10000.0f, 0.0f, 15000.0f, 100.0f);
 
     // --- Reverb Engine Calibration ---
-    reg("delaySpringGain",          "Spring Reverb Output Gain",      "SPACE ECHO", "x",  "Output gain of the waveguide spring reverb (Type 0, factory: 3.0).",              3.0f,   0.5f,    5.0f,    0.1f);
-    reg("delaySpringReflectionScale","Spring Reflection Scale",        "SPACE ECHO", "x",  "Per-waveguide averaging/attenuation factor for the spring (factory: 0.25).",      0.25f,  0.10f,   0.50f,   0.01f);
-    reg("delaySchroederLpf",        "Schroeder Reverb LPF Cutoff",    "SPACE ECHO", "Hz", "Comb-filter damping LPF cutoff for Schroeder reverbs types 1/2 (factory: 8000 Hz).", 8000.0f, 2000.0f,15000.0f, 100.0f);
-    reg("delaySchroederGain",       "Schroeder Reverb Output Gain",   "SPACE ECHO", "x",  "Output gain of the Schroeder-Moorer reverb (types 1/2, factory: 1.5).",           1.5f,   0.5f,    3.0f,    0.1f);
-    reg("delaySchroederSatDrive",   "Schroeder Saturation Drive",     "SPACE ECHO", "x",  "Input drive to the Schroeder reverb output saturator (factory: 1.5).",             1.5f,   0.5f,    3.0f,    0.1f);
+    reg("delaySpringGain", "Spring Reverb Output Gain", "SPACE ECHO", "x", "Output gain of the waveguide spring reverb (Type 0, factory: 3.0).", 3.0f, 0.5f, 5.0f, 0.1f);
+    reg("delaySpringReflectionScale", "Spring Reflection Scale", "SPACE ECHO", "x", "Per-waveguide averaging/attenuation factor for the spring (factory: 0.25).", 0.25f, 0.10f, 0.50f, 0.01f);
+    reg("delaySchroederLpf", "Schroeder Reverb LPF Cutoff", "SPACE ECHO", "Hz", "Comb-filter damping LPF cutoff for Schroeder reverbs types 1/2 (factory: 8000 Hz).", 8000.0f, 2000.0f, 15000.0f, 100.0f);
+    reg("delaySchroederGain", "Schroeder Reverb Output Gain", "SPACE ECHO", "x", "Output gain of the Schroeder-Moorer reverb (types 1/2, factory: 1.5).", 1.5f, 0.5f, 3.0f, 0.1f);
+    reg("delaySchroederSatDrive", "Schroeder Saturation Drive", "SPACE ECHO", "x", "Input drive to the Schroeder reverb output saturator (factory: 1.5).", 1.5f, 0.5f, 3.0f, 0.1f);
 
     // --- SYSTEM ---
     regTriple("a4Reference", "A4 Reference Pitch", "SYSTEM", "Hz", "Master tuning reference frequency (Standard=440Hz).", 440.0f, 400.0f, 480.0f, 1.0f);
@@ -253,7 +267,7 @@ void CalibrationSettings::buildParameterList()
 
 void CalibrationSettings::registerParam(Cal::CalibrationParam p)
 {
-    p.currentValue = p.defaultValue;
+    p.currentValue  = p.defaultValue;
     idToIndex[p.id] = (int)params.size();
     params.push_back(p);
 }
@@ -269,12 +283,15 @@ float CalibrationSettings::getValue(const std::string& id) const
 float CalibrationSettings::getValueForModel(const std::string& id, int model) const
 {
     std::string suffix = "";
-    if (model == 0) suffix = "_J6";
-    else if (model == 1) suffix = "_J60";
-    else if (model == 2) suffix = "_J106";
+    if (model == 0)
+        suffix = "_J6";
+    else if (model == 1)
+        suffix = "_J60";
+    else if (model == 2)
+        suffix = "_J106";
 
     std::string specificId = id + suffix;
-    auto it = idToIndex.find(specificId);
+    auto it                = idToIndex.find(specificId);
     if (it != idToIndex.end())
         return params[it->second].currentValue;
 
@@ -290,61 +307,70 @@ void CalibrationSettings::setValue(const std::string& id, float value, bool noti
         {
             float prevValue = params[it->second].currentValue;
             int prevProfile = (int)std::round(prevValue);
-            int newProfile = (int)std::round(value);
-            
+            int newProfile  = (int)std::round(value);
+
             params[it->second].currentValue = value;
-            
+
             if (newProfile == 0 || newProfile == 1 || newProfile == 2)
             {
                 // Force a hard reset for non-hybrid profiles
                 for (auto& p : params)
                 {
                     if (p.id == "calibrationProfile") continue;
-                    
+
                     float targetDefault = p.defaultValue;
-                    std::string j6Id = p.id + "_J6";
-                    std::string j60Id = p.id + "_J60";
-                    std::string j106Id = p.id + "_J106";
-                    
+                    std::string j6Id    = p.id + "_J6";
+                    std::string j60Id   = p.id + "_J60";
+                    std::string j106Id  = p.id + "_J106";
+
                     if (idToIndex.find(j6Id) != idToIndex.end())
                     {
-                        if (newProfile == 0) targetDefault = params[idToIndex[j6Id]].defaultValue;
-                        else if (newProfile == 1) targetDefault = params[idToIndex[j60Id]].defaultValue;
-                        else targetDefault = params[idToIndex[j106Id]].defaultValue;
+                        if (newProfile == 0)
+                            targetDefault = params[idToIndex[j6Id]].defaultValue;
+                        else if (newProfile == 1)
+                            targetDefault = params[idToIndex[j60Id]].defaultValue;
+                        else
+                            targetDefault = params[idToIndex[j106Id]].defaultValue;
                     }
-                    
+
                     p.currentValue = targetDefault;
                     if (notify && onChangeCallback) onChangeCallback(p.id, p.currentValue);
                 }
                 if (notify) save();
                 return;
             }
-            
+
             // Soft update if switching to Super Six (3)
             for (auto& p : params)
             {
                 if (p.id == "calibrationProfile") continue;
-                
-                float prevDefault = p.defaultValue;
-                std::string j6Id = p.id + "_J6";
-                std::string j60Id = p.id + "_J60";
+
+                float prevDefault  = p.defaultValue;
+                std::string j6Id   = p.id + "_J6";
+                std::string j60Id  = p.id + "_J60";
                 std::string j106Id = p.id + "_J106";
-                
+
                 if (idToIndex.find(j6Id) != idToIndex.end())
                 {
-                    if (prevProfile == 0) prevDefault = params[idToIndex[j6Id]].defaultValue;
-                    else if (prevProfile == 1) prevDefault = params[idToIndex[j60Id]].defaultValue;
-                    else prevDefault = params[idToIndex[j106Id]].defaultValue;
+                    if (prevProfile == 0)
+                        prevDefault = params[idToIndex[j6Id]].defaultValue;
+                    else if (prevProfile == 1)
+                        prevDefault = params[idToIndex[j60Id]].defaultValue;
+                    else
+                        prevDefault = params[idToIndex[j106Id]].defaultValue;
                 }
-                
+
                 float newDefault = p.defaultValue;
                 if (idToIndex.find(j6Id) != idToIndex.end())
                 {
-                    if (newProfile == 0) newDefault = params[idToIndex[j6Id]].defaultValue;
-                    else if (newProfile == 1) newDefault = params[idToIndex[j60Id]].defaultValue;
-                    else newDefault = params[idToIndex[j106Id]].defaultValue;
+                    if (newProfile == 0)
+                        newDefault = params[idToIndex[j6Id]].defaultValue;
+                    else if (newProfile == 1)
+                        newDefault = params[idToIndex[j60Id]].defaultValue;
+                    else
+                        newDefault = params[idToIndex[j106Id]].defaultValue;
                 }
-                
+
                 // If it was at the previous default (not changed by hand), update to new default
                 if (p.currentValue == prevDefault)
                 {
@@ -360,7 +386,7 @@ void CalibrationSettings::setValue(const std::string& id, float value, bool noti
         if (notify)
         {
             if (onChangeCallback) onChangeCallback(id, value);
-            save(); 
+            save();
         }
     }
 }
@@ -368,23 +394,26 @@ void CalibrationSettings::setValue(const std::string& id, float value, bool noti
 void CalibrationSettings::hardResetToProfile(int profile)
 {
     setValue("calibrationProfile", (float)profile, false);
-    
+
     for (auto& p : params)
     {
         if (p.id == "calibrationProfile") continue;
-        
+
         float targetDefault = p.defaultValue;
-        std::string j6Id = p.id + "_J6";
-        std::string j60Id = p.id + "_J60";
-        std::string j106Id = p.id + "_J106";
-        
+        std::string j6Id    = p.id + "_J6";
+        std::string j60Id   = p.id + "_J60";
+        std::string j106Id  = p.id + "_J106";
+
         if (idToIndex.find(j6Id) != idToIndex.end())
         {
-            if (profile == 0) targetDefault = params[idToIndex[j6Id]].defaultValue;
-            else if (profile == 1) targetDefault = params[idToIndex[j60Id]].defaultValue;
-            else targetDefault = params[idToIndex[j106Id]].defaultValue;
+            if (profile == 0)
+                targetDefault = params[idToIndex[j6Id]].defaultValue;
+            else if (profile == 1)
+                targetDefault = params[idToIndex[j60Id]].defaultValue;
+            else
+                targetDefault = params[idToIndex[j106Id]].defaultValue;
         }
-        
+
         p.currentValue = targetDefault;
         if (onChangeCallback) onChangeCallback(p.id, p.currentValue);
     }
@@ -402,8 +431,8 @@ Cal::CalibrationParam* CalibrationSettings::getParam(const std::string& id)
 std::string CalibrationSettings::getConfigFile() const
 {
     juce::File f = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                .getChildFile("ABDJUNiO601")
-                .getChildFile("calibration.json");
+                       .getChildFile("ABDJUNiO601")
+                       .getChildFile("calibration.json");
     if (!f.getParentDirectory().exists()) f.getParentDirectory().createDirectory();
     return f.getFullPathName().toStdString();
 }
@@ -436,7 +465,7 @@ void CalibrationSettings::save()
     juce::DynamicObject::Ptr obj = new juce::DynamicObject();
     for (auto& p : params)
         obj->setProperty(juce::Identifier(p.id), p.currentValue);
-    
+
     // Version marker to distinguish old vs new file format
     obj->setProperty("_version", 2);
 
@@ -444,7 +473,7 @@ void CalibrationSettings::save()
     juce::DynamicObject::Ptr strObj = new juce::DynamicObject();
     strObj->setProperty("libraryPath", juce::String(libraryPath));
     obj->setProperty("_strings", juce::var(strObj.get()));
-    
+
     juce::File f(getConfigFile());
     f.replaceWithText(juce::JSON::toString(juce::var(obj.get())));
 }
@@ -501,7 +530,7 @@ bool CalibrationSettings::loadFromPath(const std::string& path)
         {
             if (auto* metaObj = rootObj->getProperty("__metadata__").getDynamicObject())
             {
-                juce::String fileModel = metaObj->getProperty("model").toString();
+                juce::String fileModel       = metaObj->getProperty("model").toString();
                 std::string currentModelName = "Super Juno SIX";
 #if defined(COMPILING_JUNO106)
                 currentModelName = "Juno-106";
@@ -511,24 +540,29 @@ bool CalibrationSettings::loadFromPath(const std::string& path)
                 currentModelName = "Juno-6";
 #else
                 int profile = (int)std::round(getValue("calibrationProfile"));
-                if (profile == 0) currentModelName = "Juno-6";
-                else if (profile == 1) currentModelName = "Juno-60";
-                else currentModelName = "Juno-106";
+                if (profile == 0)
+                    currentModelName = "Juno-6";
+                else if (profile == 1)
+                    currentModelName = "Juno-60";
+                else
+                    currentModelName = "Juno-106";
 #endif
 
 #if defined(COMPILING_JUNO106) || defined(COMPILING_JUNO60) || defined(COMPILING_JUNO6)
-                if (fileModel != juce::String (currentModelName))
+                if (fileModel != juce::String(currentModelName))
                 {
-                    juce::Logger::writeToLog("[JUNiO] Calibration import rejected: Model mismatch. File is for " + fileModel + ", current model is " + juce::String (currentModelName));
+                    juce::Logger::writeToLog("[JUNiO] Calibration import rejected: Model mismatch. File is for " + fileModel + ", current model is " + juce::String(currentModelName));
                     return false;
                 }
 #else
-                if (fileModel != juce::String (currentModelName))
+                if (fileModel != juce::String(currentModelName))
                 {
                     int targetProfile = 2; // default J106
-                    if (fileModel == "Juno-6") targetProfile = 0;
-                    else if (fileModel == "Juno-60") targetProfile = 1;
-                    
+                    if (fileModel == "Juno-6")
+                        targetProfile = 0;
+                    else if (fileModel == "Juno-60")
+                        targetProfile = 1;
+
                     setValue("calibrationProfile", (float)targetProfile, true);
                     juce::Logger::writeToLog("[JUNiO] Calibration import auto-switched profile to: " + fileModel);
                 }
@@ -565,11 +599,14 @@ bool CalibrationSettings::saveToPath(const std::string& path)
     currentModelName = "Juno-6";
 #else
     int profile = (int)std::round(getValue("calibrationProfile"));
-    if (profile == 0) currentModelName = "Juno-6";
-    else if (profile == 1) currentModelName = "Juno-60";
-    else currentModelName = "Juno-106";
+    if (profile == 0)
+        currentModelName = "Juno-6";
+    else if (profile == 1)
+        currentModelName = "Juno-60";
+    else
+        currentModelName = "Juno-106";
 #endif
-    metaObj->setProperty("model", juce::String (currentModelName));
+    metaObj->setProperty("model", juce::String(currentModelName));
     metaObj->setProperty("calibrationProfile", getValue("calibrationProfile"));
 
     rootObj->setProperty("__metadata__", juce::var(metaObj));
@@ -584,10 +621,10 @@ float CalibrationSettings::getDacHz(int index) const
 {
     if (index < 0) index = 0;
     if (index > 4095) index = 4095;
-    
+
     if (hasCustomDacTable)
         return customDacTable[(size_t)index];
-    
+
     return static_cast<float>(getDacHzTable()[index]);
 }
 
@@ -595,31 +632,34 @@ bool CalibrationSettings::importDacTableCsv(const std::string& path)
 {
     juce::File file(path);
     if (!file.existsAsFile()) return false;
-    
+
     std::ifstream in(file.getFullPathName().toStdString());
     if (!in.is_open()) return false;
-    
+
     std::string line;
     int count = 0;
-    
+
     // Skip header
     std::getline(in, line);
-    
+
     while (std::getline(in, line) && count < 4096)
     {
         std::stringstream ss(line);
         std::string indexStr, hzStr;
         if (std::getline(ss, indexStr, ',') && std::getline(ss, hzStr, ','))
         {
-            try {
+            try
+            {
                 customDacTable[count] = std::stof(hzStr);
                 count++;
-            } catch (...) {
+            }
+            catch (...)
+            {
                 return false;
             }
         }
     }
-    
+
     if (count == 4096)
     {
         hasCustomDacTable = true;
@@ -633,7 +673,7 @@ bool CalibrationSettings::exportDacTableCsv(const std::string& path)
     juce::File file(path);
     std::ofstream out(file.getFullPathName().toStdString());
     if (!out.is_open()) return false;
-    
+
     auto* table = getDacHzTable();
     out << "DAC_Code,Frequency_Hz\n";
     for (int i = 0; i < 4096; ++i)
@@ -641,7 +681,7 @@ bool CalibrationSettings::exportDacTableCsv(const std::string& path)
         float val = hasCustomDacTable ? customDacTable[i] : static_cast<float>(table[i]);
         out << i << "," << val << "\n";
     }
-    
+
     return true;
 }
 
@@ -649,10 +689,10 @@ float CalibrationSettings::getVcaGain(int index) const
 {
     if (index < 0) index = 0;
     if (index > 255) index = 255;
-    
+
     if (hasCustomVcaTable)
         return customVcaTable[(size_t)index];
-    
+
     return kr106::kVCATableHW[(size_t)index];
 }
 
@@ -660,31 +700,34 @@ bool CalibrationSettings::importVcaTableCsv(const std::string& path)
 {
     juce::File file(path);
     if (!file.existsAsFile()) return false;
-    
+
     std::ifstream in(file.getFullPathName().toStdString());
     if (!in.is_open()) return false;
-    
+
     std::string line;
     int count = 0;
-    
+
     // Skip header
     std::getline(in, line);
-    
+
     while (std::getline(in, line) && count < 256)
     {
         std::stringstream ss(line);
         std::string indexStr, gainStr;
         if (std::getline(ss, indexStr, ',') && std::getline(ss, gainStr, ','))
         {
-            try {
+            try
+            {
                 customVcaTable[count] = std::stof(gainStr);
                 count++;
-            } catch (...) {
+            }
+            catch (...)
+            {
                 return false;
             }
         }
     }
-    
+
     if (count == 256)
     {
         hasCustomVcaTable = true;
@@ -698,47 +741,25 @@ bool CalibrationSettings::exportVcaTableCsv(const std::string& path)
     juce::File file(path);
     std::ofstream out(file.getFullPathName().toStdString());
     if (!out.is_open()) return false;
-    
+
     out << "Index,Gain\n";
     for (int i = 0; i < 256; ++i)
     {
         float val = hasCustomVcaTable ? customVcaTable[i] : kr106::kVCATableHW[(size_t)i];
         out << i << "," << val << "\n";
     }
-    
+
     return true;
 }
 
-// ROM uPD7811G 0C60_lfoSpeedTbl
-static constexpr uint16_t kDefaultLfoSpeedTbl[128] = {
-    0x0005, 0x000f, 0x0019, 0x0028, 0x0037, 0x0046, 0x0050, 0x005a, // idx 0-7
-    0x0064, 0x006e, 0x0078, 0x0082, 0x008c, 0x0096, 0x00a0, 0x00aa, // idx 8-15
-    0x00b4, 0x00be, 0x00c8, 0x00d2, 0x00dc, 0x00e6, 0x00f0, 0x00fa, // idx 16-23
-    0x0104, 0x010e, 0x0118, 0x0122, 0x012c, 0x0136, 0x0140, 0x014a, // idx 24-31
-    0x0154, 0x015e, 0x0168, 0x0172, 0x017c, 0x0186, 0x0190, 0x019a, // idx 32-39
-    0x01a4, 0x01ae, 0x01b8, 0x01c2, 0x01cc, 0x01d6, 0x01e0, 0x01ea, // idx 40-47
-    0x01f4, 0x01fe, 0x0208, 0x0212, 0x021c, 0x0226, 0x0230, 0x023a, // idx 48-55
-    0x0244, 0x024e, 0x0258, 0x0262, 0x026c, 0x0276, 0x0280, 0x028a, // idx 56-63
-    0x029a, 0x02aa, 0x02ba, 0x02ca, 0x02da, 0x02ea, 0x02fa, 0x030a, // idx 64-71
-    0x031a, 0x032a, 0x033a, 0x034a, 0x035a, 0x036a, 0x037a, 0x038a, // idx 72-79
-    0x039a, 0x03aa, 0x03ba, 0x03ca, 0x03da, 0x03ea, 0x03fa, 0x040a, // idx 80-87
-    0x041a, 0x042a, 0x043a, 0x044a, 0x045a, 0x046a, 0x047a, 0x048a, // idx 88-95
-    0x04be, 0x04f2, 0x0526, 0x055a, 0x058e, 0x05c2, 0x05f6, 0x062c, // idx 96-103
-    0x0672, 0x06b8, 0x0708, 0x0758, 0x07a8, 0x07f8, 0x085c, 0x08c0, // idx 104-111
-    0x0924, 0x0988, 0x09ec, 0x0a50, 0x0ab4, 0x0b18, 0x0b7c, 0x0be0, // idx 112-119
-    0x0c58, 0x0cd0, 0x0d48, 0x0dde, 0x0e74, 0x0f0a, 0x0fa0, 0x1000  // idx 120-127
-};
-
-// ROM 0B30_LfoDelayRampTbl (idx = pot >> 4)
-static constexpr uint16_t kDefaultLfoRampTbl[8] = {
-    0xFFFF, 0x0419, 0x020C, 0x015E, 0x0100, 0x0100, 0x0100, 0x0100
-};
+// The LFO speed (0x0C60) and delay-ramp (0x0B30) tables live in
+// Source/Core/LfoTables.cpp as the single source of truth (FW.8).
+// This class only stores optional CSV overrides on top of them.
 
 // hardware-measured dcoSubLevel_j106
 static constexpr float kDefaultSubLevelTbl[11] = {
     0.00154f, 0.01251f, 0.10875f, 0.22125f, 0.33576f, 0.45206f,
-    0.55750f, 0.67178f, 0.78447f, 0.91132f, 1.00000f
-};
+    0.55750f, 0.67178f, 0.78447f, 0.91132f, 1.00000f};
 
 uint16_t CalibrationSettings::getLfoSpeedCoeff(int index) const
 {
@@ -746,7 +767,7 @@ uint16_t CalibrationSettings::getLfoSpeedCoeff(int index) const
     if (index > 127) index = 127;
     if (hasCustomLfoSpeedTable)
         return customLfoSpeedTable[(size_t)index];
-    return kDefaultLfoSpeedTbl[index];
+    return LfoTables::getLfoSpeedCoeff(index);
 }
 
 bool CalibrationSettings::importLfoSpeedTableCsv(const std::string& path)
@@ -764,10 +785,13 @@ bool CalibrationSettings::importLfoSpeedTableCsv(const std::string& path)
         std::string indexStr, coeffStr;
         if (std::getline(ss, indexStr, ',') && std::getline(ss, coeffStr, ','))
         {
-            try {
+            try
+            {
                 customLfoSpeedTable[count] = (uint16_t)std::stoul(coeffStr);
                 count++;
-            } catch (...) {
+            }
+            catch (...)
+            {
                 return false;
             }
         }
@@ -788,7 +812,7 @@ bool CalibrationSettings::exportLfoSpeedTableCsv(const std::string& path)
     out << "Index,Coeff\n";
     for (int i = 0; i < 128; ++i)
     {
-        uint16_t val = hasCustomLfoSpeedTable ? customLfoSpeedTable[i] : kDefaultLfoSpeedTbl[i];
+        uint16_t val = hasCustomLfoSpeedTable ? customLfoSpeedTable[i] : LfoTables::kDefaultLfoSpeedTbl[i];
         out << i << "," << val << "\n";
     }
     return true;
@@ -800,7 +824,7 @@ uint16_t CalibrationSettings::getLfoRampIncrement(int index) const
     if (index > 7) index = 7;
     if (hasCustomLfoRampTable)
         return customLfoRampTable[(size_t)index];
-    return kDefaultLfoRampTbl[index];
+    return LfoTables::getLfoRampIncrement(index);
 }
 
 bool CalibrationSettings::importLfoRampTableCsv(const std::string& path)
@@ -818,10 +842,13 @@ bool CalibrationSettings::importLfoRampTableCsv(const std::string& path)
         std::string indexStr, incStr;
         if (std::getline(ss, indexStr, ',') && std::getline(ss, incStr, ','))
         {
-            try {
+            try
+            {
                 customLfoRampTable[count] = (uint16_t)std::stoul(incStr);
                 count++;
-            } catch (...) {
+            }
+            catch (...)
+            {
                 return false;
             }
         }
@@ -842,7 +869,7 @@ bool CalibrationSettings::exportLfoRampTableCsv(const std::string& path)
     out << "Index,Increment\n";
     for (int i = 0; i < 8; ++i)
     {
-        uint16_t val = hasCustomLfoRampTable ? customLfoRampTable[i] : kDefaultLfoRampTbl[i];
+        uint16_t val = hasCustomLfoRampTable ? customLfoRampTable[i] : LfoTables::kDefaultLfoRampTbl[i];
         out << i << "," << val << "\n";
     }
     return true;
@@ -872,10 +899,13 @@ bool CalibrationSettings::importSubLevelTableCsv(const std::string& path)
         std::string indexStr, lvlStr;
         if (std::getline(ss, indexStr, ',') && std::getline(ss, lvlStr, ','))
         {
-            try {
+            try
+            {
                 customSubLevelTable[count] = std::stof(lvlStr);
                 count++;
-            } catch (...) {
+            }
+            catch (...)
+            {
                 return false;
             }
         }
@@ -901,4 +931,3 @@ bool CalibrationSettings::exportSubLevelTableCsv(const std::string& path)
     }
     return true;
 }
-

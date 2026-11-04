@@ -1,12 +1,13 @@
 #pragma once
 #include "CalibrationParam.h"
-#include <map>
-#include <vector>
-#include <functional>
-#include <string>
+#include <LutDSP/VoiceDispersionModel.h>
 #include <array>
+#include <functional>
+#include <map>
+#include <string>
+#include <vector>
 
-class CalibrationSettings 
+class CalibrationSettings
 {
 public:
     CalibrationSettings();
@@ -15,7 +16,7 @@ public:
     float getValue(const std::string& id) const;
     float getValueForModel(const std::string& id, int model) const;
     void setValue(const std::string& id, float value, bool notify = true);
-    
+
     Cal::CalibrationParam* getParam(const std::string& id);
     const std::vector<Cal::CalibrationParam>& getAllParams() const { return params; }
 
@@ -46,15 +47,16 @@ public:
     std::array<float, 256> customVcaTable;
     bool hasCustomVcaTable = false;
 
-    // LFO Speed Table CSV (128 entries — ROM uPD7811G 0C60_lfoSpeedTbl)
+    // LFO Speed Table CSV (128 entries — ROM uPD7811G 0C60_lfoSpeedTbl).
+    // Defaults come from LfoTables (single source, FW.8).
     bool importLfoSpeedTableCsv(const std::string& path);
     bool exportLfoSpeedTableCsv(const std::string& path);
-    uint16_t getLfoSpeedCoeff(int index) const;   // index 0..127
+    uint16_t getLfoSpeedCoeff(int index) const; // index 0..127
 
     std::array<uint16_t, 128> customLfoSpeedTable;
     bool hasCustomLfoSpeedTable = false;
 
-    // LFO Ramp Table CSV (8 entries — ROM 0B30_LfoDelayRampTbl)
+    // LFO Ramp table CSV (8 entries — ROM 0B30_LfoDelayRampTbl).
     bool importLfoRampTableCsv(const std::string& path);
     bool exportLfoRampTableCsv(const std::string& path);
     uint16_t getLfoRampIncrement(int index) const; // index 0..7
@@ -65,7 +67,7 @@ public:
     // Sub-Osc Level Curve CSV (11 points — dcoSubLevel_j106, hardware-measured)
     bool importSubLevelTableCsv(const std::string& path);
     bool exportSubLevelTableCsv(const std::string& path);
-    float getSubLevel(int index) const;           // index 0..10
+    float getSubLevel(int index) const; // index 0..10
 
     std::array<float, 11> customSubLevelTable;
     bool hasCustomSubLevelTable = false;
@@ -77,6 +79,9 @@ public:
     // Callback for real-time DSP updates
     using OnChangeCallback = std::function<void(std::string, float)>;
     void setOnChangeCallback(OnChangeCallback cb) { onChangeCallback = cb; }
+
+    // Shared stochastic voice dispersion model (ABDSharedCode::LutDSP)
+    abd::lutdsp::VoiceDispersionModel<6> sharedDispersion;
 
 private:
     std::string libraryPath;

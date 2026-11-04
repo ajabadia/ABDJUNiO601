@@ -140,3 +140,81 @@ This roadmap outlines the evolution of the OMEGA synthesizer series, focusing on
   **Impacto:** Ahora es viable el test de round-trip encode→decode sintético a 340 baud.
 
 
+
+## Sprint 15: Convergencia Ecosistema ABDSynths (ABDSharedCode::LutDSP & HardwareDrivers)
+**Goal**: Integraci�n con los m�dulos universales compartidos de DSP, asignaci�n y protocolos de hardware.
+- [x] **JunoTapeModem Universal**: Sustituir el motor de decodificaci�n FSK Goertzel heur�stico por el demodulador determinista de cruce por cero (bd::hw::JunoTapeModem).
+- [x] **BBD Chorus Compartido**: Conectar el coro BBD desde ABDSharedCode::DspEffects (JunoBBD.h). NO se hizo desde LutDSP: el borrador de LutDSP nunca se completo y el motor real se extrajo a DspEffects el 2026-09-28, con la referencia congelada de este proyecto como prueba de paridad. para unificaci�n de modelado de l�nea de retardo anal�gica y reducci�n de duplicados.
+- [x] **Modelado de Dispersi�n Estoc�stica Compartido**: Vincular la calibraci�n de tolerancias multivoz con bd::lutdsp::VoiceDispersionModel para compartir perfiles anal�gicos con el resto de sintetizadores de la suite.
+
+
+
+
+---
+
+## 🔗 Sprint 16: Alineación con el Diccionario de Datos Común (`ABDShared` v2.0)
+
+> **Especificación y Guía de Integración Canónica en `ABDShared`**:
+> - [`ABDShared/Docs/specs/COMMON_DATA_DICTIONARY_AND_INTEGRATION.md`](file:///d:/desarrollos/ABDSynths/ABDShared/Docs/specs/COMMON_DATA_DICTIONARY_AND_INTEGRATION.md)
+> - [`ABDShared/Contracts/parameter_dictionary.schema.json`](file:///d:/desarrollos/ABDSynths/ABDShared/Contracts/parameter_dictionary.schema.json)
+> - [`ABDShared/Contracts/MidiTranslationEngine.ts`](file:///d:/desarrollos/ABDSynths/ABDShared/Contracts/MidiTranslationEngine.ts)
+
+- [ ] **CDD.1 — Normalización de Tipos (`type`) y Unidades (`unit`) en `roland_juno106_parameter_spec.json`**:
+  - Unificar `"type": "discrete"` -> `"choice"`, `"unit": "semitonos"` -> `"st"`, `"unit": "wave"` -> `"enum"` y añadir `"$schema": "./parameter_dictionary.schema.json"`, `"schemaVersion": "2.0.0"`, `"modelId": "roland_juno106"` y `"topology": "fixed"`.
+- [ ] **CDD.2 — Roles Semánticos (`semanticRole`) y Empaquetado Binario Roland APR (`binaryPacking`)**:
+  - Añadir `semanticRole` (`filter.cutoff`, `filter.resonance`, `filter.hpfCutoff`, `env.amp.attack`, `lfo.1.rateHz`, `fx.chorus.mode`) y documentar el empaquetado de los 16 bytes APR + bitmask de switches (`bytes 16..17` del volcado Roland `F0 41 30 00 ... F7`) bajo `binaryPacking`.
+
+---
+
+## Sprint 17: Verificación contra el firmware real (fuente: `ABDJuno6ROMRE`)
+
+> El proyecto hermano `ABDJuno6ROMRE` ha desensamblado por completo las ROMs del Juno-6 (uPD8049C) y del
+> Juno-106 (uPD7811: `v5 a_5.ic2` y `v2 b_2.ic37`) con un módulo SLEIGH propio, y su decodificación está
+> verificada instrucción a instrucción contra el core de MAME (4 247 instrucciones, 0 discrepancias).
+> Sirve como **oráculo** para cualquier constante, tabla o rama que este proyecto tome "del firmware".
+> Las ROMs son de Roland: uso local autorizado, nunca distribuidas ni enlazadas desde aquí.
+
+- [ ] **FW.1 — Auditar las tablas ya portadas** (LFO verificado, resto pendiente): `kDefaultLfoSpeedTbl[128]` y `kDefaultLfoRampTbl[8]` ya
+  se han contrastado byte a byte contra la ROM del maestro (ic37 `0x0C60` y `0x0B30`) y coinciden
+  128/128 y 8/8. Repetir la comprobación para el resto de tablas derivadas del firmware (curvas de
+  VCF/VCA, `kVcfPhaseTable`/`kVcaPhaseTable`, tablas de ADSR) y anotar el resultado.
+  Las dos tablas del LFO ya viven en `Source/Core/LfoTables.{h,cpp}` con dirección de origen y
+  un test que las fija (`Source/Core/Tests/LfoTablesTests.cpp`); el resto sigue pendiente.
+- [x] **FW.2 — Estado intermedio del LFO en `$FF4B`**: la ROM carga el coeficiente de velocidad con
+  `LXIHL,0x0C60` + `LXIDE,0xFF4B` + `LDEAX(HL+A)` + `STEAX(DE)` (rutina en `0x019B`, con el índice ya
+  duplicado por `SLLA`). Decidir si el modelo debe exponer ese estado o basta el coeficiente final.
+  **Decidido:** basta el coeficiente final (`JunoLFO::mIntCoeff`); la copia a `$FF4B` queda
+  registrada como origen en `LfoTables.{h,cpp}`.
+- [x] **FW.3 — Umbral de holdoff**: el acumulador de 14 bits de la ROM envuelve **módulo `0x4000`**
+  (`LXIEA,0x2000` en `0x0766` y `0x07A2`; `0x3FFF` en `0x073E` y `0x077E`; `0x1FFF` en `0x0792`),
+  así que `lfoHoldoffThresh = 16384` es el módulo de vuelta, no un valor alcanzable por el
+  acumulador en marcha. Decidir si el modelo debe comparar contra el módulo o contra `0x3FFF`.
+  **Aplicado:** `lfoHoldoffThresh` se compara como módulo (la espera termina en el wrap) y la
+  saturación guarda `módulo - 1`.
+- [x] **FW.4 — Resolver el tick del firmware**: la documentación mezcla "234,2 Hz" y "4,2335 ms"
+  (que son 236,2 Hz). Fijar una única magnitud como referencia y derivar la otra.
+  **Fijado:** 4,2335 ms = 236,2 Hz; «234,2 Hz» eliminado del código y de la descripción del
+  parámetro `lfoTickRateMs`.
+- [x] **FW.5 — Alcance del modelo de envolvente**: el truncamiento de `CalcDecay` se apoya en la
+  aritmética `MUL` del maestro (24 `MUL` en ic37 frente a 1 en ic2). Dejar explícito en el código que
+  el modelo reproduce la CPU maestra, no la esclava.
+  **Anotado** en la cabecera de `Source/Synth/JunoADSR.cpp`.
+- [x] **FW.6 — Mapa de estado en RAM**: usar como contrato las direcciones que el firmware toca de
+  verdad (ic37: `$FF23`, `$FF4B`, `$FF4D`, `$FF3D`, `$FF43`, `$FF3B`, `$FF39`, `$FF71`; ic2: `$FF90`,
+  `$FF40`, `$FF88`, `$FF50`) antes de añadir estados nuevos al motor.
+  **Documentado** como contrato en `Source/Core/LfoTables.h`.
+- [x] **FW.7 — Reutilizar la verificación**: para cualquier constante nueva tomada del firmware,
+  extraerla de `ABDJuno6ROMRE/disasm/juno106_B_ic37_v2_ghidra.asm` (o `..._ic2_...`) y registrar la
+  dirección de origen en el comentario del código.
+  Las tablas del LFO ya lo llevan (`0x0C60`, `0x0B30`) junto con la rutina que las consume
+  (`0x019B`).
+
+- [x] **FW.8 — Copia única de la tabla del LFO**: `Source/Synth/JunoLFO.cpp` guarda una copia de
+  reserva de `kDefaultLfoSpeedTbl[128]` además de la de `CalibrationSettings.cpp`. Hoy son idénticas
+  (comprobado índice a índice, 128/128), pero es un duplicado que puede divergir: exponerla desde
+  `CalibrationSettings` y dejar una sola fuente.
+  **Hecho:** la única copia está en `Source/Core/LfoTables.cpp`; `JunoLFO.cpp` y
+  `CalibrationSettings.cpp` la consumen desde ahí.
+
+**Referencias (solo lectura):** `ABDJuno6ROMRE/REPORT.md`,
+`ABDJuno6ROMRE/disasm/juno106_{A_ic2_v5,B_ic37_v2}_ghidra.asm`, `ABDJuno6ROMRE/tools/compare_disasm.py`.

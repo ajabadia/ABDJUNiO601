@@ -30,6 +30,7 @@
 
 set(JUNO_DSP_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/CalibrationSettings.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Source/Core/LfoTables.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/Importers/JunoCsvImporter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/Importers/JunoFormatConverter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/Importers/JunoSysexImporter.cpp"
@@ -58,6 +59,7 @@ set(JUNO_DSP_SOURCES
 )
 
 set(JUNO_DSP_SOURCES_WASM
+    "${CMAKE_CURRENT_LIST_DIR}/Source/Core/LfoTables.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/JunoEngine.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/JunoVoiceManager.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Source/Core/PerformanceState.cpp"
