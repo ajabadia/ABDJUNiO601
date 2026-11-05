@@ -156,7 +156,7 @@ jobs:
     # registra tambien ejecutables de sonda (ABDShared_SegmentedProbe) que en
     # Linux no enlazan libcurl, y este gate es sobre el plugin.
     - name: Build Plugin (Release)
-      run: cmake --build build --config Release --parallel --target ABDSimpleJuno106_VST3 ABDSimpleJuno106_Standalone
+      run: cmake --build build --config Release --parallel 2 --target ABDSimpleJuno106_VST3 ABDSimpleJuno106_Standalone
 
   cppcheck:
     name: cppcheck (bloqueante, baseline)
