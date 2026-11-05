@@ -147,7 +147,10 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           cmake -S . -B build -A x64 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="${WEBVIEW2_ROOT:-}"
         else
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          # -fPIC: las librerias estaticas del checkout hermano se enlazan
+          # dentro del .so del VST3, y sin PIC el enlazador rechaza la
+          # relocation (R_X86_64_PC32 against St9bad_alloc).
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         fi
 
     # BLOQUEANTE: el plugin entero (Standalone + VST3; AU solo se define en
