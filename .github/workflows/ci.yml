@@ -107,6 +107,20 @@ jobs:
           libgtk-3-dev \
           libglu1-mesa-dev mesa-common-dev
 
+    # JUCE 8 pide webkit2gtk-4.0 cuando no encuentra el 4.1, y Ubuntu 26 ya solo
+    # trae 4.1 (medido: 2.52.6 en resolute). pkg-config localiza el modulo por el
+    # NOMBRE DEL FICHERO .pc, asi que un alias del 4.1 resuelve el configure sin
+    # tocar el codigo ni la version de JUCE.
+    - name: Alias pkg-config webkit2gtk-4.0 a 4.1 (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        pkg-config --exists webkit2gtk-4.1 && echo "webkit2gtk-4.1 presente"
+        if pkg-config --exists webkit2gtk-4.1 && ! pkg-config --exists webkit2gtk-4.0; then
+          dir=$(pkg-config --variable=pcfiledir webkit2gtk-4.1)
+          sudo cp "$dir/webkit2gtk-4.1.pc" "$dir/webkit2gtk-4.0.pc"
+        fi
+        pkg-config --modversion webkit2gtk-4.0
+
     - name: Set up MSBuild (Windows)
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v3
