@@ -89,7 +89,7 @@ jobs:
     # trabaja con 8.0.12 ahi en local.
     - name: Fetch JUCE ${{ env.JUCE_TAG }} into ./JUCE
       run: |
-        git clone --depth 1 --branch "$JUCE_TAG" https://github.com/juce-framework/JUCE.git ABDJUNiO601/JUCE
+        git clone --depth 1 --branch "$JUCE_TAG" https://github.com/juce-framework/JUCE.git JUCE
 
     # Lista de dependencias JUCE en Linux copiada de la que ya esta medida
     # verde en la suite de CZ101 (libwebkit2gtk-4.1, no 4.0: el 4.0 se
