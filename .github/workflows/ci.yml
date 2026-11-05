@@ -55,7 +55,7 @@ concurrency:
 
 env:
   JUCE_TAG: '8.0.12'
-  SHA_SHARED: '180cf7866fca43fdc5035ebab9d4cc7f9713ff80'  # ABDSharedCode master
+  SHA_SHARED: 'fd30eec888b540dfa21421037057a5caf75dddf8'  # ABDSharedCode master
 
 jobs:
   build:
