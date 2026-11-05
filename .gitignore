@@ -75,3 +75,6 @@ tmp_preset_line.json
 
 # Orphan test files
 test_api.cpp
+
+# Builds locales por modelo (no se versionan)
+build_*/
