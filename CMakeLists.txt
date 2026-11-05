@@ -388,6 +388,8 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/Tests/PresetBrowserTests.cpp
     Source/Core/Tests/ADSRTests.cpp
     Source/Core/Tests/VCFTests.cpp
+    Source/Core/Tests/SustainModeTests.cpp
+    Source/Core/Tests/EnvelopeTimingTests.cpp
     Source/Core/Tests/ChorusTests.cpp
     Source/Core/Tests/SysExTests.cpp
     Source/Core/Tests/TapeTests.cpp
@@ -414,6 +416,7 @@ target_sources(JunoUnitTests PRIVATE
     Source/Core/PresetManager.cpp
     Source/Core/JunoVoiceManager.cpp
     Source/Core/PerformanceState.cpp
+    Source/Core/JunoEngine.cpp
     Source/Core/Importers/TalImporter.cpp
     Source/Core/Importers/JunoTapeImporter.cpp
     Source/Core/Importers/JunoSysexImporter.cpp

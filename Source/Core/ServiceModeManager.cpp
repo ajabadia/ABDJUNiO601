@@ -51,7 +51,8 @@ void ServiceModeManager::startTestScale()
     scaleTimer.store(0.0f);
     currentScaleNoteIdx.store(-1);
     currentScaleStage.store(0);
-    if (!next) {
+    if (!next)
+    {
         currentOctaveCycle.store(0);
         processor.keyboardState.allNotesOff(1);
     }
@@ -62,8 +63,8 @@ void ServiceModeManager::startAutoVcfTune()
     stopAllTests();
     autoVcfTuneActive.store(true);
     autoTuneCycle = 0;
-    autoTuneStep = 0.0f;
-    
+    autoTuneStep  = 0.0f;
+
     // Preparation: Solo Voice 1, VCF Self-Osc
     setVoiceSolo(0);
 }
@@ -86,13 +87,13 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
     {
         double phaseInc = (1.0 / (5.0 * sampleRate)) * numSamples;
         vcfSweepPhase += phaseInc;
-        
+
         if (vcfSweepPhase >= 1.0)
         {
             vcfSweepPhase = 0.0;
             vcfSweepActive.store(false);
         }
-        
+
         vcfSweepValue.store((float)vcfSweepPhase);
     }
 
@@ -100,9 +101,10 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
     {
         double dt = (double)numSamples / sampleRate;
         hpfCycleTimer += dt;
-        if (hpfCycleTimer >= 1.0) {
+        if (hpfCycleTimer >= 1.0)
+        {
             hpfCycleTimer = 0.0;
-            int next = (hpfCycleValue.load() + 1) % 4;
+            int next      = (hpfCycleValue.load() + 1) % 4;
             hpfCycleValue.store(next);
         }
     }
@@ -111,36 +113,42 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
     {
         double dt = (double)numSamples / sampleRate;
         chorusCycleTimer += dt;
-        if (chorusCycleTimer >= 1.0) {
+        if (chorusCycleTimer >= 1.0)
+        {
             chorusCycleTimer = 0.0;
-            int next = (chorusCycleValue.load() + 1) % 4; // 0=Off, 1=I, 2=II, 3=Both
+            int next         = (chorusCycleValue.load() + 1) % 4; // 0=Off, 1=I, 2=II, 3=Both
             chorusCycleValue.store(next);
         }
     }
 
     if (testScaleActive.load())
     {
-        double dt = (double)numSamples / sampleRate;
+        double dt          = (double)numSamples / sampleRate;
         float currentTimer = scaleTimer.load() + (float)dt;
         scaleTimer.store(currentTimer);
 
-        const int scalePins[] = { 0, 2, 4, 5, 7, 9, 11, 12 }; // C Major Intervals
+        const int scalePins[]    = {0, 2, 4, 5, 7, 9, 11, 12}; // C Major Intervals
         const float noteDuration = 0.5f;
 
-        int idx = currentScaleNoteIdx.load();
-        int stage = currentScaleStage.load();
+        int idx         = currentScaleNoteIdx.load();
+        int stage       = currentScaleStage.load();
         int octaveCycle = currentOctaveCycle.load();
-        
+
         int octaveOffset = 0;
-        if (octaveCycle == 1) octaveOffset = -12;
-        else if (octaveCycle == 2) octaveOffset = 12;
+        if (octaveCycle == 1)
+            octaveOffset = -12;
+        else if (octaveCycle == 2)
+            octaveOffset = 12;
 
         auto sendNoteOff = [&](int noteBase) {
             processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset, 0.0f);
-            if (stage == 1) { // Major Chord
+            if (stage == 1)
+            { // Major Chord
                 processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 4, 0.0f);
                 processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 7, 0.0f);
-            } else if (stage == 2) { // Minor Chord
+            }
+            else if (stage == 2)
+            { // Minor Chord
                 processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 3, 0.0f);
                 processor.keyboardState.noteOff(1, noteBase + 48 + octaveOffset + 7, 0.0f);
             }
@@ -148,10 +156,13 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
 
         auto sendNoteOn = [&](int noteBase) {
             processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset, 0.8f);
-            if (stage == 1) { // Major Chord
+            if (stage == 1)
+            { // Major Chord
                 processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 4, 0.8f);
                 processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 7, 0.8f);
-            } else if (stage == 2) { // Minor Chord
+            }
+            else if (stage == 2)
+            { // Minor Chord
                 processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 3, 0.8f);
                 processor.keyboardState.noteOn(1, noteBase + 48 + octaveOffset + 7, 0.8f);
             }
@@ -160,19 +171,21 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
         if (idx == -1 || currentTimer >= noteDuration)
         {
             if (idx >= 0) sendNoteOff(scalePins[idx]);
-            
+
             idx++;
-            if (idx >= 8) {
+            if (idx >= 8)
+            {
                 idx = 0;
                 stage++;
-                if (stage >= 3) {
-                    stage = 0;
+                if (stage >= 3)
+                {
+                    stage       = 0;
                     octaveCycle = (octaveCycle + 1) % 3;
                     currentOctaveCycle.store(octaveCycle);
                 }
                 currentScaleStage.store(stage);
             }
-            
+
             currentScaleNoteIdx.store(idx);
             sendNoteOn(scalePins[idx]);
             scaleTimer.store(0.0f);
@@ -187,20 +200,14 @@ void ServiceModeManager::update(double sampleRate, int numSamples)
         // Iterative Tuning Algorithm (Simulated Measurement & Correction)
         // Cycle 0: Find MinHz (A0 reference)
         // Cycle 1: Find Width (A4 reference)
-        
-        const float cycleDuration = 1.0f; 
+
+        const float cycleDuration = 1.0f;
         if (autoTuneStep >= cycleDuration)
         {
             autoTuneStep = 0.0f;
             autoTuneCycle++;
 
-            if (autoTuneCycle == 1) 
-            {
-                // Simulated: Found MinHz error -> Correcting
-                float currentMin = processor.getCalibrationSettings().getValue("vcfMinHz");
-                processor.getCalibrationSettings().setValue("vcfMinHz", currentMin * 1.02f); // Small adjustment
-            }
-            else if (autoTuneCycle == 2)
+            if (autoTuneCycle == 2)
             {
                 // Simulated: Found Width error -> Correcting
                 float currentWidth = processor.getCalibrationSettings().getValue("vcfWidth");

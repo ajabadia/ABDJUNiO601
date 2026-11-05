@@ -17,14 +17,15 @@ void JunoEngine::prepare(double sr, int maxBlockSize)
     sampleRate = sr;
 
     voiceManager.prepare(sr, maxBlockSize);
-    if (arpeggiator != nullptr) {
+    if (arpeggiator != nullptr)
+    {
         arpeggiator->SetSampleRate((float)sr);
         arpeggiator->Reset();
     }
 
     chorus.prepare(sr, maxBlockSize);
 
-    juce::dsp::ProcessSpec spec { sr, (juce::uint32)maxBlockSize, 2 };
+    juce::dsp::ProcessSpec spec{sr, (juce::uint32)maxBlockSize, 2};
     dcBlocker.reset();
     dcBlocker.prepare(spec);
 
@@ -35,7 +36,7 @@ void JunoEngine::prepare(double sr, int maxBlockSize)
     smoothedSagGain.setCurrentAndTargetValue(1.0f);
 
     masterLFO.prepare(sr, maxBlockSize);
-    wasAnyNoteHeld = false;
+    wasAnyNoteHeld     = false;
     lfoTimeAccumulator = 0.0;
 
     dryNoise.Init((float)sr);
@@ -57,14 +58,14 @@ void JunoEngine::reset()
     dcBlocker.reset();
     smoothedSagGain.setCurrentAndTargetValue(1.0f);
     powerOnDelaySamples = 0;
-    wasAnyNoteHeld = false;
-    globalDriftAudible = 0.0f;
-    thermalCounter = 0;
-    thermalTarget = 0.0f;
-    lfoTimeAccumulator = 0.0;
-    chorusLfoPhaseI = 0.0f;
-    chorusLfoPhaseII = 0.0f;
-    arpEnabledCache = false;
+    wasAnyNoteHeld      = false;
+    globalDriftAudible  = 0.0f;
+    thermalCounter      = 0;
+    thermalTarget       = 0.0f;
+    lfoTimeAccumulator  = 0.0;
+    chorusLfoPhaseI     = 0.0f;
+    chorusLfoPhaseII    = 0.0f;
+    arpEnabledCache     = false;
 }
 
 void JunoEngine::panic()
@@ -75,9 +76,15 @@ void JunoEngine::panic()
     performanceState.noteOffBuffer.fill(0);
 }
 
-void JunoEngine::setLfoCalibration(CalibrationSettings* cal)
+void JunoEngine::setCalibrationSettings(CalibrationSettings* cal)
 {
     masterLFO.setCalibrationSettings(cal);
+    voiceManager.setCalibrationSettings(cal);
+}
+
+void JunoEngine::setLfoCalibration(CalibrationSettings* cal)
+{
+    setCalibrationSettings(cal);
 }
 
 void JunoEngine::setTargetModel(int model)
@@ -87,7 +94,7 @@ void JunoEngine::setTargetModel(int model)
 
 void JunoEngine::setHostInfo(double bpm, bool playing, double ppqPosition)
 {
-    hostBPM = bpm;
+    hostBPM     = bpm;
     hostPlaying = playing;
     hostBeatPos = ppqPosition;
 }
@@ -118,9 +125,14 @@ void JunoEngine::triggerLfo()
 
 void JunoEngine::noteOn(int channel, int midiNote, float velocity)
 {
-    if (arpEnabledCache && arpeggiator != nullptr) {
+    performanceState.handleNoteOn(midiNote);
+
+    if (arpEnabledCache && arpeggiator != nullptr)
+    {
         arpeggiator->NoteOn(midiNote);
-    } else {
+    }
+    else
+    {
         voiceManager.noteOn(channel, midiNote, velocity);
     }
 }
@@ -128,9 +140,12 @@ void JunoEngine::noteOn(int channel, int midiNote, float velocity)
 void JunoEngine::noteOff(int channel, int midiNote, float velocity)
 {
     juce::ignoreUnused(channel, velocity);
-    if (arpEnabledCache && arpeggiator != nullptr) {
+    if (arpEnabledCache && arpeggiator != nullptr)
+    {
         arpeggiator->NoteOff(midiNote);
-    } else {
+    }
+    else
+    {
         performanceState.handleNoteOff(midiNote, voiceManager);
     }
 }
@@ -168,9 +183,10 @@ void JunoEngine::setTapeEchoCalibration(const TapeEchoCal& cal)
 
 void JunoEngine::updateThermalDrift(SynthParams& params)
 {
-    if (++thermalCounter > params.thermalInertia) {
+    if (++thermalCounter > params.thermalInertia)
+    {
         thermalCounter = 0;
-        thermalTarget = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * params.thermalIntensity;
+        thermalTarget  = (chorusNoiseGen.nextFloat() * 2.0f - 1.0f) * params.thermalIntensity;
     }
     globalDriftAudible += (thermalTarget - globalDriftAudible) * params.thermalMigration;
     params.thermalDrift = globalDriftAudible;
@@ -178,17 +194,18 @@ void JunoEngine::updateThermalDrift(SynthParams& params)
 
 void JunoEngine::updateArpFromParams(const SynthParams& params)
 {
-    arpEnabledCache = params.arpEnabled && (params.modelArp != 2);
-    arpeggiator->mEnabled = arpEnabledCache;
-    arpeggiator->mMode = params.arpMode;
-    arpeggiator->mRange = params.arpRange;
-    arpeggiator->mRate = JunoArpeggiator::arpRate(params.arpRate);
+    arpEnabledCache          = params.arpEnabled && (params.modelArp != 2);
+    arpeggiator->mEnabled    = arpEnabledCache;
+    arpeggiator->mMode       = params.arpMode;
+    arpeggiator->mRange      = params.arpRange;
+    arpeggiator->mRate       = JunoArpeggiator::arpRate(params.arpRate);
     arpeggiator->mSyncToHost = params.arpSync;
-    if (params.arpSync) {
+    if (params.arpSync)
+    {
         arpeggiator->mHostPlaying = hostPlaying;
-        arpeggiator->mHostBPM = hostBPM;
+        arpeggiator->mHostBPM     = hostBPM;
         arpeggiator->mHostBeatPos = hostBeatPos;
-        arpeggiator->mDivision = params.arpDivision;
+        arpeggiator->mDivision    = params.arpDivision;
     }
 }
 
@@ -197,14 +214,7 @@ void JunoEngine::processArpeggiator(int numSamples)
     if (arpeggiator == nullptr)
         return;
 
-    arpeggiator->Process(numSamples,
-        [this](int note, int) {
-            voiceManager.noteOn(0, note, 0.8f);
-        },
-        [this](int note, int) {
-            voiceManager.noteOff(0, note, 0.0f);
-        }
-    );
+    arpeggiator->Process(numSamples, [this](int note, int) { voiceManager.noteOn(0, note, 0.8f); }, [this](int note, int) { voiceManager.noteOff(0, note, 0.0f); });
 }
 
 void JunoEngine::process(SynthParams& params, juce::AudioBuffer<float>& buffer, int numSamples, bool lfoTrig)
@@ -215,6 +225,7 @@ void JunoEngine::process(SynthParams& params, juce::AudioBuffer<float>& buffer, 
     updateThermalDrift(params);
 
     voiceManager.updateParams(params);
+    performanceState.setMode(static_cast<int>(params.sustainMode));
 
     voiceManager.setPortamentoEnabled(params.portamentoOn);
     voiceManager.setPortamentoTime(params.portamentoTime);
@@ -242,13 +253,15 @@ void JunoEngine::renderAudio(SynthParams& params, juce::AudioBuffer<float>& buff
     masterLFO.setDelay(params.lfoDelay * params.lfoDelayMax);
     masterLFO.updateGateState(anyHeld, lfoTrig);
 
-    float tickRateMs = params.lfoTickRateMs;
-    double tickRateHz = 1000.0 / (double)tickRateMs;
+    float tickRateMs      = params.lfoTickRateMs;
+    double tickRateHz     = 1000.0 / (double)tickRateMs;
     double samplesPerTick = sr / tickRateHz;
 
-    for (int i = 0; i < numSamples; ++i) {
+    for (int i = 0; i < numSamples; ++i)
+    {
         lfoTimeAccumulator += 1.0;
-        if (lfoTimeAccumulator >= samplesPerTick) {
+        if (lfoTimeAccumulator >= samplesPerTick)
+        {
             lfoTimeAccumulator -= samplesPerTick;
             masterLFO.tick106();
         }
@@ -256,7 +269,8 @@ void JunoEngine::renderAudio(SynthParams& params, juce::AudioBuffer<float>& buff
         float lfoVal = masterLFO.process(params.lfoRate);
 
         float res = params.lfoResolution;
-        if (res > 1.0f) {
+        if (res > 1.0f)
+        {
             lfoVal = std::round(lfoVal * res) / res;
         }
 
@@ -268,15 +282,17 @@ void JunoEngine::renderAudio(SynthParams& params, juce::AudioBuffer<float>& buff
 
 void JunoEngine::applyChorus(const SynthParams& params, juce::AudioBuffer<float>& buffer, int /*numSamples*/)
 {
-    int chorusModel = GET_MODEL_CHORUS(params);
-    if (chorusModel != 2) return;
+    // J6, J60 y J106 tienen chorus hardware: el modelo no lo desactiva.
+    // (Off se gestiona con el propio modo, mas abajo).
+    juce::ignoreUnused(GET_MODEL_CHORUS(params));
 
-    int activeMode = (params.chorusCycleMode >= 0) ? params.chorusCycleMode : params.chorusMode;
+    int activeMode       = (params.chorusCycleMode >= 0) ? params.chorusCycleMode : params.chorusMode;
     ChorusBBD::Mode mode = static_cast<ChorusBBD::Mode>(activeMode);
 
     chorus.setMode(mode);
     chorus.setHissLevel(params.chorusHissLvl);
     chorus.setHissMultiplier(params.chorusHiss);
+    chorus.setHissColor(params.chorusHissColor);
 
     if (mode == ChorusBBD::Mode::Off)
         return;
@@ -303,40 +319,50 @@ void JunoEngine::applyChorus(const SynthParams& params, juce::AudioBuffer<float>
 void JunoEngine::processMasterEffects(SynthParams& params, juce::AudioBuffer<float>& buffer, int numSamples)
 {
     float masterVol = params.masterVolume * params.masterOutputGain;
-    float envSum = voiceManager.getTotalEnvelopeLevel();
-    float finalSag = 1.0f - (envSum * params.vcaSagAmt);
-    finalSag = juce::jlimit(0.7f, 1.0f, finalSag);
+    float envSum    = voiceManager.getTotalEnvelopeLevel();
+    float finalSag  = 1.0f - (envSum * params.vcaSagAmt);
+    finalSag        = juce::jlimit(0.7f, 1.0f, finalSag);
     smoothedSagGain.setTargetValue(finalSag);
 
     buffer.applyGain(smoothedSagGain.getNextValue() * masterVol);
 
-    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+    {
         float* d = buffer.getWritePointer(ch);
-        if (params.lowCpuMode) {
-            for (int i = 0; i < numSamples; ++i) {
+        if (params.lowCpuMode)
+        {
+            for (int i = 0; i < numSamples; ++i)
+            {
                 float x = juce::jlimit(-1.5f, 1.5f, d[i] * 1.1f);
-                d[i] = x - (x * x * x) * 0.333333f;
+                d[i]    = x - (x * x * x) * 0.333333f;
             }
-        } else {
-            for (int i = 0; i < numSamples; ++i) {
+        }
+        else
+        {
+            for (int i = 0; i < numSamples; ++i)
+            {
                 d[i] = std::tanh(d[i] * 1.1f);
             }
         }
     }
 
-    if (buffer.getNumChannels() > 1) {
-        float* l = buffer.getWritePointer(0);
-        float* r = buffer.getWritePointer(1);
+    if (buffer.getNumChannels() > 1)
+    {
+        float* l    = buffer.getWritePointer(0);
+        float* r    = buffer.getWritePointer(1);
         float bleed = params.stereoBleed;
-        for (int i = 0; i < numSamples; ++i) {
+        for (int i = 0; i < numSamples; ++i)
+        {
             float vL = l[i], vR = r[i];
             l[i] = vL + vR * bleed;
             r[i] = vR + vL * bleed;
         }
     }
 
-    if (powerOnDelaySamples < (int)(0.080f * sampleRate)) {
-        if (powerOnDelaySamples == 0) {
+    if (powerOnDelaySamples < (int)(0.080f * sampleRate))
+    {
+        if (powerOnDelaySamples == 0)
+        {
             for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
                 buffer.addSample(ch, 0, 4.0f);
         }
@@ -367,7 +393,8 @@ void JunoEngine::applyTapeEcho(SynthParams& params, juce::AudioBuffer<float>& bu
         tapeEcho.setSyncEnabled(params.delaySyncEnabled);
         tapeEcho.setSyncDivision(params.delaySyncDivision);
 
-        if (params.delaySyncEnabled) {
+        if (params.delaySyncEnabled)
+        {
             tapeEcho.setHostBPM(hostBPM);
         }
 
@@ -408,15 +435,17 @@ void JunoEngine::applyTapeEcho(SynthParams& params, juce::AudioBuffer<float>& bu
 
 void JunoEngine::applyNoiseFloor(const SynthParams& params, juce::AudioBuffer<float>& buffer, int numSamples)
 {
-    float dbScale = std::pow(10.0f, (params.masterNoise + 80.0f) / 20.0f);
+    float dbScale     = std::pow(10.0f, (params.masterNoise + 80.0f) / 20.0f);
     float dryNoiseVol = 0.0015f * params.noiseFloorMul * dbScale;
-    float rippleVol = params.mainsRippleMul;
+    float rippleVol   = params.mainsRippleMul;
 
-    for (int i = 0; i < numSamples; ++i) {
+    for (int i = 0; i < numSamples; ++i)
+    {
         float n = dryNoise.Process() * dryNoiseVol;
         n += dryRipple.Process() * rippleVol;
 
-        for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+        {
             buffer.getWritePointer(ch)[i] += n;
         }
     }

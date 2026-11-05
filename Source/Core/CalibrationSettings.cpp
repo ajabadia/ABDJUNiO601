@@ -91,7 +91,7 @@ void CalibrationSettings::buildParameterList()
     reg("midiFunction", "MIDI SysEx Mode", "GENERAL", "", "Sets the depth of MIDI data transmission (I=Note, II=Patch, III=All/SysEx).", 1.0f, 0.0f, 2.0f, 1.0f, true);
     reg("unisonWidth", "Unison Stereo Width", "GENERAL", "%", "Stereo separation of voices during UNISON mode.", 1.0f, 0.0f, 1.0f, 0.01f);
     reg("unisonDetune", "Unison Detune Amt", "GENERAL", "%", "Pitch micro-detuning intensity in UNISON mode.", 0.35f, 0.0f, 1.0f, 0.01f);
-    reg("sustainMode", "Sustain Pedal Mode", "GENERAL", "", "Behavior of the sustain pedal (0=Normal, 1=SOS, 2=Toggle).", 0.0f, 0.0f, 2.0f, 1.0f, true);
+    reg("sustainMode", "Sustain Pedal Mode", "GENERAL", "", "Behavior of the sustain pedal (0=Normal, 1=SOS, 2=Toggle).", 0.0f, 0.0f, 2.0f, 0.0f, true);
     reg("enableLogging", "System Logging", "GENERAL", "", "Enables/Disables diagnostic logging in the console (OFF by default).", 0.0f, 0.0f, 1.0f, 1.0f, true);
 
     // --- DCO ---
@@ -99,7 +99,6 @@ void CalibrationSettings::buildParameterList()
     regTriple("subGainScale", "Sub-Osc Gain Scale", "DCO", "x", "Master gain multiplier for the sub-oscillator circuit.", 1.25f, 0.5f, 2.0f, 0.05f);
     regTriple("noiseGainScale", "Noise Gain Scale", "DCO", "x", "Master gain multiplier for the white noise generator.", 0.45f, 0.1f, 1.5f, 0.01f);
     regTriple("masterClockHz", "Oscillator Master Clock", "DCO", "Hz", "Frequency of the master high-speed clock used for DCO dividers (factory=8MHz).", 8000000.0f, 7000000.0f, 9000000.0f, 1.0f);
-    regTriple("mixerSaturation", "DCO Mixer Clipping", "DCO", "", "Threshold for DCO mixing stage saturation clipping.", 0.6f, 0.1f, 4.0f, 0.05f);
     regTriple("noiseGain", "Noise Level Trim", "DCO", "", "Level of the white noise generator relative to DCOs.", 1.0f, 0.1f, 2.0f, 0.05f);
     regTriple("pwmCenterDuty", "PWM Center Duty", "DCO", "%", "Calibration of the 50% center point for pulse width.", 0.5f, 0.4f, 0.6f, 0.01f);
     regTriple("pwmMaxDuty", "PWM Maximum Duty", "DCO", "%", "Calibration of the maximum pulse width (factory=95%).", 0.95f, 0.9f, 0.99f, 0.01f);
@@ -132,11 +131,10 @@ void CalibrationSettings::buildParameterList()
     regTriple("adsrMcuRate", "Env MCU Speed", "ADSR", "ms", "Internal refresh rate of the envelope microprocessor (original 106 clock was ~4.23ms).", 4.2335f, 0.5f, 10.0f, 0.0001f);
     regTriple("adsrDacSteps", "Env DAC Resolution", "ADSR", "steps", "Quantization of the envelope DAC (approximates the discrete R-2R ladder steps).", 1024.0f, 16.0f, 16384.0f, 1.0f, true);
     regTriple("adsrOvershoot", "Attack Overshoot", "ADSR", "V", "Voltage spike at the end of the attack phase due to capacitor charging inertia.", 1.08f, 1.0f, 1.25f, 0.01f);
-    regTriple("adsrCurveExponent", "ADSR Curve Exponent", "ADSR", "", "Non-linear scaling of ADSR sliders (factory/2.2 is recommended).", 2.2f, 1.0f, 4.0f, 0.1f);
     regTriple("adsrVariance", "ADSR Time Variance", "AGING", "%", "Static timing variance of the envelope components between voices.", 0.05f, 0.0f, 0.15f, 0.01f);
 
     // --- CHORUS ---
-    regTriple("chorusMix", "Chorus Dry/Wet Mix", "CHORUS", "%", "Balance between dry signal and the analog BBD chorus output.", 1.0f, 0.0f, 1.0f, 0.01f);
+    regTriple("chorusMix", "Chorus Dry/Wet Mix", "CHORUS", "%", "BBD signal summed onto the dry arm (IC6). 1.0 = hardware sum, 0 = dry only; the dry arm keeps calGainDry, so this is not a wet-only crossfade.", 1.0f, 0.0f, 1.0f, 0.01f);
     regTriple("chorusHiss", "Analog Hiss Level", "CHORUS", "dB", "Baseline analog noise level of the BBD delay lines.", -68.0f, -96.0f, -30.0f, 0.5f);
     regTriple("chorusDelayI", "Chorus I Base Delay", "CHORUS", "ms", "Base delay for Chorus I mode (Factory 3.2ms).", 3.2f, 1.0f, 10.0f, 0.1f);
     regTriple("chorusDelayII", "Chorus II Base Delay", "CHORUS", "ms", "Base delay for Chorus II mode (Factory 3.3ms).", 3.3f, 2.0f, 20.0f, 0.1f);
@@ -167,8 +165,6 @@ void CalibrationSettings::buildParameterList()
     // running accumulator can reach. Revisit before changing the default (FW.3).
 
     // --- VCF ---
-    regTriple("vcfMinHz", "VCF Min Frequency", "VCF", "Hz", "Lowest possible cutoff frequency.", 10.0f, 5.0f, 100.0f, 1.0f);
-    regTriple("vcfMaxHz", "VCF Max Frequency", "VCF", "Hz", "Highest possible cutoff frequency.", 18000.0f, 5000.0f, 22000.0f, 100.0f);
     regTriple("vcfSelfOscThreshold", "VCF Self-Osc Point", "VCF", "", "Resonance level where self-oscillation begins.", 0.95f, 0.85f, 1.0f, 0.01f);
     regTriple("vcfSaturation", "VCF OTA Saturation", "VCF", "", "Amount of non-linear drive in the filter stages.", 1.2f, 0.1f, 4.0f, 0.05f);
     regTriple("vcfResoComp", "VCF Resonance Comp", "VCF", "", "Base gain compensation level when resonance is high (Hardware stabilized).", 0.35f, 0.0f, 1.5f, 0.05f);
@@ -176,8 +172,6 @@ void CalibrationSettings::buildParameterList()
     regTriple("vcfLfoDepth", "LFO Filter Depth", "VCF", "", "Sensitivity of the VCF cutoff to the master LFO modulation.", 0.3f, 0.05f, 1.0f, 0.05f);
     regTriple("vcfEnvRange", "Env Filter Range", "VCF", "", "Maximum sweep range of the envelope generator on the VCF cutoff.", 2.0f, 0.5f, 4.0f, 0.1f);
     regTriple("vcfSelfOscInt", "Self-Osc Intensity", "VCF", "", "Intensity of the self-oscillating feedback loop at maximum resonance.", 0.5f, 0.1f, 2.0f, 0.05f);
-    regTriple("vcfTrackCenter", "VCF Tracking Center", "VCF", "Hz", "Pitch pivot point for keyboard tracking (determines where tracking is exactly 1:1).", 440.0f, 100.0f, 1000.0f, 10.0f);
-    regTriple("vcfResoSpread", "VCF Resonance Spread", "VCF", "%", "Variance in filter resonance response between voices (simulates 80017A chip tolerances).", 0.05f, 0.0f, 0.2f, 0.01f);
     regTriple("vcfWidth", "VCF Tracking Width", "VCF", "", "V/oct scaling accuracy (simulates VCF Width trim pot).", 1.0f, 0.8f, 1.2f, 0.01f);
     regTriple("vcfSlewMs", "VCF Analog Slew", "VCF", "ms", "Analog slew filter time constant for VCF CV (Original: 0.522ms).", 0.522f, 0.0f, 20.0f, 0.1f);
     regTriple("vcfResPolK", "VCF Res Polynomial K", "VCF", "", "Scale factor for ResK_J106 polynomial curve fitting (Factory 1.24).", 1.24f, 0.5f, 2.0f, 0.01f);
@@ -189,9 +183,6 @@ void CalibrationSettings::buildParameterList()
     regTripleWithDefaults("hpfFreq2", "HPF Pos 2 Frequency", "HPF", "Hz", "HPF cutoff at pos 2 (C=.015µF, R_eff=44.9K). Hardware: 236 Hz.", 269.0f, 269.0f, 236.0f, 50.0f, 1000.0f, 1.0f);
     regTripleWithDefaults("hpfFreq3", "HPF Pos 3 Frequency", "HPF", "Hz", "HPF cutoff at pos 3 (C=.0047µF, R_eff=44.9K). Hardware: 754 Hz.", 571.0f, 571.0f, 754.0f, 300.0f, 2500.0f, 5.0f);
     regTriple("hpfBassBoostGain", "Bass Boost Output Scale", "HPF", "x", "Post-gain scale for Bass Boost (pos 0). 1.0 = hardware (+10.5 dB DC, ~59 Hz shelf). Increase for more bass.", 1.0f, 0.1f, 3.0f, 0.05f);
-    regTriple("hpfShelfFreq", "HPF Pos 0 Shelf Freq", "HPF", "Hz", "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.", 70.0f, 20.0f, 300.0f, 1.0f);
-    regTriple("hpfShelfGain", "HPF Pos 0 Shelf Gain", "HPF", "dB", "[Legacy] Not used by BassBoostFilter. Kept for UI compatibility.", 3.0f, 0.0f, 12.0f, 0.1f);
-    regTriple("hpfQ", "HPF Filter Q", "HPF", "", "[Legacy] Not used by 1-pole TPT. Kept for UI compatibility.", 0.707f, 0.1f, 2.0f, 0.01f);
 
     // --- THERMAL DRIFT ---
     regTriple("thermalIntensity", "Thermal Intensity Scale", "THERMAL", "x", "Global scale for thermal pitch drift instability.", 1.5f, 0.1f, 3.0f, 0.1f);
@@ -207,9 +198,7 @@ void CalibrationSettings::buildParameterList()
     regTriple("unisonSpread", "Unison Spread Scale", "AGING", "", "Master multiplier for the Unison detune amount.", 1.0f, 0.1f, 2.0f, 0.1f);
     regTriple("dcoGlobalDrift", "Master Clock Drift", "AGING", "cents", "Shared pitch instability across all voices (Master Clock variations).", 0.5f, 0.0f, 5.0f, 0.1f);
     regTriple("dcoVoiceDrift", "Voice Drift Amount", "AGING", "cents", "Individual voice pitch wandering due to thermal noise in DCO dividers.", 0.3f, 0.0f, 3.0f, 0.1f);
-    regTriple("dcoDriftComplexity", "DCO Drift Complexity", "AGING", "", "Depth of fractal random walk for thermal pitch wandering.", 0.5f, 0.0f, 1.0f, 0.05f);
     regTriple("vcaRippleDepth", "VCA Ripple Depth", "AGING", "", "Depth of the envelope-induced power supply ripple noise (VCA crosstalk).", 0.0005f, 0.0f, 0.005f, 0.0001f);
-    regTriple("lfoDelayCurve", "LFO Onset Curve", "AGING", "", "Attack curvature for the LFO onset (how fast it reaches full depth).", 5.0f, 1.0f, 10.0f, 0.1f);
     regTriple("dcoDriftRate", "Master Drift Rate", "AGING", "Hz", "Speed of the pitch wandering (random walk frequency).", 0.008f, 0.001f, 0.05f, 0.001f);
     regTriple("dcoLfoPitchDepth", "DCO Vibrato Depth", "DCO", "", "Sensitivity of the DCO pitch to the master LFO (vibrato depth).", 0.4f, 0.1f, 1.0f, 0.05f);
     regTriple("pwmOffThreshold", "PWM Cut-off Threshold", "DCO", "", "Point where pulse width becomes silent (Factory 0.05).", 0.05f, 0.0f, 0.15f, 0.01f);
@@ -259,8 +248,6 @@ void CalibrationSettings::buildParameterList()
     // --- SYSTEM ---
     regTriple("a4Reference", "A4 Reference Pitch", "SYSTEM", "Hz", "Master tuning reference frequency (Standard=440Hz).", 440.0f, 400.0f, 480.0f, 1.0f);
     regTriple("oversampling", "Internal Oversampling", "SYSTEM", "x", "Audio engine oversampling rate (1x=Normal, 2x=Hi-Fi, 4x=Extreme).", 1.0f, 1.0f, 4.0f, 1.0f, true);
-    regTriple("sliderHysteresis", "Slider Hysteresis", "SYSTEM", "", "Simulates mechanical wear and friction in the analog sliders.", 0.01f, 0.0f, 0.1f, 0.005f);
-    regTriple("paramSlewRate", "Parameter Slew Rate", "SYSTEM", "", "Latency of response when moving sliders (hardware lag simulation).", 0.95f, 0.5f, 1.0f, 0.01f);
     regTriple("staggeredUpdateMaxMs", "Staggered Update Max Delay", "SYSTEM", "ms", "Maximum micro-delay across all voices (staggered CV update).", 2.0f, 0.0f, 4.0f, 0.1f);
     regTriple("arpClockRelaxation", "Arp Clock Relaxation", "SYSTEM", "", "Schmitt-trigger clock hysteresis relaxation coefficient.", 0.5f, 0.0f, 1.0f, 0.01f);
 }

@@ -5,30 +5,36 @@
 #include "../Synth/JunoADSR.h"
 #include "BaseClass/ADSRGeneric.h"
 
-class JunoADSRTests : public juce::UnitTest {
+class JunoADSRTests : public juce::UnitTest
+{
 public:
-    JunoADSRTests() : juce::UnitTest("JunoADSR Tests", "JunoDSP") {}
+    JunoADSRTests()
+        : juce::UnitTest("JunoADSR Tests", "JunoDSP") {}
 
-    void runTest() override {
+    void runTest() override
+    {
         beginTest("ADSR Lifecycle (Juno Authentic)");
-        
+
         JunoADSR adsr;
         adsr.setSampleRate(44100.0);
-        
+
         // Initial state
         expect(!adsr.isActive());
-        
+
         // Note On
         adsr.noteOn();
         expect(adsr.isActive());
     }
 };
 
-class JunoADSRTimingTest : public juce::UnitTest {
+class JunoADSRTimingTest : public juce::UnitTest
+{
 public:
-    JunoADSRTimingTest() : juce::UnitTest("Juno ADSR Timing", "JunoDSP") {}
+    JunoADSRTimingTest()
+        : juce::UnitTest("Juno ADSR Timing", "JunoDSP") {}
 
-    void runTest() override {
+    void runTest() override
+    {
         beginTest("Attack timing behaves monotonically");
 
         const double sampleRate = 44100.0;
@@ -43,16 +49,17 @@ public:
         env.noteOn();
 
         const int maxSamples = (int)(0.1 * sampleRate);
-        float last = -1.0f;
-        int peakValue = 0;
+        float last           = -1.0f;
+        int peakValue        = 0;
 
-        for (int i = 0; i < maxSamples; ++i) {
+        for (int i = 0; i < maxSamples; ++i)
+        {
             auto v = env.getNextSample();
             // During the Attack phase, the envelope must never decrease
             // (the 1e-4 tolerance covers floating-point interpolation noise
             //  between MCU ticks in J106 mode).
             expect(v >= last - 1e-4f);
-            
+
             // Use stage detection to break at attack→decay transition.
             // We cannot rely on v >= 1.0f because in J106 mode the linear
             // interpolation between the final attack tick (mEnvNext=1.0f)
@@ -62,11 +69,11 @@ public:
             // decay sample.
             if (env.getCurrentStage() != JunoADSR::Stage::Attack)
                 break;
-            
-            last = v;
+
+            last      = v;
             peakValue = i;
         }
-        
+
         // The envelope should have entered the Attack phase at all
         expect(peakValue > 0, "Envelope should have started attacking");
         // By the time attack completes, the envelope should be near 1.0
@@ -74,3 +81,7 @@ public:
                "Envelope should reach near 1.0 by end of attack, got " + juce::String(last, 4));
     }
 };
+
+static JunoADSRTests junoADSRTestsInstance;
+
+static JunoADSRTimingTest junoADSRTimingTestInstance;

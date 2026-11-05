@@ -1,43 +1,45 @@
 #pragma once
 
+#include "../Synth/ChorusBBD.h"
+#include "../Synth/JunoArpeggiator.h"
+#include "../Synth/JunoLFO.h"
+#include "../Synth/JunoTapeEcho.h"
+#include "JunoModelConfig.h"
+#include "JunoVoiceManager.h"
+#include "PerformanceState.h"
+#include "SynthParams.h"
 #include <JuceHeader.h>
 #include <memory>
 #include <vector>
-#include "SynthParams.h"
-#include "JunoVoiceManager.h"
-#include "PerformanceState.h"
-#include "JunoModelConfig.h"
-#include "../Synth/ChorusBBD.h"
-#include "../Synth/JunoLFO.h"
-#include "../Synth/JunoTapeEcho.h"
-#include "../Synth/JunoArpeggiator.h"
 
 class CalibrationSettings;
 
-class JunoEngine {
+class JunoEngine
+{
 public:
-    struct TapeEchoCal {
-        float delayInputLevel = 1.0f;
-        float delayWetDry = 1.0f;
-        float delayWowRate = 5.0f;
-        float delayFlutterRate = 15.0f;
-        float delayTapeScrapeRate = 100.0f;
-        float delayWowAmp = 0.02f;
-        float delayFlutterAmp = 0.005f;
-        float delayTapeScrapeAmp = 0.001f;
-        float delayWowFlutterScale = 1.0f;
-        float delaySaturationInputGain = 1.0f;
-        float delayHead2Ratio = 0.8f;
-        float delayHead3Ratio = 0.6f;
-        float delayBassFreq = 500.0f;
-        float delayTrebleFreq = 3000.0f;
-        float delayFeedbackLpfBase = 8000.0f;
-        float delayFeedbackLpfRange = 4000.0f;
-        float delaySpringGain = 0.5f;
+    struct TapeEchoCal
+    {
+        float delayInputLevel            = 1.0f;
+        float delayWetDry                = 1.0f;
+        float delayWowRate               = 5.0f;
+        float delayFlutterRate           = 15.0f;
+        float delayTapeScrapeRate        = 100.0f;
+        float delayWowAmp                = 0.02f;
+        float delayFlutterAmp            = 0.005f;
+        float delayTapeScrapeAmp         = 0.001f;
+        float delayWowFlutterScale       = 1.0f;
+        float delaySaturationInputGain   = 1.0f;
+        float delayHead2Ratio            = 0.8f;
+        float delayHead3Ratio            = 0.6f;
+        float delayBassFreq              = 500.0f;
+        float delayTrebleFreq            = 3000.0f;
+        float delayFeedbackLpfBase       = 8000.0f;
+        float delayFeedbackLpfRange      = 4000.0f;
+        float delaySpringGain            = 0.5f;
         float delaySpringReflectionScale = 0.3f;
-        float delaySchroederLpf = 0.6f;
-        float delaySchroederGain = 0.5f;
-        float delaySchroederSatDrive = 0.3f;
+        float delaySchroederLpf          = 0.6f;
+        float delaySchroederGain         = 0.5f;
+        float delaySchroederSatDrive     = 0.3f;
     };
 
     JunoEngine();
@@ -69,6 +71,10 @@ public:
 
     void setTapeEchoCalibration(const TapeEchoCal& cal);
     void setLfoCalibration(CalibrationSettings* cal);
+    // [FIX] La calibracion tambien debe llegar al VCF/VCA/DCO de cada voz:
+    // sin esto JunoVCF::computeCutoffHz se queda en 1000 Hz fijos y el
+    // cutoff no responde (todos los presets suenan igual).
+    void setCalibrationSettings(CalibrationSettings* cal);
     void setTargetModel(int model);
     int getTargetModel() const { return targetModel; }
     bool isSuperSix() const { return targetModel == 0; }
@@ -103,21 +109,21 @@ private:
     juce::Random chorusNoiseGen;
     juce::Random masterNoiseGen;
 
-    float chorusLfoPhaseI = 0.0f;
-    float chorusLfoPhaseII = 0.0f;
-    int powerOnDelaySamples = 0;
-    bool wasAnyNoteHeld = false;
-    float globalDriftAudible = 0.0f;
-    int thermalCounter = 0;
-    float thermalTarget = 0.0f;
+    float chorusLfoPhaseI     = 0.0f;
+    float chorusLfoPhaseII    = 0.0f;
+    int powerOnDelaySamples   = 0;
+    bool wasAnyNoteHeld       = false;
+    float globalDriftAudible  = 0.0f;
+    int thermalCounter        = 0;
+    float thermalTarget       = 0.0f;
     double lfoTimeAccumulator = 0.0;
 
-    double sampleRate = 44100.0;
-    int targetModel = JUNO_TARGET_MODEL;
+    double sampleRate    = 44100.0;
+    int targetModel      = JUNO_TARGET_MODEL;
     bool arpEnabledCache = false;
 
-    double hostBPM = 120.0;
-    bool hostPlaying = false;
+    double hostBPM     = 120.0;
+    bool hostPlaying   = false;
     double hostBeatPos = 0.0;
 
     TapeEchoCal tapeEchoCal;
