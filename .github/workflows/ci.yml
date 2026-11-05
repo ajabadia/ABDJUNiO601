@@ -314,6 +314,41 @@ jobs:
   # llegue a medir (clang-format ausente, o un VERIFY_ONLY que falla sin
   # reportar ni un aviso), y el test NEGATIVO de abajo, que exige que el
   # hook NOMBRE el fichero mal formateado en su salida.
+  # GUARD DE DIRECCION DEL BRIDGE (WebView2) — BLOQUEANTE, sin baseline: es
+  # barato (segundos) y la regla no admite matices. Escribir desde C++ un evento
+  # del canal JS -> nativo no llega a ningun listener y SE DESCARTA EN SILENCIO;
+  # paso en ABDMS2000. La logica es la MISMA que usan sus suites de vitest, para
+  # que los tres repos no puedan divergir en que es "direccion correcta".
+  webview-guard:
+    name: Guard de direccion del bridge WebView2
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
+        working-directory: ABDJUNiO601
+    steps:
+    - name: Checkout ABDJUNiO601
+      uses: actions/checkout@v7
+      with:
+        path: ABDJUNiO601
+
+    - name: Checkout ABDSharedCode (hermano, SHA fijo)
+      uses: actions/checkout@v7
+      with:
+        repository: ajabadia/ABDSharedCode
+        ref: ${{ env.SHA_SHARED }}
+        path: ABDSharedCode
+        fetch-depth: 1
+
+    - name: Node 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Guard de direccion (nativo -> JS) - bloqueante
+      run: node scripts/check_webview_bridge_direction.mjs
+
   clang-format:
     name: Clang-format (estilo C++, bloqueante con baseline)
     runs-on: ubuntu-latest
