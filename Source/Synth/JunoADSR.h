@@ -110,13 +110,10 @@ private:
     float gateEnv      = 0.0f;
 
     // [Fidelidad] MCU Emulation & Ticks (Juno-106 mode)
-    uint16_t mEnvInt = 0; // current 14-bit envelope (0–0x3FFF)
-    uint16_t mAtkInc = 0; // attack increment per tick
-    uint16_t mDecMul = 0; // decay multiplier per tick
-    uint16_t mRelMul = 0; // release multiplier per tick
-
-    // Limita un coeficiente de decay/release al tiempo maximo del hardware
-    uint16_t clampToMaxTime(uint16_t coeff, float seconds) const;
+    uint16_t mEnvInt = 0;    // current 14-bit envelope (0–0x3FFF)
+    uint16_t mAtkInc = 0;    // attack increment per tick
+    uint16_t mDecMul = 0;    // decay multiplier per tick
+    uint16_t mRelMul = 0;    // release multiplier per tick
     uint16_t mSusInt = 0;    // sustain level as integer
     float mTickAccum = 0.f;  // fractional tick accumulator
     float mEnvPrev   = 0.f;  // previous tick output (for interpolation)

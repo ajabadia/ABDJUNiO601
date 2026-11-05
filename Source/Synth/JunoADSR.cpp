@@ -110,7 +110,7 @@ void JunoADSR::setDecayRaw(float slider)
     if (mode == ADSRMode::kJ106)
     {
         int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
-        mDecMul   = clampToMaxTime(kDecRelTable[index], 24.0f); // el coeficiente se aplica 2x por tick: 24 s -> 12 s reales
+        mDecMul   = kDecRelTable[index];
     }
     else // kJ6 or kJ60
     {
@@ -119,28 +119,12 @@ void JunoADSR::setDecayRaw(float slider)
     }
 }
 
-// El Juno-106 especifica un maximo de 12 s para decay y release (service notes,
-// 31-JUL-1984). La tabla del firmware, a la velocidad de refresco actual, llega a
-// ~25.6 s, asi que se limita el coeficiente para que el tope del mando sea el del
-// hardware. El limite se calcula con la frecuencia de tick real del envelope y el
-// criterio de -60 dB usado por el test de tiempos.
-uint16_t JunoADSR::clampToMaxTime(uint16_t coeff, float seconds) const
-{
-    const float tickHz = (1000.0f / std::max(0.5f, mcuRateFactor)) * mTimeScale;
-    if (tickHz <= 0.0f || seconds <= 0.0f)
-        return coeff;
-
-    const float ratio = std::exp(std::log(0.001f) / (seconds * tickHz));
-    const auto cap    = (uint16_t)juce::jlimit(1.0f, 65535.0f, ratio * 65536.0f);
-    return std::min(coeff, cap);
-}
-
 void JunoADSR::setReleaseRaw(float slider)
 {
     if (mode == ADSRMode::kJ106)
     {
         int index = std::clamp(static_cast<int>(slider * 127.f + 0.5f), 0, 127);
-        mRelMul   = clampToMaxTime(kDecRelTable[index], 24.0f); // el coeficiente se aplica 2x por tick: 24 s -> 12 s reales
+        mRelMul   = kDecRelTable[index];
     }
     else // kJ6 or kJ60
     {
@@ -245,14 +229,17 @@ void JunoADSR::tick106()
             if (mEnvInt > mSusInt)
             {
                 uint16_t diff = mEnvInt - mSusInt;
-                diff          = calcDecay(diff, mDecMul);
-                mEnvInt       = diff + mSusInt;
+                // La tabla del firmware se aplica dos veces por tick: con una
+                // sola el tope del mando daba 25.6 s y el hardware especifica
+                // 12 s. Asi el recorrido sigue siendo el de la tabla original.
+                diff    = calcDecay(calcDecay(diff, mDecMul), mDecMul);
+                mEnvInt = static_cast<uint16_t>(diff + mSusInt);
             }
             else
                 mEnvInt = mSusInt;
             break;
         case Stage::Release:
-            mEnvInt = calcDecay(mEnvInt, mRelMul);
+            mEnvInt = calcDecay(calcDecay(mEnvInt, mRelMul), mRelMul);
             if (mEnvInt == 0)
                 stage = Stage::Idle;
             break;
