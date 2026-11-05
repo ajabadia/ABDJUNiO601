@@ -131,7 +131,7 @@ jobs:
     - name: Configure CMake
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="${WEBVIEW2_ROOT:-}"
+          cmake -S . -B build -A x64 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="${WEBVIEW2_ROOT:-}"
         else
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
         fi
